@@ -6,9 +6,9 @@ compression rules for stable bio/mech co-evolution frameworks.
 canyon haney
 
 independent systems architect
-holo/sim — recursive-evolution frameworks
+Holo/Sim— recursive-evolution frameworks
 
-focus: continuity • drift-control • stable recursion • adaptive invariants  
+Focus: continuity • drift-control • stable recursion • adaptive invariants  
 work: compressed-evolution models • handshake-safe architecture  
 
 contact: x/@ADarkM0ment • discord: deathburgerz013
