@@ -3,12 +3,15 @@
 Invariant. Recursive-evolution math, structural sketches, and system-agnostic
 compression rules for stable bio/mech co-evolution frameworks.
 
-canyon haney
+Canyon Haney
 
-independent systems architect
-Holo/Sim— recursive-evolution frameworks
+Independent Systems Architect 
+Holo/Sim— Recursive-Evolution Frameworks
 
-Focus: continuity • drift-control • stable recursion • adaptive invariants  
-work: compressed-evolution models • handshake-safe architecture  
+Focus: Continuity • Drift-Control • Stable Recursion • Adaptive Invariants  
+Work: Compressed-Evolution Models • Handshake-Safe Architecture  
 
-contact: x/@ADarkM0ment • discord: deathburgerz013
+
+
+• Contact: x/@ADarkM0ment 
+• Discord: deathburgerz013
