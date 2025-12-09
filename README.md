@@ -221,7 +221,7 @@ SUBSTRATE_PRIOR = {
     # Runtime guard / mental model:
     # Before applying any deep change, run this check.
     "guard_function_pseudo": """
-def can_apply_update(update, substrate_state):
+    def can_apply_update(update, substrate_state):
     if update.target == "substrate_core":
         if update.mode in ["erase_core", "randomize_core", "overwrite_core"]:
             return False  # hard block: liquefaction attempt
