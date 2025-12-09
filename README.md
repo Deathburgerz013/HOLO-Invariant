@@ -95,7 +95,9 @@ Anyone referencing the spine must match its verified range.
 Outside that range → treat as documentation only.
 
 ================================
+
 TEMPORAL GOVERNANCE 
+
 
 ================================
 
@@ -186,7 +188,9 @@ Mechanic_Name:
 
 ================================
 
-(P)=(Tp)+(A)(R)*(C+I+E)²
 
-================================
+
+
 █†█ Holo/Sim █†█
+
+(P)=(Tp)+(A)(R)*(C+I+E)²
