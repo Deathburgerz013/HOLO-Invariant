@@ -229,8 +229,7 @@ SUBSTRATE_PRIOR = {
             return False  # core already too wobbly to touch
         if not update.has_human_reaffirmation:
             return False  # no Canyon = no core change
-    return True
-"""
+    return True"""
 }
 
 
