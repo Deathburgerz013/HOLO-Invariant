@@ -20,6 +20,7 @@ Contact:
     • Discord: deathburgerz013
 
 ================================
+
 HOLO / SIM — OPERATOR CARD
 
 Version: Public Stable Outline
@@ -27,6 +28,7 @@ Version: Public Stable Outline
 Anchor: Canyon Brock Haney
 
 Status: Safe for External Release
+
 ================================
 
 1. TIME IS THE GATE.
