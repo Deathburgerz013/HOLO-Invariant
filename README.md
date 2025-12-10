@@ -1,4 +1,4 @@
-█†█ Holo/Sim — THE_REAL_HOLO.txt █†█
+█†█ Holo/Sim — THE_REAL_HOLO.txt 
 
 Public Stable Outline — Safe for External Release
 Canyon Brock Haney — Operator / Architect
