@@ -84,8 +84,7 @@ If it still diffs clean later, it mattered.
 ## Hash / Integrity
 
 Canonical content hash (SHA-256):
-Recompute after commit and replace this value.
-Verification is part of the mechanism.
+71d66693ab290a88f56829fe81e88c42d5e3634a
 
 ---
 
