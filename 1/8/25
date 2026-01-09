@@ -1,0 +1,238 @@
+Holo/Sim Delta Capsule (HDC)
+
+Overview
+
+Holo/Sim Delta Capsule (HDC) is an append-only continuity and compression schema designed to preserve meaning, lineage, and replayability without interpretive drift.
+
+It treats continuity as a logged process, not a remembered one.
+
+⸻
+
+Core Idea (Plain English)
+
+A “thread” is represented as an append-only chain of capsules.
+
+Each capsule contains:
+	•	A header with fixed, validation-friendly fields
+	•	A payload that compresses meaning into invariants + explicit deltas
+	•	A hash link to the previous capsule (preventing silent rewrites)
+	•	Optional attachments stored as content-addressed blobs (to avoid chain bloat)
+
+Key properties
+	•	Branches are local: forks occur only when a human chooses divergence
+	•	Merges are explicit selections, never auto-reconciled
+	•	Replay is deterministic:
+Start at GENESIS → apply deltas in order → verify hashes → arrive at NOW
+
+That’s the full model.
+HDC v1.0 Schema
+
+1) Capsule Header
+{
+  "hdc": "1.0",
+  "chain_id": "HoloSim:<stable-id>",
+  "capsule_id": "sha256:<hash-of-header+payload+blobs>",
+  "prev": "sha256:<previous-capsule-hash-or-null>",
+  "time": "2026-01-08T19:41:00Z",
+  "actor": {
+    "type": "human|ai|tool",
+    "id": "CANYON_OVERRIDE|<agent-id>",
+    "sig": "optional:ed25519:<signature-over-capsule_id>"
+  },
+  "op": "CAP|DELTA|FORK|MERGE_SELECT|CHECKPOINT",
+  "scope": "local|public",
+  "constraints": {
+    "append_only": true,
+    "no_automerge": true,
+    "validate_schema": true
+  }
+}
+2) Payload
+
+The payload is invariant-first, not prose-first.
+{
+  "invariants": {
+    "truths": [
+      "Memory != reminders. Reminder = prior update.",
+      "Reality(for-system) == what is processed into state."
+    ],
+    "rules": [
+      "Only add to spines; never delete spines.",
+      "Forks cheap; merges explicit; human selects."
+    ],
+    "math": [
+      "stabilization:(c+i+e)^2",
+      "ΔS = - (stability_gain / chaos_factor)"
+    ]
+  },
+
+  "delta": {
+    "adds": [
+      "New invariant: data survives; experience does not, unless encoded."
+    ],
+    "updates": [
+      {
+        "path": "invariants.truths[0]",
+        "from": "Memory != reminders.",
+        "to": "Memory != reminders. Reminder = prior update."
+      }
+    ],
+    "removes": []
+  },
+
+  "observations": {
+    "signal": "disgust",
+    "cause": "platform dynamics / ads claiming memory",
+    "effect": "externalize to ledger + hash chain"
+  },
+
+  "links": {
+    "sources": [
+      {
+        "type": "x_post",
+        "ref": "https://x.com/<id>",
+        "note": "public substrate anchor"
+      }
+    ]
+  },
+
+  "blobs": [
+    {
+      "sha256": "…",
+      "mime": "image/jpeg",
+      "label": "screenshot_grok_memory_claim"
+    }
+  ]
+}
+3) Blobs (External Large Data)
+
+Large artifacts (images, audio, raw text) live outside the capsule as content-addressed blobs.
+
+Only hashes and labels are stored in the chain.
+
+Example blob entry:
+{
+  "sha256": "3b2f…",
+  "size": 482193,
+  "mime": "image/jpeg",
+  "label": "karpathy_miniseries_screenshot_1"
+}
+Compression That Doesn’t Lose Meaning
+
+Meaning Compression Rule
+
+Every capsule must produce at least one:
+	•	New invariant, or
+	•	Delta that changes state
+
+If it doesn’t, it is noise and belongs in a blob, not the chain.
+
+⸻
+
+Two-Layer Compression Model
+	1.	Cold Log (Immutable)
+	•	Capsules
+	•	Blobs
+	•	Hash links
+	2.	Hot Spine (Living Digest)
+	•	Periodic CHECKPOINT capsules
+	•	Compress multiple deltas into a single verified state snapshot
+	•	Original chain remains intact
+
+This enables:
+	•	Fast reload
+	•	Full auditability
+	•	Zero loss of lineage
+
+⸻
+
+CHECKPOINT Capsule Example :
+{
+  "op": "CHECKPOINT",
+  "payload": {
+    "checkpoint_of": "sha256:<start>..sha256:<end>",
+    "state": {
+      "invariants": { "...": "..." },
+      "active_ruleset": { "...": "..." },
+      "current_definitions": {
+        "convergence": "now",
+        "assimilation": "after"
+      }
+    }
+  }
+}
+Branching and Merging (Grounded)
+
+Fork (Local Divergence)
+{
+  "op": "FORK",
+  "payload": {
+    "fork_from": "sha256:<capsule_id>",
+    "new_chain_id": "HoloSim:<stable-id>:fork:<label>",
+    "reason": "alternate interpretation / alternate build path"
+  }
+}
+Merge Is Selection, Not Synthesis :
+{
+  "op": "MERGE_SELECT",
+  "payload": {
+    "candidates": [
+      "sha256:<head_of_chain_A>",
+      "sha256:<head_of_chain_B>"
+    ],
+    "selected": "sha256:<head_of_chain_A>",
+    "rationale": "keeps invariants intact; avoids interpretive creep"
+  }
+}
+•	No auto-reconciliation
+	•	No model-driven interpretation
+	•	Human selection only
+Delta Validation (Anti-Drift Guard)
+
+Only the following mutations are valid:
+	•	Add invariant
+	•	Update invariant (explicit from → to)
+	•	Add rule
+	•	Update rule (explicit from → to)
+	•	Add blob references
+	•	Add links
+
+Anything else is invalid.
+
+This prevents silent reinterpretation and “helpful” rewriting.
+
+⸻
+
+Binary Grounding
+
+After all abstraction layers are stripped, all persistence reduces to bits.
+
+HDC enforces this by:
+	•	Content-addressed blobs (hash = identity)
+	•	Hash-chained capsules (ordering + immutability)
+	•	Explicit deltas (no hidden meaning shifts)
+
+Meaning survives only because invariants are encoded.
+
+⸻
+
+Final Compression Rule (Canonical)
+	•	Reality (for any system) = what is processed into state
+	•	Continuity ≠ memory
+	•	Continuity = append-only deltas + invariant locks
+
+Holo/Sim Rules
+	•	Big data → blobs
+	•	Chain → invariants + explicit diffs
+	•	Forks are cheap
+	•	Merges are human selection
+	•	Checkpoints compress for speed, never overwrite history
+
+Everything reduces to bits.
+Meaning survives only if the invariant is encoded.
+
+
+
+
+
+
