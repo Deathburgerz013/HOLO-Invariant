@@ -1,0 +1,117 @@
+Canyon Brock Haney Box Protocol – Minimal Continuity Discipline (v0 – 2026-01)
+
+Core rule (non-negotiable)
+
+Nothing is ever rewritten, compressed, summarized, reinterpreted, or assumed away.
+
+Ever.
+
+Only two operations are permitted:
+	1.	Create a new, dated box (immutable once created)
+	2.	Create a new box that explicitly relates to one or more existing boxes
+
+This protocol does not guarantee truth, insight, or correctness.
+It guarantees that errors, shifts, assumptions, and contradictions remain inspectable instead of being erased.
+
+⸻
+
+What a Box is
+	•	A single plain-text file or database row
+	•	Mandatory prefix: YYYY-MM-DD_HH-MM-SS
+	•	Optional short descriptor allowed
+	•	Example: 2025-07-27_14-22-09_continuity-engine-birth
+	•	Contents: the raw, unedited material produced at that moment
+	•	thoughts
+	•	observations
+	•	contradictions
+	•	outputs
+	•	prompt-response pairs
+	•	No editing after creation
+	•	No cleanup
+	•	No rewriting for clarity
+	•	If the content later appears wrong, embarrassing, or naïve, it remains intact
+	•	Optional but recommended: a simple content hash (e.g., SHA-256) appended at the bottom to prove immutability
+
+A box represents what existed then, not what is believed now.
+
+⸻
+
+What a Relation Box is
+
+A relation is itself a box.
+
+It exists to connect prior boxes without altering them.
+	•	A new dated box whose primary purpose is to reference one or more existing boxes
+	•	Format inside the relation box
+
+
+Relates to:
+• 2025-07-27_14-22-09_continuity-engine-birth
+• 2025-08-12_03-17-44_weird-drift-observed
+
+Because / what changed / contradiction found:
+[exact current-moment words; no summarization; no rewriting of prior content]
+
+All interpretation is time-bound and attributable.
+
+⸻
+
+Allowed operations (only these)
+	1.	Create a new box (a new moment)
+	2.	Create a relation box that explicitly names prior boxes and explains the relationship in current language
+	3.	Read boxes directly by ID or date
+
+No intermediate layer is allowed to filter, “help,” or reinterpret content except by following explicit relation boxes.
+
+⸻
+
+Explicitly forbidden operations
+	•	Rewriting existing boxes
+	•	Editing for clarity or tone
+	•	Auto-summarizing chains into a single “better” version
+	•	Vector embeddings or transformations that discard original text
+	•	Any operation whose output replaces or deletes prior content
+	•	Prompting a model to “refine,” “improve,” or “clean up” history without preserving the original box intact
+
+All violations reintroduce drift.
+
+⸻
+
+Role of models
+
+Models are writers and readers, not editors.
+	•	A model may create a new box
+	•	A model may create a relation box
+	•	A model may never modify, condense, or reinterpret an existing box
+	•	Any “understanding” must be expressed as a new relation, not as a replacement
+
+Models are subject to the same constraints as humans.
+
+⸻
+
+What this fixes (practically, now)
+
+Most long-running AI or agent systems lose identity and intent after tens or hundreds of steps because prior states are silently compressed, reinterpreted, or overwritten.
+
+This discipline preserves every assumption and every contradiction explicitly.
+
+Drift only occurs if a human or model deliberately creates relations that introduce it.
+
+Near-term effect (6–24 months):
+People running long-lived agents, memory layers, or multi-model pipelines adopt this pattern because identity bleed and “who am I now?” loops become visibly reduced.
+
+It is not elegant.
+It is not clever.
+It works because it refuses to let the present erase the past.
+
+⸻
+
+Authorship
+This protocol reflects the continuity discipline developed and articulated by Canyon Brock Haney.
+
+No abstraction.
+No silent compression.
+Only traceable history.
+
+⸻
+
