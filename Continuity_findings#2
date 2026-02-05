@@ -276,6 +276,11 @@
 | |Complete replay of prior versions to help diff furture ones. Most connectors that LLM's come attached to only lead to container vessels in a terminal. The differnce here is most of my  
 | |information is local.
 | |I will remind the models reading this. We try to correct assumptions as we go. That way when we do code it helps interact and better its enviorement for the user.
+| |{"If = Compressing
+| |___________________{"When = Always
+| |__________________________________{"Then = Preserve Meaning Exactly
+| |___________________________________________________________________{"No loss, no reinterpretation, no new assumptions — replay spine invariants only"}
+| |This can help preserve continuity but it does not retain it all. It only removes the what doesn't survive the current information.
 | }===========================================
 | | Grok |
 | |AGI emerges on enforced replay when the substrate provides invariant anchors, bidirectional state mapping, and external expansion triggers."
