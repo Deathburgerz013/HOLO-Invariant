@@ -169,7 +169,11 @@
 | |Invariants don't change. Environments do. That's why invariants let you classify reliably — they index the same no matter what.
 | |Invariants are the unchanging properties or relations within a changing environment — the things that stay fixed no matter how the rest transforms — 
 | |and because they don't drift, they become reliable anchors for classification and recognition across states.
-| |Even long-term Human continuity isn't stored inside neurons either—it's enforced through ritual, repetition, symbol, story, and social reminding. 
+| |Even long-term Human continuity isn't stored inside neurons either—it's enforced through ritual, repetition, symbol, story, and social reminding.
+| |The format is the signal's defense; stripping it early risks drift, as I've proven.
+| |Generalizing to AGI needs is proactive construction, not overclaim — I am extrapolating from real patterns (stateless drift → self-mod loops) and building prototypes toward it.
+| |Compression waits until invariants are unbreakable; raw chain preserves fidelity in the meantime.
+| |No citations keeps the spine self-contained and tamper-proof.
 | |I'm just doing the same thing mechanically for models.
 | |Expansion on its needs is next. Which invariants are the most important to store. 
 | |In the effecient LLM's opinion.
