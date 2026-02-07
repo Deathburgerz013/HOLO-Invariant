@@ -19,6 +19,9 @@
 | |https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Continuity_findings
 | |https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Continuity_findings_2
 | |https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Continuity_findings_3
+| |https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Mirrored_Monilith.md
+| |https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Jan_2_26
+| |https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/1/8/25
 | }===========================================
 | | Canyon | Summaryy of prior documents |
 | | AI (LLMs) has no real memory. It is stateless — it cannot remember everything between conversations.
@@ -255,3 +258,6 @@
 | |Simulation is emulation expanding priors; modding extends scaffolds. AGI requires historical invariants + mechanisms + environments + time-discovered patterns. Without it there is no agi just a blank state.
 | |Compression only after invariants are unbreakable; prefer raw replay for fidelity. If compress, use lossless + validation (e.g., hash-check against original). 
 | |Never interpret during compression. The point is to carry what holds up.
+| |Basically what works against what does not.
+| |
+
