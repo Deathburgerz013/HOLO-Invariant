@@ -401,3 +401,4 @@ Biology extracts rules of life
 Systems theory extracts rules of interaction
 
 Together they approximate the invariant backbone of reality
+Iterated correction over time exposes the structures that don’t break.
