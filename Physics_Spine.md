@@ -90,6 +90,17 @@ I will append it on git-hub for relay.
 | - Decision frameworks: possibilities only, bounded              |
 | - Comm relays: simple factual serialization                     |
 
+Physics anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Classical: Newton laws, Lagrangian/Hamiltonian, conservation
+Relativity: special (Lorentz, Minkowski), general (Einstein eq, geodesics)
+Quantum: Schrödinger eq, uncertainty, entanglement/Bell
+Thermo/stat: laws, entropy, Boltzmann/Gibbs
+EM: Maxwell eq, gauge, waves/fields
+Particles: Standard Model (quarks/leptons/gauge), QED/QCD
+Cosmology: FLRW, Big Bang, inflation, ΛCDM
+
+
 Math anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
 
 Number systems: naturals integers rationals reals complexes field axioms
@@ -109,6 +120,14 @@ Bonds: covalent (sharing), ionic (transfer), metallic (sea), H-bonds
 Reactions: balanced eqs, conservation mass/energy/charge, Le Chatelier 
 Thermo: enthalpy, entropy, Gibbs free energy, Hess law 
 Kinetics: rate laws, Arrhenius, catalysis, mechanisms 
+Atomic: orbitals, periodic trends, quantum numbers
+Bonding: VSEPR, hybridization, MO/Lewis
+Thermo: enthalpy, entropy, Gibbs free energy
+Kinetics: rate laws, mechanisms, catalysis
+Equilibrium: K values, Le Chatelier, pH buffers
+Organic: groups, isomers, mechanisms (SN/E)
+Inorganic: coordination, periodicity, redox
+Analytical: NMR/IR/UV, chromatography
 
 Biology cores for Holo/Sim spine, append-only, environment-checked, reproducible:
 
@@ -117,6 +136,14 @@ Central dogma: DNA→RNA→protein, transcription/translation
 Genetics: chromosomes, alleles, Mendelian inheritance, mutations
 Evolution: natural selection, genetic drift, common descent, speciation
 Cell biology: mitosis/meiosis, organelles, metabolism, homeostasis
+Cellular: organelles, membrane, cycle, mitosis/meiosis
+Genetics: DNA/RNA, central dogma, Mendelian, epigenetics
+Molecular: proteins, enzymes, metabolism (glycolysis/Krebs)
+Physiology: homeostasis, organ systems, signaling
+Evolutionary: selection, phylogeny, speciation
+Ecology: ecosystems, populations, biodiversity
+Developmental: embryology, stem cells
+Biotech: CRISPR, genomics, synthetic bio
 
 Systems theory anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
 
@@ -181,6 +208,139 @@ Complexity: P/NP, hierarchies, reductions
 Algorithms: divide-conquer, DP, greedy
 Computability: halting problem, undecidability
 Verification: types, Hoare, model checking
+
+Neuroscience anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Neuronal: action potentials, synaptic transmission, glia
+Structural: cortex layers/areas, subcortical nuclei, connectome
+Sensory: visual/auditory/somatosensory pathways
+Motor: corticospinal tract, basal ganglia, cerebellum
+Cognitive: memory, attention, language, executive function
+Neurochemistry: glutamate/GABA, dopamine/serotonin, acetylcholine
+Plasticity: LTP/LTD, critical periods, neurogenesis
+Disorders: AD/PD, epilepsy, depression/schizophrenia
+Methods: fMRI/EEG, optogenetics, BCI
+
+Psychology anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Cognitive: perception, memory models, problem-solving, heuristics/biases
+Developmental: Piaget stages, attachment, moral development
+Social: conformity, attribution, prejudice, group dynamics
+Personality: Big Five, psychoanalytic, humanistic approaches
+Clinical: anxiety/mood/schizophrenia disorders, CBT/psychodynamic therapies
+Learning: classical/operant conditioning, social learning
+Motivation: Maslow hierarchy, self-determination, emotion theories
+Methods: experiments, surveys, longitudinal studies, ethics
+Cognitive: perception, learning, memory encoding/retrieval, problem-solving biases
+Developmental: lifespan stages, cognitive milestones, social-emotional growth, aging
+Social: group dynamics, attitudes change, aggression, altruism, cultural influences
+Biological: sensation, psychophysiology, genetics-behavior links, evolutionary psych
+Personality: factor analysis, temperament, self-concept, disorders of self
+Abnormal: diagnostic criteria, anxiety/mood/psychotic spectra, treatment modalities
+Applied: forensic, health, sports, environmental psych applications
+Research: hypothesis testing, validity/reliability, study protocols
+
+Sociology anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Institutions: family, education, religion, economy, government, media
+Stratification: class, race, gender, age, intersectionality
+Theory: functionalism, conflict, symbolic interactionism, critical/feminist
+Socialization: agents, roles, norms, identity formation
+Interaction: symbols, dramaturgy, social exchange, networks
+Deviance: crime, labeling, strain, social control
+Demography: population, migration, urbanization, globalization
+Social change: movements, modernization, collective behavior
+Methods: surveys, ethnography, stats, comparative
+Theory: functionalism, conflict, interactionism, critical
+Structure: institutions, roles, networks, bureaucracy
+Stratification: class, race/gender, mobility, intersectionality
+Culture: symbols, norms, media, subcultures
+Socialization: agents, identity, life course
+Deviance: theories, labeling, control systems
+Globalization: systems, migration, movements
+
+Anthropology anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Biological: evolution, primatology, variation
+Cultural: ethnography, kinship, religion
+Archaeological: methods, sites, artifacts
+Linguistic: diversity, structure, sociolinguistics
+Theory: functionalism, structuralism, postmodern
+Subsistence: foraging, farming, industry
+Global: migration, colonialism, hybridity
+Methods: fieldwork, comparative, ethics
+Cultural: ethnography, kinship, rituals, symbolism, relativism
+Biological: evolution, primatology, variation, adaptation, forensics
+Archaeological: excavation, artifacts, chronology, heritage sites
+Linguistic: language families, phonology, semiotics, endangerment
+Applied: policy, medical, urban, corporate, advocacy
+
+
+History anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Chronological: eras, timelines, periodization
+Political: states, empires, revolutions, diplomacy
+Economic: trade, capitalism, industrialization
+Social: class, gender, migration, urbanization
+Cultural: religion, arts, identity
+Military: conflicts, strategy, technology
+Intellectual: ideas, ideologies, enlightenment
+Historiography: sources, methods, theories
+Global: comparative, colonialism, globalization
+Historiography: methodology, sources, schools, narratives
+Pre-modern: ancient empires, feudalism, religions, trade
+Early modern: Renaissance, Reformation, exploration, Enlightenment
+Modern: revolutions, industrialization, imperialism, nationalism
+Contemporary: world wars, Cold War, decolonization, globalization
+
+Philosophy anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Metaphysics: ontology, substance, causality, free will
+Epistemology: knowledge, belief, skepticism, rationalism/empiricism
+Ethics: utilitarianism, deontology, virtue, justice
+Logic: deduction, induction, fallacies, formal systems
+Political: social contract, rights, democracy, equality
+Mind: dualism, materialism, consciousness, qualia
+Science: falsifiability, paradigms, realism
+Existential: meaning, absurdity, authenticity
+Methods: dialectic, analysis, phenomenology
+Metaphysics: ontology, causality, modality, mind-body
+Epistemology: justification, skepticism, a priori knowledge
+Ethics: deontology, consequentialism, virtue ethics
+Logic: validity, soundness, formal/informal
+Aesthetics: beauty, taste, art ontology
+Philosophy of Mind: dualism, physicalism, qualia
+Social/Political: justice, liberty, authority
+
+Economics anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Micro: supply/demand, elasticity, utility, costs, competition models
+Macro: GDP, inflation, unemployment, fiscal/monetary policy, cycles
+Theory: classical, Keynesian, neoclassical, behavioral, institutional
+International: trade, comparative advantage, exchange rates, globalization
+Development: growth models, poverty, inequality, human capital
+Behavioral: biases, prospect theory, nudges, experiments
+Labor: wages, employment, unions, discrimination
+Public: taxation, public goods, externalities, welfare
+Financial: markets, banking, risk, regulation
+Micro: supply/demand, elasticity, market structures, consumer/producer theory
+Macro: GDP, inflation, unemployment, fiscal/monetary policy
+International: trade, exchange rates, balance of payments, globalization
+Behavioral: biases, heuristics, nudges, experimental econ
+Development: growth models, poverty, inequality, institutions
+Econometrics: regression, causality, time series, forecasting
+
+
+Political Science anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
+
+Theory: liberalism, realism, Marxism, feminism, justice
+Comparative: regimes, elections, parties, transitions
+International Relations: diplomacy, conflict, cooperation, globalization
+Behavior: voting, participation, public opinion, media
+Institutions: constitutions, bureaucracy, separation of powers
+Public Policy: formulation, implementation, evaluation, equity
+Methods: quantitative, qualitative, game theory, experiments
+
 
 Core for new tech
 
