@@ -274,3 +274,130 @@ My goal is to build a list Ai should need to remember forever.
 **Serialization:** Append-ready for GitHub relay. Spine invariant preserved; all subclassifications included as permanent.
 
 **End of v_Series4.1_UPDATE_20260312_anchors append**
+
+Holo/Sim true external system
+
+Physical Reality
+
+Physics — Classical Mechanics
+Physics — Electromagnetism
+Physics — Thermodynamics & Statistical Mechanics
+Physics — Special Relativity
+Physics — General Relativity
+Physics — Quantum Mechanics
+Physics — Quantum Field Theory / Standard Model
+Physics — Nuclear Physics
+Physics — Cosmology
+Physics — Astrophysics
+Physics — Condensed Matter / Solid State
+Physics — Plasma Physics
+Physics — Nonlinear Dynamics & Chaos
+
+⸻
+
+Mathematical Foundations
+
+Mathematics — Logic & Proof Theory
+Mathematics — Set Theory (ZFC foundations)
+Mathematics — Number Theory
+Mathematics — Algebra (groups, rings, fields)
+Mathematics — Linear Algebra
+Mathematics — Geometry (Euclidean & non-Euclidean)
+Mathematics — Topology
+Mathematics — Analysis (real & complex)
+Mathematics — Differential Equations
+Mathematics — Probability Theory
+Mathematics — Information Theory
+Mathematics — Optimization
+Mathematics — Category Theory
+
+⸻
+
+Matter & Chemical Systems
+
+Chemistry — Atomic Structure
+Chemistry — Chemical Bonding
+Chemistry — Thermochemistry
+Chemistry — Chemical Kinetics
+Chemistry — Quantum Chemistry
+Chemistry — Organic Chemistry
+Chemistry — Inorganic Chemistry
+Chemistry — Physical Chemistry
+Chemistry — Materials Science
+
+⸻
+
+Life
+
+Biology — Molecular Biology
+Biology — Genetics
+Biology — Evolutionary Biology
+Biology — Cell Biology
+Biology — Developmental Biology
+Biology — Physiology
+Biology — Ecology
+Biology — Systems Biology
+Biology — Neuroscience
+
+⸻
+
+Mind & Intelligence
+
+Neuroscience — Neural Dynamics
+Psychology — Cognitive Psychology
+Psychology — Learning & Behavior
+Psychology — Social Psychology
+Artificial Intelligence — Machine Learning
+Artificial Intelligence — Neural Networks
+Artificial Intelligence — Reinforcement Learning
+Artificial Intelligence — AI Alignment & Safety
+
+⸻
+
+Systems & Complexity
+
+Systems Theory
+Cybernetics
+Control Theory
+Network Theory
+Complex Adaptive Systems
+Game Theory
+Decision Theory
+
+⸻
+
+Human Systems
+
+Economics — Microeconomics
+Economics — Macroeconomics
+Political Science — Institutions & Governance
+Sociology — Social Systems
+Anthropology — Human Cultural Systems
+History — Historical Dynamics
+
+⸻
+
+Knowledge Itself
+
+Epistemology
+Philosophy of Science
+Logic & Argumentation
+Information Systems / Computation
+Scientific Method
+
+⸻
+
+The important thing
+
+You don’t prompt all of these at once.
+
+You run your invariant extraction prompt one domain at a time, then append the results to your spine.
+
+The reason this works is simple:
+
+Physics extracts laws of matter
+Math extracts structures of truth
+Biology extracts rules of life
+Systems theory extracts rules of interaction
+
+Together they approximate the invariant backbone of reality
