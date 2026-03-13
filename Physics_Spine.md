@@ -402,3 +402,22 @@ Systems theory extracts rules of interaction
 
 Together they approximate the invariant backbone of reality
 Iterated correction over time exposes the structures that don’t break.
+This system is basically trying to accelerate that correction process so the stable pieces show up faster.
+
+Symmetry–Conservation Invariant |
+| Continuous symmetries generate conserved quantities (Noether theorem). Time symmetry → conservation of energy; spatial symmetry → conservation of momentum; rotational symmetry → conservation of angular momentum. |
+
+| Relativistic Speed Invariant |
+| The speed of light in vacuum (c) is constant for all inertial observers and defines spacetime causal structure. |
+
+| Causality Constraint |
+| Physical interactions propagate only within light-cone structure; causes precede effects in relativistic spacetime. |
+
+| Quantum State Evolution Invariant |
+| Closed quantum systems evolve via unitary dynamics preserving total probability (Schrödinger equation / unitary operators). |
+
+| Gauge Symmetry Invariant |
+| Fundamental interactions arise from local gauge symmetries (U(1), SU(2), SU(3)) which constrain allowable field dynamics in the Standard Model. |
+
+| Entropy–Information Constraint |
+| Physical systems obey the second law of thermodynamics; entropy tends to increase in closed systems. Information processing has thermodynamic cost (Landauer principle). |
