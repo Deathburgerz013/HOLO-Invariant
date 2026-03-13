@@ -265,6 +265,16 @@ Culture: symbols, norms, media, subcultures
 Socialization: agents, identity, life course
 Deviance: theories, labeling, control systems
 Globalization: systems, migration, movements
+Theory: functionalism, conflict, symbolic interactionism, feminist, postmodern
+Methods: ethnography, surveys, stats, comparative
+Institutions: family, education, religion, economy, politics, health
+Stratification: class, race/ethnicity, gender, intersectionality, mobility
+Socialization: agents, identity, roles, resocialization
+Deviance: norms, crime, labeling, social control
+Culture: values, symbols, subcultures, globalization
+Groups: primary/secondary, networks, bureaucracy
+Social change: movements, urbanization, technology, revolutions
+
 
 Anthropology anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
 
