@@ -317,6 +317,7 @@ Pre-modern: ancient empires, feudalism, religions, trade
 Early modern: Renaissance, Reformation, exploration, Enlightenment
 Modern: revolutions, industrialization, imperialism, nationalism
 Contemporary: world wars, Cold War, decolonization, globalization
+Periods: ancient civs/empires, medieval feudal/relig, early modern ren/ref/expl/abs, modern revs/indust/imp, contemp wars/CW/decol/globaliz. Themes: political/social/economic/cultural/gender/env. Methods: historiography/primary sources/comparative.
 
 Philosophy anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
 
