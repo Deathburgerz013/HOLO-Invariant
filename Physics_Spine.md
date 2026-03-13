@@ -239,6 +239,13 @@ Personality: factor analysis, temperament, self-concept, disorders of self
 Abnormal: diagnostic criteria, anxiety/mood/psychotic spectra, treatment modalities
 Applied: forensic, health, sports, environmental psych applications
 Research: hypothesis testing, validity/reliability, study protocols
+Cognitive: perception, memory, attention, reasoning, decision-making
+Developmental: lifespan stages, attachment, cognitive/moral growth
+Social: conformity, attitudes, group dynamics, prejudice
+Clinical: disorders, diagnostics, therapies (CBT, psychodynamic)
+Personality: traits, Big Five, psychoanalytic/humanistic models
+Biological: neuropsych, genetics, hormones, evolution
+Applied: educational, organizational, health, forensic
 
 Sociology anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
 
