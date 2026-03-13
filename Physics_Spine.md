@@ -29,7 +29,11 @@ That means we can collect and iterate on what makes things better
 with what the document is about. This one is about space-time and  
 physics. The priority here is to stack informations and then update  
 what we know with what we have. I’ve been very interested in how to  
-create density.
+create density. As well as what Ai will need to remember for-ever as time goes on.
+Below is a subclassification list of informations that need to be collected.
+When we have collected everything we need output we have it.
+Until then do not merely repeat or reword information.
+The only information we need is what everyone should remember forever including machines.
 
 |===========================================|
 | Invariant Core: Density in Spacetime-Physics (General Relativity + Cosmology) |
