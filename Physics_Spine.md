@@ -291,6 +291,14 @@ Biological: evolution, primatology, variation, adaptation, forensics
 Archaeological: excavation, artifacts, chronology, heritage sites
 Linguistic: language families, phonology, semiotics, endangerment
 Applied: policy, medical, urban, corporate, advocacy
+Cultural: ethnography, kinship, ritual, symbolism, globalization
+Biological: evolution, primatology, variation, forensics
+Archaeological: excavation, artifacts, prehistory, heritage
+Linguistic: language-culture, sociolinguistics, endangerment
+Theory: relativism, functionalism, structuralism, postcolonial
+Methods: fieldwork, observation, interviews, comparative
+Applied: medical, development, environmental, business
+Diversity: biocultural, migration, identity, power dynamics
 
 
 History anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
