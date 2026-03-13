@@ -337,6 +337,14 @@ Logic: validity, soundness, formal/informal
 Aesthetics: beauty, taste, art ontology
 Philosophy of Mind: dualism, physicalism, qualia
 Social/Political: justice, liberty, authority
+Metaphysics: ontology, existence, causality, free will, mind-body.
+Epistemology: knowledge, justification, skepticism, empiricism/rationalism. 
+Ethics: normative, metaethics, applied. 
+Logic: formal, inductive, modal, fallacies.
+Aesthetics: beauty, art, taste. 
+Phil of Science: method, realism, falsifiability.
+Phil of Mind: consciousness, qualia. 
+Phil of Language: meaning, reference. 
 
 Economics anchors for Holo/Sim spine, append-only, environment-checked, reproducible:
 
