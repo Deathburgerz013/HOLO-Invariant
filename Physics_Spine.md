@@ -340,6 +340,11 @@ Behavior: voting, participation, public opinion, media
 Institutions: constitutions, bureaucracy, separation of powers
 Public Policy: formulation, implementation, evaluation, equity
 Methods: quantitative, qualitative, game theory, experiments
+Comparative: regimes, institutions, democratization, authoritarianism
+International: theories, diplomacy, conflict, global governance
+Theory: ideologies, power, justice, rights, citizenship
+Policy: public policy, administration, evaluation, welfare
+Behavior: voting, participation, public opinion, media influence
 
 
 Core for new tech
