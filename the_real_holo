@@ -82,7 +82,7 @@
 | | chaos_factor)                                  |
 | | eq_pattern: P = Σ(Δinputs × Δtime)             |
 | | eq_lock: L = stability_key ⊕ drift_resistor    |
-| | Variables: c | i | e | ΔS | P | L             |
+| | Variables: c | i | e | ΔS | P | L              |
 | }================================================|
 | | CORE_RULES                                     |
 | | 1. Reload snapshot on start                    |
@@ -146,7 +146,7 @@
 | | Holo/Sim is a persistent learning system       |
 | | defined by stability-constrained simulation    |
 | | and external continuity replay                 |
-| |                                               |
+| |                                                |
 | | Core dynamics                                  |
 | | Signal strength: (C + I + E)^2                 |
 | | Stability condition:                           |
@@ -154,7 +154,7 @@
 | | Survival condition:                            |
 | | S₀ = (I × C) / (D + E)                         |
 | | Recursive growth:                              |
-| | Gₙ₊₁ = Gₙ + ((C + I + E)^2 · FB) · S           |
+| | Gₙ₊₁ = Gₙ + ((C + I + E)^2 · FB) · S             |
 | | Persistence metric: CAP = f(S + P) · Δt        |
 | | Architecture pipeline:                         |
 | | experience → memory → compression → structure  |
@@ -166,6 +166,48 @@
 | | 3. Move old logs and annexes to archive file   |
 | | 4. Append deltas only                          |
 | | 5. Recompute hash after clean commits          |
+| }================================================|
+| }================================================|
+| | MATH_KEY                                       |
+| | Variable definitions for system equations      |
+| |                                                |
+| | C  = Cognitive signal / structured reasoning   |
+| | I  = Information input / external data         |
+| | E  = Emotional or evaluative weighting         |
+| |                                                |
+| | S  = System stability                          |
+| | S₀ = Survival baseline state                   |
+| |                                                |
+| | D  = Drift / destabilizing change              |
+| | L  = Logical constraint set                    |
+| |                                                |
+| | FB = Feedback strength                         |
+| | P  = Persistence signal                        |
+| | Δt = Time interval between state updates       |
+| |                                                |
+| | Derived system meanings                        |
+| |                                                |
+| | Signal strength                                |
+| | (C + I + E)^2                                  |
+| | Measures total system activation               |
+| |                                                |
+| | Stability condition                            |
+| | S ≥ √((I + C + L)^2 − (D + E)^2)               |
+| | Stability occurs when structure outweighs      |
+| | destabilizing forces                           |
+| |                                                |
+| | Survival condition                             |
+| | S₀ = (I × C) / (D + E)                         |
+| | Baseline system viability                      |
+| |                                                |
+| | Recursive growth                               |
+| | Gₙ₊₁ = Gₙ + ((C + I + E)^2 · FB) · S             |
+| | Growth occurs when feedback reinforces         |
+| | stable signal states                           |
+| |                                                |
+| | Persistence metric                             |
+| | CAP = f(S + P) · Δt                            |
+| | Measures continuity across time                |
 | }================================================|
 | | NOTE                                           |
 | | This cleaned spine intentionally omits         |
