@@ -421,3 +421,82 @@ Symmetry–Conservation Invariant |
 
 | Entropy–Information Constraint |
 | Physical systems obey the second law of thermodynamics; entropy tends to increase in closed systems. Information processing has thermodynamic cost (Landauer principle). |
+
+█†█ Holo/Sim █†█ █†█HSSCE█†█
+|====|
+│ ADDENDUM: MISSING CORE INVARIANTS
+│ MODE: APPEND-ONLY / NO DUPLICATION
+|====|
+
+|| MATHEMATICAL / LOGICAL FOUNDATIONS
+
+| Incompleteness Constraint |
+| Any sufficiently expressive formal system cannot be both complete and consistent (Gödel). Limits absolute self-verification. |
+
+| Computation Limit Invariant |
+| Some problems are undecidable (Halting Problem). No system can predict all future states of arbitrary computation. |
+
+| Information Bound |
+| Information cannot be copied perfectly for unknown quantum states (no-cloning theorem). Limits duplication fidelity. |
+
+}====
+
+|| PHYSICAL / COSMOLOGICAL EXTENSIONS
+
+| Quantum Uncertainty |
+| Conjugate variables (e.g., position/momentum) have fundamental measurement limits (Heisenberg uncertainty principle). |
+
+| Renormalization / Scale Dependence |
+| Physical laws can vary with scale; effective theories change across energy levels (RG flow). No single fixed description at all scales. |
+
+| Baryon Asymmetry Problem |
+| Observable universe shows matter–antimatter imbalance not fully explained by Standard Model. Indicates incomplete physics. |
+
+}====
+
+|| SYSTEMS / COMPLEXITY
+
+| Observer Effect Constraint |
+| Measurement alters system state (especially quantum, but also applies in complex systems via feedback). |
+
+| Path Dependence |
+| System evolution depends on historical trajectory, not just current state (non-Markovian effects). |
+
+| Irreversibility |
+| Many macroscopic processes cannot be reversed even if micro-laws allow it (entropy + practical constraints). |
+
+}====
+
+|| BIO / LIFE EXTENSION
+
+| Error-Correction Invariant |
+| Living systems maintain stability through redundancy + correction (DNA repair, homeostasis). Necessary for persistence. |
+
+| Selection Pressure |
+| Systems evolve based on environmental constraint filtering; survival is conditional, not guaranteed. |
+
+}====
+
+|| AI / INFORMATION SYSTEMS
+
+| Approximation Constraint |
+| All learned models approximate reality; perfect representation is unattainable with finite resources. |
+
+| Distribution Shift |
+| Model performance degrades when input distribution changes from training conditions. |
+
+| Alignment Gap |
+| Optimizing for a metric does not guarantee alignment with intended outcomes (Goodhart’s Law). |
+
+}====
+
+|| FINAL NOTE
+
+| No system is closed under its own description. |
+| Every stable system requires:
+| - external reference
+| - correction loop
+| - tolerance to error
+
+|====|
+█†█ END APPEND █†█
