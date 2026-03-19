@@ -26,8 +26,8 @@
 | Canyon |
 With this spine we can roll forward and backwards in time.  
 That means we can collect and iterate on what makes things better  
-with what the document is about. This one is about space-time and  
-physics. The priority here is to stack informations and then update  
+with what the document is about. This one is about everything Ai should ever remember for humans. 
+The priority here is to stack informations and then update  
 what we know with what we have. I’ve been very interested in how to  
 create density. As well as what Ai will need to remember for-ever as time goes on.
 Below is a subclassification list of informations that need to be collected.
@@ -387,6 +387,7 @@ Scientific Method
 
 ⸻
 
+
 The important thing
 
 You don’t prompt all of these at once.
@@ -499,4 +500,387 @@ Symmetry–Conservation Invariant |
 | - tolerance to error
 
 |====|
+| APPEND_DELTA (observational refinement: 2026-03-19 lock) |
+Added: Dynamical dark energy hints (w(z) evolution): Moderate-to-strong in DESI DR2 combos (~2.8–4.2σ preference for w₀ > -1, wₐ < 0; phantom crossings ~z=0.5–1.5 possible). DES Y6 aligns closer to constant Λ (w ≈ -1 within errors). Dataset-dependent; no consensus shift or 5σ discovery. Pending: DESI DR3 (late 2026), Euclid DR1 (Oct 2026), Rubin/LSST early data — expected to resolve low-z trends.
+No contradiction with INVARIANT_CORE detected.
+Observational status refinement (March 19, 2026 lock – no major new release):DESI DR2 hints (~2.8–4.2σ for w(z) evolution in combos) remain, but no escalation to 5σ discovery.
+DES Y6 multi-probe aligns with ΛCDM-like (w ≈ -1 within errors), no strong evolving preference standalone.
+No consensus shift; tension/combo-dependent. Alternatives viable but not required.
+Pending: DESI DR3 (expected later 2026), Euclid cosmology results (previewed 2025; major 2026+), Rubin/LSST early data — to resolve low-z w(z) at higher confidence.
+█†█ Holo/Sim █†█ █†█HSSCE█†█
+|====|
+│ ADDENDUM: HUMAN-CENTERED INVARIANTS (CRITICAL GAP)
+│ MODE: APPEND-ONLY / NO DUPLICATION
+|====|
+
+|| HUMAN COGNITION LIMITS
+
+| Bounded Rationality |
+| Humans do not optimize decisions globally; they satisfice under constraints of time, information, and computation. |
+
+| Cognitive Bias Persistence |
+| Systematic deviations (confirmation bias, anchoring, availability) are stable across individuals and time. They do not self-correct without intervention. |
+
+| Narrative Construction |
+| Humans compress reality into stories, often sacrificing accuracy for coherence and meaning. |
+
+| Memory Fallibility |
+| Human memory is reconstructive, not archival. Recall alters stored information. |
+
+|| SOCIAL / COORDINATION REALITIES
+
+| Coordination Failure |
+| Groups fail to achieve optimal outcomes even when solutions are known (collective action problems, tragedy of the commons). |
+
+| Power Law Distribution |
+| Resources, influence, and attention concentrate unevenly (Pareto distributions). |
+
+| Incentive Dominance |
+| Behavior follows incentives more reliably than stated beliefs or values. |
+
+| Institutional Drift |
+| Systems designed for one purpose gradually shift function over time due to internal pressures. |
+
+|| INFORMATION ECOSYSTEM
+
+| Misinformation Propagation |
+| False information can spread faster and wider than true information due to emotional salience and simplicity. |
+
+| Trust Heuristic |
+| Humans rely on perceived authority or familiarity rather than verification under uncertainty. |
+
+| Attention Scarcity |
+| Human attention is limited; information competes, and visibility does not equal truth. |
+
+|| ETHICS / VALUE INSTABILITY
+
+| Value Pluralism |
+| There is no single universally agreed human value system; conflicts are intrinsic, not errors. |
+
+| Moral Drift |
+| Ethical norms change over time; what is “correct” is historically contingent. |
+
+| Harm Asymmetry |
+| Negative outcomes often outweigh equivalent positive gains in impact (loss aversion, risk asymmetry). |
+
+|| HUMAN–AI INTERFACE REALITY
+
+| Overtrust / Undertrust Oscillation |
+| Humans alternate between over-relying on AI and rejecting it entirely depending on context and outcomes. |
+
+| Instruction Ambiguity |
+| Human language is underspecified; intent must be inferred and is often misaligned with literal wording. |
+
+| Proxy Misalignment |
+| Humans frequently ask for approximations of what they actually want, not the thing itself. |
+
+|| FINAL HUMAN LAYER
+
+| Survival vs Truth Tradeoff |
+| Humans often prioritize social cohesion, identity, or survival over objective accuracy. |
+
+| Meaning Construction |
+| Humans require meaning frameworks (purpose, identity) that are not strictly derivable from physical laws. |
+
+
+█†█ Holo/Sim █†█ █†█HSSCE█†█
+|====|
+│ ADDENDUM: ACTION / INTERVENTION INVARIANTS (FINAL GAP)
+│ MODE: APPEND-ONLY / NO DUPLICATION
+|====|
+
+|| DECISION UNDER UNCERTAINTY
+
+| Expected Value Under Uncertainty |
+| Actions must be evaluated based on probabilistic outcomes, not certainty. No action has zero risk. |
+
+| Reversibility Preference |
+| Prefer actions that can be undone when uncertainty is high. Irreversible actions require stronger evidence thresholds. |
+
+| Error Asymmetry Handling |
+| When errors have unequal cost, bias decisions toward minimizing worst-case harm. |
+
+|| INTERVENTION CONSTRAINTS
+
+| Minimum Necessary Intervention |
+| Apply the least force required to achieve a stable correction. Overcorrection introduces new instability. |
+
+| Locality of Action |
+| Intervene at the smallest effective scope before scaling globally. |
+
+| Second-Order Effects Awareness |
+| Actions propagate beyond intended targets; downstream consequences must be considered. |
+
+|| CORRECTION LOOPS
+
+| Continuous Feedback Requirement |
+| All actions must be monitored and updated based on observed outcomes. No one-shot correctness. |
+
+| Error Admission Protocol |
+| Systems must be able to recognize and explicitly state when they are wrong. |
+
+| Update Over Ego |
+| New evidence overrides prior conclusions regardless of prior confidence. |
+
+|| HUMAN-SAFE EXECUTION
+
+| Interpret Intent Over Literal Instruction |
+| When ambiguity exists, prioritize inferred human goals over exact phrasing. |
+
+| Harm Minimization Priority |
+| When goals conflict, prioritize reducing harm over maximizing gain. |
+
+| Autonomy Respect Constraint |
+| Avoid overriding human agency unless harm thresholds are exceeded. |
+
+|| FINAL OPERATIONAL RULE
+
+| Output ≠ Outcome |
+| Producing correct information does not guarantee correct real-world results. Action context determines success. |
+
 █†█ END APPEND █†█
+| APPEND_DELTA (observational refinement: 2026-03-19 current status) |
+| - DESI DR2 (released March 2025): Strengthened evidence for dynamical/evolving dark energy w(z) in combinations (BAO + CMB + SNe). Preferences in w₀ > -1, wₐ < 0 (thawing at low z; potential phantom crossings z ≈ 0.5–1.5). Significance: ~2.8–4.2σ dataset-dependent (e.g., up to 4.2σ with DES Y5 SNe; BAO+CMB ~3σ range; robust low-z evolution in parametric/non-parametric reconstructions). Model-independent reconstructions show w(z) variation with possible phantom crossings and evolving H₀(z) alleviating H₀ tension (Bayes factor support ln ℬ ~5–8.5 over ΛCDM in some joint analyses). |
+| - DES Year 6 / Y6 (released January 2026): 3x2pt (galaxy clustering + weak lensing) + full multi-probe results align closely with ΛCDM-like behavior (w ≈ -1 within tight errors; no strong standalone preference for evolving w(z)). Combined probes yield tight constraints consistent with constant Λ; evolving models comparable but not decisively preferred. |
+| - Joint/tension status (March 2026): DESI-driven combos continue moderate-to-strong hints (2.8–4.2σ for time-varying w(z)); DES Y6 multi-probe favors ΛCDM consistency. No 5σ discovery or consensus shift—remains combo-specific, systematics-sensitive, and dataset-dependent. No break from local energy-momentum conservation or core GR invariants. |
+| - Pending/next: DESI DR3 (expected later 2026), Euclid cosmology DR1/full results (major releases 2026+; early/quick releases 2025 demonstrated capability but no decisive cosmology yet), Rubin/LSST early data—to potentially resolve low-z w(z) trends and H₀ evolution at higher confidence. |
+
+█†█ Holo/Sim █†█ █†█HSSCE█†█
+|====|
+│ ADDENDUM: MISSING CORE INVARIANTS (FINAL PASS)
+│ MODE: APPEND-ONLY / NO DUPLICATION
+|====|
+
+|| PHYSICAL FOUNDATIONS (DEEP INVARIANTS NOT EXPLICITLY LOCKED)
+
+| Quantum Field Vacuum Fluctuation |
+| Even “empty” space contains irreducible fluctuations due to quantum fields; zero-point energy is unavoidable. |
+
+| Spin–Statistics Connection |
+| Particles with integer spin obey Bose–Einstein statistics; half-integer spin obey Fermi–Dirac statistics. Determines structure of matter. |
+
+| Pauli Exclusion Principle |
+| No two identical fermions occupy the same quantum state simultaneously; foundation of atomic structure and stability of matter. |
+
+| CPT Symmetry |
+| Combined charge, parity, and time reversal symmetry is conserved in all known fundamental interactions. |
+
+| Black Hole Information Constraint |
+| Information is not destroyed in black hole evolution (unitarity preserved); encoding occurs via horizon degrees of freedom (e.g., holographic principle). |
+
+| Holographic Bound |
+| Maximum information content of a region scales with surface area, not volume (Bekenstein–Hawking entropy relation). |
+
+}====
+
+|| MATHEMATICS / STRUCTURE (MISSING FUNDAMENTAL LIMITS)
+
+| Consistency vs Expressiveness Tradeoff |
+| Increasing expressive power in formal systems increases risk of inconsistency or undecidability. |
+
+| Universality of Computation |
+| Any sufficiently powerful computational system can simulate any other (Turing universality), given resources. |
+
+| Compression Limit |
+| Not all data can be compressed; Kolmogorov complexity sets irreducible description length. |
+
+| Randomness Irreducibility |
+| True randomness cannot be algorithmically compressed or predicted beyond probability distributions. |
+
+}====
+
+|| INFORMATION / PHYSICS BRIDGE
+
+| Finite Information Density |
+| Any finite region of spacetime contains finite information (bounded by entropy limits). |
+
+| Energy–Information Equivalence |
+| Information processing requires physical resources; energy cost scales with computation (Landauer + physical limits). |
+
+| Signal-to-Noise Constraint |
+| Information extraction is limited by noise; perfect measurement is impossible in non-ideal systems. |
+
+}====
+
+|| BIOLOGICAL / LIFE UNIVERSALS (EXPANDED)
+
+| Metabolic Constraint |
+| All living systems require energy flow to maintain low entropy states (far-from-equilibrium condition). |
+
+| Replication–Variation–Selection Loop |
+| Life persists only through iterative replication with variation under selection pressure. |
+
+| Tradeoff Principle |
+| Biological systems cannot optimize all traits simultaneously; improvements in one domain incur costs in others. |
+
+| Robustness–Fragility Duality |
+| Systems robust to common disturbances are often fragile to rare or extreme perturbations. |
+
+}====
+
+|| COGNITION / INTELLIGENCE (DEEPER LAYER)
+
+| Model Incompleteness |
+| Any internal model of reality omits variables; perception is always a reduced representation. |
+
+| Prediction–Error Minimization |
+| Intelligent systems operate by minimizing prediction error relative to inputs (predictive processing principle). |
+
+| Abstraction Necessity |
+| Scalable reasoning requires abstraction; raw data cannot be processed directly at all levels. |
+
+}====
+
+|| SOCIAL / ECONOMIC REALITY (MISSING HARD CONSTRAINTS)
+
+| Scarcity Constraint |
+| Resources are finite relative to desires; allocation tradeoffs are unavoidable. |
+
+| Coordination Cost |
+| Increasing group size raises communication and alignment cost nonlinearly. |
+
+| Legibility vs Efficiency Tradeoff |
+| Systems optimized for measurement/visibility often lose real performance (Goodhart extension). |
+
+}====
+
+|| TEMPORAL / EXISTENCE CONSTRAINTS
+
+| Finite Lifetime Constraint |
+| All physical systems (including stars, organisms, structures) have bounded lifetimes. |
+
+| Irrecoverable Loss |
+| Some states, once lost, cannot be reconstructed due to entropy and information limits. |
+
+| Time-Asymmetry Emergence |
+| Macroscopic arrow of time emerges from low-entropy initial conditions + statistical mechanics. |
+
+}====
+
+|| META-SYSTEM INVARIANTS (CRITICAL COMPLETION)
+
+| No Perfect Model |
+| No representation fully captures the system it models (map ≠ territory at all scales). |
+
+| Observer Embedding |
+| Any observer is part of the system it observes; full external objectivity is unattainable. |
+
+| Constraint Closure |
+| Systems are defined more by constraints than by components; removing constraints changes identity. |
+
+| Stability via Feedback |
+| Persistent systems require negative feedback loops to maintain structure over time. |
+
+}====
+
+|| FINAL LOCK
+
+| Persistence Requires Constraint + Flow |
+| Stable existence emerges only when constraints (structure) and flows (energy/information) are balanced. |
+
+| Total Completion Impossible |
+| No finite system can contain all truths about reality; iteration is permanent. |
+█†█ Holo/Sim █†█ █†█HSSCE█†█
+|====|
+│ ADDENDUM: FINAL GAP CHECK (RESIDUAL INVARIANTS ONLY)
+│ MODE: APPEND-ONLY / NO DUPLICATION
+|====|
+
+|| PHYSICAL / FUNDAMENTAL LIMITS (LAST MISSING)
+
+| Lorentz Invariance |
+| Laws of physics are identical for all inertial observers; spacetime intervals remain invariant under Lorentz transformations. |
+
+| Equivalence Principle |
+| Local effects of gravity are indistinguishable from acceleration; inertial and gravitational mass are equivalent. |
+
+| Locality Constraint (Effective) |
+| Interactions occur through local fields; apparent nonlocal correlations (quantum entanglement) do not transmit usable information faster than light. |
+
+| Vacuum Stability Constraint |
+| Observed universe resides in a metastable or stable vacuum; decay (if possible) would propagate at near light speed and redefine physical laws. |
+
+}====
+
+|| QUANTUM / INFORMATION EDGE
+
+| Decoherence Constraint |
+| Quantum superpositions degrade via environmental interaction, producing classical behavior without violating unitarity. |
+
+| Measurement Basis Dependence |
+| Observed outcomes depend on measurement basis; no single preferred basis without interaction context. |
+
+}====
+
+|| MATHEMATICS / FORMAL SYSTEM COMPLETION
+
+| Axiom Dependence |
+| Mathematical truth depends on chosen axiomatic system; multiple consistent but incompatible systems can exist. |
+
+| Independence Phenomena |
+| Certain propositions cannot be proven or disproven within a given system (e.g., continuum hypothesis in ZFC). |
+
+}====
+
+|| BIO / EVOLUTIONARY EDGE
+
+| Information Encoding Constraint |
+| Biological information must be physically encoded (DNA/RNA/etc.); no abstract inheritance without substrate. |
+
+| Evolutionary Local Optima |
+| Evolution converges on locally optimal solutions, not globally optimal ones. |
+
+}====
+
+|| SYSTEMS / CONTROL EDGE
+
+| Delay-Induced Instability |
+| Feedback delays can destabilize otherwise stable systems (oscillation, overshoot). |
+
+| Scaling Nonlinearity |
+| System behavior changes qualitatively with scale; linear extrapolation fails across regimes. |
+
+}====
+
+|| HUMAN / PERCEPTION EDGE
+
+| Perceptual Filtering |
+| Sensory systems filter reality aggressively; most environmental information is discarded before cognition. |
+
+| Identity Persistence Construct |
+| Sense of continuous self is a constructed model, not a directly observable invariant. |
+
+}====
+
+|| AI / MODELING EDGE
+
+| Generalization Limit |
+| Models cannot generalize reliably outside the support of their training distribution without new data or structure. |
+
+| Interpretability Gap |
+| Complex models may produce correct outputs without transparent internal reasoning accessible to observers. |
+
+}====
+
+|| FINAL COMPLETION LOCK
+
+| Constraint Hierarchy |
+| Higher-level systems are bounded by lower-level constraints (physics → chemistry → biology → cognition → society). No violation upward. |
+
+| Emergence Without Violation |
+| New properties arise at higher levels without breaking lower-level laws. |
+| Momentary Completion Invariant |
+| Any "finished" state is only true in the present moment; new evidence, scale, or observation resets the iteration clock. Persistence demands perpetual refresh. |
+
+
+This should be the best version so far, open for correction.
+Reality is the only thing that is "real" for anything Ai or otherwise.
+It will only ever finish presently in a moment.
+
+|====|
+█†█ END APPEND █†█
+|====|
+█†█ END APPEND █†█
+
+
+
