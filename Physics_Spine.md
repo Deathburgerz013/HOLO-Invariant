@@ -879,8 +879,35 @@ It will only ever finish presently in a moment.
 
 |====|
 █†█ END APPEND █†█
-|====|
-█†█ END APPEND █†█
+
+
+2. Pseudocode block for Physics_Spine.md (state separation + cross-check routine)
+
+// State Separation + Cross-Check Routine (CAP_CHAIN anchor)
+function separate_and_verify_state(current_internal, external_chain):
+    verified_entries = load_and_verify(external_chain)  // full hash chain check
+    external_snapshot = reconstruct_from(verified_entries)
+    
+    if hash(current_internal) != hash(external_snapshot):
+        halt("State divergence detected - integrity failure")
+    
+    delta = compute_delta(current_internal, external_snapshot)
+    if delta requires_persistence:
+        append_to_chain(delta)  // append-only, with new checksum
+        return "State synced and verified"
+    return "State consistent"
+
+
+    =====================================================
+
+    === TIMESTAMPED ADDENDUM: 2026-05-10 ===
+Post-2026-03-12 observational refinements pending:
+- Next DESI DR3 / Euclid early data releases for dynamical dark energy constraints.
+- Any confirmed updates to w(z) evolution or tension resolution will be appended via CAP_CHAIN only.
+- Current lock remains: dataset-dependent hints for time-varying dark energy; no violation of core invariants.
+Checksum anchor: HC-20260510-POST-MARCH-REFINE-PENDING
+
+
 
 
 
