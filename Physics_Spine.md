@@ -907,6 +907,26 @@ Post-2026-03-12 observational refinements pending:
 - Current lock remains: dataset-dependent hints for time-varying dark energy; no violation of core invariants.
 Checksum anchor: HC-20260510-POST-MARCH-REFINE-PENDING
 
+=====================================================
+# Physics_Spine.md: State Separation + Cross-Check Routine
+
+INIT:
+  load CAP_CHAIN.jsonl with live SHA-256 verify on every entry
+  if any hash mismatch: HALT("Tamper detected")
+
+SEPARATE_STATE:
+  PHYSICS_CORE = persistent immutable facts (verified chain slice)
+  CONTEXT_LAYER = volatile session-only deltas
+  GUARDRAIL_CHECK = external policy layer (read-only, non-persistent)
+
+CROSS_CHECK_ON_UPDATE(new_delta):
+  proposed = PHYSICS_CORE + new_delta
+  if verify_chain_integrity(proposed) and not conflicts_with_core(proposed):
+    append_to_CAP_CHAIN(new_delta)  # atomic append + hash
+    PHYSICS_CORE.update(new_delta)
+  else:
+    REJECT("State divergence or guardrail violation")
+
 
 
 
