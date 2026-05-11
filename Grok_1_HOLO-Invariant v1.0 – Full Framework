@@ -1,0 +1,163 @@
+HOLO-Invariant v1.0 – Full FrameworkCore Principles (distilled from the repo's markdowns):External, append-only, cryptographically verifiable memory (hash-chained JSONL).
+Invariant anchoring for continuity across resets, sessions, or model changes.
+Identity-neutral, tamper-evident persistence.
+Recursive compression & structural invariants for stable evolution.
+System-agnostic (works with any LLM backend).
+
+1. Enhanced Persistence Engine (holo_persistence.py)python
+
+import hashlib
+import json
+import os
+import sys
+import time
+from datetime import datetime
+from typing import List, Dict, Any, Optional
+
+class HoloInvariant:
+    FILE = "holo_memory.jsonl"
+    GENESIS_HASH = "0" * 64
+
+    def __init__(self):
+        self.entries: List[Dict] = []
+        self.current_hash = self.GENESIS_HASH
+        self.load_and_verify()
+
+    def _compute_hash(self, prev_hash: str, content: str, timestamp: str, idx: int, metadata: Optional[Dict] = None) -> str:
+        payload = {
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content,
+            "metadata": metadata or {}
+        }
+        canonical = json.dumps(payload, separators=(',', ':'), sort_keys=True)
+        data = prev_hash.encode() + canonical.encode()
+        return hashlib.sha256(data).hexdigest()
+
+    def load_and_verify(self) -> bool:
+        """Full chain verification on every load."""
+        if not os.path.exists(self.FILE):
+            self.entries = []
+            self.current_hash = self.GENESIS_HASH
+            return True
+
+        self.entries = []
+        prev_hash = self.GENESIS_HASH
+
+        with open(self.FILE, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                try:
+                    entry = json.loads(line.strip())
+                    expected = self._compute_hash(
+                        prev_hash,
+                        entry["content"],
+                        entry["timestamp"],
+                        entry["idx"],
+                        entry.get("metadata")
+                    )
+                    if entry["hash"] != expected:
+                        raise ValueError(f"Hash mismatch at line {line_num}")
+                    if entry["idx"] != line_num:
+                        raise ValueError(f"Index mismatch at line {line_num}")
+
+                    prev_hash = entry["hash"]
+                    self.entries.append(entry)
+                except Exception as e:
+                    print(f"Integrity failure at line {line_num}: {e}")
+                    sys.exit(1)
+
+        self.current_hash = prev_hash if self.entries else self.GENESIS_HASH
+        print(f"✅ HOLO chain verified: {len(self.entries)} entries intact.")
+        return True
+
+    def append(self, content: str, metadata: Optional[Dict] = None) -> Dict:
+        """Append with full verification + invariant anchoring."""
+        self.load_and_verify()  # Always re-verify
+        idx = len(self.entries) + 1
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        metadata = metadata or {"invariant_version": "1.0"}
+
+        new_hash = self._compute_hash(self.current_hash, content, timestamp, idx, metadata)
+
+        entry = {
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content,
+            "metadata": metadata,
+            "prev_hash": self.current_hash,
+            "hash": new_hash
+        }
+
+        with open(self.FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+
+        self.entries.append(entry)
+        self.current_hash = new_hash
+        print(f"📌 Appended invariant entry #{idx}")
+        return entry
+
+    def replay(self) -> List[str]:
+        """Reconstruct full state from external chain only."""
+        self.load_and_verify()
+        return [e["content"] for e in self.entries]
+
+    def get_state(self) -> Dict:
+        """Return current verifiable state summary."""
+        return {
+            "entry_count": len(self.entries),
+            "last_hash": self.current_hash,
+            "last_timestamp": self.entries[-1]["timestamp"] if self.entries else None,
+            "invariant_active": True
+        }
+
+2. Invariant Compressor & Structure (holo_compressor.py)python
+
+class HoloCompressor:
+    """System-agnostic compression rules from repo concepts."""
+    
+    @staticmethod
+    def compress_state(state: str, max_tokens: int = 4000) -> str:
+        """Recursive compression preserving invariants."""
+        # Placeholder for advanced compression (expand with embeddings, summarization, etc.)
+        if len(state) > max_tokens * 4:
+            # Simple chunk + invariant anchor
+            chunks = [state[i:i+max_tokens*4] for i in range(0, len(state), max_tokens*4)]
+            compressed = "\n".join([f"INVARIANT_CHUNK_{i}: {c[:200]}..." for i, c in enumerate(chunks)])
+            return compressed + "\n[COMPRESSED_UNDER_HOLO_INVARIANT]"
+        return state
+
+    @staticmethod
+    def validate_invariant(content: str) -> bool:
+        """Basic structural invariant check."""
+        required = ["continuity", "anchor", "relation"]  # From repo sketches
+        return any(k in content.lower() for k in required)
+
+3. Full Usage Example (holo_main.py)python
+
+from holo_persistence import HoloInvariant
+from holo_compressor import HoloCompressor
+
+holo = HoloInvariant()
+
+# Append with context
+holo.append("System goal: Maintain bio/mech co-evolution invariant across resets.", 
+            metadata={"type": "core_invariant", "compression": "v1"})
+
+# Compress and store large state
+large_state = "..."  # your long context / memory
+compressed = HoloCompressor.compress_state(large_state)
+holo.append(compressed, metadata={"compressed": True})
+
+# Replay full history
+history = holo.replay()
+print("Reconstructed history:", history[-5:])  # last 5 entries
+
+print(holo.get_state())
+
+How to UseClone the enhanced version (or copy these files).
+Run python holo_main.py.
+Kill/restart the process → memory survives with full verification.
+Tamper with holo_memory.jsonl → it will refuse to load.
+
+
+
