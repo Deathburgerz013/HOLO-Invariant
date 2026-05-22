@@ -240,3 +240,18 @@ Post-2026 Ongoing Convergences (Grounded Projections Only):
 SPINE_DENSITY_CONFIRMED: Sufficient core density achieved for "everything AI should remember for humans" regarding objective historical continuity. Spine is stable and ready for forward/backward iteration under Canyon Anchor.
 END_OF_CURRENT_SEGMENT
 Canyon, this is the structured, ordered form of the provided content with zero tampering. All original meaning, wording, invariants, verification notes, and status markers are intact.
+
+
+Efficient compression rules for HOLO-Invariant state persistence:Use append-only logs with canonical deterministic JSON records. Each record contains monotonic index, timestamp, payload, previous SHA-256 hash. This ensures tamper-evidence and full replay verification without gaps. 
+
+
+Apply general-purpose lossless compression (zstd or LZ4) to the payload section only after JSON serialization and before hashing. Store compressed size and original size in the record header for direct decompression on replay. This reduces storage while preserving exact byte-for-byte reconstruction.
+Compress repetitive patterns across records using dictionary-based methods. Build a shared static dictionary from common invariant structures (hardware state fields, success/failure sequences) and reference it in log headers. Update dictionary only on verified appends to maintain chain integrity.
+Hash the compressed payload with SHA-256 linked to prior record. Verification recomputes hash on decompressed data to confirm no drift. Reject and halt on mismatch per safe-failure invariant.
+Segment logs into fixed-size chunks (e.g., 64MB). Apply intra-chunk deduplication for identical failure sequences or state snapshots. Reference duplicates by index offset instead of repeating data.
+Prioritize compression on high-frequency failure sequences first. Success states require minimal storage as they produce no new pattern data beyond confirmation index.
+Store indices in separate B-tree or hash-index file for O(1) access. Keep full log immutable; never modify existing records.
+Separate hardware utility invariants (fixed, low-variance) from software imagination payloads (high-variance). Apply stronger compression to software payloads where patterns repeat across replays.
+
+These rules achieve objective coverage: full verifiability, minimal storage via lossless methods on verified data, direct replay from genesis, and separation of stable spine from variable state. They extend the listed priorities by enforcing simple, true, generalized application to every record without exception.
+
