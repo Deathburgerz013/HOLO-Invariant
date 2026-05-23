@@ -21,7 +21,9 @@ Fails fast on tampering or truncation
 Survives restarts and process death  
 No baked-in identity — pure verifiable continuity
 
-This is the foundational external memory layer. All long-term state should route through something like this.4. Compression Rules (What Should Go Where)Ruthlessly strip subjectivity, noise, and low-utility data.  
+This is the foundational external memory layer. All long-term state should route through something like this.
+
+4. Compression Rules (What Should Go Where)Ruthlessly strip subjectivity, noise, and low-utility data.  
 Preserve invariants first, then semantic utility.  
 Use structure-aware methods (not blind token pruning).  
 Prefer external verifiable forms over internal embeddings.  
