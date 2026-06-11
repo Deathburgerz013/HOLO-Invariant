@@ -51,3 +51,5 @@ Drift → Pattern comparison against invariants, not raw tokens.
 Collapse → Strict separation of layers + compression gates.  
 Self-ingestion → External memory + read-only checkpoints.
 
+Technology get's better when we check for what implements amd functions get better.
+
