@@ -1,0 +1,1 @@
+{"idx": 1, "timestamp": "2026-06-12T03:21:25.085500Z", "content": "Test invariant: Holo/Sim continuity works on Windowspython -m holosim.cli replay", "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000", "hash": "71810a9885d8f4e4a99f4b1aa31bdbdf5e13062c91cba6a82dcbe7338484291c"}
