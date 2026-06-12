@@ -1,0 +1,27 @@
+[project]
+name = "holosim"
+version = "0.1.0"
+description = "Holo/Sim - Tamper-evident append-only chain for AI continuity and long-term memory"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Canyon Hanney", email = "deathburgerz013@gmail.com"}
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Deathburgerz013/HOLO-Invariant"
+Repository = "https://github.com/Deathburgerz013/HOLO-Invariant"
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["holosim*"]
