@@ -1,7 +1,7 @@
 [project]
 name = "holosim"
-version = "0.1.0"
-description = "Holo/Sim - Tamper-evident append-only chain for AI continuity and long-term memory"
+version = "0.2.0"
+description = "HoloSim — Minimal tamper-evident append-only continuity engine with corrections loop"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -17,6 +17,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/Deathburgerz013/HOLO-Invariant"
 Repository = "https://github.com/Deathburgerz013/HOLO-Invariant"
+"Bug Tracker" = "https://github.com/Deathburgerz013/HOLO-Invariant/issues"
 
 [build-system]
 requires = ["setuptools>=45", "wheel", "build"]
