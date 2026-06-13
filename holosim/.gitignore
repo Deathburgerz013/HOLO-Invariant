@@ -1,0 +1,5 @@
+"*.jsonl" 
+"__pycache__/" 
+"*.pyc" 
+"holosim_holochain.egg-info/" 
+"test_*.py" 
