@@ -88,7 +88,7 @@ class HoloChain:
             "content": content,
             "prev_hash": prev_hash,
             "hash": hash_val,
-            "type": entry_type  # metadata for future decompression
+            "type": entry_type
         }
 
         with self.file_path.open("a", encoding="utf-8") as f:
@@ -139,7 +139,6 @@ class HoloChain:
             total_stored += stored_len
             if e.get("type") == "compressed":
                 compressed_count += 1
-                # Rough original estimate not stored - we can improve later
             else:
                 total_original += stored_len
 
@@ -149,3 +148,17 @@ class HoloChain:
             "total_stored_bytes": total_stored,
             "compression_ratio": round(total_stored / max(total_original, 1), 3) if total_original else 0
         }
+
+    def print_state(self):
+        """Nice formatted state output for CLI / debugging."""
+        state = self.get_state()
+        print("\n=== CURRENT HOLO STATE ===")
+        print(f"Total entries: {len(state)}\n")
+        for i, item in enumerate(state, 1):
+            if isinstance(item, dict):
+                print(f"{i:3}. {json.dumps(item, ensure_ascii=False, indent=2)}")
+            elif isinstance(item, str):
+                print(f"{i:3}. {item}")
+            else:
+                print(f"{i:3}. {repr(item)}")
+        print("\n=== END STATE ===\n")
