@@ -1,23 +1,45 @@
 import sys
+import argparse
 from .core import HoloChain
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python -m holosim.cli [append <content> | replay | state]")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Holo/Sim CLI - Tamper-evident append-only chain for continuity",
+        prog="python -m holosim.cli"
+    )
+    parser.add_argument("--file", "-f", default="holo_memory.jsonl",
+                        help="Path to the chain file (default: holo_memory.jsonl)")
+    
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    chain = HoloChain()  # You can customize file_path here if needed
+    # Append command
+    append_parser = subparsers.add_parser("append", help="Append a new entry")
+    append_parser.add_argument("content", nargs="*", help="Content to append")
 
-    cmd = sys.argv[1]
-    if cmd == "append":
-        content = " ".join(sys.argv[2:]) or input("Enter content: ")
+    # Replay command
+    subparsers.add_parser("replay", help="Replay and verify full chain")
+
+    # State command
+    subparsers.add_parser("state", help="Get current state")
+
+    args = parser.parse_args()
+
+    # Initialize chain with optional file path
+    chain = HoloChain(file_path=args.file)
+
+    if args.command == "append":
+        content = " ".join(args.content) if args.content else input("Enter content: ")
+        if not content.strip():
+            print("Error: No content provided.")
+            sys.exit(1)
         chain.append(content)
-    elif cmd == "replay":
+    elif args.command == "replay":
         chain.replay()
-    elif cmd == "state":
-        print(chain.get_state())
+    elif args.command == "state":
+        state = chain.get_state()
+        print(state)
     else:
-        print("Unknown command. Use: append, replay, or state")
+        parser.print_help()
 
 if __name__ == "__main__":
     main()
