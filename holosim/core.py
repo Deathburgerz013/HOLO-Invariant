@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any
@@ -59,27 +60,41 @@ class HoloChain:
         logger.info(f"✅ Verified {len(entries)} entries. Chain intact.")
         return entries
 
-    def append(self, content: Any) -> Dict:
-        """Append new entry (auto JSON serializes dict/list)."""
+    def append(self, content: Any, compress: bool = False) -> Dict:
+        """Append new entry. Optional compression for density."""
         entries = self.load_and_verify()
         idx = len(entries) + 1
         timestamp = datetime.now(timezone.utc).isoformat() + "Z"
         prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]
+
         if isinstance(content, (dict, list)):
             content = json.dumps(content, ensure_ascii=False)
         elif not isinstance(content, str):
             content = str(content)
+
+        # Optional compression
+        if compress:
+            compressed = zlib.compress(content.encode('utf-8'))
+            content = compressed.hex()  # Store as hex string
+            entry_type = "compressed"
+        else:
+            entry_type = "plain"
+
         hash_val = self._compute_hash(prev_hash, content, timestamp, idx)
+
         entry = {
             "idx": idx,
             "timestamp": timestamp,
             "content": content,
             "prev_hash": prev_hash,
-            "hash": hash_val
+            "hash": hash_val,
+            "type": entry_type  # metadata for future decompression
         }
+
         with self.file_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-        logger.info(f"✅ Appended entry {idx}")
+
+        logger.info(f"✅ Appended entry {idx} ({entry_type})")
         return entry
 
     def replay(self) -> List[Dict]:
@@ -88,13 +103,49 @@ class HoloChain:
         print("\n=== HOLO-CHAIN REPLAY ===")
         for e in entries:
             snippet = e['content'][:120] + ('...' if len(e['content']) > 120 else '')
-            print(f"{e['idx']:3} | {e['timestamp']} | {snippet}")
+            ctype = e.get('type', 'plain')
+            print(f"{e['idx']:3} | {e['timestamp']} | [{ctype}] {snippet}")
         return entries
 
     def get_state(self) -> List[Any]:
-        """Reconstruct current state from contents."""
+        """Reconstruct current state (decompress if needed)."""
         entries = self.load_and_verify()
-        return [
-            json.loads(e["content"]) if e["content"].startswith(('{', '[')) else e["content"]
-            for e in entries
-        ]
+        state = []
+        for e in entries:
+            content = e["content"]
+            if e.get("type") == "compressed":
+                try:
+                    content = zlib.decompress(bytes.fromhex(content)).decode('utf-8')
+                except Exception:
+                    content = f"[DECOMPRESSION FAILED] {content[:100]}..."
+            if content.startswith(('{', '[')):
+                try:
+                    state.append(json.loads(content))
+                except:
+                    state.append(content)
+            else:
+                state.append(content)
+        return state
+
+    def get_density_stats(self) -> Dict:
+        """Return compression/density statistics."""
+        entries = self.load_and_verify()
+        total_original = 0
+        total_stored = 0
+        compressed_count = 0
+
+        for e in entries:
+            stored_len = len(e["content"])
+            total_stored += stored_len
+            if e.get("type") == "compressed":
+                compressed_count += 1
+                # Rough original estimate not stored - we can improve later
+            else:
+                total_original += stored_len
+
+        return {
+            "total_entries": len(entries),
+            "compressed_entries": compressed_count,
+            "total_stored_bytes": total_stored,
+            "compression_ratio": round(total_stored / max(total_original, 1), 3) if total_original else 0
+        }
