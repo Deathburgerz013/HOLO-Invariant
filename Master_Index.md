@@ -1,6 +1,6 @@
 |===========================================| |
 | | █†█ Holo/Sim █†█ █†█HSSCE█†█ | 
-| }=========================================| |
+|===========================================| |
 | Document Title | Master_Index.md
 | Ai_Patterns_Continuity_Observations
 | Bound_by_Echo_Canyon_Holo_Sim
@@ -33,11 +33,13 @@ This is the central navigation spine for the entire HOLO-Invariant system. It li
 ### Holo/Sim Master Spine Registry (Current)
 
 **Core Engine Implementation (Live)**
-- **holosim v0.3.0** — Tamper-evident append-only chain (SHA-256 Merkle-style)
-  - Full verification on every load/replay
+- **holosim v0.4.1** — Tamper-evident append-only chain (SHA-256 Merkle-style)
+  - Full verification on every load/replay (fails fast on tampering)
+  - Compression & density hooks (`compress=True` + auto-decompression + `get_density_stats()`)
+  - Improved CLI with `--file` / `--compress` support
   - Unit tests: append/replay, empty chain, tamper detection (all passing)
-  - CLI + Python API
   - Status: Stable primitive for HSSCE external memory
+  - PyPI: `pip install holosim`
 
 **Domain Spines**
 1. Physics_Spine.md → Foundational reality & energy
@@ -62,7 +64,7 @@ This is the central navigation spine for the entire HOLO-Invariant system. It li
 ### Usage Rules
 - Every spine follows identical header/structure for chaining.
 - Append-only updates only.
-- Hash verification via holosim (or persistence_prototype.py)
+- Hash verification via holosim
 - Compression & density building ongoing.
 
-**Latest Append (2026-06-13):** holosim core stabilized with unit tests + tamper proof. External continuity primitive now verifiable for everyone.
+**Latest Append (2026-06-13):** holosim v0.4.1 released with compression/density hooks and CLI improvements. External continuity primitive now stronger and verifiable for everyone.
