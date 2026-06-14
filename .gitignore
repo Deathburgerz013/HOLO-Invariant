@@ -1,1 +1,20 @@
-# Personal chain dataecho holo_memory*echo *.jsonlecho *.jsonecho.echo # Python build / cacheecho __pycache__/echo *.pycecho *.pyoecho *.pydecho .Pythonecho build/echo dist/echo *.egg-info/echo .pytest_cache/echo .coverageecho htmlcov/echo.echo # Temp dumpsecho core_dump.txtecho cli_dump.txtecho test_*.pyecho test_memory*echo Assimilated_theories*
+# Personal / runtime data 
+holo_memory* 
+*.jsonl 
+*.json 
+test_memory* 
+ 
+# Python cache / build 
+__pycache__/ 
+*.pyc 
+*.pyo 
+.pytest_cache/ 
+*.egg-info/ 
+build/ 
+dist/ 
+ 
+# Temp files 
+core_dump* 
+cli_dump* 
+test_*.py 
+Assimilated_theories* 
