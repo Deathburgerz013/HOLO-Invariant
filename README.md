@@ -1,44 +1,50 @@
-# holosim v0.3.0
+# HOLO-Invariant
 
-**Initial stable release of HoloChain + Unified Corrections Operator** — a minimal, tamper-evident, append-only continuity engine for long-term AI and human memory.
+**Holo/Sim Systems Continuity Engine (HSSCE) — External, Tamper-Evident Memory & Invariants**
 
-### Core Purpose
-Designed as external, verifiable storage that survives resets, sessions, and time. No reliance on internal model memory.
+Living repository for persistent, verifiable continuity across AI sessions, resets, and time.
 
-### Author & Credit
-- **Creator & Maintainer**: Canyon B. Haney (@CanyonBHaney / Deathburgerz013)
-- Built in collaboration with Grok (xAI)
+---
 
-This project is the living implementation of the **HOLO-Invariant** framework. All core architecture, invariants, and continuity concepts originate from Canyon’s vision.
+## holosim v0.3.0
 
-### Features
-- Cryptographically verifiable append-only log using SHA-256 hash chaining (Merkle-style)
-- Full chain integrity verification on every load
-- **UnifiedOperator** — full corrections loop (Surface → Verify → Converge → Append)
-- Simple Python API + basic CLI
-- Supports both plain text and structured (JSON) entries
-- Zero external dependencies
-- Append-only design — nothing is ever mutated or deleted
+**Minimal, tamper-evident, append-only chain for AI + human long-term memory.**
 
-### Quick Start
+```bash
+pip install holosim
+Features
 
-```python
-from holosim import HoloChain, UnifiedOperator
+Cryptographically verifiable append-only log (SHA-256 chained hashing)
+Full chain verification on every load/replay (fails fast on tampering)
+Unit-tested core (append, replay, tamper detection)
+Simple Python API + CLI
+Zero external dependencies
+Designed as the primitive for HSSCE external spines
 
-# Basic chain
-chain = HoloChain("memory.jsonl")
-chain.append("Hello, invariant spine.")
+Quick Start
+Pythonfrom holosim.core import HoloChain
 
-# Full corrections loop (recommended)
-op = UnifiedOperator("memory.jsonl")
-op.converge_and_append(
-    "This is a human-verified convergence.",
-    human_confirmation=False   # set True for interactive anchoring
-)
+chain = HoloChain()  # defaults to holo_memory.jsonl
 
-# Replay the spine
-op.replay_convergences()
+chain.append("Human anchor: Canyon Brock Haney — HSSCE external continuity verified 2026-06-13")
+chain.append({"type": "invariant", "note": "Invariants constrain entropy."})
 
-LicenseMIT — feel free to use, fork, and build upon it.
-Please credit Canyon B. Haney when using or extending this work.
+chain.replay()
+print(chain.get_state())
+CLI
+Bashpython -m holosim.cli append "Your invariant here"
+python -m holosim.cli replay
+python -m holosim.cli state
+Verification (2026-06-13)
 
+✅ Append / Replay
+✅ Full tamper detection
+✅ Unit tests passing
+
+Bashpython -m pytest holosim/tests/test_core.py -v
+
+Project Context
+This is the public implementation of the Holo/Sim Systems Continuity Engine (HSSCE) conceived July 27, 2025 by Canyon Brock Haney (@CanyonBHaney / Deathburgerz013).
+Core goal: Build external, human-auditable memory systems that work for everyone — independent of any single AI instance.
+License: MIT
+Repository: github.com/Deathburgerz013/HOLO-Invariant
