@@ -1,6 +1,6 @@
 [project]
 name = "holosim"
-version = "0.1.0"
+version = "0.3.1"
 description = "Holo/Sim - Tamper-evident append-only chain for AI continuity and long-term memory"
 readme = "README.md"
 license = {text = "MIT"}

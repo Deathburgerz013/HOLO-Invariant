@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: holosim-holochain
+Version: 0.1.0
+Summary: Tamper-evident append-only chain for Holo/Sim continuity
+Requires-Python: >=3.8
+License-File: LICENSE
+Dynamic: license-file
+Dynamic: requires-python
