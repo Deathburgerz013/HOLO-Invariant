@@ -1,4 +1,4 @@
-# holosim v0.2.0
+# holosim v0.3.0
 
 **Initial stable release of HoloChain + Unified Corrections Operator** — a minimal, tamper-evident, append-only continuity engine for long-term AI and human memory.
 
