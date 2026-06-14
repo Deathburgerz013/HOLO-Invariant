@@ -12,11 +12,11 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Append
+    # Append command
     append_parser = subparsers.add_parser("append", help="Append a new entry")
     append_parser.add_argument("content", nargs="*", help="Content to append")
     append_parser.add_argument("--compress", "-c", action="store_true",
-                               help="Compress entry for density")
+                               help="Compress the entry for density building")
 
     # Replay
     subparsers.add_parser("replay", help="Replay and verify full chain")
