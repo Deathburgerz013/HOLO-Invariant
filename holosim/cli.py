@@ -4,7 +4,7 @@ from .core import HoloChain
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Holo/Sim CLI - Tamper-evident append-only chain",
+        description="Holo/Sim CLI - Tamper-evident append-only chain for continuity",
         prog="python -m holosim.cli"
     )
     parser.add_argument("--file", "-f", default="holo_memory.jsonl",
@@ -15,7 +15,8 @@ def main():
     # Append
     append_parser = subparsers.add_parser("append", help="Append a new entry")
     append_parser.add_argument("content", nargs="*", help="Content to append")
-    append_parser.add_argument("--compress", "-c", action="store_true", help="Compress entry for density")
+    append_parser.add_argument("--compress", "-c", action="store_true",
+                               help="Compress entry for density")
 
     # Replay
     subparsers.add_parser("replay", help="Replay and verify full chain")
