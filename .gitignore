@@ -18,3 +18,6 @@ core_dump*
 cli_dump* 
 test_*.py 
 Assimilated_theories* 
+__pycache__/ 
+*.pyc 
+Core.py_backups/ 
