@@ -1,4 +1,6 @@
-from .core import HoloChain
-
-__version__ = "0.1.0"
-__all__ = ["HoloChain"]
+# Holo/Sim package init for HSSCE continuity engine 
+from .core import HoloChain 
+from .artifact_parser import main as run_artifact_parser, Artifact, extract_crystal 
+ 
+__version__ = "0.4.6" 
+__all__ = ["HoloChain", "run_artifact_parser", "Artifact", "extract_crystal"] 
