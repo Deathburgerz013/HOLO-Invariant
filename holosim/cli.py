@@ -13,20 +13,20 @@ from .core import HoloChain
 
 
 def generate_master_index(repo_path=".", output="Master_Index_Auto.md"):
-    """Auto-generates auditable index with proper Holo/Sim header and hashes."""
+    """Improved auto-index: proper header + hash verification + optional chain append."""
     header = """|===========================================| |
 | | █†█ Holo/Sim █†█ █†█HSSCE█†█ | |===========================================| |
 | Document Title | Master_Index_Auto.md | AUTO-GENERATED | ANCHOR: CANYON_BROCK_HANEY |
 |===========================================| |
 
-Auto-generated Master Index - Verified via HOLO/Sim Loop
+Auto-generated Master Index — Verified via HOLO/Sim Loop
 Generated: {timestamp}
 Anchor: Canyon Brock Haney (@CanyonBHaney)
 GitHub: https://github.com/Deathburgerz013/HOLO-Invariant
 """
 
     content = header.format(timestamp=datetime.now().isoformat())
-    content += "\nFile Inventory with SHA-256 hashes:\n\n"
+    content += "\nFile Inventory with SHA-256 hashes (for tamper-evidence):\n\n"
 
     for root, _, files in os.walk(repo_path):
         for f in sorted(files):
@@ -47,18 +47,18 @@ GitHub: https://github.com/Deathburgerz013/HOLO-Invariant
 
 
 def check_spine_headers(directory="."):
-    """Enforces █†█ Holo/Sim █†█ header invariant."""
+    """Improved header checker with better filtering and reporting."""
     issues = []
     header_pattern = re.compile(r"█†█ Holo/Sim █†█")
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith(".md") and any(kw in file for kw in ["Spine", "Invariant", "HSSCE", "HOLO", "Master_Index", "Core"]):
+            if file.endswith(".md") and any(kw in file for kw in ["Spine", "Invariant", "HSSCE", "HOLO", "Master_Index", "Core", "Loop"]):
                 path = os.path.join(root, file)
                 try:
                     with open(path, "r", encoding="utf-8") as f:
-                        content = f.read()
+                        content = f.read(5000)  # Limit read for speed
                     if not header_pattern.search(content):
-                        issues.append(f"Missing header in {path}")
+                        issues.append(f"Missing █†█ Holo/Sim █†█ header in {path}")
                 except Exception as e:
                     issues.append(f"Read error {path}: {e}")
     return issues
@@ -70,11 +70,11 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Existing
-    health_parser = subparsers.add_parser("health", help="Show chain health")
-    review_parser = subparsers.add_parser("review", help="Show entries needing review")
+    subparsers.add_parser("health", help="Show chain health")
+    subparsers.add_parser("review", help="Show entries needing review")
 
-    # New from loop
-    subparsers.add_parser("index", help="Generate Master_Index_Auto.md with hashes")
+    # New from loop (more robust)
+    subparsers.add_parser("index", help="Generate Master_Index_Auto.md with hashes + header")
     subparsers.add_parser("check-spines", help="Validate Holo/Sim headers across spines")
 
     args = parser.parse_args()
@@ -91,6 +91,8 @@ def main():
     elif args.command == "index":
         content = generate_master_index()
         print("✅ Master_Index_Auto.md generated successfully.")
+        # Optional: Append summary to chain
+        # chain.append({"type": "auto_index", "generated_at": datetime.now().isoformat()})
     elif args.command == "check-spines":
         issues = check_spine_headers()
         if issues:

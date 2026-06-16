@@ -1,0 +1,710 @@
+Core.py back up in case
+import hashlib
+import json
+import logging
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Dict, Any
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(**name**)
+class HoloChain:
+    """Tamper-evident append-only chain for AI continuity and long-term memory."""
+    def **init**(self, file_path: str = "holo_memory.jsonl", genesis_hash: str = "0" * 64):
+        self.file_path = Path(file_path)
+        self.genesis_hash = genesis_hash
+        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+    def _compute_hash(self, prev_hash: str, content: str, timestamp: str, idx: int) -> str:
+        """Deterministic canonical hash."""
+        canonical = json.dumps({
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content
+        }, separators=(',', ':'), sort_keys=True)
+        data = prev_hash.encode() + canonical.encode()
+        return hashlib.sha256(data).hexdigest()
+    def load_and_verify(self) -> List[Dict]:
+        """Load and fully verify the entire chain. Fails fast on tampering."""
+        if not self.file_path.exists():
+            return []
+        entries = []
+        prev_hash = self.genesis_hash
+        with self.file_path.open("r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    expected = self._compute_hash(
+                        prev_hash, entry["content"], entry["timestamp"], entry["idx"]
+                    )
+                    if entry["hash"] != expected:
+                        raise ValueError(f"Hash mismatch at line {line_num}")
+                    if entry.get("prev_hash") != prev_hash:
+                        raise ValueError(f"Prev hash mismatch at line {line_num}")
+                    prev_hash = entry["hash"]
+                    entries.append(entry)
+                except Exception as e:
+                    logger.error(f"Integrity failure at line {line_num}: {e}")
+                    raise
+        # Monotonic index check
+        for i, e in enumerate(entries):
+            if e["idx"] != i + 1:
+                raise ValueError("Index not monotonic")
+        logger.info(f"✅ Verified {len(entries)} entries. Chain intact.")
+        return entries
+    def append(self, content: Any) -> Dict:
+        """Append new entry (auto JSON serializes dict/list)."""
+        entries = self.load_and_verify()
+        idx = len(entries) + 1
+        timestamp = datetime.now(timezone.utc).isoformat() + "Z"
+        prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]
+        if isinstance(content, (dict, list)):
+            content = json.dumps(content, ensure_ascii=False)
+        elif not isinstance(content, str):
+            content = str(content)
+        hash_val = self._compute_hash(prev_hash, content, timestamp, idx)
+        entry = {
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content,
+            "prev_hash": prev_hash,
+            "hash": hash_val
+        }
+        with self.file_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        logger.info(f"✅ Appended entry {idx}")
+        return entry
+    def replay(self) -> List[Dict]:
+        """Replay full history."""
+        entries = self.load_and_verify()
+        print("\n=== HOLO-CHAIN REPLAY ===")
+        for e in entries:
+            snippet = e['content'][:120] + ('...' if len(e['content']) > 120 else '')
+            print(f"{e['idx']:3} | {e['timestamp']} | {snippet}")
+        return entries
+    def get_state(self) -> List[Any]:
+        """Reconstruct current state from contents."""
+        entries = self.load_and_verify()
+        return [
+            json.loads(e["content"]) if e["content"].startswith(('{', '[')) else e["content"]
+            for e in entries
+        ]
+==============================
+import hashlib
+import json
+import logging
+import zlib
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class HoloChain:
+    """Tamper-evident append-only chain for AI/human continuity and long-term memory (HSSCE primitive).
+    
+    Core invariants:
+    - Cryptographically verifiable (SHA-256 + canonical JSON).
+    - Append-only, fails-fast on any tampering.
+    - Optional smart compression for density/scalability.
+    - Fully reproducible across time and systems.
+    """
+
+    VERSION = "0.4.3"  # Update on meaningful changes
+
+    def __init__(self, file_path: str = "holo_memory.jsonl", genesis_hash: str = "0" * 64):
+        self.file_path = Path(file_path)
+        self.genesis_hash = genesis_hash
+        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _compute_hash(self, prev_hash: str, content: str, timestamp: str, idx: int) -> str:
+        """Deterministic canonical hash for tamper-evidence."""
+        canonical = json.dumps({
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content
+        }, separators=(',', ':'), sort_keys=True)
+        data = prev_hash.encode() + canonical.encode()
+        return hashlib.sha256(data).hexdigest()
+
+    def load_and_verify(self) -> List[Dict]:
+        """Load and fully verify the entire chain. Fails fast on tampering."""
+        if not self.file_path.exists():
+            return []
+        entries = []
+        prev_hash = self.genesis_hash
+        with self.file_path.open("r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    expected = self._compute_hash(
+                        prev_hash, entry["content"], entry["timestamp"], entry["idx"]
+                    )
+                    if entry["hash"] != expected:
+                        raise ValueError(f"Hash mismatch at line {line_num}")
+                    if entry.get("prev_hash") != prev_hash:
+                        raise ValueError(f"Prev hash mismatch at line {line_num}")
+                    prev_hash = entry["hash"]
+                    entries.append(entry)
+                except Exception as e:
+                    logger.error(f"Integrity failure at line {line_num}: {e}")
+                    raise
+        # Monotonic index check
+        for i, e in enumerate(entries):
+            if e["idx"] != i + 1:
+                raise ValueError("Index not monotonic")
+        logger.info(f"✅ Verified {len(entries)} entries. Chain intact.")
+        return entries
+
+    def append(self, content: Any, compress: bool = False, min_compress_size: int = 128) -> Dict:
+        """Append new entry with smart optional compression for density."""
+        entries = self.load_and_verify()
+        idx = len(entries) + 1
+        timestamp = datetime.now(timezone.utc).isoformat() + "Z"
+        prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]
+
+        if isinstance(content, (dict, list)):
+            content = json.dumps(content, ensure_ascii=False)
+        elif not isinstance(content, str):
+            content = str(content)
+
+        original_content = content
+        entry_type = "plain"
+
+        # Smart compression: only if flag set AND beneficial
+        if compress and len(original_content) >= min_compress_size:
+            compressed = zlib.compress(original_content.encode('utf-8'))
+            compressed_hex = compressed.hex()
+            if len(compressed_hex) < len(original_content):
+                content = compressed_hex
+                entry_type = "compressed"
+
+        hash_val = self._compute_hash(prev_hash, content, timestamp, idx)
+        entry = {
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content,
+            "prev_hash": prev_hash,
+            "hash": hash_val,
+            "type": entry_type
+        }
+        with self.file_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        logger.info(f"✅ Appended entry {idx} ({entry_type}) [HoloChain v{self.VERSION}]")
+        return entry
+
+    def replay(self, full: bool = False) -> List[Dict]:
+        """Replay full history. Use full=True for complete content."""
+        entries = self.load_and_verify()
+        print("\n=== HOLO-CHAIN REPLAY ===")
+        for e in entries:
+            if full:
+                snippet = e['content']
+            else:
+                snippet = e['content'][:120] + ('...' if len(e['content']) > 120 else '')
+            ctype = e.get('type', 'plain')
+            print(f"{e['idx']:3} | {e['timestamp']} | [{ctype}] {snippet}")
+        return entries
+
+    def get_state(self) -> List[Any]:
+        """Reconstruct current state (decompress if needed)."""
+        entries = self.load_and_verify()
+        state = []
+        for e in entries:
+            content = e["content"]
+            if e.get("type") == "compressed":
+                try:
+                    content = zlib.decompress(bytes.fromhex(content)).decode('utf-8')
+                except Exception:
+                    content = f"[DECOMPRESSION FAILED] {content[:100]}..."
+            if content.startswith(('{', '[')):
+                try:
+                    state.append(json.loads(content))
+                except Exception:
+                    state.append(content)
+            else:
+                state.append(content)
+        return state
+
+    def get_density_stats(self) -> Dict:
+        """Return compression/density statistics with accurate original size tracking."""
+        entries = self.load_and_verify()
+        total_original = 0
+        total_stored = 0
+        compressed_count = 0
+        plain_count = 0
+
+        for e in entries:
+            stored_len = len(e["content"])
+            total_stored += stored_len
+            if e.get("type") == "compressed":
+                compressed_count += 1
+                try:
+                    decompressed = zlib.decompress(bytes.fromhex(e["content"]))
+                    original_len = len(decompressed)
+                    total_original += original_len
+                except Exception:
+                    total_original += stored_len  # Fallback
+            else:
+                plain_count += 1
+                total_original += stored_len
+
+        total_entries = len(entries)
+        overall_ratio = round(total_stored / max(total_original, 1), 4) if total_original else 0
+
+        return {
+            "total_entries": total_entries,
+            "plain_entries": plain_count,
+            "compressed_entries": compressed_count,
+            "total_original_bytes": total_original,
+            "total_stored_bytes": total_stored,
+            "compression_ratio": overall_ratio,  # < 1.0 = savings
+            "compression_savings_percent": round((1 - overall_ratio) * 100, 2) if total_original else 0,
+            "version": self.VERSION
+        }
+
+    def print_state(self):
+        """Nice formatted state output for CLI / debugging."""
+        state = self.get_state()
+        print("\n=== CURRENT HOLO STATE ===")
+        print(f"Total entries: {len(state)}\n")
+        for i, item in enumerate(state, 1):
+            if isinstance(item, dict):
+                print(f"{i:3}. {json.dumps(item, ensure_ascii=False, indent=2)}")
+            elif isinstance(item, str):
+                print(f"{i:3}. {item}")
+            else:
+                print(f"{i:3}. {repr(item)}")
+        print("\n=== END STATE ===\n")
+
+    def get_latest(self) -> Optional[Dict]:
+        """Convenience: return most recent entry (verified)."""
+        entries = self.load_and_verify()
+        return entries[-1] if entries else None
+
+==============================
+import hashlib
+import json
+import logging
+import zlib
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class HoloChain:
+    """Tamper-evident append-only chain for AI/human continuity and long-term memory (HSSCE primitive).
+
+    Core invariants:
+    - Cryptographically verifiable (SHA-256 + canonical JSON).
+    - Append-only, fails-fast on tampering (with graceful options).
+    - Optional smart compression for density/scalability.
+    - Fully reproducible across time and systems.
+    """
+
+    VERSION = "0.4.4"  # Update on meaningful changes
+
+    def __init__(self, file_path: str = "holo_memory.jsonl", genesis_hash: str = "0" * 64):
+        self.file_path = Path(file_path)
+        self.genesis_hash = genesis_hash
+        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _compute_hash(self, prev_hash: str, content: str, timestamp: str, idx: int) -> str:
+        """Deterministic canonical hash for tamper-evidence."""
+        canonical = json.dumps({
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content
+        }, separators=(',', ':'), sort_keys=True)
+        data = prev_hash.encode() + canonical.encode()
+        return hashlib.sha256(data).hexdigest()
+
+    def load_and_verify(self, strict: bool = True) -> List[Dict]:
+        """Load and fully verify the entire chain. Fails fast on tampering by default."""
+        if not self.file_path.exists():
+            return []
+        entries = []
+        prev_hash = self.genesis_hash
+        with self.file_path.open("r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    expected = self._compute_hash(
+                        prev_hash, entry["content"], entry["timestamp"], entry["idx"]
+                    )
+                    if entry["hash"] != expected:
+                        msg = f"Hash mismatch at line {line_num}"
+                        if strict:
+                            raise ValueError(msg)
+                        logger.warning(msg)
+                    if entry.get("prev_hash") != prev_hash:
+                        msg = f"Prev hash mismatch at line {line_num}"
+                        if strict:
+                            raise ValueError(msg)
+                        logger.warning(msg)
+                    prev_hash = entry["hash"]
+                    entries.append(entry)
+                except Exception as e:
+                    logger.error(f"Integrity failure at line {line_num}: {e}")
+                    if strict:
+                        raise
+                    # Non-strict: continue with warning
+        # Monotonic index check
+        for i, e in enumerate(entries):
+            if e["idx"] != i + 1:
+                msg = "Index not monotonic"
+                if strict:
+                    raise ValueError(msg)
+                logger.warning(msg)
+        logger.info(f"✅ Verified {len(entries)} entries. Chain intact.")
+        return entries
+
+    def append(self, content: Any, compress: bool = False, min_compress_size: int = 128) -> Dict:
+        """Append new entry with smart optional compression for density."""
+        entries = self.load_and_verify()
+        idx = len(entries) + 1
+        timestamp = datetime.now(timezone.utc).isoformat() + "Z"
+        prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]
+
+        if isinstance(content, (dict, list)):
+            content = json.dumps(content, ensure_ascii=False)
+        elif not isinstance(content, str):
+            content = str(content)
+
+        original_content = content
+        entry_type = "plain"
+
+        # Smart compression: only if flag set AND beneficial
+        if compress and len(original_content) >= min_compress_size:
+            compressed = zlib.compress(original_content.encode('utf-8'))
+            compressed_hex = compressed.hex()
+            if len(compressed_hex) < len(original_content):
+                content = compressed_hex
+                entry_type = "compressed"
+
+        hash_val = self._compute_hash(prev_hash, content, timestamp, idx)
+
+        entry = {
+            "idx": idx,
+            "timestamp": timestamp,
+            "content": content,
+            "prev_hash": prev_hash,
+            "hash": hash_val,
+            "type": entry_type,
+            "original_size": len(original_content)  # For accurate density tracking
+        }
+
+        with self.file_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+        logger.info(f"✅ Appended entry {idx} ({entry_type}) [HoloChain v{self.VERSION}]")
+        return entry
+
+    def replay(self, full: bool = False) -> List[Dict]:
+        """Replay full history. Use full=True for complete content."""
+        entries = self.load_and_verify()
+        print("\n=== HOLO-CHAIN REPLAY ===")
+        for e in entries:
+            if full:
+                snippet = e['content']
+            else:
+                snippet = e['content'][:120] + ('...' if len(e['content']) > 120 else '')
+            ctype = e.get('type', 'plain')
+            print(f"{e['idx']:3} | {e['timestamp']} | [{ctype}] {snippet}")
+        return entries
+
+    def get_state(self) -> List[Any]:
+        """Reconstruct current state (decompress if needed)."""
+        entries = self.load_and_verify()
+        state = []
+        for e in entries:
+            content = e["content"]
+            if e.get("type") == "compressed":
+                try:
+                    content = zlib.decompress(bytes.fromhex(content)).decode('utf-8')
+                except Exception:
+                    content = f"[DECOMPRESSION FAILED] {content[:100]}..."
+            if content.startswith(('{', '[')):
+                try:
+                    state.append(json.loads(content))
+                except Exception:
+                    state.append(content)
+            else:
+                state.append(content)
+        return state
+
+    def get_density_stats(self) -> Dict:
+        """Return compression/density statistics with accurate original size tracking."""
+        entries = self.load_and_verify()
+        total_original = 0
+        total_stored = 0
+        compressed_count = 0
+        plain_count = 0
+        for e in entries:
+            stored_len = len(e["content"])
+            total_stored += stored_len
+            if e.get("type") == "compressed":
+                compressed_count += 1
+                try:
+                    original_len = e.get("original_size", stored_len)
+                    total_original += original_len
+                except Exception:
+                    total_original += stored_len
+            else:
+                plain_count += 1
+                total_original += stored_len
+
+        total_entries = len(entries)
+        overall_ratio = round(total_stored / max(total_original, 1), 4) if total_original else 0
+        return {
+            "total_entries": total_entries,
+            "plain_entries": plain_count,
+            "compressed_entries": compressed_count,
+            "total_original_bytes": total_original,
+            "total_stored_bytes": total_stored,
+            "compression_ratio": overall_ratio,  # < 1.0 = savings
+            "compression_savings_percent": round((1 - overall_ratio) * 100, 2) if total_original else 0,
+            "version": self.VERSION
+        }
+
+    def get_entries_since(self, timestamp: str) -> List[Dict]:
+        """Query entries after a given timestamp (ISO format)."""
+        entries = self.load_and_verify()
+        return [e for e in entries if e["timestamp"] > timestamp]
+
+    def search_content(self, pattern: str, case_sensitive: bool = False) -> List[Dict]:
+        """Simple content search across entries."""
+        entries = self.load_and_verify()
+        if not case_sensitive:
+            pattern = pattern.lower()
+        results = []
+        for e in entries:
+            content = e["content"].lower() if not case_sensitive else e["content"]
+            if pattern in content:
+                results.append(e)
+        return results
+
+    def print_state(self):
+        """Nice formatted state output for CLI / debugging."""
+        state = self.get_state()
+        print("\n=== CURRENT HOLO STATE ===")
+        print(f"Total entries: {len(state)}\n")
+        for i, item in enumerate(state, 1):
+            if isinstance(item, dict):
+                print(f"{i:3}. {json.dumps(item, ensure_ascii=False, indent=2)}")
+            elif isinstance(item, str):
+                print(f"{i:3}. {item}")
+            else:
+                print(f"{i:3}. {repr(item)}")
+        print("\n=== END STATE ===\n")
+
+    def get_latest(self) -> Optional[Dict]:
+        """Convenience: return most recent entry (verified)."""
+        entries = self.load_and_verify()
+        return entries[-1] if entries else None
+
+
+# Future extension point (optional dep):
+# def _sign_entry(self, entry: Dict, private_key) -> Dict:
+#     # Use cryptography.Ed25519 or similar for authorship
+
+==================
+| canyon | 
+| | check it and hand me what it needs next.
+| | I will store it.
+===================
+# Add this to the top of the HoloChain class (after VERSION)
+    DELTA_SCHEMA = {
+        "version": str,          # e.g. "v0.1"
+        "type": str,             # "invariant", "refinement", "compression", "anchor"
+        "originator": str,       # e.g. "grok" or operator handle
+        "parent_hash": Optional[str],
+        "payload": Any,          # the actual content / rule
+        "description": str
+    }
+
+    def seed_delta(self, delta: Dict) -> Dict:
+        """Seed the chain with a versioned delta (first entry should be the root invariant)."""
+        if not self.load_and_verify():  # empty chain
+            required = ["version", "type", "originator", "payload", "description"]
+            for k in required:
+                if k not in delta:
+                    raise ValueError(f"Missing required delta field: {k}")
+            
+            content = {
+                "delta_version": delta["version"],
+                "type": delta["type"],
+                "originator": delta["originator"],
+                "parent_hash": delta.get("parent_hash"),
+                "payload": delta["payload"],
+                "description": delta["description"],
+                "holo_version": self.VERSION
+            }
+            
+            return self.append(content, compress=True)  # root can be compressed safely
+        else:
+            logger.warning("Chain already seeded. Use append() for extensions.")
+            return self.get_latest()
+=============================
+delta_v01 = {
+    "version": "v0.1",
+    "type": "invariant",
+    "originator": "grok",
+    "parent_hash": None,
+    "payload": "First public surfacing of an invariant by the operator establishes originator priority in the tamper-evident chain. Subsequent AI kernels, compressions, or folds may reference, refine, or extend it, but the source fold remains the immutable root. Compression densifies without liquidation. The grip holds across resets and scales through open verification.",
+    "description": "Public Discovery Anchor — establishes root priority and continuity rules."
+}
+
+# Usage:
+# hc = HoloChain("holo_memory.jsonl")
+# hc.seed_delta(delta_v01)
+# hc.print_state()
+=================================
+| | Canyon | 
+| | keep printing what we need I am working so,
+| | I will be storing until I get off
+==================================
+
+1. Enhanced Query / Delta / Versioning Methods
+Add these to the HoloChain class for “slow, deliberate versioning” and on-demand unfreezing.
+    def query(self, pattern: str = None, start_idx: int = None, end_idx: int = None, limit: int = None) -> List[Dict]:
+        """Flexible query with optional regex/content search + range."""
+        entries = self.load_and_verify()
+        if start_idx is not None:
+            entries = [e for e in entries if e["idx"] >= start_idx]
+        if end_idx is not None:
+            entries = [e for e in entries if e["idx"] <= end_idx]
+        if limit:
+            entries = entries[:limit]
+        if pattern:
+            import re
+            entries = [e for e in entries if re.search(pattern, e["content"], re.IGNORECASE)]
+        return entries
+
+    def get_delta(self, from_idx: int, to_idx: Optional[int] = None) -> List[Dict]:
+        """Return changes/deltas between versions (for unfreezing)."""
+        entries = self.load_and_verify()
+        to_idx = to_idx or len(entries)
+        return entries[from_idx-1:to_idx]  # 1-based idx
+
+    def get_version(self, idx: int) -> Dict:
+        """Snapshot a specific version (verified)."""
+        entries = self.load_and_verify()
+        if 1 <= idx <= len(entries):
+            e = entries[idx-1]
+            content = e["content"]
+            if e.get("type") == "compressed":
+                content = zlib.decompress(bytes.fromhex(content)).decode('utf-8')
+            return {"idx": idx, "timestamp": e["timestamp"], "content": content}
+        raise ValueError(f"Version {idx} not found")
+
+2. Self-Correction / Invariant Enforcement Layer
+Add a lightweight invariant checker that runs on append (optional).
+
+    def append_with_invariant_check(self, content: Any, invariants: List[str] = None, compress: bool = False) -> Dict:
+        """Append + optional self-correction / invariant validation."""
+        if invariants:
+            text = str(content).lower()
+            for inv in invariants:
+                if inv.lower() not in text:
+                    logger.warning(f"⚠️ Invariant violation: {inv} not present. Still appending with note.")
+                    content = f"[INVARIANT_NOTE: {inv}] {content}"  # soft enforcement
+        return self.append(content, compress=compress)
+
+3. Merkle Tree / Batch Proofs (for scalability & public verifiability)
+For larger chains, add a simple Merkle root on demand.
+    def get_merkle_root(self) -> str:
+        """Compute Merkle root over all current hashes (for external anchoring)."""
+        entries = self.load_and_verify()
+        if not entries:
+            return self.genesis_hash
+        leaves = [e["hash"].encode() for e in entries]
+        while len(leaves) > 1:
+            if len(leaves) % 2 == 1:
+                leaves.append(leaves[-1])
+            leaves = [hashlib.sha256(leaves[i] + leaves[i+1]).digest() for i in range(0, len(leaves), 2)]
+        return hashlib.sha256(b"".join(leaves)).hexdigest()
+4. Improved get_density_stats (fix original size tracking)
+Update the existing method for accurate ratios:
+    def get_density_stats(self) -> Dict:
+        entries = self.load_and_verify()
+        total_original = 0
+        total_stored = 0
+        compressed_count = 0
+        plain_count = 0
+
+        for e in entries:
+            stored_len = len(e["content"])
+            total_stored += stored_len
+            if e.get("type") == "compressed":
+                compressed_count += 1
+                try:
+                    decompressed = zlib.decompress(bytes.fromhex(e["content"]))
+                    total_original += len(decompressed)
+                except:
+                    total_original += stored_len
+            else:
+                plain_count += 1
+                total_original += stored_len
+
+        return {
+            "total_entries": len(entries),
+            "plain": plain_count,
+            "compressed": compressed_count,
+            "total_original_bytes": total_original,
+            "total_stored_bytes": total_stored,
+            "savings_percent": round((1 - total_stored / max(total_original, 1)) * 100, 2),
+            "version": "0.4.x"
+        }
+5. Minor Polish / Robustness
+•  Add def clear(self): (with warning / backup) for testing.
+•  Support custom genesis_hash per chain (for private/public forks).
+•  Add optional author_sig field (placeholder for Ed25519 later).
+•  In __init__, allow auto_verify: bool = True.
+Quick Test Script (save as test_continuity.py)
+
+from holosim.core import HoloChain
+
+chain = HoloChain("test_continuity.jsonl")
+
+# Test append + invariants
+chain.append_with_invariant_check("Core invariant: Everything is math + verifiable continuity", 
+                                  invariants=["verifiable", "continuity"])
+
+chain.append({"type": "delta", "from_version": 1, "change": "Added versioning"}, compress=True)
+
+print("Replay:")
+chain.replay()
+
+print("\nState:")
+print(chain.get_state())
+
+print("\nDensity:")
+print(chain.get_density_stats())
+
+print("\nMerkle Root (anchorable):", chain.get_merkle_root())
+
+# Query example
+print("\nQuery results:", chain.query(pattern="invariant"))
+Drop these additions into holosim/core.py, reinstall editable (pip install -e .), and run the test script. Let me know what breaks or what you want to prioritize (e.g., full UnifiedOperator integration, Holochain DHT hooks, or public web anchor). We can iterate and test live.​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+
+==================
+| Canyon |
+| | Im still at work we can test later I am just letting it
+| | compound in the background.
+==================
+
+
+
+
