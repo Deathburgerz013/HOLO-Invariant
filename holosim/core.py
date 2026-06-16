@@ -21,7 +21,7 @@ class HoloChain:
     - Fully reproducible across time and systems.
     """
 
-    VERSION = "0.4.6"  # Added locking + checkpoint from relics
+    VERSION = "0.4.8"  # Added CLI health/review commands
 
     def __init__(self, file_path: str = "holo_memory.jsonl", genesis_hash: str = "0" * 64):
         self.file_path = Path(file_path)
@@ -190,3 +190,62 @@ class HoloChain:
         """Convenience: return most recent entry (verified)."""
         entries = self.load_and_verify()
         return entries[-1] if entries else None
+
+    # === Relevance & Maintenance Methods ===
+    def needs_review(self, days_old: int = 90, min_access: int = 1) -> List[Dict]:
+        """Flag low-need entries for human review (basic relevance tracking)."""
+        entries = self.load_and_verify()
+        now = datetime.now(timezone.utc)
+        suggestions = []
+        for e in entries:
+            try:
+                entry_date = datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00"))
+                age_days = (now - entry_date).days
+                if age_days > days_old:
+                    suggestions.append({
+                        "idx": e["idx"],
+                        "age_days": age_days,
+                        "snippet": str(e.get("content", ""))[:120] + ("..." if len(str(e.get("content", ""))) > 120 else ""),
+                        "reason": f"old (> {days_old} days)"
+                    })
+            except Exception:
+                continue
+        return suggestions
+
+    def health(self) -> Dict:
+        """Simple self-check dashboard for chain maintenance."""
+        stats = self.get_density_stats()
+        review = self.needs_review()
+        entries = self.load_and_verify()
+        chain_age = 0
+        if entries:
+            try:
+                first_date = datetime.fromisoformat(entries[0]["timestamp"].replace("Z", "+00:00"))
+                chain_age = (datetime.now(timezone.utc) - first_date).days
+            except Exception:
+                pass
+
+        return {
+            **stats,
+            "low_need_count": len(review),
+            "chain_age_days": chain_age,
+            "total_entries": len(entries),
+            "recommendation": "Consider human review of low-need entries" if len(review) > len(entries) * 0.25 else "Healthy"
+        }
+
+    def prune_suggestions(self, max_age_days: int = 180) -> List[Dict]:
+        """Safe suggestions only — never auto-delete. Human must approve."""
+        return self.needs_review(days_old=max_age_days)
+
+    def check_invariant_health(self, invariant_keywords: List[str]) -> Dict:
+        """Light semantic health check on core invariants (zero-dep heuristic)."""
+        state = self.get_state()
+        health = {}
+        for kw in invariant_keywords:
+            mentions = sum(1 for item in state 
+                          if isinstance(item, str) and kw.lower() in item.lower())
+            health[kw] = {
+                "mentions": mentions,
+                "density": round(mentions / len(state), 3) if state else 0
+            }
+        return health
