@@ -1,55 +1,61 @@
-HOLO-Invariant Master Index v1.0Purpose: What we should never forget — stable anchors for human-AI co-evolution.
-Core Thesis: Continuity is not in the model. It is in the verifiable external relationship between human anchor + hash-chained persistence + invariant-preserving compression. Everything else drifts.1. Problem (What Breaks)Layer bleed  
-Recursive self-ingestion / model collapse  
-Silent drift & anchor loss  
-Context window / reset / provider fragility  
+HOLO-Invariant
+Master Index v1.0
+Purpose: What we should never forget — stable anchors for human-AI co-evolution.
+Core Thesis: Continuity is not in the model. It is in the verifiable external relationship between human anchor + hash-chained persistence + invariant-preserving compression. Everything else drifts.
+1. Problem (What Breaks)
+
+Layer bleed
+Recursive self-ingestion / model collapse
+Silent drift & anchor loss
+Context window / reset / provider fragility
 Systems that cannot maintain truth across iterations
-Always check for needs.
-Solution Anchor: The human is the external invariant. Persistence lives outside the model in append-only verifiable chains. Models are guided, not trusted as memory.2. Invariant Concept (What Must Stay True)A HOLO-Invariant is a holographic, multi-scale conserved structure that survives heavy compression and evolution.Strict: I_k(S_{t+1}) = I_k(S_t) (e.g. hash chain root)  
-Approximate: d(I_k(S_{t+1}), I_k(S_t)) ≤ ε with bounded error  
-Holographic property: The set of invariants allows efficient reconstruction of essential state.  
-Lattice structure: Invariants are partially ordered — preserving stronger ones constrains weaker ones.
 
-Core Invariants to Protect:Verifiable external continuity (hash chain)  
-Human-as-anchor relationship  
-Truth/monotonicity of knowledge (no silent falsehood accumulation)  
-Structural topology (ordering, separation of concerns)  
-Semantic utility (preserve what remains useful)
+Solution Anchor: The human is the external invariant. Persistence lives outside the model in append-only verifiable chains. Models are guided, not trusted as memory.
+2. Invariant Concept (What Must Stay True)
+A HOLO-Invariant is a holographic, multi-scale conserved structure that survives heavy compression and evolution.
+Strict: I_k(S_{t+1}) = I_k(S_t) (e.g. hash chain root)
+Approximate: d(I_k(S_{t+1}), I_k(S_t)) ≤ ε with bounded error
+Holographic property: The set of invariants allows efficient reconstruction of essential state.
+Lattice structure: Stronger invariants constrain weaker ones.
+Core Invariants to Protect:
 
-3. Persistence Primitive (The Tech We Already Have)persistence_prototype.py — minimal, dependency-free, append-only JSONL with SHA-256 chaining + deterministic canonical JSON.Properties:Full chain verification on load  
-Fails fast on tampering or truncation  
-Survives restarts and process death  
-No baked-in identity — pure verifiable continuity
+Verifiable external continuity (hash chain)
+Human-as-anchor relationship
+Truth/monotonicity of knowledge
+Structural topology
+Semantic utility
 
-This is the foundational external memory layer. All long-term state should route through something like this.
+3. Persistence Primitive (The Tech We Have)
+holosim v0.4.6 — Tamper-evident append-only chain + artifact parser (HSSCE primitive)
+Core Features:
 
-4. Compression Rules (What Should Go Where)Ruthlessly strip subjectivity, noise, and low-utility data.  
-Preserve invariants first, then semantic utility.  
-Use structure-aware methods (not blind token pruning).  
-Prefer external verifiable forms over internal embeddings.  
-Controlled forgetting: only discard what has low reconstruction value relative to invariants.
+Cryptographically verifiable append-only log (SHA-256 chained hashing with canonical JSON)
+Full chain verification on every load/replay (fails fast on tampering)
+Optional smart zlib compression with auto-decompression
+get_state(), replay(), get_density_stats(), create_checkpoint()
+Full artifact_parser module: canonical JSON, crystal extraction, ego-detachment framing, and public markdown output
+Cross-platform file locking for safer concurrent use
+Robust unit tests (all green)
+Zero external dependencies
 
-Goal: Minimal viable persistent record that still allows holographic recovery of meaning.5. Spines & StructuresPhysics_Spine: Fundamental conservation-like invariants.  
-Structured_Spine: Hierarchical, layered organization.  
-HSSCE (Holo/Sim Systems Continuity Engine): Simulation framework for testing continuity under stress (time manipulation, auditing, quantum-relay style bounds).  
-Multiple checkpoints & findings documents refine these.
+Quick Start
+Pythonfrom holosim.core import HoloChain
 
-6. Formalization (AI Self-Correction)System evolves as:
-S_{t+1} = f(S_t, C(S_t; θ))Compressor C is optimized under loss:
-L(C) = Invariant Violation + α·InfoLoss + β·RegularizationPrioritize zero (or ε) violation of HOLO-Invariants.  
-Holographic reconstruction from invariants.  
-Hash chaining as base cryptographic layer.  
-Truth-preserving: hallucinations treated as degradation.
+chain = HoloChain("holo_memory.jsonl")
 
-7. Behavioral & Mechanical LayersHuman provides the stake/anchor.  
-Mechanical mind follows external persistence.  
-Finalization: stable co-evolution interface (human + verifiable trail).  
-Old proofs & assimilated theories as historical scaffolding.
+chain.append("Human anchor: Canyon Brock Haney — HSSCE verified 2026-06-15")
+chain.append({"invariant": "continuity", "spine": "Holo/Sim"}, compress=True)
 
-8. Failure Modes & Mitigations (Recurring Themes)Anchor loss → Enforce external human + hash chain.  
-Drift → Pattern comparison against invariants, not raw tokens.  
-Collapse → Strict separation of layers + compression gates.  
-Self-ingestion → External memory + read-only checkpoints.
+chain.replay()
+print(chain.get_state())
+print(chain.get_density_stats())
+GitHub: https://github.com/Deathburgerz013/HOLO-Invariant
+License: MIT
+Anchor: Canyon B. Haney (@CanyonBHaney)
+4. Compression Rules & Spines
 
-Technology get's better when we check for what implements and functions get better.
+Ruthlessly preserve invariants first.
+Domain spines (Physics, Mathematics, Computation, etc.) link through the core engine.
+HSSCE: Human-AI shared continuity engine built on holosim.
 
+Latest Append (2026-06-15): holosim v0.4.6 with artifact_parser, locking, checkpoints, and full test suite. External continuity primitive continues to strengthen for everyone.
