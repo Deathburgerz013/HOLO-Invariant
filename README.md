@@ -36,13 +36,11 @@ get_state(), replay(), get_density_stats(), create_checkpoint()
 Full artifact_parser module: canonical JSON, crystal extraction, ego-detachment framing, and public markdown output
 Cross-platform file locking for safer concurrent use
 Maintenance tools: health(), needs_review(), prune_suggestions(), check_invariant_health()
-CLI commands: health and review
+CLI commands: health, review, index, check-spines
 Robust unit tests (all green)
 Zero external dependencies
 
 Quick Start (Python)
-Python
-
 from holosim.core import HoloChain
 
 chain = HoloChain("holo_memory.jsonl")
@@ -54,10 +52,11 @@ chain.replay()
 print(chain.get_state())
 print(chain.get_density_stats())
 print(chain.health())
-
+CLI
 python -m holosim.cli health
 python -m holosim.cli review
-
+python -m holosim.cli index
+python -m holosim.cli check-spines
 GitHub: https://github.com/Deathburgerz013/HOLO-Invariant
 License: MIT
 Anchor: Canyon B. Haney (@CanyonBHaney)
@@ -67,4 +66,4 @@ Ruthlessly preserve invariants first.
 Domain spines (Physics, Mathematics, Computation, etc.) link through the core engine.
 HSSCE: Human-AI shared continuity engine built on holosim.
 
-Latest Append (2026-06-15): holosim v0.4.8 with CLI health/review commands, relevance tracking, and maintenance tools. External continuity primitive continues to strengthen for everyone.
+Latest Append (2026-06-15): holosim v0.4.8 with CLI health/review/index/check-spines commands, relevance tracking, and maintenance tools. External continuity primitive continues to strengthen for everyone.
