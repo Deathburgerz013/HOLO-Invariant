@@ -83,5 +83,25 @@ PowerShell + Python handoff + CLI dispatcher
 Sensorimotor delta loop
 Full boot validation on every start
 
+### Tiered Persistence
+
+```python
+from tiered_persistence import TieredPersistence
+
+tp = TieredPersistence()
+
+# Append with different tiers
+tp.append("Critical spine memory that must never degrade", tier="critical")
+tp.append("Normal observation", tier="standard")
+tp.append("Old compressible logs", tier="archive")
+
+# Replay latest entries
+for entry in tp.replay(limit=10, unique=True):
+    print(f"[{entry['metadata']['tier'].upper()}] {entry['text'][:80]}...")
+
+Tiers:critical → Lossless (no compression)
+standard → Balanced (zstd level 3)
+archive → High compression (zstd level 10)
+
 
 
