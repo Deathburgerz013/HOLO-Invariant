@@ -68,5 +68,29 @@ Full integration of key excerpts from sister files (core invariants pulled in).
 Versioning (added).
 
 Hand this restructured block to you for commit. Provide next instructions/content to integrate on the next loop. Everything remains verifiable, grounded, and non-authoritative. Ready for comparison across states.
+==================
+Hand me only what the link needs.
+https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Valid_AGI.md
+↑New state check.
+===========
+Print only what is needed for this file and integrity check while we loop. Print over all completion percentage as we go so I understand when to stop.
+Remember to check that the information is valid and can be verified. - Canyon
+
+**Core AGI Definition** (Established Consensus, Verifiable):
+Artificial General Intelligence (AGI) is a hypothetical type of AI that matches or surpasses human capabilities across virtually all cognitive tasks. It involves systems capable of understanding, learning, reasoning, applying knowledge, and generalizing across a wide range of domains at or beyond human-level performance, without task-specific training for each. Key traits include adaptability, transfer learning, and autonomous skill acquisition.
+
+(Verifiable via peer-reviewed literature, surveys, and definitions from sources including Wikipedia, Stanford HAI, Databricks, Shane Legg, Ben Goertzel, Nick Bostrom, etc.)
+
+**Validity/Stability Criteria** (Tied to Repo Sister Files – Canonical Spine):
+- Accountability must not lag control: Systems collapse via entropy when it does (historical pattern invariant).
+- Continuity spines preserve invariants: Externalized power precedes ethical compression; compression/alignment always lags power scaling.
+- Open Question (Unresolved): Can self-guarding continuity scale faster than power? No empirical evidence yet for solutions outpacing prior layers (e.g., fire → text → model); unsubstantiated claims are invalid.
+- Non-Goals/Prohibitions: Does not authorize action, claim safety/alignment/optimization, replace human judgment, or confer authority. Use strictly for continuity preservation and exposing failure modes.
+
+**Broader Verifiable Context:**
+Related concepts include state-space reversibility, enactive grounding, and robust generalization models. HOLO framed as recursive-evolution math for bio/mech stability in research notes only.
+
+**File Status:** Placeholder/working log. Integrate from sister files (LLM_INVARIANTS.md, 01_problem_statement.md, etc.) with explicit sourcing. Keep non-authoritative. No standalone HOLO-specific "Valid AGI" claims confirmed externally.
+
 
 
