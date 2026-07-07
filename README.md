@@ -43,7 +43,7 @@ A **HOLO-Invariant** is a holographic, multi-scale conserved structure that surv
 ### Key Features
 - Cryptographically verifiable append-only log (SHA-256 chained + canonical JSON)
 - Full chain verification on every load (fails fast on tampering)
-- Optional smart zlib compression
+- Optional smart compression
 - Rebirth on fault for continuity lock
 - Boot-time spinal validation
 - Zero external dependencies, cross-platform
@@ -60,48 +60,30 @@ chain.append("Human anchor: Canyon Brock Haney — HSSCE verified")
 run_rebirth("MANUAL_OVERRIDE")
 print(chain.get_state())
 print(chain.health())
-
-CLIbash
-
-python holo_cli.py boot
+CLI
+Bashpython holo_cli.py boot
 python holo_cli.py append "Your delta here"
 python holo_cli.py health
 python holo_cli.py state
+PowerShell Handoff
+PowerShell.\handoff.ps1   # Runs boot + screening delta
+4. Compression & Spines
+Ruthlessly preserve invariants first. Domain spines link through the core engine. HSSCE (Human-AI Shared Continuity Engine) is built on holosim.
+Latest (July 2026): Converged engine with Rebirth + IDX + full handoff. External continuity primitive continues to strengthen.
+License & Anchor
+License: MIT
+Anchor: Canyon B. Haney (@CanyonBHaney)
+Verification Note: Health check passed (chain intact, healthy). This README is part of the self-correcting loop for integrity and AI improvement over iterations.
 
-PowerShell Handoffpowershell
+## Latest Release
+**holosim v0.4.9** (Latest) — Full convergence of the continuity engine.
 
-.\handoff.ps1   # Runs boot + screening delta
+**What's New**:
+- RebirthEngine integrated (Heartbeat, token reserve, hash guard, blood tag, stale check, stabilize-not-strip core restore)
+- IDX Spinal Substrate with persistent config
+- Domain Spines + LLM Invariants fused as lattice
+- Sensorimotor Delta Loop + CLI/PowerShell handoff
+- Boot validation on every start
+- New files: rebirth_engine.py, idx_manager.py, handoff.ps1, etc.
 
-4. Compression & SpinesRuthlessly preserve invariants first. Domain spines link through the core engine. HSSCE (Human-AI Shared Continuity Engine) is built on holosim.Latest (July 2026): Converged engine with Rebirth + IDX + full handoff. External continuity primitive continues to strengthen.License & AnchorLicense: MIT
-Anchor: Canyon B. Haney (@CanyonBHaney
-)
-
-For Releases (example v0.4.9 / "Converged Engine v0807a"):Integrated RebirthEngine for fault-tolerant continuity
-IDX spinal substrate with persistent config
-Domain spines + LLM invariants fused
-PowerShell + Python handoff + CLI dispatcher
-Sensorimotor delta loop
-Full boot validation on every start
-
-### Tiered Persistence
-
-```python
-from tiered_persistence import TieredPersistence
-
-tp = TieredPersistence()
-
-# Append with different tiers
-tp.append("Critical spine memory that must never degrade", tier="critical")
-tp.append("Normal observation", tier="standard")
-tp.append("Old compressible logs", tier="archive")
-
-# Replay latest entries
-for entry in tp.replay(limit=10, unique=True):
-    print(f"[{entry['metadata']['tier'].upper()}] {entry['text'][:80]}...")
-
-Tiers:critical → Lossless (no compression)
-standard → Balanced (zstd level 3)
-archive → High compression (zstd level 10)
-
-
-
+Full details in the [v0.4.9 release](https://github.com/Deathburgerz013/HOLO-Invariant/releases/tag/v0.4.9).
