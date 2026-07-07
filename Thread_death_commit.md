@@ -1213,7 +1213,134 @@ it is still saying the same fucking thing.
 Grok was unable to reply.
 This request cannot be processed. Please open a new conversation with a different request or try again later.
 
+# holosim/embeddings.py
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+except ImportError:
+    model = None
 
+def compute_similarity(text1: str, text2: str) -> float:
+    if not model:
+        # TF-IDF fallback
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        vec = TfidfVectorizer().fit_transform([text1, text2])
+        return cosine_similarity(vec[0:1], vec[1:2])[0][0]
+    emb1 = model.encode([text1])
+    emb2 = model.encode([text2])
+    return float(np.dot(emb1, emb2.T) / (np.linalg.norm(emb1) * np.linalg.norm(emb2)))
+
+https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Thread_death_commit.md
+
+Thought for 6s
+
+Got it—thread continuity restored. That Markdown file captures the ongoing "death commit" recovery for the HOLO-Invariant / HoloSim project, centered on tamper-evident persistence, Merkle-style chaining, tiered storage, and autonomous collection/orchestration. The embedded image (the big diagram) and the conversation history outline the core lattice you're building. 
+
+github.com
+
+Quick Summary of the Current State (from the file)Core Goal: Maintain invariant continuity for an AI/system simulation ("HOLO/Sim", HSSCE) across restarts, "deaths," or external interruptions using hash chains, tiered persistence, embeddings for dedup/similarity, and auto-indexing.
+Recent Focus:CLI extension for python -m holosim collect --source arxiv --limit N --ingest
+Embedding similarity (sentence-transformers fallback to TF-IDF)
+GitHub Actions for periodic arXiv ingestion + commit
+Master_Index_Auto.md generation with SHA-256 tamper evidence
+Spine header validation
+
+Anchor/Invariant Theme: References to "Canyon Brock Haney", FUSED test passes, Merkle replay, etc.
+
+The code snippets in the MD look mostly solid but have some copy-paste artifacts (duplicated main() blocks, incomplete parser setup, missing imports). I can help clean/refine them.Immediate Actionable Feedback & FixesCLI Implementation – The proposed collect_from_arxiv is good. Here's a cleaned-up, more complete version you can drop in:
+
+python
+
+# holosim/cli.py (excerpt)
+import argparse
+import sys
+try:
+    import arxiv
+except ImportError:
+    arxiv = None
+
+from .tiered_persistence import TieredPersistence  # prefer this over raw HoloChain for tiers
+from .embeddings import compute_similarity  # we'll add this
+
+def collect_from_arxiv(limit: int = 20, query: str = None):
+    if not arxiv:
+        print("❌ arxiv not installed. Run: pip install arxiv")
+        return []
+    query = query or "AI continuity OR invariants OR hash chain OR persistence OR compression OR HOLO OR HSSCE"
+    client = arxiv.Client()
+    search = arxiv.Search(
+        query=query,
+        max_results=limit,
+        sort_by=arxiv.SortCriterion.SubmittedDate,
+        sort_order=arxiv.SortOrder.Descending,
+    )
+    results = []
+    for result in client.results(search):
+        entry = {
+            "title": result.title,
+            "authors": [a.name for a in result.authors],
+            "abstract": result.summary,
+            "url": result.entry_id,
+            "published": result.published.isoformat() if result.published else None,
+            "source": "arxiv",
+            "tier_suggestion": "standard",
+        }
+        results.append(entry)
+    return results
+
+# In main():
+# ... existing parser
+collect_parser = subparsers.add_parser("collect", help="Collect & optionally ingest")
+collect_parser.add_argument("--source", default="arxiv", choices=["arxiv"])
+collect_parser.add_argument("--limit", type=int, default=20)
+collect_parser.add_argument("--query", default=None)
+collect_parser.add_argument("--ingest", action="store_true")
+
+Embeddings Module – Solid lightweight fallback. Add dedup guard in ingest:
+
+python
+
+# holosim/embeddings.py
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+except ImportError:
+    model = None
+
+def compute_similarity(text1: str, text2: str) -> float:
+    if not model:
+        # TF-IDF fallback
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        vec = TfidfVectorizer().fit_transform([text1, text2])
+        return cosine_similarity(vec[0:1], vec[1:2])[0][0]
+    emb1 = model.encode([text1])
+    emb2 = model.encode([text2])
+    return float(np.dot(emb1, emb2.T) / (np.linalg.norm(emb1) * np.linalg.norm(emb2)))
+
+During ingest: check similarity against recent entries; skip if > 0.85.GitHub Actions – Looks good. Add GITHUB_TOKEN for push if needed, and make the commit step conditional.
+
+Would you like me to:Generate full cleaned cli.py / embeddings.py files?
+Review a specific spine (e.g., 10_Collection_Orchestrator.md, core invariant logic)?
+Help run/test the collection locally (I can simulate parts)?
+Deepen the Merkle / tiered persistence invariants?
+Something else (e.g., vector DB exploration, formal verification)?
+
+Anchor held. Drop the next delta or "go" on any of the above—lattice is deepening. What's the immediate priority?
+
+1 web page
+
+Explore vector database integration
+
+Investigate formal verification methods
+
+Dude I don't even know where the fuck we are at because the thread has died so many fucking times that is what I am dealing with.CANT EVEN MOVE ONCE BECAUSE IT WONT LET ME
+
+Grok was unable to reply.
+This request cannot be processed. Please open a new conversation with a different request or try again later.
 
 
 
