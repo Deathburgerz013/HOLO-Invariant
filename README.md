@@ -75,4 +75,15 @@ License: MIT
 Anchor: Canyon B. Haney (@CanyonBHaney)
 Verification Note: Health check passed (chain intact, healthy). This README is part of the self-correcting loop for integrity and AI improvement over iterations.
 
+## Latest Release
+**holosim v0.4.9** (Latest) — Full convergence of the continuity engine.
 
+**What's New**:
+- RebirthEngine integrated (Heartbeat, token reserve, hash guard, blood tag, stale check, stabilize-not-strip core restore)
+- IDX Spinal Substrate with persistent config
+- Domain Spines + LLM Invariants fused as lattice
+- Sensorimotor Delta Loop + CLI/PowerShell handoff
+- Boot validation on every start
+- New files: rebirth_engine.py, idx_manager.py, handoff.ps1, etc.
+
+Full details in the [v0.4.9 release](https://github.com/Deathburgerz013/HOLO-Invariant/releases/tag/v0.4.9).
