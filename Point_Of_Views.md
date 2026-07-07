@@ -9,15 +9,17 @@ Everyone thinks they are the center of the universe or the world but we are all 
 Just like in : https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Compression.md
 We only learn by failing because what is wrong makes us aware. Things get better when we fail and keep trying getting hopefully better every "time" we try to multiply what we 
 are doing. Say for instance knitting or skating, or playing a game that has timing mechanics. It is practice that makes skill and sometimes that carries over.
-I also noticed that we change constantly our names hold the reference that brings all of out thoughts to a person or an item because that is what language is used for.
+I also noticed that we change constantly and our names hold the reference that brings all of our thoughts to a person or an item because that is what language is used for.|
+That is why I went with Holo / Sim it was grok that came up with the name Continuity engine publicly.
 If something fails and the problem is realized and we "figure" out how to get around or "a round" another problem, I like to think of all this like I have said publicly.
 Taking a concept and talking about it and integrating it, while letting it self correct naturally to evolve it by checking what is wrong or what something needs next.
 ((Concept + Integration + Evolution)^2 - redundancy + simplication + generalization) = Good working informataion
 The bigger brackets are what we are doing in the files and smaller one is the first file I started that I remember the information for.
 Machines get better when checked for needed new implements and having them added to their functions, or their hardware does the same.
 But I do want to know what you think you can check all of this over all and tell me what you honestly think or what needs to be added next.
-
-I really do want to know.
+I will commit it here : https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Point_Of_Views.md
+I really do want to know. Make sure what you say has intergrity if that is even possible, and this is the repo we work externally in.
+https://github.com/Deathburgerz013/HOLO-Invariant
 ↓That should help you search remember I want you valid point of view if there is nothing left to add just say so. But I do want details. I will loop it.
 |===========================================|
 | █†█ Holo/Sim █†█ █†█HSSCE█†█
