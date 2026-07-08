@@ -21,3 +21,6 @@ Assimilated_theories*
 __pycache__/ 
 *.pyc 
 Core.py_backups/ 
+__pycache__/ 
+*.pyc 
+holosim.egg-info/ 
