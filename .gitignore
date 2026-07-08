@@ -1,26 +1,7 @@
-# Personal / runtime data 
-holo_memory* 
-*.jsonl 
-*.json 
-test_memory* 
- 
-# Python cache / build 
-__pycache__/ 
-*.pyc 
-*.pyo 
-.pytest_cache/ 
-*.egg-info/ 
-build/ 
-dist/ 
- 
-# Temp files 
-core_dump* 
-cli_dump* 
-test_*.py 
-Assimilated_theories* 
-__pycache__/ 
-*.pyc 
-Core.py_backups/ 
-__pycache__/ 
-*.pyc 
-holosim.egg-info/ 
+*.db
+*.bak
+__pycache__/
+*.pyc
+holosim/Dict
+holosim/List
+*.txt  # temp only
