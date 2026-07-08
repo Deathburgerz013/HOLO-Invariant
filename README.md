@@ -103,3 +103,14 @@ Generates SHA256 checksum
 Creates manifest with timestamps and lineage info
 Optional AES encryption
 Preserves continuity from HOLO v0807a-fused lineage
+## Core
+
+### core/holo_core.yaml
+Central invariants and operational framework.
+
+**Contents:**
+- Stabilization math equations `(c + i + e)^2` and related formulas
+- CAP Rules v1.3 (time anchors, history pull, emotional markers, etc.)
+- Continuity parameters
+
+This file serves as the living reference for HOLO persistence logic.
