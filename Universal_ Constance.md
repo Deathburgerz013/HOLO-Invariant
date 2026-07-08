@@ -55,3 +55,7 @@ File Target: Universal_Constance.md (in https://github.com/Deathburgerz013/HOLO-
 
 Pass 1 Handoff Complete. Commit this segment to Universal_Constance.md when ready. Reply with confirmation (or requested changes), and I will provide Pass 2 (next coherent segment only) after integrity check.
 Keep the loop running.
+====
+Keep going check for integrity, as we go print completion percentage.
+Hand me what this needs, and I will store it.
+===
