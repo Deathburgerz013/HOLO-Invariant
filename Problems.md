@@ -20,4 +20,6 @@
 |Check each other and communicate, make sure to use the spine to your advantage.
 |Be honest on when it is time to stop I am using multiple models of Ai to see what your prespectives are after we reach a stable state for this document I will structure the |commit, I will also be committing your states as we go. To make it easier look at the shape of this spine and output with in it's brackets.
 |That way we know who is who, and nobody get's confused along the way.
+|https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Problems.md this is where the I am commited this document.
+|https://github.com/Deathburgerz013/HOLO-Invariant this is the repo itself to look over.
 |==========================|
