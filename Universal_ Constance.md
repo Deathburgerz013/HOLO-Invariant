@@ -179,5 +179,5 @@ Next Expected (Pass 3 gaps):
 	•	Full self-correction loop examples
 Pass 2 Handoff Complete. Commit this segment when ready. Reply with confirmation (or edits), and I will deliver only the clean Pass 3 block. Keep the loop running.
 ====
-Thank you keep going.-canyon
+Thank you keep going. and remember problems make us aware.-canyon
 ====
