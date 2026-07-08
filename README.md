@@ -87,3 +87,19 @@ Verification Note: Health check passed (chain intact, healthy). This README is p
 - New files: rebirth_engine.py, idx_manager.py, handoff.ps1, etc.
 
 Full details in the [v0.4.9 release](https://github.com/Deathburgerz013/HOLO-Invariant/releases/tag/v0.4.9).
+## Tools
+
+### holo_archive.sh
+Compression and integrity tool for HOLO CAPs and Spine files.
+
+**Usage:**
+```bash
+cd tools
+./holo_archive.sh ../Holo ../archives
+Features:
+
+Creates compressed .tar.xz archive
+Generates SHA256 checksum
+Creates manifest with timestamps and lineage info
+Optional AES encryption
+Preserves continuity from HOLO v0807a-fused lineage
