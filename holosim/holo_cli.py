@@ -15,9 +15,27 @@ from pathlib import Path
 
 try:
     from holosim.core import HoloChain
+    from holosim.config import (
+        HOLOSIM_VERSION,
+        ACTIVE_HASH,
+        ANCHOR,
+        DEFAULT_CHAIN_FILE,
+        MASTER_INDEX_FILE,
+        REQUIRED_COMPONENTS,
+        REPO_ROOT,
+    )
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.core import HoloChain
+    from holosim.config import (
+        HOLOSIM_VERSION,
+        ACTIVE_HASH,
+        ANCHOR,
+        DEFAULT_CHAIN_FILE,
+        MASTER_INDEX_FILE,
+        REQUIRED_COMPONENTS,
+        REPO_ROOT,
+    )
 
 
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".venv", "venv"}
@@ -36,15 +54,18 @@ def get_git_branch() -> str:
             ["git", "branch", "--show-current"],
             text=True,
             stderr=subprocess.DEVNULL,
+            cwd=REPO_ROOT,
         ).strip() or "Unknown"
     except Exception:
         return "Unavailable"
 
 
-def generate_master_index(repo_path: str = ".", output: str = "Master_Index_Auto.md") -> str:
+def generate_master_index(repo_path: str | Path = REPO_ROOT, output: str | Path = MASTER_INDEX_FILE) -> str:
     """Generate a verified file inventory with SHA-256 hashes."""
     repo_root = Path(repo_path).resolve()
-    output_path = repo_root / output
+    output_path = Path(output)
+    if not output_path.is_absolute():
+        output_path = repo_root / output_path
 
     header = """|===========================================| |
 | | █†█ Holo/Sim █†█ █†█HSSCE█†█ | |===========================================| |
@@ -53,14 +74,21 @@ def generate_master_index(repo_path: str = ".", output: str = "Master_Index_Auto
 
 Auto-generated Master Index — Verified via HOLO/Sim Loop
 Generated: {timestamp}
-Anchor: Canyon Brock Haney (@CanyonBHaney)
+Anchor: {anchor}
 GitHub: https://github.com/Deathburgerz013/HOLO-Invariant
+Active Hash: {active_hash}
+Holo/Sim Version: {version}
 
 File Inventory with SHA-256 hashes (for tamper-evidence):
 
 """
 
-    content = header.format(timestamp=datetime.now().isoformat())
+    content = header.format(
+        timestamp=datetime.now().isoformat(),
+        anchor=ANCHOR,
+        active_hash=ACTIVE_HASH,
+        version=HOLOSIM_VERSION,
+    )
 
     for path in sorted(repo_root.rglob("*")):
         if not path.is_file():
@@ -84,7 +112,7 @@ File Inventory with SHA-256 hashes (for tamper-evidence):
     return content
 
 
-def check_spine_headers(directory: str = ".") -> list[str]:
+def check_spine_headers(directory: str | Path = REPO_ROOT) -> list[str]:
     """Validate required Holo/Sim header marker in important markdown files."""
     issues: list[str] = []
     root = Path(directory).resolve()
@@ -140,17 +168,20 @@ def run_doctor(chain: HoloChain) -> int:
     """Inspect the current Holo/Sim installation."""
     print("========== HOLO/SIM DOCTOR ==========\n")
 
-    repo_root = Path(".").resolve()
     chain_file = Path(chain.file_path)
 
-    print(f"CLI Version ............. {chain.VERSION}")
+    print(f"Holo/Sim Version ........ {HOLOSIM_VERSION}")
+    print(f"Core Chain Version ...... {chain.VERSION}")
+    print(f"Active Hash ............. {ACTIVE_HASH}")
+    print(f"Anchor .................. {ANCHOR}")
     print(f"Python .................. {platform.python_version()}")
     print(f"Platform ................ {platform.system()} {platform.release()}")
     print()
 
-    git_ok = (repo_root / ".git").exists()
+    git_ok = (REPO_ROOT / ".git").exists()
     print(f"Repository .............. {'PASS' if git_ok else 'NOT FOUND'}")
     print(f"Git Branch .............. {get_git_branch()}")
+    print(f"Repo Root ............... {REPO_ROOT}")
     print()
 
     print(f"Chain File .............. {chain_file}")
@@ -168,17 +199,13 @@ def run_doctor(chain: HoloChain) -> int:
     print()
 
     checks = {
-        "Master Index": Path("Master_Index.md").exists() or Path("Master_Index_Auto.md").exists(),
-        "IDX Manager": Path("holosim/idx_manager.py").exists(),
-        "Rebirth Engine": Path("holosim/rebirth_engine.py").exists(),
-        "Artifact Parser": Path("holosim/artifact_parser.py").exists(),
-        "Boot Integration": Path("holosim/boot_integration.py").exists(),
-        "Core": Path("holosim/core.py").exists(),
-        "CLI": Path("holosim/holo_cli.py").exists(),
+        "Master Index": Path("Master_Index.md").exists() or MASTER_INDEX_FILE.exists(),
+        **REQUIRED_COMPONENTS,
     }
 
     failed = False
-    for name, passed in checks.items():
+    for name, target in checks.items():
+        passed = bool(target) if isinstance(target, bool) else Path(target).exists()
         print(f"{name:<24} {'PASS' if passed else 'MISSING'}")
         if not passed:
             failed = True
@@ -206,7 +233,12 @@ def run_doctor(chain: HoloChain) -> int:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Holo/Sim CLI - Continuity + Maintenance")
-    parser.add_argument("--file", "-f", default="holo_memory.jsonl", help="Chain file path")
+    parser.add_argument(
+        "--file",
+        "-f",
+        default=str(DEFAULT_CHAIN_FILE),
+        help="Chain file path",
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("health", help="Show chain health")
