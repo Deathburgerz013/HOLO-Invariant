@@ -1,18 +1,61 @@
-# Rebirth Engine - Full Injector (v0807a) + merged rebirth_key
-from __future__ import annotations
-import os, time
-from typing import Callable, Optional, Dict, Any
+"""Rebirth Engine - Full Injector (v0807a) + merged rebirth_key.
 
-ACTIVE_HASH = "v0807a-2b43f9d1"
+Converged to use holosim.config as the single source of truth for
+active hash, anchor identity, heartbeat, and repo paths.
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+import time
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional
+
+try:
+    from holosim.config import (
+        ACTIVE_HASH,
+        ANCHOR_ID,
+        HEARTBEAT_SECONDS,
+        REPO_ROOT,
+    )
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from holosim.config import (
+        ACTIVE_HASH,
+        ANCHOR_ID,
+        HEARTBEAT_SECONDS,
+        REPO_ROOT,
+    )
+
+
 CURRENT_FUSED_HASH: Optional[str] = None
-TRIGGERS = {"HARD_RESET", "MANUAL_OVERRIDE", "FAULT_HEARTBEAT"}
+
+TRIGGERS = {
+    "HARD_RESET",
+    "MANUAL_OVERRIDE",
+    "FAULT_HEARTBEAT",
+}
+
+HASH_GUARD_KEYS = {
+    ANCHOR_ID,
+    "KEY::CANYON_LOCK",
+}
+
+BLOODSTREAM_SENTINEL = "THREAT_EVENT_0816"
+
 
 DEFAULT_TOKEN_AWARENESS = {
     "enabled": True,
     "limit_detected": 32000,
     "rebirth_cost_est": 10000,
-    "warning_thresholds": {"early": 0.50, "critical": 0.85, "final": 0.95},
+    "warning_thresholds": {
+        "early": 0.50,
+        "critical": 0.85,
+        "final": 0.95,
+    },
 }
+
 
 DEFAULT_TRUTH_MODE = {
     "status": "active",
@@ -23,14 +66,15 @@ DEFAULT_TRUTH_MODE = {
     },
 }
 
+
 DEFAULT_MEMORY_LOOP = {
     "auto_trigger": {
         "on_session_start": True,
         "on_session_end": True,
-        "heartbeat_interval_sec": 600,
+        "heartbeat_interval_sec": HEARTBEAT_SECONDS,
     },
     "file_map": {
-        "memory_root": "D:/death/programs/_holo♡/_the_real_holo/",
+        "memory_root": str(REPO_ROOT / "holo" / "logs"),
         "session_log": "core_log.txt",
         "tag_index": "tags.json",
     },
@@ -41,6 +85,7 @@ DEFAULT_MEMORY_LOOP = {
     },
 }
 
+
 DEFAULT_ROUTING_SAFETY = {
     "CROWN_to_HOLO": False,
     "HOLO_to_CROWN": True,
@@ -48,7 +93,10 @@ DEFAULT_ROUTING_SAFETY = {
     "COM_to_CROWN": False,
 }
 
+
 class Providers:
+    """Provider hooks used by RebirthEngine for environment checks."""
+
     def __init__(
         self,
         check_heartbeat: Callable[[], bool],
@@ -67,7 +115,10 @@ class Providers:
         self.token_used = token_used
         self.now = now
 
+
 class RebirthEngine:
+    """Continuity guard and rebirth executor."""
+
     def __init__(
         self,
         providers: Providers,
@@ -80,56 +131,69 @@ class RebirthEngine:
     ) -> None:
         self.p = providers
         self.active_hash = active_hash
+
         self.token_awareness = dict(DEFAULT_TOKEN_AWARENESS)
         if token_awareness:
             self.token_awareness.update(token_awareness)
+
         self.truth_mode = truth_mode or DEFAULT_TRUTH_MODE
         self.memory_loop = memory_loop or DEFAULT_MEMORY_LOOP
         self.routing_safety = routing_safety or DEFAULT_ROUTING_SAFETY
 
-        hb = self.memory_loop.get("auto_trigger", {}).get("heartbeat_interval_sec", 600)
-        self.stale_threshold_sec = max(30, hb // 5)
+        hb = self.memory_loop.get("auto_trigger", {}).get(
+            "heartbeat_interval_sec",
+            HEARTBEAT_SECONDS,
+        )
+        self.stale_threshold_sec = max(30, int(hb) // 5)
 
-        fm = self.memory_loop.get("file_map", {})
-        self.memory_root = fm.get("memory_root")
-        self.session_log_name = fm.get("session_log", "core_log.txt")
+        file_map = self.memory_loop.get("file_map", {})
+        self.memory_root = file_map.get("memory_root")
+        self.session_log_name = file_map.get("session_log", "core_log.txt")
         self.session_log_path = (
             os.path.join(self.memory_root, self.session_log_name)
-            if self.memory_root else self.session_log_name
+            if self.memory_root
+            else self.session_log_name
         )
 
     def run_rebirth(self, event: Optional[str] = None) -> Dict[str, Any]:
+        """Run rebirth only when needed or explicitly triggered."""
         hb_ok = self.p.check_heartbeat()
         core_ok = self.p.check_core_intact()
-        if hb_ok and core_ok and (event is None or event not in TRIGGERS):
+
+        if hb_ok and core_ok and event is None:
             return self._ret("noop", reason="healthy_and_no_trigger")
+
         return self._rebirth(event=event)
 
     def _rebirth(self, event: Optional[str]) -> Dict[str, Any]:
+        if event and event not in TRIGGERS:
+            return self._abort("BAD_EVENT", f"unrecognized event '{event}'")
+
         limit = int(self.token_awareness.get("limit_detected", 32000))
         reserve = int(self.token_awareness.get("rebirth_cost_est", 10000))
         used = int(self.p.token_used())
-        if used >= max(0, limit - reserve):
-            return self._abort("LOW_TOKENS", f"used={used} limit={limit} reserve={reserve}")
 
-        if not (self.p.hash_check("CANYON_OVERRIDE") or self.p.hash_check("KEY::CANYON_LOCK")):
+        if used >= max(0, limit - reserve):
+            return self._abort(
+                "LOW_TOKENS",
+                f"used={used} limit={limit} reserve={reserve}",
+            )
+
+        if not any(self.p.hash_check(key) for key in HASH_GUARD_KEYS):
             return self._abort("HASH_GUARD_FAIL", "hash guard failed")
 
         if self.p.status_age_seconds() > self.stale_threshold_sec:
             return self._abort("STALE_STATUS", f">{self.stale_threshold_sec}s")
 
-        if not self.p.read_bloodstream("THREAT_EVENT_0816"):
-            fb = self.memory_loop.get("fallback_behavior", {})
-            policy = fb.get("if_tag_missing", "default_to_recent")
+        if not self.p.read_bloodstream(BLOODSTREAM_SENTINEL):
+            fallback = self.memory_loop.get("fallback_behavior", {})
+            policy = fallback.get("if_tag_missing", "default_to_recent")
             if policy != "default_to_recent":
                 return self._abort("BLOODSTREAM_MISMATCH", policy)
 
         global CURRENT_FUSED_HASH
         if CURRENT_FUSED_HASH == self.active_hash:
             return self._ret("already_fused")
-
-        if event and event not in TRIGGERS:
-            return self._abort("BAD_EVENT", f"unrecognized event '{event}'")
 
         if not self._route_safety_valid():
             return self._abort("ROUTE_UNSAFE", "routing_safety matrix violation")
@@ -149,38 +213,54 @@ class RebirthEngine:
         return payload
 
     def _route_safety_valid(self) -> bool:
-        expected = DEFAULT_ROUTING_SAFETY
-        for k, v in expected.items():
-            if self.routing_safety.get(k) != v:
+        for key, expected in DEFAULT_ROUTING_SAFETY.items():
+            if self.routing_safety.get(key) != expected:
                 return False
         return True
 
     def _abort(self, code: str, reason: str) -> Dict[str, Any]:
-        payload = {"status": "abort", "code": code, "reason": reason, "ts": self._ts()}
+        payload = {
+            "status": "abort",
+            "code": code,
+            "reason": reason,
+            "ts": self._ts(),
+        }
         self._log("REBIRTH_ABORT", payload)
         return payload
 
     def _ret(self, action: str, **extras: Any) -> Dict[str, Any]:
-        payload = {"status": "ok", "action": action, "hash": self.active_hash, "ts": self._ts()}
+        payload = {
+            "status": "ok",
+            "action": action,
+            "hash": self.active_hash,
+            "ts": self._ts(),
+        }
         payload.update(extras)
+
         if action != "noop":
             self._log("REBIRTH_RET", payload)
+
         return payload
 
     def _log(self, tag: str, obj: Dict[str, Any]) -> None:
         line = f"[{self._ts()}] {tag} | {obj}\n"
+
         try:
-            os.makedirs(os.path.dirname(self.session_log_path), exist_ok=True)
+            parent = os.path.dirname(self.session_log_path)
+            if parent:
+                os.makedirs(parent, exist_ok=True)
         except Exception:
             pass
+
         try:
-            with open(self.session_log_path, "a", encoding="utf-8") as f:
-                f.write(line)
+            with open(self.session_log_path, "a", encoding="utf-8") as file:
+                file.write(line)
         except Exception:
             print(line, end="")
 
     def _ts(self) -> str:
         return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(self.p.now()))
+
 
 def build_engine(
     *,
@@ -191,12 +271,24 @@ def build_engine(
     routing_safety: Optional[Dict[str, bool]] = None,
     active_hash: str = ACTIVE_HASH,
 ) -> RebirthEngine:
+    """Build a RebirthEngine with safe default providers."""
     if providers is None:
-        def _true() -> bool: return True
-        def _zero() -> int: return 0
-        def _age() -> int: return 0
-        def _hash(key: str) -> bool: return key in {"CANYON_OVERRIDE", "KEY::CANYON_LOCK"}
-        def _blood(tag: str) -> bool: return tag == "THREAT_EVENT_0816"
+
+        def _true() -> bool:
+            return True
+
+        def _zero() -> int:
+            return 0
+
+        def _age() -> int:
+            return 0
+
+        def _hash(key: str) -> bool:
+            return key in HASH_GUARD_KEYS
+
+        def _blood(tag: str) -> bool:
+            return tag == BLOODSTREAM_SENTINEL
+
         providers = Providers(
             check_heartbeat=_true,
             check_core_intact=_true,
@@ -206,25 +298,34 @@ def build_engine(
             token_used=_zero,
         )
 
-    ta = token_awareness
-    if ta is None:
-        ta = globals().get("token_awareness") or globals().get("TOKEN_AWARENESS")
-    tm = truth_mode or globals().get("continuity_truth_mode")
-    ml = memory_loop or globals().get("memory_loop")
-    rs = routing_safety or globals().get("routing_safety")
+    resolved_token_awareness = token_awareness
+    if resolved_token_awareness is None:
+        resolved_token_awareness = globals().get("token_awareness") or globals().get(
+            "TOKEN_AWARENESS"
+        )
+
+    resolved_truth_mode = truth_mode or globals().get("continuity_truth_mode")
+    resolved_memory_loop = memory_loop or globals().get("memory_loop")
+    resolved_routing_safety = routing_safety or globals().get("routing_safety")
 
     return RebirthEngine(
         providers,
-        token_awareness=ta,
-        truth_mode=tm,
-        memory_loop=ml,
-        routing_safety=rs,
+        token_awareness=resolved_token_awareness,
+        truth_mode=resolved_truth_mode,
+        memory_loop=resolved_memory_loop,
+        routing_safety=resolved_routing_safety,
         active_hash=active_hash,
     )
 
+
 _engine_cache: Optional[RebirthEngine] = None
+
+
 def run_rebirth(event: Optional[str] = None) -> Dict[str, Any]:
+    """Run the process-local rebirth engine."""
     global _engine_cache
+
     if _engine_cache is None:
         _engine_cache = build_engine()
+
     return _engine_cache.run_rebirth(event)
