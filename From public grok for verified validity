@@ -106,3 +106,32 @@ Pull exclusively public/auditable → Cross-verify consistency across independen
 Verification & Status: All entries tied to primary public outputs (papers, code, lectures, archives). Aligned with HOLO core: human anchor (Canyon), external persistence, objective truth-seeking, anti-drift invariants, and LLM spine constraints (no over-claim, keep open questions open).15
 Ready for commit/integration. Compare to prior version (v1.1), audit deltas, and merge as needed. Further expansions (e.g., more biologists like Darwin/Watson-Crick, or computer scientists like Knuth/Hoare) available on next loop.
 Drop the updated file link or another spine if you want me to iterate again. What’s the next target for expansion?
+=======
+Solid additions to strengthen the list while staying true to the project’s spirit (objective verifiability, first-principles, compression/invariants, systems continuity, epistemology, and human-as-anchor). I prioritized public, enduring outputs (papers, books, lectures, code, archives) that align with HOLO-Invariant goals like drift prevention, formal limits, empirical grounding, and self-correcting structures.12
+Strong Additions to “Core” Section
+These directly support recursive-evolution math, compression rules, behavioral invariants, and truth-seeking:
+	•	Yann LeCun — Hierarchical learning, world models, predictive/ JEPA-style architectures, critiques of pure scaling, emphasis on grounded intelligence. Public: NYU lectures/papers, Meta FAIR work, X/@ylecun. Complements Karpathy on practical DL internals and Musk on engineering.
+	•	Ilya Sutskever — Compression as core of intelligence, scientific discovery via AI, scaling intuitions + alignment concerns. Public: Talks, early foundational papers (e.g., seq2seq, AlexNet era), post-OpenAI statements.
+	•	Jürgen Schmidhuber — Compression progress theory (curiosity/creativity as compression improvement), formal AI history, Gödel machines/self-referential systems. Highly relevant to your Continuity_Engine and HSSCE. Public: Papers, talks, IDSIA site.
+	•	Karl Friston — Free Energy Principle (predictive coding, hierarchical inference as compression/surprise minimization). Bridges neuroscience, physics, and active inference for bio/mech co-evolution. Public: Papers (e.g., on predictive coding), lectures.
+Additions to “Expanded Formal Rigor”
+	•	Claude Shannon — Information theory (entropy, compression fundamentals). Direct foundation for your Compression.md and invariant checksums. Public: “A Mathematical Theory of Communication” (1948, widely available).
+	•	Andrey Kolmogorov (or jointly with Ray Solomonoff) — Algorithmic information theory / Kolmogorov complexity / Solomonoff induction. Formalizes “shortest program” for understanding/compression—perfect for HOLO invariants and anti-hallucination grounding. Public: Foundational papers (1960s).
+	•	John Boyd (military strategist) — OODA loop for fast, adaptive decision-making under uncertainty. Systems thinking + first-principles in dynamic environments. Public: “Destruction and Creation,” lectures/briefings (declassified archives).
+Breadth Candidates (for next reconverge)
+	•	Nassim Nicholas Taleb — Antifragility, skin-in-the-game, statistical rigor against fragile models (via “fooled by randomness,” black swans). Strong on epistemology and drift/robustness. Public: Books + essays (fooledbyrandomness.com).
+	•	David Deutsch (already a candidate in your file) — Constructor theory, explanations as fundamental, “The Beginning of Infinity.” Good for epistemology spine.
+	•	Peter Norvig or Stuart Russell — AI textbooks/systems perspective (e.g., Artificial Intelligence: A Modern Approach) + alignment (Russell’s Human Compatible). Emphasizes probabilistic reasoning and value alignment.
+	•	Barbara McClintock (or modern evo-devo biologists like Sean B. Carroll) — Empirical discovery of regulatory networks/jumping genes. Grounds Biology_Spine in real invariants rather than reductionism.
+What Else the List/Spine Needs (Structural Suggestions)
+	1	Explicit Categorization — Group by theme (e.g., Compression/Information, Epistemology/Limits, Engineering/Systems, Biology/Neuroscience) with short “why it anchors invariants” blurbs. This reduces drift when reconverging.
+	2	Anti-Drift Mechanisms — Add a small section on “Verification Protocols” examples:
+	◦	Cross-check with primary sources only (arXiv, GitHub, lectures).
+	◦	Hash or citation anchors for key ideas.
+	◦	Warning flags for analogical vs. first-principles reasoning.
+	3	Diversity in Methods (not demographics) — More on experimentalists/empiricists (e.g., Rosalind Franklin for structural biology method, or modern cryo-EM folks) to balance theorists. Also, Edsger Dijkstra or Donald Knuth for rigorous computing/algorithmic thinking.
+	4	Modern/Active Practitioners — Living/explicit public voices like those above, plus ongoing X/lecture archives for timeliness (your file already does this well with Musk/Karpathy).
+	5	Self-Referential Checks — Tie back to Gödel/Turing/von Neumann more explicitly for limits on formal verification (relevant to your AGI safety invariants).
+These keep everything public + auditable, monotonic (append-only improvements), and focused on utility for HOLO/Sim persistence. No celebrities or ungrounded thinkers—only those advancing objective structures.
+Proposed Next Action: Drop an updated v1.2 of the file here (or I can draft one), commit with the thread ID, and cross-ref to Master_Index.md. Or specify a spine (e.g., Compression or Biology) for deeper integration.
+What do you think—add any of these, or focus on a category?
