@@ -1,8 +1,8 @@
 """Internal API surface for Holo/Sim.
 
 Stable callable layer for CLI, runtime, bots, GUI, HTTP adapters, and tests.
-This file should stay thin: it delegates to Runtime and Service instead of
-reimplementing subsystem logic.
+This file stays thin: it delegates to Runtime, Service, Collector, and
+Provenance instead of reimplementing subsystem logic.
 """
 
 from __future__ import annotations
@@ -14,31 +14,57 @@ from typing import Any, Dict
 
 try:
     from holosim.config import DEFAULT_CHAIN_FILE
+    from holosim.provenance import get_provenance
     from holosim.runtime import get_runtime
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.config import DEFAULT_CHAIN_FILE
+    from holosim.provenance import get_provenance
     from holosim.runtime import get_runtime
 
 
 class HoloAPI:
     """Stable internal API for Holo/Sim."""
 
-    def __init__(self, chain_path: str | Path = DEFAULT_CHAIN_FILE) -> None:
+    def __init__(
+        self,
+        chain_path: str | Path = DEFAULT_CHAIN_FILE,
+        *,
+        thread_id: str | None = None,
+        source: str = "api",
+    ) -> None:
         self.chain_path = Path(chain_path)
+        self.thread_id = thread_id
+        self.source = source
         self.runtime = get_runtime(self.chain_path)
 
+    def provenance(self, *, source: str | None = None) -> Dict[str, Any]:
+        return get_provenance(
+            thread_id=self.thread_id,
+            source=source or self.source,
+        ).packet()
+
+    def _with_provenance(
+        self,
+        result: Dict[str, Any],
+        *,
+        source: str | None = None,
+    ) -> Dict[str, Any]:
+        data = dict(result)
+        data["provenance"] = self.provenance(source=source)
+        return data
+
     def boot(self) -> Dict[str, Any]:
-        return self.runtime.boot()
+        return self._with_provenance(self.runtime.boot(), source="runtime.boot")
 
     def health(self) -> Dict[str, Any]:
-        return self.runtime.health()
+        return self._with_provenance(self.runtime.health(), source="runtime.health")
 
     def status(self) -> Dict[str, Any]:
-        return self.runtime.status()
+        return self._with_provenance(self.runtime.status(), source="runtime.status")
 
     def verify(self) -> Dict[str, Any]:
-        return self.runtime.verify()
+        return self._with_provenance(self.runtime.verify(), source="runtime.verify")
 
     def replay(
         self,
@@ -48,21 +74,23 @@ class HoloAPI:
         timeline: bool = False,
         limit: int = 20,
     ) -> Dict[str, Any]:
-        return self.runtime.replay(
+        result = self.runtime.replay(
             last=last,
             search=search,
             timeline=timeline,
             limit=limit,
         )
+        return self._with_provenance(result, source="runtime.replay")
 
     def mine(
         self,
-        source: str | Path,
+        source_file: str | Path,
         output: str | Path,
         *,
         chunk_size: int = 40000,
     ) -> Dict[str, Any]:
-        return self.runtime.mine(source, output, chunk_size=chunk_size)
+        result = self.runtime.mine(source_file, output, chunk_size=chunk_size)
+        return self._with_provenance(result, source="runtime.mine")
 
     def ingest(
         self,
@@ -72,12 +100,13 @@ class HoloAPI:
         force: bool = False,
         limit: int | None = None,
     ) -> Dict[str, Any]:
-        return self.runtime.ingest(
+        result = self.runtime.ingest(
             directory,
             source=source,
             force=force,
             limit=limit,
         )
+        return self._with_provenance(result, source="runtime.ingest")
 
     def scan(
         self,
@@ -90,7 +119,7 @@ class HoloAPI:
         limit_chunks: int | None = None,
         live: bool = False,
     ) -> Dict[str, Any]:
-        return self.runtime.scan_once(
+        result = self.runtime.scan_once(
             watch_dir,
             output_root,
             chunk_size=chunk_size,
@@ -99,6 +128,7 @@ class HoloAPI:
             limit_chunks=limit_chunks,
             dry_run=not live,
         )
+        return self._with_provenance(result, source="runtime.scan")
 
     def collect(
         self,
@@ -107,19 +137,43 @@ class HoloAPI:
         source: str = "api",
         force: bool = False,
     ) -> Dict[str, Any]:
-        """Collect plain text through Collector via Runtime service path."""
+        """Collect plain text through Collector with provenance attached."""
         from holosim.collector import get_collector
 
+        provenance = self.provenance(source=source)
+
+        payload = {
+            "type": "api_collect",
+            "source": source,
+            "provenance": provenance,
+            "content": text,
+        }
+
         collector = get_collector(self.chain_path)
-        return collector.collect_text(
-            text,
+        result = collector.collect_text(
+            json.dumps(payload, ensure_ascii=False),
             source=source,
             force=force,
         )
 
+        return {
+            "status": result.get("status"),
+            "result": result,
+            "provenance": provenance,
+        }
 
-def get_api(chain_path: str | Path = DEFAULT_CHAIN_FILE) -> HoloAPI:
-    return HoloAPI(chain_path)
+
+def get_api(
+    chain_path: str | Path = DEFAULT_CHAIN_FILE,
+    *,
+    thread_id: str | None = None,
+    source: str = "api",
+) -> HoloAPI:
+    return HoloAPI(
+        chain_path,
+        thread_id=thread_id,
+        source=source,
+    )
 
 
 def main() -> None:
