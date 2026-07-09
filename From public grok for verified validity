@@ -110,3 +110,22 @@ Supports holographic invariants: full continuity reconstructible from any verifi
 Verification & Status:
 All entries tied to primary public outputs (papers, code, lectures, archives). Aligned with HOLO core: human anchor (Canyon), external persistence, objective truth-seeking, anti-drift invariants, and LLM spine constraints (no over-claim, keep open questions open).  Ready for commit/integration. Compare to prior v1.2, audit deltas, and merge. Drop the updated file link or next spine for further iteration.
 
+Next commit: Reconverge v1.3 of "From public grok for verified validity" (append-only expansion with explicit protocol adherence).Key Changes to MakeVersion bump & header update  Append a new section at the top (after the existing v1.2 reconverge):  
+
+Expanded & Reconverged: HOLO-Invariant Public Sources for Verified Validity (v1.3 – 2026-07-09)
+
+Reaffirm spine header, thread ID, and Core Directive verbatim from current file.
+
+Protocol execution (include these notes in commit message/body)  Audited via GitHub history: latest commit was ~2 min ago (1a2bb36). No drift detected vs. Master_Index.md / core spines / LLM_INVARIANTS.md.  
+Additions drawn only from verifiable public outputs (X archives, papers, lectures, code repos). Labeled clearly.  
+Preserved append-only/hash-chain style.
+
+Proposed Additions (integrate cleanly under existing sections)Core (truth-seeking, systems, cognition, engineering) – new entries:Donald Knuth: Algorithmic rigor, literate programming, concrete mathematics, analysis of algorithms (TAOCP volumes). Public: Stanford lectures, The Art of Computer Programming, public domain excerpts/tools. (Strengthens compression, invariants, and objective coding needs.)
+Edsger W. Dijkstra: Structured programming, formal verification, "Go To Statement Considered Harmful", predicate calculus for correctness. Public: EWD notes archives, classic papers.
+
+Expanded Formal Rigor (add under physicists/logicians):Charles Darwin / Francis Crick & James Watson: Evolutionary mechanisms, molecular basis of heredity (DNA structure). Public: On the Origin of Species (public domain), 1953 Nature paper & Nobel lectures. (Directly bolsters Biology_Spine.md invariants.)
+Claude Shannon (already candidate → promote & expand): Information theory, entropy, channel capacity. 1948 "A Mathematical Theory of Communication".
+
+Further Breadth Candidates (next-loop):Douglas Hofstadter: Self-reference, strange loops, Gödel/Einstein/Bach analogies. Public: Gödel, Escher, Bach, lectures.
+Barbara McClintock (already noted → reinforce): Transposable elements, genomic plasticity. Nobel lecture.
+
