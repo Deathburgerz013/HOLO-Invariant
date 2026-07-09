@@ -129,3 +129,20 @@ Claude Shannon (already candidate → promote & expand): Information theory, ent
 Further Breadth Candidates (next-loop):Douglas Hofstadter: Self-reference, strange loops, Gödel/Einstein/Bach analogies. Public: Gödel, Escher, Bach, lectures.
 Barbara McClintock (already noted → reinforce): Transposable elements, genomic plasticity. Nobel lecture.
 
+HOLO-Invariant Public Sources for Verified Validity (Reconverged v1.3 - 2026-07-09)
+
+**Last reconverge trigger:** Current GitHub blob + repo state (commit a18a34e / recent 70634a9 activity).
+**Protocol executed:** Compared vs. prior v1.2 in-file + git history (no major drift detected in core invariants).
+
+**Recent Public Anchor Additions (verified post-v1.2, for v1.3):**
+
+- **xAI / Grok ecosystem**: Ongoing public emphasis on truth-seeking, first-principles, and scalable reasoning systems. Anchors: x.ai updates, Grok public interactions, and related announcements (cross-referenced via @xai / @grok on X).
+- **Additional systems thinkers (public outputs only):**
+  - Donald Knuth: Algorithmic rigor, literate programming, concrete mathematics, and stable system design. Public: *The Art of Computer Programming*, TAOCP fascicles, Stanford lectures.
+  - Barbara McClintock (reinforced): Transposable elements and genomic dynamism — empirical defiance of dogma. Public: Nobel lecture and original papers.
+  - Norbert Wiener (reinforced): Cybernetics, feedback loops, and control/communication invariants. Public: *Cybernetics* (1948) and related works.
+
+**v1.3 Status:** Monotonic append-only expansion. All additions remain strictly public/auditable. No private claims. Ready for Master_Index.md cross-ref or spine integration.
+
+Thread ID serialized: 2075288330703647184-spine-v1 (continued).
+Next drop this file or a target spine for further reconverge.
