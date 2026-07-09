@@ -14,28 +14,30 @@ from datetime import datetime
 from pathlib import Path
 
 try:
-    from holosim.core import HoloChain
     from holosim.config import (
-        HOLOSIM_VERSION,
         ACTIVE_HASH,
         ANCHOR,
         DEFAULT_CHAIN_FILE,
+        HOLOSIM_VERSION,
         MASTER_INDEX_FILE,
         REQUIRED_COMPONENTS,
         REPO_ROOT,
     )
+    from holosim.core import HoloChain
+    from holosim.operator import get_operator
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from holosim.core import HoloChain
     from holosim.config import (
-        HOLOSIM_VERSION,
         ACTIVE_HASH,
         ANCHOR,
         DEFAULT_CHAIN_FILE,
+        HOLOSIM_VERSION,
         MASTER_INDEX_FILE,
         REQUIRED_COMPONENTS,
         REPO_ROOT,
     )
+    from holosim.core import HoloChain
+    from holosim.operator import get_operator
 
 
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".venv", "venv"}
@@ -231,6 +233,17 @@ def run_doctor(chain: HoloChain) -> int:
     return 0
 
 
+def run_operator_summary(chain_path: str | Path) -> int:
+    """Print high-level HoloOperator summary."""
+    try:
+        operator = get_operator(chain_path)
+        print(json.dumps(operator.summary(), indent=2))
+        return 0
+    except Exception as e:
+        print(f"❌ Operator summary failed: {e}")
+        return 1
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Holo/Sim CLI - Continuity + Maintenance")
     parser.add_argument(
@@ -247,6 +260,7 @@ def main() -> None:
     subparsers.add_parser("check-spines", help="Validate Holo/Sim headers across spines")
     subparsers.add_parser("test", help="Run complete Holo/Sim self-test")
     subparsers.add_parser("doctor", help="Inspect Holo/Sim installation")
+    subparsers.add_parser("operator-summary", help="Show HoloOperator summary")
 
     args = parser.parse_args()
     chain = HoloChain(file_path=args.file)
@@ -279,6 +293,9 @@ def main() -> None:
 
     elif args.command == "doctor":
         sys.exit(run_doctor(chain))
+
+    elif args.command == "operator-summary":
+        sys.exit(run_operator_summary(args.file))
 
 
 if __name__ == "__main__":
