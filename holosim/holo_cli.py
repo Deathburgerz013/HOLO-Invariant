@@ -25,6 +25,7 @@ try:
     )
     from holosim.core import HoloChain
     from holosim.operator import get_operator
+    from holosim.service import get_service
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.config import (
@@ -38,6 +39,7 @@ except ImportError:
     )
     from holosim.core import HoloChain
     from holosim.operator import get_operator
+    from holosim.service import get_service
 
 
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".venv", "venv"}
@@ -244,6 +246,66 @@ def run_operator_summary(chain_path: str | Path) -> int:
         return 1
 
 
+def run_service_status(chain_path: str | Path) -> int:
+    """Print HoloService runtime status."""
+    try:
+        service = get_service(chain_path)
+        print(json.dumps(service.status(), indent=2))
+        return 0
+    except Exception as e:
+        print(f"❌ Service status failed: {e}")
+        return 1
+
+
+def run_service_verify(chain_path: str | Path) -> int:
+    """Verify through HoloService."""
+    try:
+        service = get_service(chain_path)
+        print(json.dumps(service.verify(), indent=2))
+        return 0
+    except Exception as e:
+        print(f"❌ Service verify failed: {e}")
+        return 1
+
+
+def run_replay_command(args: argparse.Namespace) -> int:
+    """Run replay views through HoloService."""
+    try:
+        service = get_service(args.file)
+
+        if args.search:
+            result = service.search(args.search, limit=args.limit)
+        elif args.timeline:
+            result = service.replay_timeline()
+        elif args.last is not None:
+            result = service.replay.last(args.last)
+        else:
+            result = service.verify()
+
+        print(json.dumps(result, indent=2))
+        return 0
+    except Exception as e:
+        print(f"❌ Replay command failed: {e}")
+        return 1
+
+
+def run_service_append(args: argparse.Namespace) -> int:
+    """Append content through HoloService."""
+    try:
+        service = get_service(args.file)
+        result = service.append(
+            args.text,
+            compress=not args.no_compress,
+            mirror_to_slots=args.mirror_slots,
+            tier=args.tier,
+        )
+        print(json.dumps(result, indent=2))
+        return 0
+    except Exception as e:
+        print(f"❌ Service append failed: {e}")
+        return 1
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Holo/Sim CLI - Continuity + Maintenance")
     parser.add_argument(
@@ -261,6 +323,20 @@ def main() -> None:
     subparsers.add_parser("test", help="Run complete Holo/Sim self-test")
     subparsers.add_parser("doctor", help="Inspect Holo/Sim installation")
     subparsers.add_parser("operator-summary", help="Show HoloOperator summary")
+    subparsers.add_parser("service-status", help="Show HoloService status")
+    subparsers.add_parser("verify", help="Verify chain through HoloService")
+
+    replay_parser = subparsers.add_parser("replay", help="Replay or inspect verified chain")
+    replay_parser.add_argument("--last", type=int, default=None, help="Show latest N entries")
+    replay_parser.add_argument("--search", default=None, help="Search chain entries")
+    replay_parser.add_argument("--timeline", action="store_true", help="Show compact timeline")
+    replay_parser.add_argument("--limit", type=int, default=20, help="Search result limit")
+
+    append_parser = subparsers.add_parser("append", help="Append content through HoloService")
+    append_parser.add_argument("text", help="Text/content to append")
+    append_parser.add_argument("--no-compress", action="store_true", help="Disable compression")
+    append_parser.add_argument("--mirror-slots", action="store_true", help="Mirror append into SlotMerkleDB")
+    append_parser.add_argument("--tier", default="standard", help="Slot tier when mirroring")
 
     args = parser.parse_args()
     chain = HoloChain(file_path=args.file)
@@ -296,6 +372,18 @@ def main() -> None:
 
     elif args.command == "operator-summary":
         sys.exit(run_operator_summary(args.file))
+
+    elif args.command == "service-status":
+        sys.exit(run_service_status(args.file))
+
+    elif args.command == "verify":
+        sys.exit(run_service_verify(args.file))
+
+    elif args.command == "replay":
+        sys.exit(run_replay_command(args))
+
+    elif args.command == "append":
+        sys.exit(run_service_append(args))
 
 
 if __name__ == "__main__":
