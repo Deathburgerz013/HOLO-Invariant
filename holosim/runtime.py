@@ -1,6 +1,6 @@
 """Runtime coordinator for Holo/Sim.
 
-Boots the main runtime services in one controlled pass.
+Boots and exposes the main runtime services through one command surface.
 This is not a forever daemon yet. It is a safe runtime conductor.
 """
 
@@ -15,12 +15,16 @@ from typing import Any, Dict
 
 try:
     from holosim.config import ACTIVE_HASH, ANCHOR, DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
+    from holosim.ingest import ingest_directory
+    from holosim.miner import mine_file
     from holosim.scheduler import run_health
     from holosim.service import get_service
     from holosim.watcher import watch_once
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.config import ACTIVE_HASH, ANCHOR, DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
+    from holosim.ingest import ingest_directory
+    from holosim.miner import mine_file
     from holosim.scheduler import run_health
     from holosim.service import get_service
     from holosim.watcher import watch_once
@@ -44,13 +48,89 @@ class HoloRuntime:
         }
 
     def boot(self) -> Dict[str, Any]:
-        """Boot runtime and verify core services."""
-        health = run_health(self.chain_path)
-
         return {
             "status": "booted",
             "identity": self.identity(),
-            "health": health,
+            "health": run_health(self.chain_path),
+            "timestamp": int(time.time()),
+        }
+
+    def health(self) -> Dict[str, Any]:
+        return {
+            "status": "ok",
+            "identity": self.identity(),
+            "health": self.service.health(),
+            "timestamp": int(time.time()),
+        }
+
+    def status(self) -> Dict[str, Any]:
+        return {
+            "status": "ok",
+            "identity": self.identity(),
+            "service": self.service.status(),
+            "timestamp": int(time.time()),
+        }
+
+    def verify(self) -> Dict[str, Any]:
+        return {
+            "status": "ok",
+            "identity": self.identity(),
+            "verify": self.service.verify(),
+            "timestamp": int(time.time()),
+        }
+
+    def replay(
+        self,
+        *,
+        last: int | None = None,
+        search: str | None = None,
+        timeline: bool = False,
+        limit: int = 20,
+    ) -> Dict[str, Any]:
+        if search:
+            result = self.service.search(search, limit=limit)
+        elif timeline:
+            result = self.service.replay_timeline()
+        elif last is not None:
+            result = self.service.replay.last(last)
+        else:
+            result = self.service.verify()
+
+        return {
+            "status": "ok",
+            "identity": self.identity(),
+            "replay": result,
+            "timestamp": int(time.time()),
+        }
+
+    def mine(
+        self,
+        source: str | Path,
+        output: str | Path,
+        *,
+        chunk_size: int = 40000,
+    ) -> Dict[str, Any]:
+        return {
+            "status": "mined",
+            "identity": self.identity(),
+            "mine": mine_file(source, output, chunk_size=chunk_size),
+            "timestamp": int(time.time()),
+        }
+
+    def ingest(
+        self,
+        directory: str | Path,
+        *,
+        source: str = "runtime",
+        force: bool = False,
+        limit: int | None = None,
+    ) -> Dict[str, Any]:
+        result = ingest_directory(directory, source=source, force=force, limit=limit)
+        return {
+            "status": "ingested",
+            "identity": self.identity(),
+            "ingest": result,
+            "verify": self.service.verify(),
             "timestamp": int(time.time()),
         }
 
@@ -65,7 +145,6 @@ class HoloRuntime:
         limit_chunks: int | None = None,
         dry_run: bool = True,
     ) -> Dict[str, Any]:
-        """Run one watcher scan from runtime."""
         scan = watch_once(
             watch_dir,
             output_root,
@@ -76,19 +155,16 @@ class HoloRuntime:
             dry_run=dry_run,
         )
 
-        verify = self.service.verify()
-
         return {
             "status": "scan_complete",
             "identity": self.identity(),
             "scan": scan,
-            "verify": verify,
+            "verify": self.service.verify(),
             "timestamp": int(time.time()),
         }
 
 
 def get_runtime(chain_path: str | Path = DEFAULT_CHAIN_FILE) -> HoloRuntime:
-    """Create HoloRuntime."""
     return HoloRuntime(chain_path)
 
 
@@ -99,6 +175,26 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("boot", help="Boot runtime and verify services")
+    subparsers.add_parser("health", help="Show runtime health")
+    subparsers.add_parser("status", help="Show runtime/service status")
+    subparsers.add_parser("verify", help="Verify runtime chain")
+
+    replay_parser = subparsers.add_parser("replay", help="Replay or inspect chain")
+    replay_parser.add_argument("--last", type=int, default=None)
+    replay_parser.add_argument("--search", default=None)
+    replay_parser.add_argument("--timeline", action="store_true")
+    replay_parser.add_argument("--limit", type=int, default=20)
+
+    mine_parser = subparsers.add_parser("mine", help="Mine a file into chunks")
+    mine_parser.add_argument("source")
+    mine_parser.add_argument("output")
+    mine_parser.add_argument("--chunk-size", type=int, default=40000)
+
+    ingest_parser = subparsers.add_parser("ingest", help="Ingest a mined directory")
+    ingest_parser.add_argument("directory")
+    ingest_parser.add_argument("--source", default="runtime")
+    ingest_parser.add_argument("--force", action="store_true")
+    ingest_parser.add_argument("--limit", type=int, default=None)
 
     scan_parser = subparsers.add_parser("scan", help="Run one watcher scan")
     scan_parser.add_argument("watch_dir")
@@ -107,13 +203,35 @@ def main() -> None:
     scan_parser.add_argument("--force", action="store_true")
     scan_parser.add_argument("--limit-files", type=int, default=None)
     scan_parser.add_argument("--limit-chunks", type=int, default=None)
-    scan_parser.add_argument("--live", action="store_true", help="Actually ingest instead of dry-run")
+    scan_parser.add_argument("--live", action="store_true")
 
     args = parser.parse_args()
     runtime = get_runtime(args.file)
 
     if args.command == "boot":
         result = runtime.boot()
+    elif args.command == "health":
+        result = runtime.health()
+    elif args.command == "status":
+        result = runtime.status()
+    elif args.command == "verify":
+        result = runtime.verify()
+    elif args.command == "replay":
+        result = runtime.replay(
+            last=args.last,
+            search=args.search,
+            timeline=args.timeline,
+            limit=args.limit,
+        )
+    elif args.command == "mine":
+        result = runtime.mine(args.source, args.output, chunk_size=args.chunk_size)
+    elif args.command == "ingest":
+        result = runtime.ingest(
+            args.directory,
+            source=args.source,
+            force=args.force,
+            limit=args.limit,
+        )
     elif args.command == "scan":
         result = runtime.scan_once(
             args.watch_dir,
