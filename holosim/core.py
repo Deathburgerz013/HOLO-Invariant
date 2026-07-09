@@ -1,11 +1,19 @@
 import hashlib
 import json
 import logging
-import zlib
 import platform
+import sys
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
+try:
+    from holosim.config import DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from holosim.config import DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,9 +29,13 @@ class HoloChain:
     - Fully reproducible across time and systems.
     """
 
-    VERSION = "0.4.8"  # Added CLI health/review commands
+    VERSION = HOLOSIM_VERSION
 
-    def __init__(self, file_path: str = "holo_memory.jsonl", genesis_hash: str = "0" * 64):
+    def __init__(
+        self,
+        file_path: str | Path = DEFAULT_CHAIN_FILE,
+        genesis_hash: str = "0" * 64,
+    ):
         self.file_path = Path(file_path)
         self.genesis_hash = genesis_hash
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -242,7 +254,7 @@ class HoloChain:
         state = self.get_state()
         health = {}
         for kw in invariant_keywords:
-            mentions = sum(1 for item in state 
+            mentions = sum(1 for item in state
                           if isinstance(item, str) and kw.lower() in item.lower())
             health[kw] = {
                 "mentions": mentions,
