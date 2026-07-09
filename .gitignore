@@ -1,7 +1,65 @@
-*.db
-*.bak
+# Python
 __pycache__/
 *.pyc
-holosim/Dict
-holosim/List
-*.txt  # temp only
+*.pyo
+
+# Virtual envs
+.venv/
+venv/
+
+# Generated indexes
+Master_Index_Auto.md
+
+# Logs
+Holo/logs/
+holosim/holo_logs/
+
+# Databases
+*.db
+
+# Temporary memory
+*_backup.jsonl
+test_*.jsonl
+
+# Backup files
+*.backup
+*.bak
+*.old
+*_backup*
+*.txt.backup
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Build output
+dist/
+build/
+*.egg-info/
+
+# Generated
+Master_Index_Auto.md
+
+# Logs
+Holo/logs/
+holosim/holo_logs/
+
+# Databases
+*.db
+
+# Backup files
+*.backup
+*.backup*
+*.bak
+*.old
+*_backup*
+*.tmp
+
+# Tests
+holosim/test_*.py
+test_*.py
