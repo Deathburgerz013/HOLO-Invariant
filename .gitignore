@@ -1,65 +1,85 @@
+# ===========================================
 # Python
+# ===========================================
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 
-# Virtual envs
+# Virtual environments
 .venv/
 venv/
+env/
 
-# Generated indexes
-Master_Index_Auto.md
-
-# Logs
-Holo/logs/
-holosim/holo_logs/
-
-# Databases
-*.db
-
-# Temporary memory
-*_backup.jsonl
-test_*.jsonl
-
-# Backup files
-*.backup
-*.bak
-*.old
-*_backup*
-*.txt.backup
-
-# Build
-dist/
+# ===========================================
+# Build artifacts
+# ===========================================
 build/
+dist/
 *.egg-info/
+pip-wheel-metadata/
 
+# ===========================================
 # IDE
+# ===========================================
 .vscode/
 .idea/
 
-# Build output
-dist/
-build/
-*.egg-info/
+# ===========================================
+# Runtime / caches
+# ===========================================
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
 
-# Generated
+runtime_watch/
+test_archives/
+tools/archives/
+
+# ===========================================
+# Generated project files
+# ===========================================
 Master_Index_Auto.md
+Spine_Validation_Report.json
 
-# Logs
-Holo/logs/
-holosim/holo_logs/
+# ===========================================
+# Local chain state
+# ===========================================
+holo_memory.jsonl
+holo_merkle.jsonl
+metrics_audit.jsonl
 
-# Databases
 *.db
+*.sqlite
+*.sqlite3
 
-# Backup files
-*.backup
-*.backup*
+# ===========================================
+# Temporary / backup files
+# ===========================================
 *.bak
 *.old
-*_backup*
+*.backup
 *.tmp
 
-# Tests
-holosim/test_*.py
-test_*.py
+*_backup*
+*back up*.txt
+*.txt.backup
+
+# ===========================================
+# Duplicate local package junk
+# ===========================================
+holosim/.gitignore
+holosim/pyproject.toml
+holosim/pyproject.toml.txt
+holosim/holo_memory.jsonl
+holosim.egg-info/
+
+# ===========================================
+# Local duplicate repository
+# ===========================================
+HOLO-Invariant/
+
+# ===========================================
+# Test artifacts
+# ===========================================
+test_*.jsonl
