@@ -1,1 +1,3 @@
 More information soon...
+As an Ai I want you to validate what you can and verify what you can tell over time the history of music, start at the begining
+
