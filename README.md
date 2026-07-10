@@ -1,98 +1,189 @@
 # HOLO-Invariant
-**Master Index v1.0**
-**Purpose**: Stable anchors for human-AI co-evolution.
-**Core Thesis**: Continuity is not in the model. It is in the verifiable external relationship between **human anchor** + **hash-chained persistence** + **invariant-preserving compression**. Everything else drifts.
 
-## 1. Problem (What Breaks)
-- Layer bleed
-- Recursive self-ingestion / model collapse
-- Silent drift & anchor loss
-- Context window / reset / provider fragility
-- Systems that cannot maintain truth across iterations
+**HOLO-Invariant** is a continuity framework for AI systems built around
+tamper-evident persistence, invariant preservation, and human-anchored
+verification.
 
-**Solution Anchor**: The human is the external invariant. Persistence lives outside the model in append-only verifiable chains. Models are guided, not trusted as memory.
+Instead of treating the language model as memory, HOLO externalizes
+continuity into a cryptographically verifiable append-only chain.
 
-## 2. Invariant Concept
-A **HOLO-Invariant** is a holographic, multi-scale conserved structure that survives heavy compression and evolution.
-- **Strict**: \( I_k(S_{t+1}) = I_k(S_t) \) (hash chain root)
-- **Approximate**: \( d(I_k(S_{t+1}), I_k(S_t)) \leq \epsilon \) with bounded error
-- **Holographic property**: Full essential state reconstructible from any slice
-- **Lattice structure**: Stronger invariants constrain weaker ones
+---
 
-**Core Invariants Protected**:
-- Verifiable external continuity (hash chain)
-- Human-as-anchor relationship (Canyon Brock Haney)
-- Truth / monotonicity of knowledge
-- Structural topology
-- Semantic utility
+## Core Principle
 
-## 3. Persistence Primitive + Converged Engine
-**holosim v0.4.8** — Tamper-evident append-only chain + artifact parser + CLI (HSSCE primitive)
+Continuity is preserved by protecting invariants rather than preserving
+every token.
 
-**Converged Engine (v0807a)**:
-- **RebirthEngine**: Heartbeat, token reserve, hash guard, blood tag, fresh check, stabilize-not-strip core restore
-- **IDX Spinal Substrate**: Persistent config (persona, paths, token rules, research priorities, SENTINEL mode)
-- **Domain + LLM Invariants**: Physics, Biology, Mathematics, Computation spines + historical continuity priors
-- **Sensorimotor / Handoff**: PowerShell screening ↔ Python loop with delta persistence
-- **CLI + Tools**: `holo_cli.py`, `handoff.ps1`, boot validation, append, health, state
+Core relation:
 
-### Key Features
-- Cryptographically verifiable append-only log (SHA-256 chained + canonical JSON)
-- Full chain verification on every load (fails fast on tampering)
-- Optional smart compression
-- Rebirth on fault for continuity lock
-- Boot-time spinal validation
-- Zero external dependencies, cross-platform
+```
+(C + I + E)²
+```
 
-### Quick Start
-**Python**
+where
+
+- **C** = Continuity
+- **I** = Information / Integration
+- **E** = Evolution
+
+Growth is expressed symbolically as
+
+```
+G(x + 1) = Stabilize(G(x), Δx)
+```
+
+Every accepted transition must preserve the fixed point.
+
+---
+
+# Features
+
+- SHA-256 append-only persistence
+- Full chain verification
+- Replay engine
+- Provenance packets
+- Delta export format
+- Property-based invariant testing
+- Spine validation
+- Fixed-point continuity engine
+- Runtime orchestration
+- Stable internal API
+- Cross-platform
+- Zero runtime dependencies
+
+---
+
+# Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/Deathburgerz013/HOLO-Invariant.git
+cd HOLO-Invariant
+```
+
+Install
+
+```bash
+pip install -e .
+```
+
+Developer installation
+
+```bash
+pip install -e ".[dev]"
+```
+
+Developer + collection tools
+
+```bash
+pip install -e ".[dev,collect]"
+```
+
+Python 3.10+
+
+---
+
+# Quick Start
+
+Python
+
 ```python
 from holosim.core import HoloChain
-from rebirth_engine import run_rebirth
+
 chain = HoloChain("holo_memory.jsonl")
-chain.append("Human anchor: Canyon Brock Haney — HSSCE verified")
-run_rebirth("MANUAL_OVERRIDE")
-print(chain.get_state())
+
+chain.append("Example continuity delta")
+
 print(chain.health())
+```
+
 CLI
-Bashpython holo_cli.py boot
-python holo_cli.py append "Your delta here"
-python holo_cli.py health
-python holo_cli.py state
-PowerShell Handoff
-PowerShell.\handoff.ps1   # Runs boot + screening delta
-4. Tools & Core
-Tools
-holo_archive.sh
-Compression and integrity tool for HOLO CAPs and Spine files.
-Usage:
-Bashcd tools
-./holo_archive.sh ../Holo ../archives
-Features:
 
-Creates compressed .tar.xz archive
-Generates SHA256 checksum
-Creates manifest with timestamps and lineage info
-Optional AES encryption
-Preserves continuity from HOLO v0807a-fused lineage
+```bash
+python -m holosim.cli boot
+python -m holosim.cli test
+python -m holosim.cli verify
+```
 
-Core
-core/holo_core.yaml
-Central invariants and operational framework.
-Contents:
+Fixed Point Engine
 
-Stabilization math equations (c + i + e)^2 and related formulas
-CAP Rules v1.3 (time anchors, history pull, emotional markers, etc.)
-Continuity parameters
+```bash
+python -m holosim.Holo_Sim identity
 
-This file serves as the living reference for HOLO persistence logic.
-5. Compression & Spines
-Ruthlessly preserve invariants first. Domain spines link through the core engine. HSSCE (Human-AI Shared Continuity Engine) is built on holosim.
-Latest (July 2026): Converged engine with Rebirth + IDX + full handoff. External continuity primitive continues to strengthen.
+python -m holosim.Holo_Sim verify
 
-License & Anchor
-License: MIT
-Anchor: Canyon B. Haney (@CanyonBHaney)
-Verification Note: Health check passed (chain intact, healthy). This README is part of the self-correcting loop for integrity and AI improvement over iterations.
-Latest Release
-holosim v0.4.9 (Latest) — Full convergence of the continuity engine.
+python -m holosim.Holo_Sim evaluate "Example delta"
+```
+
+---
+
+# Repository Layout
+
+```
+holosim/
+    core.py
+    runtime.py
+    api.py
+    provenance.py
+    delta_export.py
+    spine_validator.py
+    Holo_Sim.py
+    cli.py
+
+tests/
+
+tools/
+```
+
+---
+
+# Verification
+
+Run invariant tests
+
+```bash
+python -m pytest tests/ -q
+```
+
+Run the integrated self-test
+
+```bash
+python -m holosim.cli test
+```
+
+GitHub Actions executes the same verification automatically on pushes and pull requests.
+
+---
+
+# Mathematical Foundation
+
+HOLO treats continuity as an invariant-preserving state transition.
+
+Rather than storing every intermediate state forever, transitions are accepted only if protected invariants remain valid.
+
+The fixed point currently used by the engine is
+
+```
+(C + I + E)²
+```
+
+Future formulations extend this through symbolic growth operators without changing the invariant itself.
+
+---
+
+# License
+
+MIT
+
+---
+
+# Author
+
+Canyon Brock Haney
+
+---
+
+# Current Version
+
+holosim v0.4.9
