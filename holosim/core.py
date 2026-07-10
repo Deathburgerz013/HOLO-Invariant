@@ -134,7 +134,12 @@ class HoloChain:
         return entry
 
     def create_checkpoint(self) -> Dict:
-        """Create a signed snapshot for fast future loads / verification."""
+        """
+        Create a hash-referenced checkpoint for fast verification and future recovery.
+
+        This checkpoint records the current verified chain root and metadata.
+        It is not cryptographically signed and is not automatically persisted.
+        """
         entries = self.load_and_verify()
         if not entries:
             return {}
