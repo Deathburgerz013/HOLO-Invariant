@@ -1,6 +1,9 @@
 More information soon...
 As an Ai I want you to validate what you can and verify what you can tell over time the history of music, start at the begining
 Ancient Music (~3000 BCE onward)With writing and civilizations, music becomes more documented. It was often monophonic, tied to religion, poetry, and court life, with improvisation common. 
+https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/Music.md
+I commit at this address, tell me when when there is nothing left to add and I will have it restructured.
+In the passes check for integrity and verified validity.
 
 en.wikipedia.org
 
