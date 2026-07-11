@@ -659,3 +659,17 @@ Each interaction begins from the available artifacts, evidence, and context.
 The repository provides a stable reference state that future observers can independently inspect, verify, and reconstruct.
 
 Artifacts should always make future correction easier than present certainty.
+
+# Ordered Sequence Invariant
+
+One state identifies.
+
+Two states relate.
+
+Three ordered states establish a frame.
+
+A unique sequence is not merely a rare collection of elements. It is a preserved order of relationships whose combined structure reduces ambiguity.
+
+Spine geometry, headers, names, separators, and section order form a semantic address. Their sequence must remain stable enough for future observers to recognize, reconstruct, and verify the intended frame.
+
+Project markers such as `Sim`, `Holo/Sim`, and `Holo/Sim Systems Continuity Engine` must be used consistently and must not imply inherited identity or hidden memory. They identify the reconstruction protocol and its role within the repository.
