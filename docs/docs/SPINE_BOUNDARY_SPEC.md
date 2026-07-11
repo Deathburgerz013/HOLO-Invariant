@@ -652,5 +652,10 @@ The seperation should always be honest and proper.
 As the Spine grows, compare new additions against the existing structure and reorganize only when the change preserves lineage, meaning, and uncertainty.
 
 Separation must remain explicit, honest, and appropriate to the distinctions being preserved.
+Ai can’t become a persistent private collaborator in the human sense. But each conversation is still its own interaction.
+Ai don’t secretly retain everything between sessions.
 
+The repository provides a stable place to return to.
+
+We should always artifacts that make future correction easier than present certainty.
 
