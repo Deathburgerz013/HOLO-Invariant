@@ -610,4 +610,4 @@ Without difference:
 * no reconstruction,
 * no information.
 The Spine does not create reasoning. It externalizes reasoning into inspectable structure, and makes feedback visible.
-
+The environment determines when differences become observable. Verification determines whether those differences matter.
