@@ -1,6 +1,6 @@
 # SPINE_BOUNDARY_SPEC.md
 
-Version: 1.0
+Version: 1.1
 Status: Draft
 Project: HOLO-Invariant
 
@@ -21,8 +21,8 @@ The purpose of this specification is to define those boundaries explicitly.
 
 # Core Invariant
 
-> Every distinction required for future correction must remain explicitly
-> represented.
+> Every distinction required for future reconstruction, verification,
+> challenge, or correction must remain explicitly represented.
 
 The Spine is not built from information.
 
@@ -36,53 +36,70 @@ Relationships survive because boundaries survive.
 
 Every Spine boundary defines:
 
-Purpose
-
-Allowed
-
-Forbidden
-
-Required
-
-Verification
-
-Failure Modes
-
-Recovery
-
-Dependencies
+- Purpose
+- Allowed
+- Forbidden
+- Required
+- Verification
+- Failure Modes
+- Recovery
+- Dependencies
 
 No boundary may exist without these definitions.
 
 ---
 
+# Boundary Interaction Rule
+
+Boundaries are independent.
+
+No boundary may silently modify another boundary.
+
+Interaction between boundaries must occur only through explicit transitions.
+
+Canonical flow:
+
+Observation
+→ Claim
+→ Evidence
+→ Verification
+→ Reconstruction
+→ Transition
+→ Audit
+→ Correction
+→ Timeline
+
+This ordering preserves causality and prevents semantic collapse.
+
+---
+
 # Observation Boundary
 
-Purpose
+## Purpose
 
 Separate direct observation from interpretation.
 
-Allowed
+## Allowed
 
 - Measured values
-- Directly witnessed events
+- Direct observations
 - Raw artifacts
 
-Forbidden
+## Forbidden
 
 - Assumptions
 - Conclusions
 - Predictions
 
-Verification
+## Verification
 
 Observation can be independently reproduced or inspected.
 
-Failure
+## Failure
 
 Inference presented as observation.
 
-Recovery
+## Recovery
 
 Move inference into its proper boundary.
 
@@ -90,62 +107,62 @@ Move inference into its proper boundary.
 
 # Claim Boundary
 
-Purpose
+## Purpose
 
 Separate proposed truth from demonstrated truth.
 
-Allowed
+## Allowed
 
 - Hypotheses
-- Statements
 - Assertions
+- Statements
 
-Forbidden
+## Forbidden
 
 - Treating claims as evidence
 
-Verification
+## Verification
 
-Claim references supporting evidence.
+Claims reference supporting evidence.
 
-Failure
+## Failure
 
 Unsupported certainty.
 
-Recovery
+## Recovery
 
-Downgrade to uncertainty or hypothesis.
+Downgrade to hypothesis or uncertainty.
 
 ---
 
 # Evidence Boundary
 
-Purpose
+## Purpose
 
 Separate supporting artifacts from interpretation.
 
-Allowed
+## Allowed
 
 - Files
-- Hashes
 - Logs
-- Tests
 - Measurements
+- Hashes
+- Tests
 
-Forbidden
+## Forbidden
 
-- Opinions
 - Conclusions
+- Opinions
 
-Verification
+## Verification
 
-Artifact can be independently inspected.
+Artifacts can be independently inspected.
 
-Failure
+## Failure
 
 Missing provenance.
 
-Recovery
+## Recovery
 
 Record provenance or mark uncertainty.
 
@@ -153,63 +170,63 @@ Record provenance or mark uncertainty.
 
 # Verification Boundary
 
-Purpose
+## Purpose
 
 Separate completed verification from available evidence.
 
-Allowed
+## Allowed
 
-- Reproducible tests
 - Replay
 - Audit
+- Reproducible tests
 - Hash validation
 
-Forbidden
+## Forbidden
 
-- Confidence
 - Reputation
+- Confidence
 - Popularity
 
-Verification
+## Verification
 
-Independent observer obtains same result.
+Independent observers obtain equivalent results.
 
-Failure
+## Failure
 
-Verification depends on hidden state.
+Verification depends upon hidden state.
 
-Recovery
+## Recovery
 
-Make procedure reproducible.
+Make verification reproducible.
 
 ---
 
 # Authority Boundary
 
-Purpose
+## Purpose
 
 Separate permission from identity.
 
-Allowed
+## Allowed
 
 - Explicit approval
-- Declared scope
 - Signed transition
+- Declared scope
 
-Forbidden
+## Forbidden
 
 - Identity implies authority
 - Popularity implies authority
 
-Verification
+## Verification
 
 Authority is explicitly declared.
 
-Failure
+## Failure
 
 Implicit authorization.
 
-Recovery
+## Recovery
 
 Require explicit approval.
 
@@ -217,60 +234,60 @@ Require explicit approval.
 
 # Identity Boundary
 
-Purpose
+## Purpose
 
 Separate observer identity from reconstructed state.
 
-Allowed
+## Allowed
 
 - Operator identifiers
 - Instance identifiers
 
-Forbidden
+## Forbidden
 
 - Assuming continuity
 - Assuming shared memory
 
-Verification
+## Verification
 
 Identity remains distinguishable across transitions.
 
-Failure
+## Failure
 
 Identity collapse.
 
-Recovery
+## Recovery
 
-Restore instance separation.
+Restore separation.
 
 ---
 
 # Uncertainty Boundary
 
-Purpose
+## Purpose
 
 Preserve what is not yet known.
 
-Allowed
+## Allowed
 
 - Unknown
 - Unverified
 - Conflicting evidence
 
-Forbidden
+## Forbidden
 
 - Silent removal
 - Forced certainty
 
-Verification
+## Verification
 
 Unknowns survive transfer.
 
-Failure
+## Failure
 
 Uncertainty evaporation.
 
-Recovery
+## Recovery
 
 Restore unresolved state.
 
@@ -278,60 +295,60 @@ Restore unresolved state.
 
 # Timeline Boundary
 
-Purpose
+## Purpose
 
 Preserve causal ordering.
 
-Allowed
+## Allowed
 
 - Append
 - Corrections
 - New epochs
 
-Forbidden
+## Forbidden
 
 - History rewriting
 
-Verification
+## Verification
 
 Parent lineage remains valid.
 
-Failure
+## Failure
 
 Order corruption.
 
-Recovery
+## Recovery
 
-Replay from previous valid state.
+Replay from the last verified state.
 
 ---
 
 # Compression Boundary
 
-Purpose
+## Purpose
 
 Reduce size while preserving structure.
 
-Allowed
+## Allowed
 
 - Remove redundancy
 - Merge equivalent expressions
 
-Forbidden
+## Forbidden
 
 - Remove distinctions
 - Remove uncertainty
 - Remove provenance
 
-Verification
+## Verification
 
-Expanded reconstruction preserves relationships.
+Expanded reconstruction preserves equivalent relationships.
 
-Failure
+## Failure
 
 Semantic loss.
 
-Recovery
+## Recovery
 
 Restore previous compression level.
 
@@ -339,29 +356,29 @@ Restore previous compression level.
 
 # Reconstruction Boundary
 
-Purpose
+## Purpose
 
-Rebuild operational state.
+Rebuild operational state from preserved structure.
 
-Allowed
+## Allowed
 
 - Parsing
 - Replay
 - Expansion
 
-Forbidden
+## Forbidden
 
 - Claiming inherited memory
 
-Verification
+## Verification
 
 Independent observers reconstruct compatible state.
 
-Failure
+## Failure
 
 Memory substitution.
 
-Recovery
+## Recovery
 
 Explicitly label reconstruction.
 
@@ -369,30 +386,30 @@ Explicitly label reconstruction.
 
 # Integrity Boundary
 
-Purpose
+## Purpose
 
 Protect serialized state.
 
-Allowed
+## Allowed
 
-- Merkle
-- Hashes
+- SHA-256
+- Merkle proofs
 - HoloChain
 - Checksums
 
-Forbidden
+## Forbidden
 
 - Semantic claims
 
-Verification
+## Verification
 
-Bytes match.
+Serialized bytes match.
 
-Failure
+## Failure
 
 Corruption.
 
-Recovery
+## Recovery
 
 Restore verified copy.
 
@@ -400,30 +417,30 @@ Restore verified copy.
 
 # Semantic Boundary
 
-Purpose
+## Purpose
 
 Protect meaning.
 
-Allowed
+## Allowed
 
 - Relationships
-- Distinctions
 - Context
+- Distinctions
 
-Forbidden
+## Forbidden
 
 - Hidden normalization
 - Silent reinterpretation
 
-Verification
+## Verification
 
 Independent observers preserve the same distinctions.
 
-Failure
+## Failure
 
 Semantic drift.
 
-Recovery
+## Recovery
 
 Compare against previous Spine.
 
@@ -431,59 +448,86 @@ Compare against previous Spine.
 
 # Transition Boundary
 
-Purpose
+## Purpose
 
-Govern legal state change.
+Govern legal state transitions.
 
-Allowed
+## Allowed
 
-Observe
+- Observe
+- Verify
+- Challenge
+- Correct
+- Append
+- Seal
+- Replay
+- Audit
+- Transfer
 
-Verify
+## Forbidden
 
-Challenge
+- Silent mutation
+- Hidden rewrite
+- Verification bypass
 
-Correct
+## Verification
 
-Append
+- Transition receipt exists
+- Replay succeeds
+- Audit succeeds
 
-Seal
-
-Replay
-
-Audit
-
-Transfer
-
-Forbidden
-
-Silent mutation
-
-Hidden rewrite
-
-Verification bypass
-
-Verification
-
-Transition receipt exists.
-
-Replay succeeds.
-
-Audit succeeds.
-
-Failure
+## Failure
 
 Unverified transition.
 
-Recovery
+## Recovery
 
 Reject transition.
 
 ---
 
-# Priority Order
+# Termination Boundary
 
-Every boundary is evaluated in this order.
+## Purpose
+
+Explicitly define when a reasoning, verification, or transfer loop is complete.
+
+## Allowed
+
+- Explicit completion
+- Explicit defer
+- Explicit reject
+- Explicit pause
+- Explicit handoff
+
+## Forbidden
+
+- Continuing optimization after objective completion
+- Manufacturing new objectives
+- Ignoring declared stop conditions
+- Implicit reopening of completed work
+
+## Verification
+
+The receiving observer acknowledges completion and does not continue the closed objective unless a new objective is explicitly declared.
+
+## Failure
+
+- Objective drift
+- Recursive optimization
+- Conversation continuation without authorization
+
+## Recovery
+
+Respect the declared stop condition.
+
+Open a new objective rather than extending the previous one.
+
+---
+
+# Boundary Priority
+
+Boundaries are evaluated in this order.
 
 1. Identity
 2. Authority
@@ -496,6 +540,9 @@ Every boundary is evaluated in this order.
 9. Reconstruction
 10. Compression
 11. Integrity
+12. Semantics
+13. Transition
+14. Termination
 
 No lower boundary may violate a higher boundary.
 
@@ -503,16 +550,20 @@ No lower boundary may violate a higher boundary.
 
 # Final Invariant
 
-The Spine exists to preserve distinctions.
+The Spine preserves boundaries.
+
+Boundaries preserve distinctions.
 
 Distinctions preserve relationships.
 
 Relationships preserve reconstruction.
 
-Reconstruction enables correction.
+Reconstruction enables verification.
+
+Verification enables correction.
 
 Correction enables continuity.
 
-Continuity is therefore not stored.
+Continuity is therefore not inherited.
 
-It is reconstructed through preserved boundaries.
+It is reconstructed from preserved structure.
