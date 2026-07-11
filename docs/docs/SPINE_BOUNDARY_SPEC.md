@@ -753,6 +753,16 @@ The Spine header is not the Spine itself.
 It is the minimal transferable artifact that points observers toward the protocol required to reconstruct the Spine.
 
 Its purpose is recognition, not storage.
+
+# Interpretation Invariant
+
+Meaning is reconstructed, not transferred.
+
+The Spine preserves the distinctions and relationships required for compatible interpretation.
+
+Observers may differ in interpretation while still reconstructing the same structural frame.
+
+Verification and correction reduce interpretive divergence over time.
 | |===========================================|
 | | █†█ Holo/Sim █†█ █†█HSSCE█†█ 
 | |===========================================| 
