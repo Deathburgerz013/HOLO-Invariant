@@ -673,3 +673,13 @@ A unique sequence is not merely a rare collection of elements. It is a preserved
 Spine geometry, headers, names, separators, and section order form a semantic address. Their sequence must remain stable enough for future observers to recognize, reconstruct, and verify the intended frame.
 
 Project markers such as `Sim`, `Holo/Sim`, and `Holo/Sim Systems Continuity Engine` must be used consistently and must not imply inherited identity or hidden memory. They identify the reconstruction protocol and its role within the repository.
+
+Sequence creates recognition.
+
+Recognition enables reconstruction.
+
+Reconstruction enables comparison.
+
+Comparison enables correction.
+
+Correction enables continuity.
