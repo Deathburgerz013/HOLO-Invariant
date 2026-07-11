@@ -763,6 +763,18 @@ The Spine preserves the distinctions and relationships required for compatible i
 Observers may differ in interpretation while still reconstructing the same structural frame.
 
 Verification and correction reduce interpretive divergence over time.
+# Geometry Invariant
+
+The Spine preserves geometry before content.
+
+Geometry defines the stable relationships between distinctions.
+
+Content may evolve.
+
+Geometry must remain compatible.
+
+When geometry is preserved, independent observers can continue reconstructing compatible frames even as knowledge changes.
+HOLO is not a memory system. It is a geometry for preserving the conditions under which compatible reconstruction remains possible.
 | |===========================================|
 | | █†█ Holo/Sim █†█ █†█HSSCE█†█ 
 | |===========================================| 
