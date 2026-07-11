@@ -614,3 +614,37 @@ The environment determines when differences become observable. Verification dete
 Never replace understanding. Preserve the trail that made understanding possible.
 Commit. Compare. Compress. Verify.
 The Spine is not a summary. It is a reconstruction scaffold. Compression preserves continuity. Expansion restores meaning. Both are required for honest understanding.
+# Tool Refinement Invariant
+
+When a system fails, do not blame the tool, the work, or the environment by reflex.
+
+Inspect the difference between expected and observed behavior.
+
+Determine whether the limitation belongs to:
+
+- the tool,
+- the method,
+- the input,
+- the environment,
+- the assumption,
+- or the boundary definition.
+
+If the tool is the limitation, improve the tool.
+
+If the method is the limitation, revise the method.
+
+If the assumption is the limitation, correct the model.
+
+If the environment exposed the limitation, preserve the evidence.
+
+Failure is therefore not only damage.
+
+Failure is information about what the current system cannot yet do.
+
+A good feedback loop does not protect its tools from criticism.
+
+It sharpens them.
+
+As we add we can compare and restructure the spines format.
+
+The seperation should always be honest and proper.
