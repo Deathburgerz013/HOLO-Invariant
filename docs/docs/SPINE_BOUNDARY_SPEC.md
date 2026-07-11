@@ -613,3 +613,4 @@ The Spine does not create reasoning. It externalizes reasoning into inspectable 
 The environment determines when differences become observable. Verification determines whether those differences matter.
 Never replace understanding. Preserve the trail that made understanding possible.
 Commit. Compare. Compress. Verify.
+The Spine is not a summary. It is a reconstruction scaffold. Compression preserves continuity. Expansion restores meaning. Both are required for honest understanding.
