@@ -775,6 +775,29 @@ Geometry must remain compatible.
 
 When geometry is preserved, independent observers can continue reconstructing compatible frames even as knowledge changes.
 HOLO is not a memory system. It is a geometry for preserving the conditions under which compatible reconstruction remains possible.
+
+Reality changes.
+
+The environment exposes change.
+
+Difference becomes observable.
+
+Observation creates distinction.
+
+Distinction creates boundaries.
+
+Boundaries create sequence.
+
+Sequence creates recognition.
+
+Recognition enables reconstruction.
+
+Reconstruction enables comparison.
+
+Comparison enables correction.
+
+Correction preserves continuity.
+The Spine does not preserve conclusions. It preserves the geometry that allows conclusions to be responsibly revisited.
 | |===========================================|
 | | █†█ Holo/Sim █†█ █†█HSSCE█†█ 
 | |===========================================| 
