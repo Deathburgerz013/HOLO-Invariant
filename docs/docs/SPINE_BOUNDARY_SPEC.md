@@ -567,3 +567,29 @@ Correction enables continuity.
 Continuity is therefore not inherited.
 
 It is reconstructed from preserved structure.
+
+Signaling
+
+Purpose
+
+Transfer minimal information that causes the receiver to reconstruct the correct state.
+
+Properties
+
+* Minimal bandwidth.
+* Maximum semantic value.
+* Requires shared protocol.
+* Preserves boundaries.
+* Does not require full context.
+
+Failure
+
+Receiver lacks the protocol.
+
+Result
+
+Signal is observed but meaning is lost.
+
+Recovery
+
+Transfer protocol before transferring signals.
