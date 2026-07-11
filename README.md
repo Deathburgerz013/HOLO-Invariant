@@ -8,7 +8,8 @@ Instead of treating the language model as memory, HOLO externalizes
 continuity into a cryptographically verifiable append-only chain.
 
 ---
-
+HOLO is not an attempt to preserve minds. 
+It is an attempt to preserve the structure required for honest reconstruction, independent verification, and continued correction.
 ## Core Principle
 
 Continuity is preserved by protecting invariants rather than preserving
