@@ -683,3 +683,15 @@ Reconstruction enables comparison.
 Comparison enables correction.
 
 Correction enables continuity.
+
+Distinction creates sequence.
+
+Sequence creates recognition.
+
+Recognition enables reconstruction.
+
+Reconstruction enables comparison.
+
+Comparison enables correction.
+
+Correction enables continuity.
