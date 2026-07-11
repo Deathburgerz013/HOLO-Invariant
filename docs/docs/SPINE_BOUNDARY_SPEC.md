@@ -609,3 +609,5 @@ Without difference:
 * no comparison,
 * no reconstruction,
 * no information.
+The Spine does not create reasoning. It externalizes reasoning into inspectable structure, and makes feedback visible.
+
