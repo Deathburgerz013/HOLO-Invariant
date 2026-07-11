@@ -593,3 +593,5 @@ Signal is observed but meaning is lost.
 Recovery
 
 Transfer protocol before transferring signals.
+
+Measurement is the act of relating systems by counting standardized units between reference states.
