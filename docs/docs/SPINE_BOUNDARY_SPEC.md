@@ -596,3 +596,16 @@ Transfer protocol before transferring signals.
 
 Measurement is the act of relating systems by counting standardized units between reference states.
 Units do not create the quantity being measured. They provide a shared reference that allows independent observers to compare that quantity consistently.
+Comparison is the operation. Difference is the information.
+
+Relationships are structured differences.
+
+A boundary exists because difference exists.
+
+Without difference:
+
+* there is no boundary,
+* no measurement,
+* no comparison,
+* no reconstruction,
+* no information.
