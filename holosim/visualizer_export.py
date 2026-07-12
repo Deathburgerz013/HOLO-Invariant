@@ -33,6 +33,8 @@ except ImportError:
 EXPORT_TYPE = "holo_visualizer_export"
 EXPORT_VERSION = 1
 
+HEADER_TOKEN = "█†█ Holo/Sim █†█"
+
 DEFAULT_OBJECTIVE = (
     "Preserve the structure required for compatible reconstruction, "
     "verification, challenge, correction, and continuity."
@@ -231,25 +233,36 @@ def build_document_node(
 
     if path.suffix.lower() == ".md":
         try:
-            document = parse_spine_file(path)
-            frame = reconstruct_frame(document)
-            geometry_hash = frame["geometry"]["geometry_hash"]
-            header_present = True
-            section_count = frame["geometry"]["section_count"]
+            text_value = raw_bytes.decode("utf-8")
+        except UnicodeError:
+            text_value = ""
 
-            feedback = run_feedback(
-                path,
-                objective=objective,
-            )
-            feedback_status = feedback["status"]
-            blocking_count = feedback["blocking_count"]
-        except Exception as exc:
-            frame = {
-                "error": str(exc),
-                "type": exc.__class__.__name__,
-            }
+        header_present = HEADER_TOKEN in text_value
+
+        if header_present:
+            try:
+                document = parse_spine_file(path)
+                frame = reconstruct_frame(document)
+                geometry_hash = frame["geometry"]["geometry_hash"]
+                section_count = frame["geometry"]["section_count"]
+
+                feedback = run_feedback(
+                    path,
+                    objective=objective,
+                )
+                feedback_status = feedback["status"]
+                blocking_count = feedback["blocking_count"]
+            except Exception as exc:
+                frame = {
+                    "error": str(exc),
+                    "type": exc.__class__.__name__,
+                }
+                feedback = None
+        else:
+            # Ordinary Markdown remains visible as a repository artifact.
+            # It is not judged by Spine-specific protocol requirements.
+            frame = None
             feedback = None
-            header_present = False
 
     node = ExportNode(
         id=normalize_id(relative),
@@ -272,7 +285,6 @@ def build_document_node(
     )
 
     return node, frame, feedback
-
 
 def _shared_section_links(
     document_nodes: Sequence[ExportNode],
@@ -419,18 +431,36 @@ def export_visualizer_data(
         key=lambda link: (link.relation, link.source, link.target),
     )
 
-    md_nodes = [node for node in nodes if Path(node.path).suffix.lower() == ".md"]
-    parsed_md_nodes = [node for node in md_nodes if node.section_count is not None]
-    header_nodes = [node for node in md_nodes if node.header_present is True]
-    blocked_nodes = [
-        node for node in nodes if node.feedback_status == "BLOCKED"
+    md_nodes = [
+        node for node in nodes
+        if Path(node.path).suffix.lower() == ".md"
+    ]
+    spine_nodes = [
+        node for node in md_nodes
+        if node.header_present is True
+    ]
+    ordinary_md_nodes = [
+        node for node in md_nodes
+        if node.header_present is not True
+    ]
+    parsed_spine_nodes = [
+        node for node in spine_nodes
+        if node.section_count is not None
+    ]
+    blocked_spine_nodes = [
+        node for node in spine_nodes
+        if node.feedback_status == "BLOCKED"
     ]
 
     integrity_checks = {
         "all_sources_hashed": all(bool(node.source_hash) for node in nodes),
-        "all_spine_documents_parsed": len(parsed_md_nodes) == len(md_nodes),
-        "all_spine_documents_have_header": len(header_nodes) == len(md_nodes),
-        "no_blocking_feedback": len(blocked_nodes) == 0,
+        "all_spine_documents_parsed": (
+            len(parsed_spine_nodes) == len(spine_nodes)
+        ),
+        "all_spine_documents_have_header": all(
+            node.header_present is True for node in spine_nodes
+        ),
+        "no_blocking_feedback": len(blocked_spine_nodes) == 0,
     }
     integrity_passed = sum(1 for value in integrity_checks.values() if value)
     integrity_total = len(integrity_checks)
@@ -444,9 +474,11 @@ def export_visualizer_data(
             "node_count": len(nodes),
             "link_count": len(link_values),
             "markdown_document_count": len(md_nodes),
-            "parsed_markdown_count": len(parsed_md_nodes),
-            "header_present_count": len(header_nodes),
-            "blocking_feedback_count": len(blocked_nodes),
+            "ordinary_markdown_count": len(ordinary_md_nodes),
+            "spine_document_count": len(spine_nodes),
+            "parsed_spine_count": len(parsed_spine_nodes),
+            "header_present_count": len(spine_nodes),
+            "blocking_feedback_count": len(blocked_spine_nodes),
             "integrity_checks_passed": integrity_passed,
             "integrity_checks_total": integrity_total,
             "integrity_ratio": (
@@ -521,9 +553,14 @@ def run_self_test() -> None:
         first_path = docs / "pass1.md"
         second_path = docs / "pass2.md"
         code_path = holosim / "example.py"
+        ordinary_path = docs / "notes.md"
 
         first_path.write_bytes(first.encode("utf-8"))
         second_path.write_bytes(second.encode("utf-8"))
+        ordinary_path.write_text(
+            "# Notes\nOrdinary Markdown, not a Spine document.\n",
+            encoding="utf-8",
+        )
         code_path.write_text(
             "# ==================== MODEL ====================\n"
             "VALUE = 1\n",
@@ -536,6 +573,7 @@ def run_self_test() -> None:
                 "docs/pass1.md",
                 "docs/pass2.md",
                 "holosim/example.py",
+                "docs/notes.md",
             ],
             lineage_paths=[
                 "docs/pass1.md",
@@ -549,10 +587,11 @@ def run_self_test() -> None:
 
         loaded = json.loads(output_path.read_text(encoding="utf-8"))
 
-    assert loaded["metrics"]["node_count"] == 3
-    assert loaded["metrics"]["markdown_document_count"] == 2
-    assert loaded["metrics"]["parsed_markdown_count"] == 2
+    assert loaded["metrics"]["node_count"] == 4
+    assert loaded["metrics"]["markdown_document_count"] == 3
+    assert loaded["metrics"]["parsed_spine_count"] == 2
     assert loaded["metrics"]["header_present_count"] == 2
+    assert loaded["metrics"]["ordinary_markdown_count"] == 1
     assert loaded["lineage"] is not None
     assert len(loaded["links"]) >= 1
     assert len(loaded["export_hash"]) == 64

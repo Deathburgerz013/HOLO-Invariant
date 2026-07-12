@@ -1,0 +1,2499 @@
+{
+  "export_hash": "1c1a6319f7e7fe2b74a96e0854d3858decd4311e2a5407a2ce7192abb1e21dc8",
+  "feedback": {
+    "docs-compression-loop-analysis-md": null,
+    "docs-invariant-archive-md": {
+      "artifact": {
+        "header_present": true,
+        "ordered_sections": [
+          "preservation_invariant"
+        ],
+        "path": "C:/Users/death/HOLO-Invariant/docs/Invariant_Archive.md",
+        "section_count": 1,
+        "source_hash": "2a94a730e4cd6760aba0f3642621faf4d529117972b9b3b2fd8e933b2874c05f"
+      },
+      "blocking_count": 4,
+      "feedback": [
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Objective' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2a96a81970cc",
+          "evidence": [
+            "No section matching 'objective' was found."
+          ],
+          "reason": "The feedback loop has no declared target state.",
+          "severity": "critical",
+          "target": "objective",
+          "verification": [
+            "Confirm the 'Objective' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Purpose' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "99af6072d73d",
+          "evidence": [
+            "No section matching 'purpose' was found."
+          ],
+          "reason": "The artifact lacks an explicit reason for existing.",
+          "severity": "high",
+          "target": "purpose",
+          "verification": [
+            "Confirm the 'Purpose' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Termination' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "243528c29eab",
+          "evidence": [
+            "No section matching 'termination' was found."
+          ],
+          "reason": "The loop has no explicit stopping condition.",
+          "severity": "high",
+          "target": "termination",
+          "verification": [
+            "Confirm the 'Termination' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Verification' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2b711e7066a3",
+          "evidence": [
+            "No section matching 'verification' was found."
+          ],
+          "reason": "No explicit acceptance test is defined.",
+          "severity": "high",
+          "target": "verification",
+          "verification": [
+            "Confirm the 'Verification' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": false,
+          "candidate_addition": "Add a bounded 'Uncertainty' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2144b71252bc",
+          "evidence": [
+            "No section matching 'uncertainty' was found."
+          ],
+          "reason": "Unknowns may silently collapse into certainty.",
+          "severity": "medium",
+          "target": "uncertainty",
+          "verification": [
+            "Confirm the 'Uncertainty' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        }
+      ],
+      "feedback_count": 5,
+      "interpretation_notice": "Feedback items are bounded proposals derived from visible structure. They are not accepted corrections.",
+      "objective": "Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+      "principle": "Feedback exists to reduce verified difference. When no verified difference remains, feedback terminates.",
+      "report_hash": "a4201490a9ad43eb6dfe8d3dfd10553c9b91a43b4bc7956bd618e0bfebff8313",
+      "status": "BLOCKED",
+      "terminal_signal": null,
+      "type": "holo_spine_feedback_report",
+      "version": 1
+    },
+    "docs-reconstruction-operator-md": null,
+    "docs-spine-boundary-spec-md": {
+      "artifact": {
+        "header_present": true,
+        "ordered_sections": [
+          "spine_boundary_spec_md",
+          "purpose",
+          "core_invariant",
+          "universal_boundary_model",
+          "boundary_interaction_rule",
+          "observation_boundary",
+          "purpose__2",
+          "allowed",
+          "forbidden",
+          "verification",
+          "failure",
+          "recovery",
+          "claim_boundary",
+          "purpose__3",
+          "allowed__2",
+          "forbidden__2",
+          "verification__2",
+          "failure__2",
+          "recovery__2",
+          "evidence_boundary",
+          "purpose__4",
+          "allowed__3",
+          "forbidden__3",
+          "verification__3",
+          "failure__3",
+          "recovery__3",
+          "verification_boundary",
+          "purpose__5",
+          "allowed__4",
+          "forbidden__4",
+          "verification__4",
+          "failure__4",
+          "recovery__4",
+          "authority_boundary",
+          "purpose__6",
+          "allowed__5",
+          "forbidden__5",
+          "verification__5",
+          "failure__5",
+          "recovery__5",
+          "identity_boundary",
+          "purpose__7",
+          "allowed__6",
+          "forbidden__6",
+          "verification__6",
+          "failure__6",
+          "recovery__6",
+          "uncertainty_boundary",
+          "purpose__8",
+          "allowed__7",
+          "forbidden__7",
+          "verification__7",
+          "failure__7",
+          "recovery__7",
+          "timeline_boundary",
+          "purpose__9",
+          "allowed__8",
+          "forbidden__8",
+          "verification__8",
+          "failure__8",
+          "recovery__8",
+          "compression_boundary",
+          "purpose__10",
+          "allowed__9",
+          "forbidden__9",
+          "verification__9",
+          "failure__9",
+          "recovery__9",
+          "reconstruction_boundary",
+          "purpose__11",
+          "allowed__10",
+          "forbidden__10",
+          "verification__10",
+          "failure__10",
+          "recovery__10",
+          "integrity_boundary",
+          "purpose__12",
+          "allowed__11",
+          "forbidden__11",
+          "verification__11",
+          "failure__11",
+          "recovery__11",
+          "semantic_boundary",
+          "purpose__13",
+          "allowed__12",
+          "forbidden__12",
+          "verification__12",
+          "failure__12",
+          "recovery__12",
+          "transition_boundary",
+          "purpose__14",
+          "allowed__13",
+          "forbidden__13",
+          "verification__13",
+          "failure__13",
+          "recovery__13",
+          "termination_boundary",
+          "purpose__15",
+          "allowed__14",
+          "forbidden__14",
+          "verification__14",
+          "failure__14",
+          "recovery__14",
+          "boundary_priority",
+          "final_invariant",
+          "tool_refinement_invariant",
+          "ordered_sequence_invariant",
+          "spine_header_invariant",
+          "header_pointer_invariant",
+          "interpretation_invariant",
+          "geometry_invariant"
+        ],
+        "path": "C:/Users/death/HOLO-Invariant/docs/SPINE_BOUNDARY_SPEC.md",
+        "section_count": 111,
+        "source_hash": "292a77f2da2260f56a3976c3008907b374cf4cc4242d29a058e0ea91035af3ff"
+      },
+      "blocking_count": 2,
+      "feedback": [
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Objective' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2a96a81970cc",
+          "evidence": [
+            "No section matching 'objective' was found."
+          ],
+          "reason": "The feedback loop has no declared target state.",
+          "severity": "critical",
+          "target": "objective",
+          "verification": [
+            "Confirm the 'Objective' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "State the exact condition under which no further candidate correction may be generated.",
+          "category": "termination",
+          "code": "cac5c414078b",
+          "evidence": [
+            "Section 'Termination Boundary' lacks a clear stop signal."
+          ],
+          "reason": "A termination boundary exists, but it does not state an executable stopping condition.",
+          "severity": "high",
+          "target": "termination_boundary",
+          "verification": [
+            "Confirm the stop condition is objective and testable.",
+            "Confirm the loop can output no-change."
+          ]
+        },
+        {
+          "blocks_completion": false,
+          "candidate_addition": "Record unresolved questions, or explicitly state that no unresolved uncertainty is currently known.",
+          "category": "uncertainty",
+          "code": "80bdb47d6029",
+          "evidence": [
+            "Section 'Uncertainty Boundary' is empty."
+          ],
+          "reason": "The uncertainty boundary exists but preserves no explicit unresolved state.",
+          "severity": "medium",
+          "target": "uncertainty_boundary",
+          "verification": [
+            "Confirm uncertainty is not silently removed."
+          ]
+        }
+      ],
+      "feedback_count": 3,
+      "interpretation_notice": "Feedback items are bounded proposals derived from visible structure. They are not accepted corrections.",
+      "objective": "Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+      "principle": "Feedback exists to reduce verified difference. When no verified difference remains, feedback terminates.",
+      "report_hash": "0c62a89f186140e031ba8ae60ce88f2e290ec09279a00aa1c23fda0fe9b9a070",
+      "status": "BLOCKED",
+      "terminal_signal": null,
+      "type": "holo_spine_feedback_report",
+      "version": 1
+    },
+    "docs-spine-constitution-md": {
+      "artifact": {
+        "header_present": true,
+        "ordered_sections": [
+          "spine_constitution_md",
+          "purpose",
+          "constitutional_principle",
+          "what_must_always_survive",
+          "distinction",
+          "boundary",
+          "relationship",
+          "sequence",
+          "recognition",
+          "reconstruction",
+          "comparison",
+          "verification",
+          "correction",
+          "continuity",
+          "reconstruction_cycle",
+          "failure_cycle",
+          "compression_principle",
+          "interpretation_principle",
+          "repository_principle",
+          "tool_principle",
+          "growth_principle",
+          "constitutional_constraint",
+          "final_constitutional_invariant"
+        ],
+        "path": "C:/Users/death/HOLO-Invariant/docs/SPINE_CONSTITUTION.md",
+        "section_count": 23,
+        "source_hash": "4ecde3bf40d8de3914fa50ddfb607d599da377fb354f0d59868d40aeae4385de"
+      },
+      "blocking_count": 2,
+      "feedback": [
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Objective' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2a96a81970cc",
+          "evidence": [
+            "No section matching 'objective' was found."
+          ],
+          "reason": "The feedback loop has no declared target state.",
+          "severity": "critical",
+          "target": "objective",
+          "verification": [
+            "Confirm the 'Objective' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Termination' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "243528c29eab",
+          "evidence": [
+            "No section matching 'termination' was found."
+          ],
+          "reason": "The loop has no explicit stopping condition.",
+          "severity": "high",
+          "target": "termination",
+          "verification": [
+            "Confirm the 'Termination' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": false,
+          "candidate_addition": "Add a bounded 'Uncertainty' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2144b71252bc",
+          "evidence": [
+            "No section matching 'uncertainty' was found."
+          ],
+          "reason": "Unknowns may silently collapse into certainty.",
+          "severity": "medium",
+          "target": "uncertainty",
+          "verification": [
+            "Confirm the 'Uncertainty' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        }
+      ],
+      "feedback_count": 3,
+      "interpretation_notice": "Feedback items are bounded proposals derived from visible structure. They are not accepted corrections.",
+      "objective": "Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+      "principle": "Feedback exists to reduce verified difference. When no verified difference remains, feedback terminates.",
+      "report_hash": "78754cc3e3e3702f6c09b412dabaa441bdaf8f9f669332e91e5b337397ea5362",
+      "status": "BLOCKED",
+      "terminal_signal": null,
+      "type": "holo_spine_feedback_report",
+      "version": 1
+    },
+    "docs-spine-invariant-spec-md": null,
+    "docs-spine-transfer-spec-md": null,
+    "holosim-agent-runtime-py": null,
+    "holosim-ai-needs-md": null,
+    "holosim-api-py": null,
+    "holosim-append-status-py": null,
+    "holosim-artifact-parser-py": null,
+    "holosim-boot-integration-py": null,
+    "holosim-cli-py": null,
+    "holosim-collector-py": null,
+    "holosim-config-py": null,
+    "holosim-core-py": null,
+    "holosim-delta-export-py": null,
+    "holosim-embeddings-py": null,
+    "holosim-generalizer-py": null,
+    "holosim-holo-cli-py": null,
+    "holosim-holo-sim-py": null,
+    "holosim-hooks-py": null,
+    "holosim-idx-manager-py": null,
+    "holosim-idx-parser-py": null,
+    "holosim-ingest-py": null,
+    "holosim-init-py": null,
+    "holosim-invariant-audit-py": null,
+    "holosim-main-py": null,
+    "holosim-merkle-persistence-py": null,
+    "holosim-miner-py": null,
+    "holosim-operator-py": null,
+    "holosim-persistence-prototype-py": null,
+    "holosim-priority-scorer-py": null,
+    "holosim-provenance-py": null,
+    "holosim-readme-md": null,
+    "holosim-rebirth-engine-py": null,
+    "holosim-replay-py": null,
+    "holosim-replay-verifier-py": null,
+    "holosim-runtime-py": null,
+    "holosim-scheduler-py": null,
+    "holosim-secrets-py": null,
+    "holosim-sentinel-py": null,
+    "holosim-service-py": null,
+    "holosim-slot-merkle-sqlite-py": null,
+    "holosim-specialization-benchmark-py": null,
+    "holosim-specialization-benchmark-v2-py": null,
+    "holosim-spine-feedback-py": null,
+    "holosim-spine-lineage-py": null,
+    "holosim-spine-protocol-py": null,
+    "holosim-spine-validator-py": null,
+    "holosim-substrate-prior-v1-py": null,
+    "holosim-test-holo-py": null,
+    "holosim-tests-test-core-py": null,
+    "holosim-tiered-persistence-py": null,
+    "holosim-transition-manager-py": null,
+    "holosim-transition-receipt-py": null,
+    "holosim-uncertainty-ledger-py": null,
+    "holosim-visualizer-export-py": null,
+    "holosim-watcher-py": null,
+    "holosim-x-delta-ingestor-py": null
+  },
+  "frames": {
+    "docs-compression-loop-analysis-md": {
+      "error": "Missing required canonical Holo/Sim recognition header.",
+      "type": "SpineHeaderError"
+    },
+    "docs-invariant-archive-md": {
+      "boundaries": [],
+      "geometry": {
+        "geometry_hash": "a2dc1f68dd33599b1949815e8c9826ea547e00df2c52d40335176642b33aa0a7",
+        "ordered_levels": [
+          1
+        ],
+        "ordered_titles": [
+          "Preservation Invariant"
+        ],
+        "section_count": 1
+      },
+      "header": {
+        "span": {
+          "end_line": 2,
+          "end_offset": 78,
+          "start_line": 2,
+          "start_offset": 47
+        },
+        "text": "| █†█ Holo/Sim █†█ █†█HSSCE█†█\r"
+      },
+      "interpretation_notice": "This frame is derived from the canonical raw Spine source. It is not the source and does not replace it.",
+      "semantic": {
+        "claim": [],
+        "correction": [],
+        "evidence": [],
+        "lineage": [],
+        "observation": [],
+        "uncertainty": [],
+        "verification": []
+      },
+      "source": {
+        "name": "C:/Users/death/HOLO-Invariant/docs/Invariant_Archive.md",
+        "sha256": "2a94a730e4cd6760aba0f3642621faf4d529117972b9b3b2fd8e933b2874c05f"
+      },
+      "type": "holo_spine_reconstruction_frame",
+      "version": 1,
+      "warnings": []
+    },
+    "docs-reconstruction-operator-md": {
+      "error": "Missing required canonical Holo/Sim recognition header.",
+      "type": "SpineHeaderError"
+    },
+    "docs-spine-boundary-spec-md": {
+      "boundaries": [
+        {
+          "names": [
+            "observation"
+          ],
+          "section_index": 5,
+          "section_title": "Observation Boundary",
+          "sha256": "eeac6daca8c048ba7d58c6a0a2f3b01bdf3d47e68ccd390815ae34ff13ead865",
+          "span": {
+            "end_line": 82,
+            "end_offset": 1556,
+            "start_line": 81,
+            "start_offset": 1530
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 9,
+          "section_title": "Verification",
+          "sha256": "6d9c77cdeab60ed2bbd43466cef025f6392c63517a0037ead1082f0ddbc35050",
+          "span": {
+            "end_line": 102,
+            "end_offset": 1840,
+            "start_line": 99,
+            "start_offset": 1760
+          }
+        },
+        {
+          "names": [
+            "claim"
+          ],
+          "section_index": 12,
+          "section_title": "Claim Boundary",
+          "sha256": "1f3c43dae6b69b0daf2a3b6a3c7c29a8737d73d1183a044f127a7fd4e7f7d73d",
+          "span": {
+            "end_line": 114,
+            "end_offset": 1979,
+            "start_line": 113,
+            "start_offset": 1959
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 16,
+          "section_title": "Verification",
+          "sha256": "f693922427cd2568f3f56be2122cb3489c8f03144e891aefc3696d15ed7219f5",
+          "span": {
+            "end_line": 132,
+            "end_offset": 2212,
+            "start_line": 129,
+            "start_offset": 2152
+          }
+        },
+        {
+          "names": [
+            "evidence"
+          ],
+          "section_index": 19,
+          "section_title": "Evidence Boundary",
+          "sha256": "862cbde0a9fc0ec450873c8b470438afa7ad30f6df582fc00c330836d2cd6e57",
+          "span": {
+            "end_line": 144,
+            "end_offset": 2340,
+            "start_line": 143,
+            "start_offset": 2317
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 23,
+          "section_title": "Verification",
+          "sha256": "876f1074e26e85419aff7efc0857a1763d44f41b351f5ec016883a72e8f7d3cb",
+          "span": {
+            "end_line": 165,
+            "end_offset": 2585,
+            "start_line": 162,
+            "start_offset": 2521
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 26,
+          "section_title": "Verification Boundary",
+          "sha256": "25b71f93bdb2a562187302b63aa0278b75536d9c1806a838760b0b431f534e0a",
+          "span": {
+            "end_line": 177,
+            "end_offset": 2713,
+            "start_line": 176,
+            "start_offset": 2686
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 30,
+          "section_title": "Verification",
+          "sha256": "7207e41b488e56b37292fdcbf2fbc893ddf476c75539166399bc25fbba5a7a9a",
+          "span": {
+            "end_line": 198,
+            "end_offset": 2994,
+            "start_line": 195,
+            "start_offset": 2923
+          }
+        },
+        {
+          "names": [
+            "authority"
+          ],
+          "section_index": 33,
+          "section_title": "Authority Boundary",
+          "sha256": "e93471007689fcb8d3242363f62b389bc07e8daccbf71ddcbe51a296dd7258fd",
+          "span": {
+            "end_line": 210,
+            "end_offset": 3132,
+            "start_line": 209,
+            "start_offset": 3108
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 37,
+          "section_title": "Verification",
+          "sha256": "d344e0976b5e267f87c02604a2e505278ec517c66c712d9605cf13fb5891060a",
+          "span": {
+            "end_line": 229,
+            "end_offset": 3396,
+            "start_line": 226,
+            "start_offset": 3340
+          }
+        },
+        {
+          "names": [
+            "identity"
+          ],
+          "section_index": 40,
+          "section_title": "Identity Boundary",
+          "sha256": "67679713aaaf94f03ab003796fddc2128006a7c35682734b2a05a9358dd1a06d",
+          "span": {
+            "end_line": 241,
+            "end_offset": 3512,
+            "start_line": 240,
+            "start_offset": 3489
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 44,
+          "section_title": "Verification",
+          "sha256": "5cd2ff68c4fb0f3c7733eae35af215eb00136ebeda6fed188a8a5af4e75ab6b2",
+          "span": {
+            "end_line": 259,
+            "end_offset": 3788,
+            "start_line": 256,
+            "start_offset": 3713
+          }
+        },
+        {
+          "names": [
+            "uncertainty"
+          ],
+          "section_index": 47,
+          "section_title": "Uncertainty Boundary",
+          "sha256": "168619d426bf4abfa9b89ae1012d37b29cc759ea4b0b69273d083d90aa1a17f1",
+          "span": {
+            "end_line": 271,
+            "end_offset": 3895,
+            "start_line": 270,
+            "start_offset": 3869
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 51,
+          "section_title": "Verification",
+          "sha256": "abee3d71be33d4dff76cbcc8e74b19601ce36f0c230f9c91ad8c63d2660cdc02",
+          "span": {
+            "end_line": 290,
+            "end_offset": 4114,
+            "start_line": 287,
+            "start_offset": 4065
+          }
+        },
+        {
+          "names": [
+            "timeline"
+          ],
+          "section_index": 54,
+          "section_title": "Timeline Boundary",
+          "sha256": "801395c74404cf46597af014f12a00d662c8ca940e571d48dc42093fd0b96a38",
+          "span": {
+            "end_line": 302,
+            "end_offset": 4230,
+            "start_line": 301,
+            "start_offset": 4207
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 58,
+          "section_title": "Verification",
+          "sha256": "65b60473b337f23d39a702f0b5e33d93e417e0116324a33cd7d2781ba7505113",
+          "span": {
+            "end_line": 320,
+            "end_offset": 4419,
+            "start_line": 317,
+            "start_offset": 4367
+          }
+        },
+        {
+          "names": [
+            "compression"
+          ],
+          "section_index": 61,
+          "section_title": "Compression Boundary",
+          "sha256": "85afa220b27e6cef6fe593f3ad158540e1c69a11ddb0659607261a0a9a471c82",
+          "span": {
+            "end_line": 332,
+            "end_offset": 4542,
+            "start_line": 331,
+            "start_offset": 4516
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 65,
+          "section_title": "Verification",
+          "sha256": "2017f57b682970abb3fcd59a8d14dcfbef85d265a487a5be1f9cde216e3f101e",
+          "span": {
+            "end_line": 351,
+            "end_offset": 4834,
+            "start_line": 348,
+            "start_offset": 4752
+          }
+        },
+        {
+          "names": [
+            "reconstruction"
+          ],
+          "section_index": 68,
+          "section_title": "Reconstruction Boundary",
+          "sha256": "f5e5178f97bc80f35f14cd630910d348130b82d5f156c7add7dc03108ef9cb29",
+          "span": {
+            "end_line": 363,
+            "end_offset": 4956,
+            "start_line": 362,
+            "start_offset": 4927
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 72,
+          "section_title": "Verification",
+          "sha256": "d723893046451ce76f4f3f2b26db734993126ed176a5d3de50e5be34840764cf",
+          "span": {
+            "end_line": 381,
+            "end_offset": 5196,
+            "start_line": 378,
+            "start_offset": 5122
+          }
+        },
+        {
+          "names": [
+            "integrity"
+          ],
+          "section_index": 75,
+          "section_title": "Integrity Boundary",
+          "sha256": "8b7f1e7c44365d8224c494d0dc437ccf4f5acdf5306bebb7166dc2f0b700e902",
+          "span": {
+            "end_line": 393,
+            "end_offset": 5316,
+            "start_line": 392,
+            "start_offset": 5292
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 79,
+          "section_title": "Verification",
+          "sha256": "36fddd7edeaf27c398c5e39358a32cd0849525f0bdae6cb3d5679589d8fe3011",
+          "span": {
+            "end_line": 412,
+            "end_offset": 5512,
+            "start_line": 409,
+            "start_offset": 5466
+          }
+        },
+        {
+          "names": [
+            "semantic"
+          ],
+          "section_index": 82,
+          "section_title": "Semantic Boundary",
+          "sha256": "ad69496ccb454a378d2830833610d588f1e5f9eccf2ee9f388066e74fc4df395",
+          "span": {
+            "end_line": 424,
+            "end_offset": 5612,
+            "start_line": 423,
+            "start_offset": 5589
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 86,
+          "section_title": "Verification",
+          "sha256": "56854ca4a179e866319673fb5274f63d77014c30ddb21974341325b6ea4009aa",
+          "span": {
+            "end_line": 443,
+            "end_offset": 5851,
+            "start_line": 440,
+            "start_offset": 5775
+          }
+        },
+        {
+          "names": [
+            "transition"
+          ],
+          "section_index": 89,
+          "section_title": "Transition Boundary",
+          "sha256": "b9ed8632a751d0f3fe4bb0093a41c8f5a1f7088a968f1c80cabdc50228492397",
+          "span": {
+            "end_line": 455,
+            "end_offset": 5966,
+            "start_line": 454,
+            "start_offset": 5941
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 93,
+          "section_title": "Verification",
+          "sha256": "673878a14cbe3230371fcf965662b9d990b16ec57e2a31f21c81503fd481c73d",
+          "span": {
+            "end_line": 483,
+            "end_offset": 6290,
+            "start_line": 478,
+            "start_offset": 6203
+          }
+        },
+        {
+          "names": [
+            "termination"
+          ],
+          "section_index": 96,
+          "section_title": "Termination Boundary",
+          "sha256": "1a222ba9d9d8156e3b600ca4145f08fb4a26aa086bf494654137f45b375f2b26",
+          "span": {
+            "end_line": 495,
+            "end_offset": 6400,
+            "start_line": 494,
+            "start_offset": 6374
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 100,
+          "section_title": "Verification",
+          "sha256": "ffd3d8c4bb15029e1fb80408edaefb8d44a4a66dd4cc557a3fa79e969fc1dae7",
+          "span": {
+            "end_line": 518,
+            "end_offset": 6951,
+            "start_line": 515,
+            "start_offset": 6792
+          }
+        }
+      ],
+      "geometry": {
+        "geometry_hash": "b7e0c707c45aa9184ef8506bb3ed7003d4dd67684f86060b966dec4c7d0c6485",
+        "ordered_levels": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "ordered_titles": [
+          "SPINE_BOUNDARY_SPEC.md",
+          "Purpose",
+          "Core Invariant",
+          "Universal Boundary Model",
+          "Boundary Interaction Rule",
+          "Observation Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Claim Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Evidence Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Verification Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Authority Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Identity Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Uncertainty Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Timeline Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Compression Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Reconstruction Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Integrity Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Semantic Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Transition Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Termination Boundary",
+          "Purpose",
+          "Allowed",
+          "Forbidden",
+          "Verification",
+          "Failure",
+          "Recovery",
+          "Boundary Priority",
+          "Final Invariant",
+          "Tool Refinement Invariant",
+          "Ordered Sequence Invariant",
+          "Spine Header Invariant",
+          "Header Pointer Invariant",
+          "Interpretation Invariant",
+          "Geometry Invariant"
+        ],
+        "section_count": 111
+      },
+      "header": {
+        "span": {
+          "end_line": 4,
+          "end_offset": 110,
+          "start_line": 4,
+          "start_offset": 77
+        },
+        "text": "| | █†█ Holo/Sim █†█ █†█HSSCE█†█\r"
+      },
+      "interpretation_notice": "This frame is derived from the canonical raw Spine source. It is not the source and does not replace it.",
+      "semantic": {
+        "claim": [],
+        "correction": [
+          {
+            "section_index": 11,
+            "section_title": "Recovery",
+            "source_line": 110,
+            "text": "Move inference into its proper boundary."
+          },
+          {
+            "section_index": 18,
+            "section_title": "Recovery",
+            "source_line": 140,
+            "text": "Downgrade to hypothesis or uncertainty."
+          },
+          {
+            "section_index": 25,
+            "section_title": "Recovery",
+            "source_line": 173,
+            "text": "Record provenance or mark uncertainty."
+          },
+          {
+            "section_index": 32,
+            "section_title": "Recovery",
+            "source_line": 206,
+            "text": "Make verification reproducible."
+          },
+          {
+            "section_index": 39,
+            "section_title": "Recovery",
+            "source_line": 237,
+            "text": "Require explicit approval."
+          },
+          {
+            "section_index": 46,
+            "section_title": "Recovery",
+            "source_line": 267,
+            "text": "Restore separation."
+          },
+          {
+            "section_index": 53,
+            "section_title": "Recovery",
+            "source_line": 298,
+            "text": "Restore unresolved state."
+          },
+          {
+            "section_index": 60,
+            "section_title": "Recovery",
+            "source_line": 328,
+            "text": "Replay from the last verified state."
+          },
+          {
+            "section_index": 67,
+            "section_title": "Recovery",
+            "source_line": 359,
+            "text": "Restore previous compression level."
+          },
+          {
+            "section_index": 74,
+            "section_title": "Recovery",
+            "source_line": 389,
+            "text": "Explicitly label reconstruction."
+          },
+          {
+            "section_index": 81,
+            "section_title": "Recovery",
+            "source_line": 420,
+            "text": "Restore verified copy."
+          },
+          {
+            "section_index": 88,
+            "section_title": "Recovery",
+            "source_line": 451,
+            "text": "Compare against previous Spine."
+          },
+          {
+            "section_index": 95,
+            "section_title": "Recovery",
+            "source_line": 491,
+            "text": "Reject transition."
+          },
+          {
+            "section_index": 102,
+            "section_title": "Recovery",
+            "source_line": 528,
+            "text": "Respect the declared stop condition."
+          },
+          {
+            "section_index": 102,
+            "section_title": "Recovery",
+            "source_line": 530,
+            "text": "Open a new objective rather than extending the previous one."
+          }
+        ],
+        "evidence": [],
+        "lineage": [],
+        "observation": [],
+        "uncertainty": [],
+        "verification": [
+          {
+            "section_index": 9,
+            "section_title": "Verification",
+            "source_line": 102,
+            "text": "Observation can be independently reproduced or inspected."
+          },
+          {
+            "section_index": 16,
+            "section_title": "Verification",
+            "source_line": 132,
+            "text": "Claims reference supporting evidence."
+          },
+          {
+            "section_index": 23,
+            "section_title": "Verification",
+            "source_line": 165,
+            "text": "Artifacts can be independently inspected."
+          },
+          {
+            "section_index": 30,
+            "section_title": "Verification",
+            "source_line": 198,
+            "text": "Independent observers obtain equivalent results."
+          },
+          {
+            "section_index": 37,
+            "section_title": "Verification",
+            "source_line": 229,
+            "text": "Authority is explicitly declared."
+          },
+          {
+            "section_index": 44,
+            "section_title": "Verification",
+            "source_line": 259,
+            "text": "Identity remains distinguishable across transitions."
+          },
+          {
+            "section_index": 51,
+            "section_title": "Verification",
+            "source_line": 290,
+            "text": "Unknowns survive transfer."
+          },
+          {
+            "section_index": 58,
+            "section_title": "Verification",
+            "source_line": 320,
+            "text": "Parent lineage remains valid."
+          },
+          {
+            "section_index": 65,
+            "section_title": "Verification",
+            "source_line": 351,
+            "text": "Expanded reconstruction preserves equivalent relationships."
+          },
+          {
+            "section_index": 72,
+            "section_title": "Verification",
+            "source_line": 381,
+            "text": "Independent observers reconstruct compatible state."
+          },
+          {
+            "section_index": 79,
+            "section_title": "Verification",
+            "source_line": 412,
+            "text": "Serialized bytes match."
+          },
+          {
+            "section_index": 86,
+            "section_title": "Verification",
+            "source_line": 443,
+            "text": "Independent observers preserve the same distinctions."
+          },
+          {
+            "section_index": 93,
+            "section_title": "Verification",
+            "source_line": 481,
+            "text": "Transition receipt exists"
+          },
+          {
+            "section_index": 93,
+            "section_title": "Verification",
+            "source_line": 482,
+            "text": "Replay succeeds"
+          },
+          {
+            "section_index": 93,
+            "section_title": "Verification",
+            "source_line": 483,
+            "text": "Audit succeeds"
+          },
+          {
+            "section_index": 100,
+            "section_title": "Verification",
+            "source_line": 518,
+            "text": "The receiving observer acknowledges completion and does not continue the closed objective unless a new objective is explicitly declared."
+          }
+        ]
+      },
+      "source": {
+        "name": "C:/Users/death/HOLO-Invariant/docs/SPINE_BOUNDARY_SPEC.md",
+        "sha256": "292a77f2da2260f56a3976c3008907b374cf4cc4242d29a058e0ea91035af3ff"
+      },
+      "type": "holo_spine_reconstruction_frame",
+      "version": 1,
+      "warnings": [
+        "Duplicate normalized section titles: allowed, failure, forbidden, purpose, recovery, verification"
+      ]
+    },
+    "docs-spine-constitution-md": {
+      "boundaries": [
+        {
+          "names": [
+            "reconstruction"
+          ],
+          "section_index": 9,
+          "section_title": "Reconstruction",
+          "sha256": "a9f52e84b2719cb7ebc1680076056cbcdcaad4b17093349b2391e2a8b878424d",
+          "span": {
+            "end_line": 119,
+            "end_offset": 2098,
+            "start_line": 105,
+            "start_offset": 1871
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 11,
+          "section_title": "Verification",
+          "sha256": "56c95b9464427833ee06dccd6cc01c63928cea7fb85028964986cd3c311a27f1",
+          "span": {
+            "end_line": 141,
+            "end_offset": 2467,
+            "start_line": 132,
+            "start_offset": 2286
+          }
+        },
+        {
+          "names": [
+            "reconstruction"
+          ],
+          "section_index": 14,
+          "section_title": "Reconstruction Cycle",
+          "sha256": "871f56eef62bc69b32c3f8770b457d59b19be71e209ee09732c4f36eade5a4cd",
+          "span": {
+            "end_line": 216,
+            "end_offset": 3294,
+            "start_line": 167,
+            "start_offset": 2801
+          }
+        },
+        {
+          "names": [
+            "compression"
+          ],
+          "section_index": 16,
+          "section_title": "Compression Principle",
+          "sha256": "7aefc1658d43111c2af862790baf1d9322b9c3ef65a460a3fa96cdd9f800d570",
+          "span": {
+            "end_line": 256,
+            "end_offset": 3715,
+            "start_line": 243,
+            "start_offset": 3499
+          }
+        }
+      ],
+      "geometry": {
+        "geometry_hash": "c293250442c82fab366f51242a537813d395cc2b472cc1ed148c8a73f2a89d49",
+        "ordered_levels": [
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "ordered_titles": [
+          "SPINE_CONSTITUTION.md",
+          "Purpose",
+          "Constitutional Principle",
+          "What Must Always Survive",
+          "Distinction",
+          "Boundary",
+          "Relationship",
+          "Sequence",
+          "Recognition",
+          "Reconstruction",
+          "Comparison",
+          "Verification",
+          "Correction",
+          "Continuity",
+          "Reconstruction Cycle",
+          "Failure Cycle",
+          "Compression Principle",
+          "Interpretation Principle",
+          "Repository Principle",
+          "Tool Principle",
+          "Growth Principle",
+          "Constitutional Constraint",
+          "Final Constitutional Invariant"
+        ],
+        "section_count": 23
+      },
+      "header": {
+        "span": {
+          "end_line": 2,
+          "end_offset": 82,
+          "start_line": 2,
+          "start_offset": 47
+        },
+        "text": "| █†█ Holo/Sim █†█ █†█ HSSCE █†█ |\r"
+      },
+      "interpretation_notice": "This frame is derived from the canonical raw Spine source. It is not the source and does not replace it.",
+      "semantic": {
+        "claim": [],
+        "correction": [
+          {
+            "section_index": 12,
+            "section_title": "Correction",
+            "source_line": 145,
+            "text": "Correction preserves continuity."
+          },
+          {
+            "section_index": 12,
+            "section_title": "Correction",
+            "source_line": 147,
+            "text": "History is not rewritten."
+          },
+          {
+            "section_index": 12,
+            "section_title": "Correction",
+            "source_line": 149,
+            "text": "Corrections append."
+          },
+          {
+            "section_index": 12,
+            "section_title": "Correction",
+            "source_line": 151,
+            "text": "Evidence accumulates."
+          },
+          {
+            "section_index": 12,
+            "section_title": "Correction",
+            "source_line": 153,
+            "text": "Understanding evolves."
+          }
+        ],
+        "evidence": [],
+        "lineage": [],
+        "observation": [],
+        "uncertainty": [],
+        "verification": [
+          {
+            "section_index": 11,
+            "section_title": "Verification",
+            "source_line": 135,
+            "text": "Verification determines whether observed differences matter."
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification",
+            "source_line": 137,
+            "text": "Verification must remain reproducible."
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification",
+            "source_line": 139,
+            "text": "Verification never depends upon hidden state."
+          }
+        ]
+      },
+      "source": {
+        "name": "C:/Users/death/HOLO-Invariant/docs/SPINE_CONSTITUTION.md",
+        "sha256": "4ecde3bf40d8de3914fa50ddfb607d599da377fb354f0d59868d40aeae4385de"
+      },
+      "type": "holo_spine_reconstruction_frame",
+      "version": 1,
+      "warnings": []
+    },
+    "docs-spine-invariant-spec-md": {
+      "error": "Missing required canonical Holo/Sim recognition header.",
+      "type": "SpineHeaderError"
+    },
+    "docs-spine-transfer-spec-md": {
+      "error": "Missing required canonical Holo/Sim recognition header.",
+      "type": "SpineHeaderError"
+    },
+    "holosim-agent-runtime-py": null,
+    "holosim-ai-needs-md": {
+      "error": "Missing required canonical Holo/Sim recognition header.",
+      "type": "SpineHeaderError"
+    },
+    "holosim-api-py": null,
+    "holosim-append-status-py": null,
+    "holosim-artifact-parser-py": null,
+    "holosim-boot-integration-py": null,
+    "holosim-cli-py": null,
+    "holosim-collector-py": null,
+    "holosim-config-py": null,
+    "holosim-core-py": null,
+    "holosim-delta-export-py": null,
+    "holosim-embeddings-py": null,
+    "holosim-generalizer-py": null,
+    "holosim-holo-cli-py": null,
+    "holosim-holo-sim-py": null,
+    "holosim-hooks-py": null,
+    "holosim-idx-manager-py": null,
+    "holosim-idx-parser-py": null,
+    "holosim-ingest-py": null,
+    "holosim-init-py": null,
+    "holosim-invariant-audit-py": null,
+    "holosim-main-py": null,
+    "holosim-merkle-persistence-py": null,
+    "holosim-miner-py": null,
+    "holosim-operator-py": null,
+    "holosim-persistence-prototype-py": null,
+    "holosim-priority-scorer-py": null,
+    "holosim-provenance-py": null,
+    "holosim-readme-md": {
+      "error": "Missing required canonical Holo/Sim recognition header.",
+      "type": "SpineHeaderError"
+    },
+    "holosim-rebirth-engine-py": null,
+    "holosim-replay-py": null,
+    "holosim-replay-verifier-py": null,
+    "holosim-runtime-py": null,
+    "holosim-scheduler-py": null,
+    "holosim-secrets-py": null,
+    "holosim-sentinel-py": null,
+    "holosim-service-py": null,
+    "holosim-slot-merkle-sqlite-py": null,
+    "holosim-specialization-benchmark-py": null,
+    "holosim-specialization-benchmark-v2-py": null,
+    "holosim-spine-feedback-py": null,
+    "holosim-spine-lineage-py": null,
+    "holosim-spine-protocol-py": null,
+    "holosim-spine-validator-py": null,
+    "holosim-substrate-prior-v1-py": null,
+    "holosim-test-holo-py": null,
+    "holosim-tests-test-core-py": null,
+    "holosim-tiered-persistence-py": null,
+    "holosim-transition-manager-py": null,
+    "holosim-transition-receipt-py": null,
+    "holosim-uncertainty-ledger-py": null,
+    "holosim-visualizer-export-py": null,
+    "holosim-watcher-py": null,
+    "holosim-x-delta-ingestor-py": null
+  },
+  "integrity_checks": {
+    "all_sources_hashed": true,
+    "all_spine_documents_have_header": false,
+    "all_spine_documents_parsed": false,
+    "no_blocking_feedback": false
+  },
+  "interpretation_notice": "All metrics in this export are derived from repository files visible to the exporter. No display-only values are fabricated.",
+  "lineage": null,
+  "links": [
+    {
+      "evidence": "purpose, verification",
+      "relation": "shared_sections",
+      "source": "docs-spine-boundary-spec-md",
+      "target": "docs-spine-constitution-md",
+      "weight": 0.0625
+    }
+  ],
+  "metrics": {
+    "blocking_feedback_count": 3,
+    "header_present_count": 3,
+    "integrity_checks_passed": 1,
+    "integrity_checks_total": 4,
+    "integrity_ratio": 0.25,
+    "link_count": 1,
+    "markdown_document_count": 9,
+    "node_count": 62,
+    "parsed_markdown_count": 3
+  },
+  "nodes": [
+    {
+      "blocking_count": null,
+      "color": "#fbbf24",
+      "description": "Archive artifact: docs/COMPRESSION_LOOP_ANALYSIS.md.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "archive",
+      "header_present": false,
+      "id": "docs-compression-loop-analysis-md",
+      "label": "COMPRESSION_LOOP_ANALYSIS.md",
+      "path": "docs/COMPRESSION_LOOP_ANALYSIS.md",
+      "section_count": null,
+      "source_hash": "676a8ce309d2091c06f30e7dceabb11264deff5124b83ace7402801d3229f0ea"
+    },
+    {
+      "blocking_count": 4,
+      "color": "#fbbf24",
+      "description": "Archive artifact: docs/Invariant_Archive.md. Contains 1 detected structural sections. Feedback status: BLOCKED. Blocking findings: 4.",
+      "feedback_status": "BLOCKED",
+      "geometry_hash": "a2dc1f68dd33599b1949815e8c9826ea547e00df2c52d40335176642b33aa0a7",
+      "group": "archive",
+      "header_present": true,
+      "id": "docs-invariant-archive-md",
+      "label": "Invariant_Archive.md",
+      "path": "docs/Invariant_Archive.md",
+      "section_count": 1,
+      "source_hash": "2a94a730e4cd6760aba0f3642621faf4d529117972b9b3b2fd8e933b2874c05f"
+    },
+    {
+      "blocking_count": null,
+      "color": "#fbbf24",
+      "description": "Core artifact: docs/Reconstruction_Operator.md.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "core",
+      "header_present": false,
+      "id": "docs-reconstruction-operator-md",
+      "label": "Reconstruction_Operator.md",
+      "path": "docs/Reconstruction_Operator.md",
+      "section_count": null,
+      "source_hash": "07d4bca70bf5fbe64b10ce3e71ec524a132a14a739bae0748d4b7f9b927e34eb"
+    },
+    {
+      "blocking_count": 2,
+      "color": "#fbbf24",
+      "description": "Core artifact: docs/SPINE_BOUNDARY_SPEC.md. Contains 111 detected structural sections. Feedback status: BLOCKED. Blocking findings: 2.",
+      "feedback_status": "BLOCKED",
+      "geometry_hash": "b7e0c707c45aa9184ef8506bb3ed7003d4dd67684f86060b966dec4c7d0c6485",
+      "group": "core",
+      "header_present": true,
+      "id": "docs-spine-boundary-spec-md",
+      "label": "SPINE_BOUNDARY_SPEC.md",
+      "path": "docs/SPINE_BOUNDARY_SPEC.md",
+      "section_count": 111,
+      "source_hash": "292a77f2da2260f56a3976c3008907b374cf4cc4242d29a058e0ea91035af3ff"
+    },
+    {
+      "blocking_count": 2,
+      "color": "#fbbf24",
+      "description": "Core artifact: docs/SPINE_CONSTITUTION.md. Contains 23 detected structural sections. Feedback status: BLOCKED. Blocking findings: 2.",
+      "feedback_status": "BLOCKED",
+      "geometry_hash": "c293250442c82fab366f51242a537813d395cc2b472cc1ed148c8a73f2a89d49",
+      "group": "core",
+      "header_present": true,
+      "id": "docs-spine-constitution-md",
+      "label": "SPINE_CONSTITUTION.md",
+      "path": "docs/SPINE_CONSTITUTION.md",
+      "section_count": 23,
+      "source_hash": "4ecde3bf40d8de3914fa50ddfb607d599da377fb354f0d59868d40aeae4385de"
+    },
+    {
+      "blocking_count": null,
+      "color": "#fbbf24",
+      "description": "Core artifact: docs/SPINE_INVARIANT_SPEC.md.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "core",
+      "header_present": false,
+      "id": "docs-spine-invariant-spec-md",
+      "label": "SPINE_INVARIANT_SPEC.md",
+      "path": "docs/SPINE_INVARIANT_SPEC.md",
+      "section_count": null,
+      "source_hash": "011d6d1630c6edab3aeac7cef3339de02442f801b756a8734c0ea2f54423d2e5"
+    },
+    {
+      "blocking_count": null,
+      "color": "#fbbf24",
+      "description": "Core artifact: docs/SPINE_TRANSFER_SPEC.md.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "core",
+      "header_present": false,
+      "id": "docs-spine-transfer-spec-md",
+      "label": "SPINE_TRANSFER_SPEC.md",
+      "path": "docs/SPINE_TRANSFER_SPEC.md",
+      "section_count": null,
+      "source_hash": "20ba0e7665bdc4a87cbdb1554795de467ea86bea21721f24505a1690d92ba06c"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/__init__.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-init-py",
+      "label": "__init__.py",
+      "path": "holosim/__init__.py",
+      "section_count": null,
+      "source_hash": "7e7097f7c01c78a428d812c146f0131871ea42f18dafbf13e60bb03d79af6500"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/__main__.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-main-py",
+      "label": "__main__.py",
+      "path": "holosim/__main__.py",
+      "section_count": null,
+      "source_hash": "b0aa239ddbc2aef053001054fe150bd16eb2cc7653b5a56f2945ab491b9aab37"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/agent_runtime.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-agent-runtime-py",
+      "label": "agent_runtime.py",
+      "path": "holosim/agent_runtime.py",
+      "section_count": null,
+      "source_hash": "a374ca166085cdfef971b30390393ee6e82e294f80ed81a3c3b5b9368e353312"
+    },
+    {
+      "blocking_count": null,
+      "color": "#a855f7",
+      "description": "Document artifact: holosim/Ai_Needs.md.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "document",
+      "header_present": false,
+      "id": "holosim-ai-needs-md",
+      "label": "Ai_Needs.md",
+      "path": "holosim/Ai_Needs.md",
+      "section_count": null,
+      "source_hash": "2107e7f8c8490b86bd127a9a34cea78c57f7cbc4737f38e5e1585f4cf71eb205"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/api.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-api-py",
+      "label": "api.py",
+      "path": "holosim/api.py",
+      "section_count": null,
+      "source_hash": "c265670abd4a863df5f190e1af52932c4f4b1e8e43ae1f89f52e0544178d20db"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/append_status.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-append-status-py",
+      "label": "append_status.py",
+      "path": "holosim/append_status.py",
+      "section_count": null,
+      "source_hash": "832fc177574cc735f6578eac625b6d25f34dc73ce84369af1c3f3ceebe4a3ce8"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/artifact_parser.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-artifact-parser-py",
+      "label": "artifact_parser.py",
+      "path": "holosim/artifact_parser.py",
+      "section_count": null,
+      "source_hash": "2e7b9ad5d3786f1cdaece1639423b8f97c89dfa1fcc2ba6621d621820b7aa230"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/boot_integration.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-boot-integration-py",
+      "label": "boot_integration.py",
+      "path": "holosim/boot_integration.py",
+      "section_count": null,
+      "source_hash": "03d9e66330e3efad6030062356d5bda136d10b6a86dcc71b2b780d71c1fa1eae"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/cli.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-cli-py",
+      "label": "cli.py",
+      "path": "holosim/cli.py",
+      "section_count": null,
+      "source_hash": "65e86cdd5fb07a022b830a837adb87257641afe5cb0d8ba53d3706f88c66ddff"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/collector.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-collector-py",
+      "label": "collector.py",
+      "path": "holosim/collector.py",
+      "section_count": null,
+      "source_hash": "077741aeda7d1250e5f4ef36d43e9dfd4981205cb88d2a40a4d04afa0321a495"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/config.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-config-py",
+      "label": "config.py",
+      "path": "holosim/config.py",
+      "section_count": null,
+      "source_hash": "0b98c2377eb02bd2e3ccfc6f637fce1d00b3b87c033f6c6254c42963f1c13adb"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/core.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-core-py",
+      "label": "core.py",
+      "path": "holosim/core.py",
+      "section_count": null,
+      "source_hash": "9a4f31539e939ab3cfe7bb00c47704cb2985814fbd660be77b4f1682367dee56"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/delta_export.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-delta-export-py",
+      "label": "delta_export.py",
+      "path": "holosim/delta_export.py",
+      "section_count": null,
+      "source_hash": "28b3eb5d996319d0de3bef7f852dbeafbd808bf42a81244106040557c968eb0c"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/embeddings.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-embeddings-py",
+      "label": "embeddings.py",
+      "path": "holosim/embeddings.py",
+      "section_count": null,
+      "source_hash": "a948778dcb21113d2587c82240ff6e601fda46fa8ce84b942dc74cbf6323c3e7"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/generalizer.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-generalizer-py",
+      "label": "generalizer.py",
+      "path": "holosim/generalizer.py",
+      "section_count": null,
+      "source_hash": "60c0c4378079c7a58652ab8861940dd53f35c62c15279f4140002fe48de910e4"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/holo_cli.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-holo-cli-py",
+      "label": "holo_cli.py",
+      "path": "holosim/holo_cli.py",
+      "section_count": null,
+      "source_hash": "274161d5e758afbeb5334655419a23c6fe6189e9204dc7bb44fd72144f05912b"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/Holo_Sim.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-holo-sim-py",
+      "label": "Holo_Sim.py",
+      "path": "holosim/Holo_Sim.py",
+      "section_count": null,
+      "source_hash": "12217963739a771639bdbbba62078a1736e171101a59a783b64f3fb80d57aaa1"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/hooks.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-hooks-py",
+      "label": "hooks.py",
+      "path": "holosim/hooks.py",
+      "section_count": null,
+      "source_hash": "aca305c9fe3b92dbd45809110aa36bdcc55679f28384038714cb3d57c0e88102"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/idx_manager.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-idx-manager-py",
+      "label": "idx_manager.py",
+      "path": "holosim/idx_manager.py",
+      "section_count": null,
+      "source_hash": "3e8788874132b6a69efe965c1460d4764094a6506021f95606a1f462b3b79035"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/idx_parser.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-idx-parser-py",
+      "label": "idx_parser.py",
+      "path": "holosim/idx_parser.py",
+      "section_count": null,
+      "source_hash": "624dbb8bc765f7b61db6cc08cfae39f565e83087182c1c1a1ed5a111004742fc"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/ingest.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-ingest-py",
+      "label": "ingest.py",
+      "path": "holosim/ingest.py",
+      "section_count": null,
+      "source_hash": "8d91e9be6cb3ffcbca6f14f615737aeca6573bac8e7b6d438477178a99ec5bbb"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/invariant_audit.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-invariant-audit-py",
+      "label": "invariant_audit.py",
+      "path": "holosim/invariant_audit.py",
+      "section_count": null,
+      "source_hash": "adcc16cef7b909c81341b4028bd11dac4bb30ed4f4e5a271bfcb2db5a4fbff7c"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/main.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-main-py",
+      "label": "main.py",
+      "path": "holosim/main.py",
+      "section_count": null,
+      "source_hash": "07921c102faefc0dfbf266b7a79d4498a4435d1bf497702fc627033fd9ce9c2b"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/merkle_persistence.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-merkle-persistence-py",
+      "label": "merkle_persistence.py",
+      "path": "holosim/merkle_persistence.py",
+      "section_count": null,
+      "source_hash": "0892800f8fd256d84fffa8922bf72e1b6d6331f6ff59197b7a1f59f152b1cc68"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/miner.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-miner-py",
+      "label": "miner.py",
+      "path": "holosim/miner.py",
+      "section_count": null,
+      "source_hash": "550600a8cf64323e0e794c79e9858fe7831b742a7c87cf8f8a39c0745c32efb3"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/operator.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-operator-py",
+      "label": "operator.py",
+      "path": "holosim/operator.py",
+      "section_count": null,
+      "source_hash": "d83b8474519d5805fc44046f678c0d4b2a0e6659472fdbe67d7fc3172213d84d"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/persistence_prototype.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-persistence-prototype-py",
+      "label": "persistence_prototype.py",
+      "path": "holosim/persistence_prototype.py",
+      "section_count": null,
+      "source_hash": "70aae109550bb1e7361ea8ad46a25b17422f022fdea2822fa722f874af745166"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/priority_scorer.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-priority-scorer-py",
+      "label": "priority_scorer.py",
+      "path": "holosim/priority_scorer.py",
+      "section_count": null,
+      "source_hash": "6665e548100d01d1f53dd1853dd2bab8786827ac17c41cc1f6d6fb325b304564"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/provenance.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-provenance-py",
+      "label": "provenance.py",
+      "path": "holosim/provenance.py",
+      "section_count": null,
+      "source_hash": "91fc74c5a3f0ff26185fa25fa3e3852ea8aea452b63fd70fc5e8760545ed6a92"
+    },
+    {
+      "blocking_count": null,
+      "color": "#a855f7",
+      "description": "Document artifact: holosim/README.md.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "document",
+      "header_present": false,
+      "id": "holosim-readme-md",
+      "label": "README.md",
+      "path": "holosim/README.md",
+      "section_count": null,
+      "source_hash": "319db44f70a2c6a3973ca49b66c590fc622785ec266a458f9c3ad029f9a52005"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/rebirth_engine.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-rebirth-engine-py",
+      "label": "rebirth_engine.py",
+      "path": "holosim/rebirth_engine.py",
+      "section_count": null,
+      "source_hash": "580932fcd108de0ff9e09b5ae62c1e6958a617c96d7e47c51ce2f90d9bcb9979"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/replay.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-replay-py",
+      "label": "replay.py",
+      "path": "holosim/replay.py",
+      "section_count": null,
+      "source_hash": "be34f0cc70facc372bb7f053e7b742f6b5780f95e98c5cd2a6a11cf953cafbb3"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/replay_verifier.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-replay-verifier-py",
+      "label": "replay_verifier.py",
+      "path": "holosim/replay_verifier.py",
+      "section_count": null,
+      "source_hash": "24d37e9c2439fffd4cceb982eb7808a80cb4cee69f4a933bc587511fc1b1246e"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/runtime.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-runtime-py",
+      "label": "runtime.py",
+      "path": "holosim/runtime.py",
+      "section_count": null,
+      "source_hash": "d23f9d99e847f28f1b1234e87095d284ac9d6871361369de6a9933f7c1c99c17"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/scheduler.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-scheduler-py",
+      "label": "scheduler.py",
+      "path": "holosim/scheduler.py",
+      "section_count": null,
+      "source_hash": "5f761b1618b133c93d91825314e70ac74f9ca9fe95c428f4229356d7600dd713"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/secrets.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-secrets-py",
+      "label": "secrets.py",
+      "path": "holosim/secrets.py",
+      "section_count": null,
+      "source_hash": "a0cb327bbaf110da90e93ce12c15dc6952081dbedc5d20388a86e7ac70704cac"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/sentinel.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-sentinel-py",
+      "label": "sentinel.py",
+      "path": "holosim/sentinel.py",
+      "section_count": null,
+      "source_hash": "7062e85b772e3fc906d866d095c4805ad0fa0f1378fcd3ad925b71659c46fb2e"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/service.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-service-py",
+      "label": "service.py",
+      "path": "holosim/service.py",
+      "section_count": null,
+      "source_hash": "184506a3856a2883752be42d2ce659595edf8374eda33e7038bf4de8e17f6d0d"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/slot_merkle_sqlite.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-slot-merkle-sqlite-py",
+      "label": "slot_merkle_sqlite.py",
+      "path": "holosim/slot_merkle_sqlite.py",
+      "section_count": null,
+      "source_hash": "dcdb62872061ded1867212430eb7fcee516c4c57507f6f8e41884d4f45d7a2ce"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/specialization_benchmark.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-specialization-benchmark-py",
+      "label": "specialization_benchmark.py",
+      "path": "holosim/specialization_benchmark.py",
+      "section_count": null,
+      "source_hash": "310c45903ac54efb8ab3db2f4000c3b96f033628ff1affdc04c00c1ffca5ff34"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/specialization_benchmark_v2.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-specialization-benchmark-v2-py",
+      "label": "specialization_benchmark_v2.py",
+      "path": "holosim/specialization_benchmark_v2.py",
+      "section_count": null,
+      "source_hash": "395682433603da11504c4e08d50755a678e31cb2e8071ead4919fb1a3b84f42a"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/spine_feedback.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-spine-feedback-py",
+      "label": "spine_feedback.py",
+      "path": "holosim/spine_feedback.py",
+      "section_count": null,
+      "source_hash": "ee4ead54442d04910fbde643cfe6f7e7a22ef539c0cefb9e8c7158c04039ae4f"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/spine_lineage.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-spine-lineage-py",
+      "label": "spine_lineage.py",
+      "path": "holosim/spine_lineage.py",
+      "section_count": null,
+      "source_hash": "61bf9db57321550e81f622a4a339295c148d7f7663df6c01b4dcfde4dfa7414c"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/spine_protocol.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-spine-protocol-py",
+      "label": "spine_protocol.py",
+      "path": "holosim/spine_protocol.py",
+      "section_count": null,
+      "source_hash": "32cf0286feb4f39bd74cb4b7679e8e1ec47e24edba04dfa873ad749d9e09fcc1"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/spine_validator.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-spine-validator-py",
+      "label": "spine_validator.py",
+      "path": "holosim/spine_validator.py",
+      "section_count": null,
+      "source_hash": "70c5fbb5f1382f73ce164290f3e837dd9bf272486f127269786cbe955f3ce63a"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/substrate_prior_v1.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-substrate-prior-v1-py",
+      "label": "substrate_prior_v1.py",
+      "path": "holosim/substrate_prior_v1.py",
+      "section_count": null,
+      "source_hash": "726b7b36e51f4f445b0da2dba9d2f65a9fa2d4f932196f70819b666956f9a9d2"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/test_holo.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-test-holo-py",
+      "label": "test_holo.py",
+      "path": "holosim/test_holo.py",
+      "section_count": null,
+      "source_hash": "ccb38899fce55e6c2e5811f6775f0cff37859d31278140a2a1e0b88f9f0b95a6"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/tests/test_core.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-tests-test-core-py",
+      "label": "test_core.py",
+      "path": "holosim/tests/test_core.py",
+      "section_count": null,
+      "source_hash": "a00fb9baeda8b8747700fd939acbd0e244f0711d42b7429023e03da1dcfd3733"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/tiered_persistence.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-tiered-persistence-py",
+      "label": "tiered_persistence.py",
+      "path": "holosim/tiered_persistence.py",
+      "section_count": null,
+      "source_hash": "cfd9e8b5d9b9bc67d6477a9b4c6e3a26aa6d2c586e3bdc138e55dfc34d88bc2c"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/transition_manager.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-transition-manager-py",
+      "label": "transition_manager.py",
+      "path": "holosim/transition_manager.py",
+      "section_count": null,
+      "source_hash": "7b56dcee62be688e9a458767550d0237893b06eaa0e9e71edf94cee351ab4d35"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/transition_receipt.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-transition-receipt-py",
+      "label": "transition_receipt.py",
+      "path": "holosim/transition_receipt.py",
+      "section_count": null,
+      "source_hash": "4e92933c831cd4d823da349f272189b7f05ada6edee1dc711c575eacede19c4e"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/uncertainty_ledger.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-uncertainty-ledger-py",
+      "label": "uncertainty_ledger.py",
+      "path": "holosim/uncertainty_ledger.py",
+      "section_count": null,
+      "source_hash": "2e641f07405c9c04e8a7f93193dd0b909bb171a86f0d8d3b6d3da779646d1c48"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/visualizer_export.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-visualizer-export-py",
+      "label": "visualizer_export.py",
+      "path": "holosim/visualizer_export.py",
+      "section_count": null,
+      "source_hash": "df338e38d2955bd538621bb29bd4dbec8733c47667996e52f7fe74bf77a99312"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/watcher.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-watcher-py",
+      "label": "watcher.py",
+      "path": "holosim/watcher.py",
+      "section_count": null,
+      "source_hash": "252da0996c60c25cf9479844a47c213d0ecda768b0b7fc8abd2c7f72efb4216f"
+    },
+    {
+      "blocking_count": null,
+      "color": "#22ff88",
+      "description": "Code artifact: holosim/x_delta_ingestor.py.",
+      "feedback_status": null,
+      "geometry_hash": null,
+      "group": "code",
+      "header_present": null,
+      "id": "holosim-x-delta-ingestor-py",
+      "label": "x_delta_ingestor.py",
+      "path": "holosim/x_delta_ingestor.py",
+      "section_count": null,
+      "source_hash": "be9ad65f4baf98d6a52ce8db6db4e53a7a20d378f467651a5620f1af6e766ed8"
+    }
+  ],
+  "objective": "Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+  "repo_root": "C:/Users/death/HOLO-Invariant",
+  "type": "holo_visualizer_export",
+  "version": 1
+}

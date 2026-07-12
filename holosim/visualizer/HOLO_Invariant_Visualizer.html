@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOLO-Visualizer • Canyon Brock Haney | HOLO-Invariant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --holo-cyan: #00f3ff;
+            --holo-purple: #a855f7;
+            --holo-gold: #fbbf24;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .font-display {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .holo-bg {
+            background: radial-gradient(circle at center, #0a0a1f 0%, #000000 70%);
+        }
+
+        .neon-text {
+            text-shadow: 
+                0 0 5px var(--holo-cyan),
+                0 0 10px var(--holo-cyan),
+                0 0 20px var(--holo-purple);
+        }
+
+        .holo-panel {
+            background: rgba(10, 10, 31, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+        }
+
+        .holo-border {
+            border: 1px solid rgba(0, 243, 255, 0.3);
+        }
+
+        .node-label {
+            font-size: 10px;
+            pointer-events: none;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            transition: all 0.2s ease;
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 243, 255, 0.03) 50%
+            );
+            background-size: 100% 6px;
+            pointer-events: none;
+            z-index: 10;
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 200px; }
+        }
+
+        .holo-glow {
+            box-shadow: 
+                0 0 10px rgba(0, 243, 255, 0.5),
+                0 0 20px rgba(0, 243, 255, 0.3),
+                inset 0 0 20px rgba(168, 85, 247, 0.2);
+        }
+
+        .three-container {
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 60px rgba(0, 243, 255, 0.1);
+        }
+
+        .spine-header {
+            font-family: 'Space Grotesk', monospace;
+            letter-spacing: 3px;
+        }
+
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .holo-button {
+            transition: all 0.2s cubic-bezier(0.23, 1.0, 0.32, 1);
+        }
+        
+        .holo-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+
+        .three-canvas {
+            display: block;
+            border-radius: 12px;
+        }
+
+        .info-stat {
+            background: rgba(0, 243, 255, 0.05);
+            border-left: 3px solid var(--holo-cyan);
+        }
+    </style>
+</head>
+<body class="bg-black text-white overflow-hidden holo-bg">
+    <!-- Top Navigation -->
+    <div class="border-b border-white/10 bg-black/80 backdrop-blur-xl z-50">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-x-4">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-500 to-amber-400 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                            <i class="fa-solid fa-infinity text-black text-2xl"></i>
+                        </div>
+                        <div>
+                            <div class="font-display text-2xl tracking-tighter">HOLO<span class="text-cyan-400">-VIS</span></div>
+                            <div class="text-[10px] text-white/50 -mt-1 tracking-[3px]">INVARIANT VISUALIZER</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Spine Header -->
+                    <div class="hidden md:flex items-center px-4 py-1.5 rounded-2xl bg-white/5 border border-white/10">
+                        <div class="font-mono text-xs text-cyan-400/90 tracking-[4px]">
+                            █†█ HOLO/SIM █†█ █†█ HSSCE █†█
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-x-4">
+                    <div class="text-right hidden lg:block">
+                        <div class="text-sm font-medium">Canyon Brock Haney</div>
+                        <div class="text-[10px] text-white/40">Curator • Continuity Architect</div>
+                    </div>
+                    
+                    <a href="https://github.com/Deathburgerz013/HOLO-Invariant" target="_blank" 
+                       class="flex items-center gap-x-2 px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all holo-button">
+                        <i class="fa-brands fa-github"></i>
+                        <span class="hidden sm:inline">View Repository</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex h-[calc(100vh-57px)] max-w-screen-2xl mx-auto">
+        
+        <!-- Left Sidebar: Controls & Stats -->
+        <div class="w-72 border-r border-white/10 bg-black/60 backdrop-blur-xl p-6 flex flex-col overflow-y-auto">
+            
+            <!-- Stats -->
+            <div class="mb-8">
+                <div class="text-xs uppercase tracking-widest text-white/50 mb-3 px-1">CONTINUITY METRICS</div>
+                
+                <div class="space-y-3">
+                    <div class="info-stat px-4 py-3 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <div class="text-xs text-white/60">Active Nodes</div>
+                            <div id="node-count" class="metric-value text-3xl font-semibold text-cyan-400">24</div>
+                        </div>
+                        <i class="fa-solid fa-project-diagram text-cyan-400/70 text-2xl"></i>
+                    </div>
+                    
+                    <div class="info-stat px-4 py-3 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <div class="text-xs text-white/60">Invariant Links</div>
+                            <div id="link-count" class="metric-value text-3xl font-semibold text-purple-400">87</div>
+                        </div>
+                        <i class="fa-solid fa-link text-purple-400/70 text-2xl"></i>
+                    </div>
+                    
+                    <div class="info-stat px-4 py-3 rounded-2xl">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <div class="text-xs text-white/60">Integrity</div>
+                            <div id="integrity-value" class="text-emerald-400 text-sm font-medium">0/4</div>
+                        </div>
+                        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div id="integrity-bar" class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-6">
+                <div class="text-xs uppercase tracking-widest text-white/50 mb-2 px-1">SEARCH INVARIANTS</div>
+                <div class="relative">
+                    <input id="search-input" type="text" 
+                           class="w-full bg-white/5 border border-white/20 focus:border-cyan-400/60 rounded-2xl pl-10 py-3 text-sm placeholder:text-white/40 focus:outline-none"
+                           placeholder="Search spines, files, or domains...">
+                    <i class="fa-solid fa-search absolute left-4 top-4 text-white/40"></i>
+                </div>
+            </div>
+
+            <!-- Group Toggles -->
+            <div class="mb-6">
+                <div class="text-xs uppercase tracking-widest text-white/50 mb-3 px-1">PROJECTION LAYERS</div>
+                
+                <div class="space-y-1.5">
+                    <label class="flex items-center gap-x-3 px-3 py-2 rounded-2xl hover:bg-white/5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-core" checked class="accent-cyan-400 w-4 h-4">
+                        <div class="flex-1 flex items-center justify-between">
+                            <div class="flex items-center gap-x-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                                <span class="text-sm">Core Invariants</span>
+                            </div>
+                            <span class="text-[10px] text-white/40 group-hover:text-white/60">6</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-x-3 px-3 py-2 rounded-2xl hover:bg-white/5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-spines" checked class="accent-purple-400 w-4 h-4">
+                        <div class="flex-1 flex items-center justify-between">
+                            <div class="flex items-center gap-x-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
+                                <span class="text-sm">Domain Spines</span>
+                            </div>
+                            <span class="text-[10px] text-white/40 group-hover:text-white/60">9</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-x-3 px-3 py-2 rounded-2xl hover:bg-white/5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-code" checked class="accent-cyan-400 w-4 h-4">
+                        <div class="flex-1 flex items-center justify-between">
+                            <div class="flex items-center gap-x-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+                                <span class="text-sm">HoloSim Code</span>
+                            </div>
+                            <span class="text-[10px] text-white/40 group-hover:text-white/60">5</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-x-3 px-3 py-2 rounded-2xl hover:bg-white/5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-archive" checked class="accent-amber-400 w-4 h-4">
+                        <div class="flex-1 flex items-center justify-between">
+                            <div class="flex items-center gap-x-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-amber-300"></div>
+                                <span class="text-sm">Archives &amp; Research</span>
+                            </div>
+                            <span class="text-[10px] text-white/40 group-hover:text-white/60">4</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-auto">
+                <div class="text-xs uppercase tracking-widest text-white/50 mb-3 px-1">ACTIONS</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="focusCore()" 
+                            class="holo-button flex items-center justify-center gap-x-2 px-3 py-2.5 text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl">
+                        <i class="fa-solid fa-bullseye"></i>
+                        <span>Focus Core</span>
+                    </button>
+                    <button onclick="resetCamera()" 
+                            class="holo-button flex items-center justify-center gap-x-2 px-3 py-2.5 text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl">
+                        <i class="fa-solid fa-sync"></i>
+                        <span>Reset View</span>
+                    </button>
+                    <button onclick="randomHighlight()" 
+                            class="holo-button flex items-center justify-center gap-x-2 px-3 py-2.5 text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl col-span-2">
+                        <i class="fa-solid fa-random"></i>
+                        <span>Random Invariant Projection</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main 3D Visualization -->
+        <div class="flex-1 relative p-6 flex flex-col">
+            <div class="flex items-center justify-between mb-4 px-1">
+                <div>
+                    <div class="flex items-baseline gap-x-3">
+                        <h1 class="font-display text-4xl tracking-tighter">HOLO<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">GRAPH</span></h1>
+                        <div class="px-3 py-1 rounded-full bg-white/5 text-xs border border-white/10 flex items-center gap-x-1.5">
+                            <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                            <span id="data-status" class="text-emerald-400 text-xs font-medium">MEASURED</span>
+                        </div>
+                    </div>
+                    <p class="text-white/50 text-sm">Interactive holographic projection of the invariant network • (C + I + E)²</p>
+                </div>
+                
+                <div class="hidden xl:flex items-center gap-x-2 text-xs text-white/40">
+                    <div class="flex items-center gap-x-1.5 px-3 py-1 bg-white/5 rounded-2xl border border-white/10">
+                        <i class="fa-solid fa-mouse-pointer"></i>
+                        <span>Drag to orbit • Scroll to zoom • Click nodes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Three.js Canvas Container -->
+            <div class="flex-1 relative rounded-3xl overflow-hidden three-container bg-black shadow-2xl">
+                <canvas id="three-canvas" class="three-canvas w-full h-full"></canvas>
+                
+                <!-- Scanline Overlay -->
+                <div class="scanline rounded-3xl"></div>
+                
+                <!-- Subtle vignette -->
+                <div class="absolute inset-0 pointer-events-none rounded-3xl" 
+                     style="background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6) 90%);"></div>
+            </div>
+            
+            <div class="mt-3 flex items-center justify-between text-[10px] text-white/40 px-2">
+                <div id="measured-summary">Loading measured repository state...</div>
+                <div class="flex items-center gap-x-4">
+                    <div class="flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-globe fa-xs"></i>
+                        <span>3D Holographic Projection</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Info Panel -->
+        <div class="w-80 border-l border-white/10 bg-black/70 backdrop-blur-2xl p-6 flex flex-col overflow-hidden">
+            <div class="mb-4">
+                <div class="text-xs uppercase tracking-[2px] text-white/50 mb-1">SELECTED NODE</div>
+                <div id="selected-name" class="font-display text-2xl tracking-tight text-white">HOLO Core</div>
+                <div id="selected-group" class="text-xs text-cyan-400 font-mono tracking-widest">FOUNDATIONAL • CORE</div>
+            </div>
+            
+            <div id="selected-desc" class="text-sm text-white/70 leading-relaxed mb-6 flex-1 overflow-y-auto pr-2 custom-scroll">
+                The central fixed point of the continuity framework. All spines and code modules maintain invariant relation to this core through the (C + I + E)² operator.
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="openGitHub()" id="github-btn"
+                        class="w-full holo-button flex items-center justify-center gap-x-2 py-3.5 bg-gradient-to-r from-cyan-500/90 to-purple-500/90 hover:from-cyan-400 hover:to-purple-400 text-black font-medium rounded-2xl text-sm transition-all active:scale-[0.985]">
+                    <i class="fa-brands fa-github mr-1"></i>
+                    <span>OPEN IN GITHUB</span>
+                </button>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="highlightConnections()" 
+                            class="holo-button px-4 py-2.5 text-xs bg-white/5 hover:bg-white/10 border border-white/15 rounded-2xl flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-project-diagram fa-sm"></i>
+                        <span>Show Links</span>
+                    </button>
+                    <button onclick="focusSelected()" 
+                            class="holo-button px-4 py-2.5 text-xs bg-white/5 hover:bg-white/10 border border-white/15 rounded-2xl flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-crosshairs fa-sm"></i>
+                        <span>Focus Node</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-auto pt-4 border-t border-white/10">
+                <div class="text-[10px] text-center text-white/40">
+                    Built with reverence for persistent continuity.<br>
+                    <span class="text-cyan-400/70">Reality is objective. Invariants endure.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--holo-cyan', '#00f3ff');
+            document.documentElement.style.setProperty('--holo-purple', '#a855f7');
+        }
+        
+        // Three.js variables
+        let scene, camera, renderer;
+        let nodes = [];
+        let nodeMeshes = [];
+        let lineMeshes = [];
+        let nodeData = [];
+        let linkData = [];
+        let selectedNode = null;
+        let raycaster, mouse;
+        let isDragging = false;
+        let previousMouseX = 0, previousMouseY = 0;
+        let autoRotate = true;
+        let cameraTheta = 0, cameraPhi = 1.2;
+        let cameraRadius = 28;
+        
+        // Curated node data for impressive visualization (representing key parts of the repo)
+        let rawNodeData = [];
+
+        // Link data - represents relational structure between invariants
+        let rawLinkData = [];
+        let visualizerPayload = null;
+
+        function deterministicPosition(index, total, radius = 16) {
+            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            const y = 1 - (index / Math.max(1, total - 1)) * 2;
+            const ring = Math.sqrt(Math.max(0, 1 - y * y));
+            const theta = goldenAngle * index;
+            return {
+                x: Math.cos(theta) * ring * radius,
+                y: y * radius,
+                z: Math.sin(theta) * ring * radius
+            };
+        }
+
+        function displayGroup(group) {
+            if (group === 'document') return 'spine';
+            if (group === 'artifact') return 'archive';
+            return group;
+        }
+
+        function colorToHex(value, fallback = 0x00f3ff) {
+            if (typeof value !== 'string') return fallback;
+            const parsed = Number.parseInt(value.replace('#', ''), 16);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+
+        function githubUrl(path) {
+            const encoded = String(path)
+                .split('/')
+                .map(encodeURIComponent)
+                .join('/');
+            return `https://github.com/Deathburgerz013/HOLO-Invariant/blob/main/${encoded}`;
+        }
+
+        async function loadMeasuredData() {
+            const response = await fetch('./visualizer_data.json', { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`visualizer_data.json returned HTTP ${response.status}`);
+            }
+
+            visualizerPayload = await response.json();
+            const exportedNodes = Array.isArray(visualizerPayload.nodes)
+                ? visualizerPayload.nodes
+                : [];
+            const exportedLinks = Array.isArray(visualizerPayload.links)
+                ? visualizerPayload.links
+                : [];
+
+            rawNodeData = exportedNodes.map((node, index) => {
+                const group = displayGroup(node.group);
+                const position = deterministicPosition(
+                    index,
+                    exportedNodes.length,
+                    group === 'core' ? 10 : 18
+                );
+
+                const status = node.feedback_status
+                    ? ` Feedback: ${node.feedback_status}.`
+                    : '';
+                const blockers = node.blocking_count
+                    ? ` Blocking findings: ${node.blocking_count}.`
+                    : '';
+
+                return {
+                    id: node.id,
+                    label: node.label,
+                    group,
+                    x: position.x,
+                    y: position.y,
+                    z: position.z,
+                    radius: group === 'core' ? 1.3 : 0.72,
+                    color: colorToHex(node.color),
+                    desc: `${node.description || node.path}.${status}${blockers}`,
+                    url: githubUrl(node.path),
+                    measured: node
+                };
+            });
+
+            rawLinkData = exportedLinks.map(link => ({
+                from: link.source,
+                to: link.target,
+                strength: Math.max(0.15, Math.min(1, Number(link.weight) || 0.25)),
+                relation: link.relation,
+                evidence: link.evidence
+            }));
+
+            const metrics = visualizerPayload.metrics || {};
+            const passed = Number(metrics.integrity_checks_passed || 0);
+            const total = Number(metrics.integrity_checks_total || 0);
+            const ratio = total > 0 ? passed / total : 0;
+
+            document.getElementById('node-count').textContent =
+                String(metrics.node_count ?? rawNodeData.length);
+            document.getElementById('link-count').textContent =
+                String(metrics.link_count ?? rawLinkData.length);
+            document.getElementById('integrity-value').textContent =
+                `${passed}/${total}`;
+            document.getElementById('integrity-bar').style.width =
+                `${Math.round(ratio * 100)}%`;
+            document.getElementById('measured-summary').textContent =
+                `${rawNodeData.length} measured nodes • ${rawLinkData.length} derived links • export ${String(visualizerPayload.export_hash || '').slice(0, 12)}`;
+            document.getElementById('data-status').textContent = 'MEASURED';
+        }
+
+        function initThreeJS() {
+            const canvas = document.getElementById('three-canvas');
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                antialias: true, 
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+            
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000000, 35, 85);
+            
+            camera = new THREE.PerspectiveCamera(52, canvas.offsetWidth / canvas.offsetHeight, 0.1, 200);
+            updateCameraPosition();
+            
+            // Lighting for holographic feel
+            const ambient = new THREE.AmbientLight(0x334455, 0.6);
+            scene.add(ambient);
+            
+            const pointLight1 = new THREE.PointLight(0x00f3ff, 1.2, 120);
+            pointLight1.position.set(15, 25, 10);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0xa855f7, 0.9, 100);
+            pointLight2.position.set(-20, -15, -25);
+            scene.add(pointLight2);
+            
+            // Subtle starfield for cosmic depth
+            createStarfield();
+            
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Build the visualization
+            buildVisualization();
+            
+            // Event listeners
+            setupInteraction(canvas);
+            
+            // Handle resize
+            window.addEventListener('resize', () => {
+                const w = canvas.offsetWidth;
+                const h = canvas.offsetHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            });
+            
+            // Start animation
+            animate();
+            
+            // Initial selection
+            setTimeout(() => {
+                selectNodeById("core");
+            }, 1200);
+        }
+        
+        function createStarfield() {
+            const starsGeometry = new THREE.BufferGeometry();
+            const starCount = 420;
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            
+            for (let i = 0; i < starCount * 3; i += 3) {
+                const radius = 45 + Math.random() * 35;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i + 2] = radius * Math.cos(phi);
+                
+                // Slight cyan/purple tint
+                const tint = Math.random();
+                colors[i] = 0.6 + tint * 0.4;
+                colors[i + 1] = 0.85 + tint * 0.15;
+                colors[i + 2] = 1.0;
+            }
+            
+            starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const starsMaterial = new THREE.PointsMaterial({
+                size: 0.18,
+                transparent: true,
+                opacity: 0.75,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const stars = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(stars);
+        }
+        
+        function buildVisualization() {
+            // Clear previous
+            nodeMeshes.forEach(m => scene.remove(m));
+            lineMeshes.forEach(l => scene.remove(l));
+            nodeMeshes = [];
+            lineMeshes = [];
+            nodeData = rawNodeData.map(node => ({ ...node }));
+            linkData = rawLinkData.map(link => ({ ...link }));
+            
+            // Create nodes
+            nodeData.forEach((node, index) => {
+                let geometry;
+                
+                if (node.group === 'core') {
+                    geometry = new THREE.IcosahedronGeometry(node.radius, 1);
+                } else if (node.group === 'spine') {
+                    geometry = new THREE.OctahedronGeometry(node.radius * 0.95, 0);
+                } else if (node.group === 'code') {
+                    geometry = new THREE.DodecahedronGeometry(node.radius, 0);
+                } else {
+                    geometry = new THREE.SphereGeometry(node.radius, 18, 18);
+                }
+                
+                const material = new THREE.MeshPhongMaterial({
+                    color: node.color,
+                    emissive: node.color,
+                    emissiveIntensity: node.group === 'core' ? 0.45 : 0.22,
+                    shininess: 35,
+                    specular: 0x222222,
+                    transparent: true,
+                    opacity: 0.92
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(node.x, node.y, node.z);
+                mesh.userData = { nodeId: node.id, index: index };
+                
+                // Add subtle glow layer for holographic effect
+                if (node.group === 'core' || node.group === 'spine') {
+                    const glowGeometry = new THREE.SphereGeometry(node.radius * 1.35, 22, 22);
+                    const glowMaterial = new THREE.MeshBasicMaterial({
+                        color: node.color,
+                        transparent: true,
+                        opacity: 0.12,
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false
+                    });
+                    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                    mesh.add(glow);
+                }
+                
+                scene.add(mesh);
+                nodeMeshes.push(mesh);
+            });
+            
+            // Create connection lines
+            linkData.forEach(link => {
+                const fromNode = nodeData.find(n => n.id === link.from);
+                const toNode = nodeData.find(n => n.id === link.to);
+                
+                if (!fromNode || !toNode) return;
+                
+                const points = [];
+                points.push(new THREE.Vector3(fromNode.x, fromNode.y, fromNode.z));
+                points.push(new THREE.Vector3(toNode.x, toNode.y, toNode.z));
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                
+                const color = fromNode.group === 'core' || toNode.group === 'core' ? 0x00f3ff : 
+                             (fromNode.group === 'code' || toNode.group === 'code') ? 0x22ff88 : 0xa855f7;
+                
+                const material = new THREE.LineBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.28 + (link.strength * 0.22),
+                    linewidth: 1.5
+                });
+                
+                const line = new THREE.Line(geometry, material);
+                line.userData = { from: link.from, to: link.to, strength: link.strength };
+                
+                scene.add(line);
+                lineMeshes.push(line);
+            });
+            
+            updateCounts();
+        }
+        
+        function updateCounts() {
+            document.getElementById('node-count').textContent = nodeData.length;
+            document.getElementById('link-count').textContent = linkData.length;
+        }
+        
+        function updateCameraPosition() {
+            const x = cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+            const y = cameraRadius * Math.cos(cameraPhi);
+            const z = cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            
+            camera.position.set(x, y, z);
+            camera.lookAt(0, 0.8, 0);
+        }
+        
+        function setupInteraction(canvas) {
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                autoRotate = false;
+                previousMouseX = e.clientX;
+                previousMouseY = e.clientY;
+            });
+            
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                setTimeout(() => {
+                    if (!isDragging) autoRotate = true;
+                }, 1800);
+            });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - previousMouseX;
+                const deltaY = e.clientY - previousMouseY;
+                
+                cameraTheta += deltaX * 0.0035;
+                cameraPhi += deltaY * 0.0035;
+                
+                // Clamp phi
+                cameraPhi = Math.max(0.35, Math.min(Math.PI - 0.35, cameraPhi));
+                
+                updateCameraPosition();
+                
+                previousMouseX = e.clientX;
+                previousMouseY = e.clientY;
+            });
+            
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                cameraRadius += e.deltaY * 0.035;
+                cameraRadius = Math.max(12, Math.min(52, cameraRadius));
+                updateCameraPosition();
+                autoRotate = false;
+                setTimeout(() => { autoRotate = true; }, 2200);
+            });
+            
+            // Click to select
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodeMeshes);
+                
+                if (intersects.length > 0) {
+                    const mesh = intersects[0].object;
+                    const nodeId = mesh.userData.nodeId;
+                    selectNodeById(nodeId);
+                    focusCameraOnNode(nodeId);
+                }
+            });
+            
+            // Hover effect
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodeMeshes);
+                
+                // Reset all
+                nodeMeshes.forEach(m => {
+                    if (m.material.emissive) {
+                        m.material.emissiveIntensity = m.userData.nodeId === (selectedNode ? selectedNode.id : null) ? 0.55 : 0.22;
+                    }
+                });
+                
+                if (intersects.length > 0) {
+                    const mesh = intersects[0].object;
+                    if (mesh.material.emissive) {
+                        mesh.material.emissiveIntensity = 0.65;
+                    }
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    canvas.style.cursor = 'grab';
+                }
+            });
+        }
+        
+        function selectNodeById(nodeId) {
+            const node = nodeData.find(n => n.id === nodeId);
+            if (!node) return;
+            
+            selectedNode = node;
+            
+            // Update UI
+            document.getElementById('selected-name').textContent = node.label;
+            document.getElementById('selected-group').textContent = 
+                node.group.toUpperCase() + ' • ' + (node.group === 'core' ? 'FOUNDATIONAL' : 
+                node.group === 'spine' ? 'DOMAIN SPINE' : 
+                node.group === 'code' ? 'IMPLEMENTATION' : 'ARCHIVE');
+            
+            const measured = node.measured || {};
+            const detailLines = [
+                node.desc,
+                measured.path ? `Path: ${measured.path}` : null,
+                measured.source_hash ? `Source: ${measured.source_hash.slice(0, 16)}…` : null,
+                measured.geometry_hash ? `Geometry: ${measured.geometry_hash.slice(0, 16)}…` : null,
+                Number.isInteger(measured.section_count) ? `Sections: ${measured.section_count}` : null
+            ].filter(Boolean);
+
+            document.getElementById('selected-desc').textContent =
+                detailLines.join('\n\n');
+            
+            // Highlight in 3D
+            highlightNode(nodeId);
+            
+            // Show GitHub button
+            const btn = document.getElementById('github-btn');
+            btn.onclick = () => window.open(node.url, '_blank');
+        }
+        
+        function highlightNode(nodeId) {
+            nodeMeshes.forEach((mesh, idx) => {
+                const data = nodeData[idx];
+                const isSelected = data.id === nodeId;
+                const isCore = data.group === 'core';
+                
+                if (mesh.material.emissive) {
+                    mesh.material.emissiveIntensity = isSelected ? 0.75 : (isCore ? 0.45 : 0.22);
+                }
+                
+                // Scale pulse for selected
+                if (isSelected) {
+                    const targetScale = 1.18;
+                    mesh.scale.setScalar(targetScale);
+                    
+                    setTimeout(() => {
+                        if (mesh && mesh.scale) mesh.scale.setScalar(1.0);
+                    }, 420);
+                } else {
+                    mesh.scale.setScalar(1.0);
+                }
+            });
+            
+            // Highlight connected lines
+            lineMeshes.forEach(line => {
+                const isConnected = line.userData.from === nodeId || line.userData.to === nodeId;
+                line.material.opacity = isConnected ? 0.85 : 0.22;
+                line.material.color.setHex(isConnected ? 0xffffff : (line.userData.from === 'core' || line.userData.to === 'core' ? 0x00f3ff : 0xa855f7));
+            });
+        }
+        
+        function highlightConnections() {
+            if (!selectedNode) return;
+            
+            lineMeshes.forEach(line => {
+                const isConnected = line.userData.from === selectedNode.id || line.userData.to === selectedNode.id;
+                if (isConnected) {
+                    line.material.opacity = 0.95;
+                    line.material.color.setHex(0xffffff);
+                    
+                    setTimeout(() => {
+                        if (line && line.material) {
+                            line.material.opacity = 0.65;
+                            line.material.color.setHex(0x00f3ff);
+                        }
+                    }, 1450);
+                }
+            });
+        }
+        
+        function focusCameraOnNode(nodeId) {
+            const node = nodeData.find(n => n.id === nodeId);
+            if (!node) return;
+            
+            autoRotate = false;
+            
+            const targetX = node.x * 0.6;
+            const targetY = node.y * 0.6 + 2;
+            const targetZ = node.z * 0.6;
+            
+            // Animate camera
+            const startPos = camera.position.clone();
+            const targetPos = new THREE.Vector3(targetX, targetY, targetZ).normalize().multiplyScalar(cameraRadius * 0.72);
+            
+            let progress = 0;
+            const animateCam = () => {
+                progress += 0.065;
+                if (progress > 1) {
+                    camera.position.copy(targetPos);
+                    camera.lookAt(node.x * 0.3, node.y * 0.3, node.z * 0.3);
+                    setTimeout(() => { autoRotate = true; }, 1600);
+                    return;
+                }
+                
+                camera.position.lerpVectors(startPos, targetPos, progress);
+                camera.lookAt(
+                    node.x * 0.3 * progress, 
+                    node.y * 0.3 * progress + (1 - progress) * 1.5, 
+                    node.z * 0.3 * progress
+                );
+                
+                requestAnimationFrame(animateCam);
+            };
+            animateCam();
+        }
+        
+        function focusCore() {
+            selectNodeById("core");
+            focusCameraOnNode("core");
+        }
+        
+        function focusSelected() {
+            if (selectedNode) {
+                focusCameraOnNode(selectedNode.id);
+            }
+        }
+        
+        function resetCamera() {
+            autoRotate = true;
+            cameraRadius = 28;
+            cameraPhi = 1.2;
+            cameraTheta = 0;
+            updateCameraPosition();
+            
+            // Deselect visual highlights
+            nodeMeshes.forEach(m => {
+                m.scale.setScalar(1);
+                if (m.material.emissive) m.material.emissiveIntensity = m.userData.nodeId === 'core' ? 0.45 : 0.22;
+            });
+            lineMeshes.forEach(l => {
+                l.material.opacity = 0.28 + (l.userData.strength || 0.3) * 0.2;
+                const fromCore = l.userData.from === 'core' || l.userData.to === 'core';
+                l.material.color.setHex(fromCore ? 0x00f3ff : 0xa855f7);
+            });
+        }
+        
+        function randomHighlight() {
+            const randomIndex = Math.floor(Math.random() * nodeData.length);
+            const randomNode = nodeData[randomIndex];
+            selectNodeById(randomNode.id);
+            focusCameraOnNode(randomNode.id);
+            
+            // Extra pulse on random
+            setTimeout(() => {
+                highlightConnections();
+            }, 650);
+        }
+        
+        function updateToggles() {
+            const toggles = {
+                'core': document.getElementById('toggle-core'),
+                'spine': document.getElementById('toggle-spines'),
+                'code': document.getElementById('toggle-code'),
+                'archive': document.getElementById('toggle-archive')
+            };
+            
+            Object.keys(toggles).forEach(group => {
+                const checkbox = toggles[group];
+                if (!checkbox) return;
+                
+                checkbox.addEventListener('change', () => {
+                    const visible = checkbox.checked;
+                    
+                    nodeMeshes.forEach((mesh, idx) => {
+                        const data = nodeData[idx];
+                        if (data.group === group) {
+                            mesh.visible = visible;
+                        }
+                    });
+                    
+                    lineMeshes.forEach(line => {
+                        const fromNode = nodeData.find(n => n.id === line.userData.from);
+                        const toNode = nodeData.find(n => n.id === line.userData.to);
+                        
+                        if ((fromNode && fromNode.group === group) || (toNode && toNode.group === group)) {
+                            // Only hide lines if BOTH endpoints are hidden
+                            const fromVisible = fromNode ? (toggles[fromNode.group] ? toggles[fromNode.group].checked : true) : true;
+                            const toVisible = toNode ? (toggles[toNode.group] ? toggles[toNode.group].checked : true) : true;
+                            line.visible = fromVisible && toVisible;
+                        }
+                    });
+                });
+            });
+        }
+        
+        function setupSearch() {
+            const input = document.getElementById('search-input');
+            
+            input.addEventListener('input', () => {
+                const term = input.value.toLowerCase().trim();
+                
+                if (!term) {
+                    // Reset all
+                    nodeMeshes.forEach(m => m.visible = true);
+                    lineMeshes.forEach(l => l.visible = true);
+                    return;
+                }
+                
+                nodeData.forEach((node, idx) => {
+                    const mesh = nodeMeshes[idx];
+                    const matches = node.label.toLowerCase().includes(term) || 
+                                   node.desc.toLowerCase().includes(term) ||
+                                   node.group.toLowerCase().includes(term);
+                    
+                    mesh.visible = matches;
+                    
+                    // Dim non-matches slightly
+                    if (mesh.material) {
+                        mesh.material.opacity = matches ? 0.95 : 0.25;
+                    }
+                });
+                
+                // Update lines visibility based on visible nodes
+                lineMeshes.forEach(line => {
+                    const fromNode = nodeData.find(n => n.id === line.userData.from);
+                    const toNode = nodeData.find(n => n.id === line.userData.to);
+                    
+                    const fromMesh = nodeMeshes.find((m, i) => nodeData[i].id === line.userData.from);
+                    const toMesh = nodeMeshes.find((m, i) => nodeData[i].id === line.userData.to);
+                    
+                    line.visible = (fromMesh && fromMesh.visible) && (toMesh && toMesh.visible);
+                });
+            });
+            
+            // Clear on escape
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    input.value = '';
+                    nodeMeshes.forEach(m => {
+                        m.visible = true;
+                        if (m.material) m.material.opacity = 0.92;
+                    });
+                    lineMeshes.forEach(l => l.visible = true);
+                }
+            });
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Gentle auto rotation when idle
+            if (autoRotate && !isDragging) {
+                cameraTheta += 0.00085;
+                updateCameraPosition();
+            }
+            
+            // Gentle breathing/pulsing on core node
+            nodeMeshes.forEach((mesh, idx) => {
+                const data = nodeData[idx];
+                if (data.id === 'core') {
+                    const pulse = 1 + Math.sin(Date.now() * 0.0018) * 0.035;
+                    mesh.scale.setScalar(pulse);
+                }
+                
+                // Very subtle rotation on some nodes for life
+                if (data.group === 'spine' || data.group === 'code') {
+                    mesh.rotation.y = Date.now() * 0.0002 * (data.group === 'code' ? 1.6 : 1);
+                }
+            });
+            
+            // Occasionally pulse a random line for dynamism
+            if (Math.random() < 0.008) {
+                const randomLine = lineMeshes[Math.floor(Math.random() * lineMeshes.length)];
+                if (randomLine && randomLine.material) {
+                    const originalOpacity = randomLine.material.opacity;
+                    randomLine.material.opacity = 0.9;
+                    setTimeout(() => {
+                        if (randomLine && randomLine.material) randomLine.material.opacity = originalOpacity;
+                    }, 280);
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        function openGitHub() {
+            if (selectedNode && selectedNode.url) {
+                window.open(selectedNode.url, '_blank');
+            } else {
+                window.open('https://github.com/Deathburgerz013/HOLO-Invariant', '_blank');
+            }
+        }
+        
+        function selectRandomInitial() {
+            // Already handled in init
+        }
+        
+        // Initialize everything
+        async function initializeVisualizer() {
+            initializeTailwind();
+
+            try {
+                await loadMeasuredData();
+            } catch (error) {
+                console.error('[HOLO-VIS] Failed to load measured export:', error);
+                document.getElementById('data-status').textContent = 'LOAD FAILED';
+                document.getElementById('measured-summary').textContent =
+                    'Unable to load visualizer_data.json. Serve this folder through a local HTTP server.';
+                return;
+            }
+
+            initThreeJS();
+            updateToggles();
+            setupSearch();
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    document.getElementById('search-input').focus();
+                }
+                if (e.key.toLowerCase() === 'r' && e.metaKey) {
+                    e.preventDefault();
+                    resetCamera();
+                }
+            });
+            
+            // Easter egg: click logo resets everything beautifully
+            const logo = document.querySelector('.fa-infinity');
+            if (logo) {
+                logo.parentElement.addEventListener('click', () => {
+                    resetCamera();
+                    setTimeout(() => {
+                        selectNodeById('core');
+                    }, 420);
+                });
+            }
+            
+            // Boot message in console for curious humans
+            console.log('%c[HOLO-VIS] Measured repository visualization initialized.', 'color:#00f3ff; font-size:9px');
+        }
+        
+        // Boot the visualizer
+        window.onload = initializeVisualizer;
+    </script>
+</body>
+</html>
