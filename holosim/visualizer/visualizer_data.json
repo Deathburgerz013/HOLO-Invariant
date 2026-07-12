@@ -1,5 +1,5 @@
 {
-  "export_hash": "0f695aa67e897a504b7f3b81a1e74ede85832fcec8850e533bf263682b65985d",
+  "export_hash": "c5fa2cf52d648f71c7c0b289b97dd79433d2326bb044537a844843d656cacf20",
   "feedback": {
     "docs-01-problem-statement-md": null,
     "docs-02-invariant-concept-md": null,
@@ -115,6 +115,45 @@
       "report_hash": "4f7e54503a61bd295731118f500e655af1ea2eadd9bee4fdbca7ff107178e5bf",
       "status": "BLOCKED",
       "terminal_signal": null,
+      "type": "holo_spine_feedback_report",
+      "version": 1
+    },
+    "docs-cap-20260711-correction-topology-md": {
+      "artifact": {
+        "header_present": true,
+        "ordered_sections": [
+          "cap_2026_07_11_correction_topology_and_operator_burden",
+          "metadata",
+          "purpose",
+          "objective",
+          "evidence_chain",
+          "1_pre_code_geometry",
+          "2_human_readable_spine",
+          "3_raw_generated_compression_passes",
+          "4_public_cross_model_corroboration",
+          "derived_correction_topology",
+          "candidate_invariant",
+          "stop_condition_interpretation",
+          "information_and_need",
+          "operator_burden_invariant",
+          "verification",
+          "uncertainty",
+          "repository_consequence",
+          "termination"
+        ],
+        "path": "C:/Users/death/HOLO-Invariant/docs/CAP_20260711_CORRECTION_TOPOLOGY.md",
+        "section_count": 18,
+        "source_hash": "73baf30e9fdb66dd629862cf7283325eff4851f014229fd98b1683865c143597"
+      },
+      "blocking_count": 0,
+      "feedback": [],
+      "feedback_count": 0,
+      "interpretation_notice": "Feedback items are bounded proposals derived from visible structure. They are not accepted corrections.",
+      "objective": "Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+      "principle": "Feedback exists to reduce verified difference. When no verified difference remains, feedback terminates.",
+      "report_hash": "433fa620809f8cc2602c216ce35e89023a50a174a5813bd4e28310cd08ec84ec",
+      "status": "COMPLETE",
+      "terminal_signal": "Nothing left for collection in field.",
       "type": "holo_spine_feedback_report",
       "version": 1
     },
@@ -1073,7 +1112,109 @@
     },
     "docs-historical-compression-md": null,
     "docs-holo-memory-jsonl": null,
-    "docs-holo-protocol-provenance-md": null,
+    "docs-holo-protocol-provenance-md": {
+      "artifact": {
+        "header_present": true,
+        "ordered_sections": [
+          "holo_protocol_provenance",
+          "purpose",
+          "evidence_classes",
+          "development_lineage",
+          "1_compact_indexed_state",
+          "2_manual_fuse_and_guarded_reload",
+          "3_ordered_transfer_and_verification",
+          "4_snapshot_delta_and_rollback_discipline",
+          "5_divergence_and_self_correction",
+          "6_executable_repository_boundary",
+          "claim_boundary",
+          "verification_rule",
+          "current_principle"
+        ],
+        "path": "C:/Users/death/HOLO-Invariant/docs/HOLO_Protocol_Provenance.md",
+        "section_count": 13,
+        "source_hash": "f82de5c04159232aa17ebc16bd60dd2b160fbcae86b656cff8fa58233c18c600"
+      },
+      "blocking_count": 3,
+      "feedback": [
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Objective' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2a96a81970cc",
+          "evidence": [
+            "No section matching 'objective' was found."
+          ],
+          "reason": "The feedback loop has no declared target state.",
+          "severity": "critical",
+          "target": "objective",
+          "verification": [
+            "Confirm the 'Objective' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Add a bounded 'Termination' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "243528c29eab",
+          "evidence": [
+            "No section matching 'termination' was found."
+          ],
+          "reason": "The loop has no explicit stopping condition.",
+          "severity": "high",
+          "target": "termination",
+          "verification": [
+            "Confirm the 'Termination' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        },
+        {
+          "blocks_completion": true,
+          "candidate_addition": "Clarify the objective section so it explicitly names the declared target without expanding scope.",
+          "category": "objective_drift",
+          "code": "b282f499e2e7",
+          "evidence": [
+            "Declared objective: Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+            "Section: Purpose"
+          ],
+          "reason": "The declared objective and the artifact's objective-like section have weak lexical overlap.",
+          "severity": "high",
+          "target": "purpose",
+          "verification": [
+            "Compare the revised objective to the declared target.",
+            "Reject unrelated feature expansion."
+          ]
+        },
+        {
+          "blocks_completion": false,
+          "candidate_addition": "Add a bounded 'Uncertainty' section that states only the minimum information required by the declared objective.",
+          "category": "missing_section",
+          "code": "2144b71252bc",
+          "evidence": [
+            "No section matching 'uncertainty' was found."
+          ],
+          "reason": "Unknowns may silently collapse into certainty.",
+          "severity": "medium",
+          "target": "uncertainty",
+          "verification": [
+            "Confirm the 'Uncertainty' section is present.",
+            "Confirm it does not silently modify another boundary.",
+            "Confirm its claims remain traceable to source evidence."
+          ]
+        }
+      ],
+      "feedback_count": 4,
+      "interpretation_notice": "Feedback items are bounded proposals derived from visible structure. They are not accepted corrections.",
+      "objective": "Preserve the structure required for compatible reconstruction, verification, challenge, correction, and continuity.",
+      "principle": "Feedback exists to reduce verified difference. When no verified difference remains, feedback terminates.",
+      "report_hash": "788906130c7139728b892a8d04298ade7a5aede1b744452fc3bafb368603d6f6",
+      "status": "BLOCKED",
+      "terminal_signal": null,
+      "type": "holo_spine_feedback_report",
+      "version": 1
+    },
     "docs-hssce-toy-md": {
       "artifact": {
         "header_present": true,
@@ -3542,6 +3683,333 @@
         "No Markdown headings were found."
       ]
     },
+    "docs-cap-20260711-correction-topology-md": {
+      "boundaries": [
+        {
+          "names": [
+            "evidence"
+          ],
+          "section_index": 4,
+          "section_title": "Evidence Chain",
+          "sha256": "e8158e9ecf5e57913643aea8d48d31cf159ca0fae925da4015542c6c751aeae3",
+          "span": {
+            "end_line": 26,
+            "end_offset": 1191,
+            "start_line": 25,
+            "start_offset": 1172
+          }
+        },
+        {
+          "names": [
+            "compression"
+          ],
+          "section_index": 7,
+          "section_title": "3. Raw generated compression passes",
+          "sha256": "16b4dbe6c19ad8ff5f6a04f6fc8f6499831a7f6a6580e0d96ce032da3c2df9ad",
+          "span": {
+            "end_line": 67,
+            "end_offset": 2404,
+            "start_line": 49,
+            "start_offset": 1676
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 14,
+          "section_title": "Verification",
+          "sha256": "6df3eb2373f858b0446f7e6c345c4915bdc8a2288a2128f8bfbec6d806d28d22",
+          "span": {
+            "end_line": 162,
+            "end_offset": 6455,
+            "start_line": 152,
+            "start_offset": 5702
+          }
+        },
+        {
+          "names": [
+            "uncertainty"
+          ],
+          "section_index": 15,
+          "section_title": "Uncertainty",
+          "sha256": "1c8611c5dc61f805d20dc573d43e5a67d8aae937a3583a26e6e0c8c8d9b33ac4",
+          "span": {
+            "end_line": 170,
+            "end_offset": 6988,
+            "start_line": 163,
+            "start_offset": 6455
+          }
+        },
+        {
+          "names": [
+            "termination"
+          ],
+          "section_index": 17,
+          "section_title": "Termination",
+          "sha256": "eb04ac7459345a1af75915a2bf39af40d97d6ebff382233918a3be659d92c7e1",
+          "span": {
+            "end_line": 189,
+            "end_offset": 7637,
+            "start_line": 185,
+            "start_offset": 7368
+          }
+        }
+      ],
+      "geometry": {
+        "geometry_hash": "d215213a9829fb7c77ecf6e4b11ff831b47109bc95cc82aafdd449319b32dc71",
+        "ordered_levels": [
+          1,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "ordered_titles": [
+          "CAP 2026-07-11 — Correction Topology and Operator Burden",
+          "Metadata",
+          "Purpose",
+          "Objective",
+          "Evidence Chain",
+          "1. Pre-code geometry",
+          "2. Human-readable Spine",
+          "3. Raw generated compression passes",
+          "4. Public cross-model corroboration",
+          "Derived Correction Topology",
+          "Candidate Invariant",
+          "Stop-Condition Interpretation",
+          "Information and Need",
+          "Operator-Burden Invariant",
+          "Verification",
+          "Uncertainty",
+          "Repository Consequence",
+          "Termination"
+        ],
+        "section_count": 18
+      },
+      "header": {
+        "span": {
+          "end_line": 2,
+          "end_offset": 78,
+          "start_line": 2,
+          "start_offset": 46
+        },
+        "text": "| █†█ Holo/Sim █†█ █†█HSSCE█†█ |"
+      },
+      "interpretation_notice": "This frame is derived from the canonical raw Spine source. It is not the source and does not replace it.",
+      "semantic": {
+        "claim": [],
+        "correction": [
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 83,
+            "text": "For a reference state \\(x\\) and current reconstruction \\(\\hat{x}_t\\):"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 85,
+            "text": "\\["
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 86,
+            "text": "e_t = x - \\hat{x}_t"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 87,
+            "text": "\\]"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 89,
+            "text": "\\["
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 90,
+            "text": "\\hat{x}_{t+1} = \\hat{x}_t + c_t"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 91,
+            "text": "\\]"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 93,
+            "text": "where a correction proposal \\(c_t\\) is accepted only when verification shows that it reduces the declared difference without violating a higher-priority invariant."
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 95,
+            "text": "The required distinctions are:"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 97,
+            "text": "```text"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 98,
+            "text": "reference"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 99,
+            "text": "current state"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 100,
+            "text": "measured difference"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 101,
+            "text": "proposed correction"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 102,
+            "text": "verification result"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 103,
+            "text": "termination state"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 104,
+            "text": "```"
+          },
+          {
+            "section_index": 9,
+            "section_title": "Derived Correction Topology",
+            "source_line": 106,
+            "text": "These states must remain distinguishable long enough to accept, reject, or continue correction honestly."
+          }
+        ],
+        "evidence": [],
+        "lineage": [],
+        "observation": [],
+        "uncertainty": [
+          {
+            "section_index": 15,
+            "section_title": "Uncertainty",
+            "source_line": 166,
+            "text": "Model responses were not independent of Canyon's selected evidence and framing."
+          },
+          {
+            "section_index": 15,
+            "section_title": "Uncertainty",
+            "source_line": 167,
+            "text": "Similar code comments may partly reflect common language-model formatting conventions."
+          },
+          {
+            "section_index": 15,
+            "section_title": "Uncertainty",
+            "source_line": 168,
+            "text": "Functional compartmentalization is stronger evidence than visual separator similarity."
+          },
+          {
+            "section_index": 15,
+            "section_title": "Uncertainty",
+            "source_line": 169,
+            "text": "The handwritten equations require careful transcription before mathematical claims are promoted."
+          },
+          {
+            "section_index": 15,
+            "section_title": "Uncertainty",
+            "source_line": 170,
+            "text": "The universal scope of the candidate invariant remains undefined; it currently applies most strongly to replayable, history-preserving correction systems."
+          }
+        ],
+        "verification": [
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 155,
+            "text": "This CAP checks off the following observations:"
+          },
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 157,
+            "text": "**Verified from visible artifacts:** notebook geometry predates repository implementation."
+          },
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 158,
+            "text": "**Verified from the raw trace:** initial code prompts did not name the Spine or request its separator geometry."
+          },
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 159,
+            "text": "**Verified from the raw passes:** base and residual corrections became ordered, bounded, and separately reconstructable."
+          },
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 160,
+            "text": "**Corroborated:** GPT and Grok recovered substantially the same architectural reading from the supplied evidence."
+          },
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 161,
+            "text": "**Not yet mechanically verified:** the degree to which correction requirements necessarily produce this topology across implementations."
+          },
+          {
+            "section_index": 14,
+            "section_title": "Verification",
+            "source_line": 162,
+            "text": "**Not established:** that the generated compression code correctly or monotonically self-corrects."
+          }
+        ]
+      },
+      "source": {
+        "name": "C:/Users/death/HOLO-Invariant/docs/CAP_20260711_CORRECTION_TOPOLOGY.md",
+        "sha256": "73baf30e9fdb66dd629862cf7283325eff4851f014229fd98b1683865c143597"
+      },
+      "type": "holo_spine_reconstruction_frame",
+      "version": 1,
+      "warnings": []
+    },
     "docs-checkpoint-20260529-grok-anchor-lock-md": null,
     "docs-chemistry-md": {
       "boundaries": [],
@@ -4243,7 +4711,310 @@
     },
     "docs-historical-compression-md": null,
     "docs-holo-memory-jsonl": null,
-    "docs-holo-protocol-provenance-md": null,
+    "docs-holo-protocol-provenance-md": {
+      "boundaries": [
+        {
+          "names": [
+            "evidence"
+          ],
+          "section_index": 2,
+          "section_title": "Evidence Classes",
+          "sha256": "ca8a277f3ce2fb51eea89166498460d0bfac3992c3e4522fb61730d529585800",
+          "span": {
+            "end_line": 20,
+            "end_offset": 888,
+            "start_line": 13,
+            "start_offset": 500
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 6,
+          "section_title": "3. Ordered transfer and verification",
+          "sha256": "48bd39f8046d2c7c2fff4e4c7e40b2a651c06c8434b82f96300ed20c63f1bb89",
+          "span": {
+            "end_line": 66,
+            "end_offset": 2767,
+            "start_line": 53,
+            "start_offset": 2181
+          }
+        },
+        {
+          "names": [
+            "claim"
+          ],
+          "section_index": 10,
+          "section_title": "Claim Boundary",
+          "sha256": "400bdbc621b4392b3006ba8598e6a57445787e7592a7b9961edc9cbe8376c989",
+          "span": {
+            "end_line": 120,
+            "end_offset": 4892,
+            "start_line": 113,
+            "start_offset": 4524
+          }
+        },
+        {
+          "names": [
+            "verification"
+          ],
+          "section_index": 11,
+          "section_title": "Verification Rule",
+          "sha256": "7e0814f1b5a1794cd31acd1fe12535aaeea85f899e8865023093926c70d72a2a",
+          "span": {
+            "end_line": 130,
+            "end_offset": 5236,
+            "start_line": 121,
+            "start_offset": 4892
+          }
+        }
+      ],
+      "geometry": {
+        "geometry_hash": "6da510efcadd4d6974b89e4c4215bf381de229d3b5be15b6c7e971845ce98486",
+        "ordered_levels": [
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          2
+        ],
+        "ordered_titles": [
+          "HOLO Protocol Provenance",
+          "Purpose",
+          "Evidence Classes",
+          "Development Lineage",
+          "1. Compact indexed state",
+          "2. Manual fuse and guarded reload",
+          "3. Ordered transfer and verification",
+          "4. Snapshot, delta, and rollback discipline",
+          "5. Divergence and self-correction",
+          "6. Executable repository boundary",
+          "Claim Boundary",
+          "Verification Rule",
+          "Current Principle"
+        ],
+        "section_count": 13
+      },
+      "header": {
+        "span": {
+          "end_line": 2,
+          "end_offset": 80,
+          "start_line": 2,
+          "start_offset": 47
+        },
+        "text": "| █†█ Holo/Sim █†█ █†█HSSCE█†█ |\r"
+      },
+      "interpretation_notice": "This frame is derived from the canonical raw Spine source. It is not the source and does not replace it.",
+      "semantic": {
+        "claim": [
+          {
+            "section_index": 10,
+            "section_title": "Claim Boundary",
+            "source_line": 116,
+            "text": "HOLO-Invariant does not claim that a language model persists independently, thinks while disconnected, or preserves an identity without external state."
+          },
+          {
+            "section_index": 10,
+            "section_title": "Claim Boundary",
+            "source_line": 118,
+            "text": "The supported claim is narrower:"
+          },
+          {
+            "section_index": 10,
+            "section_title": "Claim Boundary",
+            "source_line": 120,
+            "text": "> Continuity can be externalized into ordered, inspectable artifacts whose integrity, provenance, reconstruction, and correction behavior can be tested."
+          }
+        ],
+        "correction": [
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 85,
+            "text": "The divergence protocol introduced a bounded challenge loop:"
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 87,
+            "text": "record the active hypothesis;"
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 88,
+            "text": "test its inverse or strongest failure case;"
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 89,
+            "text": "compare the outcomes;"
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 90,
+            "text": "preserve the disagreement when evidence does not resolve it;"
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 91,
+            "text": "correct the smallest verified difference."
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 93,
+            "text": "This is the historical basis for treating continuity as correction-preserving rather than conclusion-preserving."
+          },
+          {
+            "section_index": 8,
+            "section_title": "5. Divergence and self-correction",
+            "source_line": 95,
+            "text": "Status: **design rule**. It does not imply autonomous or hidden background reasoning."
+          }
+        ],
+        "evidence": [
+          {
+            "section_index": 2,
+            "section_title": "Evidence Classes",
+            "source_line": 16,
+            "text": "**Specification** — a written rule or proposed behavior."
+          },
+          {
+            "section_index": 2,
+            "section_title": "Evidence Classes",
+            "source_line": 17,
+            "text": "**Public record** — a timestamped description published independently of the repository."
+          },
+          {
+            "section_index": 2,
+            "section_title": "Evidence Classes",
+            "source_line": 18,
+            "text": "**Transfer record** — a manifest describing ordered artifacts and expected hashes."
+          },
+          {
+            "section_index": 2,
+            "section_title": "Evidence Classes",
+            "source_line": 19,
+            "text": "**Implementation** — behavior present in repository code."
+          },
+          {
+            "section_index": 2,
+            "section_title": "Evidence Classes",
+            "source_line": 20,
+            "text": "**Verification** — behavior exercised by reproducible tests."
+          }
+        ],
+        "lineage": [],
+        "observation": [],
+        "uncertainty": [],
+        "verification": [
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 56,
+            "text": "The later transfer manifest described sixteen ordered chunks with filenames, SHA-256 values, continuity tags, an anchor identifier, and receiver-side verification steps."
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 58,
+            "text": "Useful contribution:"
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 60,
+            "text": "metadata remains attached to content;"
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 61,
+            "text": "ordering is explicit;"
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 62,
+            "text": "expected and observed digests are compared before ingestion;"
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 63,
+            "text": "mismatches block acceptance;"
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 64,
+            "text": "continuity transfer becomes independently checkable."
+          },
+          {
+            "section_index": 6,
+            "section_title": "3. Ordered transfer and verification",
+            "source_line": 66,
+            "text": "Status: **transfer record**. Individual matches are reproducible only when the corresponding source chunks are available."
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification Rule",
+            "source_line": 124,
+            "text": "A historical statement may guide investigation, but it enters the active specification only when:"
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification Rule",
+            "source_line": 126,
+            "text": "its source is identifiable;"
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification Rule",
+            "source_line": 127,
+            "text": "its terms are operationally defined;"
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification Rule",
+            "source_line": 128,
+            "text": "its behavior is implemented or explicitly marked as proposed;"
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification Rule",
+            "source_line": 129,
+            "text": "its result can be reproduced;"
+          },
+          {
+            "section_index": 11,
+            "section_title": "Verification Rule",
+            "source_line": 130,
+            "text": "uncertainty and failure remain visible."
+          }
+        ]
+      },
+      "source": {
+        "name": "C:/Users/death/HOLO-Invariant/docs/HOLO_Protocol_Provenance.md",
+        "sha256": "f82de5c04159232aa17ebc16bd60dd2b160fbcae86b656cff8fa58233c18c600"
+      },
+      "type": "holo_spine_reconstruction_frame",
+      "version": 1,
+      "warnings": []
+    },
     "docs-hssce-toy-md": {
       "boundaries": [],
       "geometry": {
@@ -6177,11 +6948,46 @@
   "lineage": null,
   "links": [
     {
+      "evidence": "purpose",
+      "relation": "shared_sections",
+      "source": "docs-cap-20260711-correction-topology-md",
+      "target": "docs-holo-protocol-provenance-md",
+      "weight": 0.0556
+    },
+    {
+      "evidence": "purpose, verification",
+      "relation": "shared_sections",
+      "source": "docs-cap-20260711-correction-topology-md",
+      "target": "docs-spine-boundary-spec-md",
+      "weight": 0.0625
+    },
+    {
+      "evidence": "purpose, verification",
+      "relation": "shared_sections",
+      "source": "docs-cap-20260711-correction-topology-md",
+      "target": "docs-spine-constitution-md",
+      "weight": 0.087
+    },
+    {
       "evidence": "core invariant",
       "relation": "shared_sections",
       "source": "docs-deltas-md",
       "target": "docs-spine-boundary-spec-md",
       "weight": 0.0312
+    },
+    {
+      "evidence": "claim boundary, purpose",
+      "relation": "shared_sections",
+      "source": "docs-holo-protocol-provenance-md",
+      "target": "docs-spine-boundary-spec-md",
+      "weight": 0.0625
+    },
+    {
+      "evidence": "purpose",
+      "relation": "shared_sections",
+      "source": "docs-holo-protocol-provenance-md",
+      "target": "docs-spine-constitution-md",
+      "weight": 0.0435
     },
     {
       "evidence": "purpose, verification",
@@ -6192,17 +6998,17 @@
     }
   ],
   "metrics": {
-    "blocking_feedback_count": 31,
-    "header_present_count": 35,
+    "blocking_feedback_count": 32,
+    "header_present_count": 37,
     "integrity_checks_passed": 2,
     "integrity_checks_total": 4,
     "integrity_ratio": 0.5,
-    "link_count": 2,
-    "markdown_document_count": 74,
-    "node_count": 133,
-    "ordinary_markdown_count": 39,
-    "parsed_spine_count": 31,
-    "spine_document_count": 35
+    "link_count": 7,
+    "markdown_document_count": 75,
+    "node_count": 134,
+    "ordinary_markdown_count": 38,
+    "parsed_spine_count": 33,
+    "spine_document_count": 37
   },
   "nodes": [
     {
@@ -6372,6 +7178,20 @@
       "path": "docs/Biology_Spine.md",
       "section_count": 0,
       "source_hash": "3183dd236815dac480f265edd73d47431a786a0e4cbec4769b24d3cdff2f2ffe"
+    },
+    {
+      "blocking_count": 0,
+      "color": "#a855f7",
+      "description": "Document artifact: docs/CAP_20260711_CORRECTION_TOPOLOGY.md. Contains 18 detected structural sections. Feedback status: COMPLETE.",
+      "feedback_status": "COMPLETE",
+      "geometry_hash": "d215213a9829fb7c77ecf6e4b11ff831b47109bc95cc82aafdd449319b32dc71",
+      "group": "document",
+      "header_present": true,
+      "id": "docs-cap-20260711-correction-topology-md",
+      "label": "CAP_20260711_CORRECTION_TOPOLOGY.md",
+      "path": "docs/CAP_20260711_CORRECTION_TOPOLOGY.md",
+      "section_count": 18,
+      "source_hash": "73baf30e9fdb66dd629862cf7283325eff4851f014229fd98b1683865c143597"
     },
     {
       "blocking_count": null,
@@ -6654,18 +7474,18 @@
       "source_hash": "0d413089273083d9f2a877e431cfc481bda1a5e08f10f43cf69758cb849d5434"
     },
     {
-      "blocking_count": null,
+      "blocking_count": 3,
       "color": "#a855f7",
-      "description": "Document artifact: docs/HOLO_Protocol_Provenance.md.",
-      "feedback_status": null,
-      "geometry_hash": null,
+      "description": "Document artifact: docs/HOLO_Protocol_Provenance.md. Contains 13 detected structural sections. Feedback status: BLOCKED. Blocking findings: 3.",
+      "feedback_status": "BLOCKED",
+      "geometry_hash": "6da510efcadd4d6974b89e4c4215bf381de229d3b5be15b6c7e971845ce98486",
       "group": "document",
-      "header_present": false,
+      "header_present": true,
       "id": "docs-holo-protocol-provenance-md",
       "label": "HOLO_Protocol_Provenance.md",
       "path": "docs/HOLO_Protocol_Provenance.md",
-      "section_count": null,
-      "source_hash": "0671190415fc1586d35221ce66f648ab974cff3abd42e49628c9e3b30f6aac34"
+      "section_count": 13,
+      "source_hash": "f82de5c04159232aa17ebc16bd60dd2b160fbcae86b656cff8fa58233c18c600"
     },
     {
       "blocking_count": 4,
@@ -8023,7 +8843,7 @@
       "label": "visualizer_data.json",
       "path": "holosim/visualizer/visualizer_data.json",
       "section_count": null,
-      "source_hash": "a7702c1c1f5f28757fe4c15377cda97da220ade116d3b1ae079b0dcbe2c5ee89"
+      "source_hash": "ec9c74426fd11ddf4258bfa4848cde1573c9ecef4e03d06ff98282ff99bbfeac"
     },
     {
       "blocking_count": null,
