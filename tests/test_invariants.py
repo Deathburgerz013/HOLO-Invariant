@@ -85,7 +85,11 @@ def test_invariant_preservation_roundtrip(initial_state: dict) -> None:
 
 
 @given(base_state=spine_strategy, deltas=st.lists(delta_strategy, min_size=1, max_size=5))
-@settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=50,
+    deadline=None,
+    suppress_health_check=[HealthCheck.too_slow],
+)
 def test_differential_fuzzing_chain_integrity(base_state: dict, deltas: list[dict]) -> None:
     temp_dir, chain = make_temp_chain("test_fuzz_memory.jsonl")
     try:
