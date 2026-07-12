@@ -280,6 +280,8 @@ def _extract_list_items(section: SpineSection) -> list[dict[str, Any]]:
         stripped = raw_line.strip()
         if not stripped:
             continue
+        if stripped in {"---", "***", "___"}:
+            continue
         cleaned = re.sub(r"^(?:[-*+]|\d+[.)])\s+", "", stripped).strip()
         if not cleaned:
             continue
