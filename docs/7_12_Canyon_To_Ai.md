@@ -33,3 +33,9 @@ for what as missed and allow self correction over time.
 
 The spine allowed me ro realize it.
 Compartment brackets in code allow for the next instance to determine on check.
+
+Gpt stated this should be added :
+
+Don’t add the next mechanism until the current one survives transfer.
+
+As a human I realize we are always self correcting to survive.
