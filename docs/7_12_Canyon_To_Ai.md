@@ -345,3 +345,11 @@ Every new instance becomes another opportunity to ask one simple question:
 “What is still missing?”
 
 That’s a surprisingly disciplined way to build almost anything.
+
+Canyon- 
+If something is missed we need to know what was missed.
+A check tell you most of that.
+
+Invariants are useful and helpful and are preserved because so over time.
+
+I realize when things are needed even for a human, when people care they check and ask what they can do to help and be useful.
