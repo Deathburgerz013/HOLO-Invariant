@@ -4798,3 +4798,13 @@ The system should not trust a correction because it is newer.
 It should accept a correction because the preserved evidence shows that it improved the declared objective without violating higher invariants.
 
 This is ready to append beneath the raw loop in `COMPRESSION_LOOP_ANALYSIS.md`. The existing file preserves the generated version sequence and progressive additions, so this analysis gives future observers the reconstruction frame rather than leaving them to excavate 165,000 characters with a tiny conceptual shovel. :contentReference[oaicite:0]{index=0}
+
+# Separator Geometry Invariant
+
+Repeated structural separators externalize boundaries between operational regions.
+
+The separator does not carry the section’s meaning.
+
+It preserves the distinction, position, and recognition of the section within the larger sequence.
+
+Equivalent separator geometry may recur across documents and code when the same need for bounded reconstruction is present.
