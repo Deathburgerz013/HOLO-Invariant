@@ -29,6 +29,7 @@ SEPARATOR = re.compile(
     re.MULTILINE,
 )
 WORD_PATTERN = re.compile(r"[a-z0-9]+")
+HEADER_PATTERN = re.compile(r"█†█\s*Holo/Sim\s*█†█")
 
 
 class SpineLineageError(RuntimeError):
@@ -74,15 +75,52 @@ class Artifact:
     order: int
     path: str
     source_hash: str
+    header_present: bool
+    header_text: str | None
+    header_hash: str | None
+    header_line: int | None
     sections: tuple[Section, ...]
+
+    @property
+    def compartments(self) -> tuple[Section, ...]:
+        return tuple(
+            section for section in self.sections
+            if section.kind == "separator"
+        )
+
+    @property
+    def compartments_after_header(self) -> tuple[Section, ...]:
+        if self.header_line is None:
+            return tuple()
+        return tuple(
+            section for section in self.compartments
+            if section.start_line > self.header_line
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "order": self.order,
             "path": self.path,
             "source_hash": self.source_hash,
+            "header": {
+                "present": self.header_present,
+                "text": self.header_text,
+                "sha256": self.header_hash,
+                "line": self.header_line,
+            },
             "section_count": len(self.sections),
-            "ordered_section_ids": [section.section_id for section in self.sections],
+            "compartment_count": len(self.compartments),
+            "compartments_after_header": len(self.compartments_after_header),
+            "header_precedes_compartments": (
+                self.header_present
+                and len(self.compartments_after_header) > 0
+            ),
+            "ordered_section_ids": [
+                section.section_id for section in self.sections
+            ],
+            "ordered_compartment_ids": [
+                section.section_id for section in self.compartments
+            ],
         }
 
 
@@ -134,6 +172,21 @@ def parse_artifact(path: str | Path, order: int) -> Artifact:
     except UnicodeError as exc:
         raise ArtifactReadError(f"{resolved} is not valid UTF-8 text.") from exc
 
+    header_match = HEADER_PATTERN.search(text[:5000])
+    header_present = header_match is not None
+    header_text: str | None = None
+    header_hash: str | None = None
+    header_line: int | None = None
+
+    if header_match is not None:
+        line_start = text.rfind("\n", 0, header_match.start()) + 1
+        line_end = text.find("\n", header_match.end())
+        if line_end == -1:
+            line_end = len(text)
+        header_text = text[line_start:line_end].rstrip("\r")
+        header_hash = sha256_text(header_text)
+        header_line = line_number_at(text, line_start)
+
     markers = _marker_matches(text)
     sections: list[Section] = []
     occurrence_counts: dict[str, int] = {}
@@ -168,6 +221,10 @@ def parse_artifact(path: str | Path, order: int) -> Artifact:
         order=order,
         path=resolved.as_posix(),
         source_hash=hashlib.sha256(raw_bytes).hexdigest(),
+        header_present=header_present,
+        header_text=header_text,
+        header_hash=header_hash,
+        header_line=header_line,
         sections=tuple(sections),
     )
 
@@ -357,8 +414,13 @@ def build_lineage(artifacts: Sequence[Artifact]) -> dict[str, Any]:
         {
             "artifact_order": artifact.order,
             "artifact_path": artifact.path,
+            "header_present": artifact.header_present,
+            "header_hash": artifact.header_hash,
             "ordered_section_ids": [
                 section.section_id for section in artifact.sections
+            ],
+            "ordered_compartment_ids": [
+                section.section_id for section in artifact.compartments
             ],
         }
         for artifact in artifacts
@@ -380,8 +442,45 @@ def build_lineage(artifacts: Sequence[Artifact]) -> dict[str, Any]:
         "artifacts": [artifact.to_dict() for artifact in artifacts],
         "sections": ordered_histories,
         "transitions": transitions,
+        "header_compartment_relationship": {
+            "artifacts_with_header": sum(
+                1 for artifact in artifacts if artifact.header_present
+            ),
+            "artifacts_without_header": sum(
+                1 for artifact in artifacts if not artifact.header_present
+            ),
+            "artifacts_with_compartments": sum(
+                1 for artifact in artifacts if artifact.compartments
+            ),
+            "artifacts_where_header_precedes_compartments": sum(
+                1
+                for artifact in artifacts
+                if artifact.header_present
+                and artifact.compartments_after_header
+            ),
+            "header_hashes": sorted(
+                {
+                    artifact.header_hash
+                    for artifact in artifacts
+                    if artifact.header_hash is not None
+                }
+            ),
+            "observation": (
+                "This report records whether the canonical Holo/Sim header "
+                "appears before explicit separator-defined compartments. "
+                "It does not by itself prove that the header caused the "
+                "compartments to emerge."
+            ),
+        },
         "summary": {
             "unique_sections": len(ordered_histories),
+            "total_compartments": sum(
+                len(artifact.compartments) for artifact in artifacts
+            ),
+            "total_compartments_after_header": sum(
+                len(artifact.compartments_after_header)
+                for artifact in artifacts
+            ),
             "total_section_appearances": sum(
                 len(history["appearances"]) for history in ordered_histories
             ),
