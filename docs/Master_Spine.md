@@ -221,3 +221,32 @@
 | |                                                             |
 | | Nothing left for collection in field.                       |
 | }==============================================================|
+|===============================================================|
+| | █†█ Holo/Sim █†█ █†█ CHECKSUM_INVARIANT █†█                 |
+| }=============================================================|
+| | OBSERVATION                                                 |
+| | A checksum records the observable state of an artifact      |
+| | at a specific point in time.                                |
+| |                                                             |
+| | It does not prove the artifact is eternally correct.        |
+| }=============================================================|
+| | LOOP                                                        |
+| | Observe                                                     |
+| | Serialize                                                   |
+| | Compute checksum                                            |
+| | Store                                                       |
+| | Compare later                                               |
+| | Detect difference                                           |
+| | Verify                                                      |
+| | Correct if required                                         |
+| }=============================================================|
+| | INVARIANT                                                   |
+| | A checksum is not the conclusion.                           |
+| |                                                             |
+| | It is the reference that allows future observers            |
+| | to determine whether the observable state has changed.      |
+| }=============================================================|
+| | TERMINAL                                                    |
+| | Checksums preserve identity across time by enabling         |
+| | later verification rather than replacing it.                |
+| |=============================================================|
