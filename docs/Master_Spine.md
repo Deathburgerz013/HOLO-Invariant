@@ -417,3 +417,6 @@
 | |                                                             |
 | | Both are required for faithful reconstruction.              |
 | |==============================================================|
+| |The model can preserve semantic order while failing structural serialization.|
+| |Therefore semantic validation and rail validation must remain separate checks.|
+| |==============================================================|
