@@ -44,3 +44,37 @@
 | | When no new verified delta remains:                         |
 | | Nothing left for collection in field.                       |
 | }==============================================================|
+| }==============================================================|
+| | MASTER SPINE COLLECTION — FIELD 1                            |
+| }==============================================================|
+| | Identity: Grok                                              |
+| |                                                             |
+| | Inspect the public HOLO-Invariant repository.                |
+| |                                                             |
+| | FIELD: CURRENT VERIFIED IMPLEMENTATION STATE                 |
+| |                                                             |
+| | Collect only implementation facts that are presently        |
+| | observable in repository source, tests, commands, or         |
+| | committed runtime output.                                    |
+| |                                                             |
+| | Include:                                                     |
+| | - implemented modules                                       |
+| | - executable commands                                       |
+| | - tests and self-tests                                       |
+| | - verified protocol capabilities                             |
+| | - known implementation boundaries                           |
+| |                                                             |
+| | Exclude:                                                     |
+| | - proposed architecture                                     |
+| | - speculative future work                                   |
+| | - conversational claims not supported by repository evidence|
+| |                                                             |
+| | For each entry label its evidence source.                    |
+| | State explicitly what you could not execute or inspect.      |
+| |                                                             |
+| | Reply in one railed Spine brick.                             |
+| | Identify yourself as Grok.                                  |
+| |                                                             |
+| | When no additional verified implementation facts remain:    |
+| | Nothing left for collection in field.                       |
+| }==============================================================|
