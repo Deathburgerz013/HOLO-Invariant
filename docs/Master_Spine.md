@@ -354,3 +354,33 @@
 | |                                                             |
 | | Nothing left for collection in field.                       |
 | |==============================================================|
+|==============================================================|
+| | █†█ Holo/Sim █†█ █†█ RESTRUCTURE_INVARIANT █†█             |
+| }============================================================|
+| | OBSERVATION                                                |
+| | Restructuring, compression, and correction perform         |
+| | different functions.                                       |
+| }============================================================|
+| | RESTRUCTURE                                                |
+| | Reorders information without changing its meaning.         |
+| |                                                            |
+| | The observable distinctions must remain identical before   |
+| | and after restructuring.                                  |
+| }============================================================|
+| | COMPRESSION                                                |
+| | Removes only verified redundancy.                          |
+| |                                                            |
+| | Compression must preserve every distinction that           |
+| | continues to survive independent review.                   |
+| }============================================================|
+| | CORRECTION                                                 |
+| | Alters meaning only when supported by new observable       |
+| | evidence.                                                  |
+| }============================================================|
+| | INVARIANT                                                  |
+| | Never combine restructuring, compression, and correction   |
+| | into a single unverified transformation.                   |
+| |                                                            |
+| | Verify each operation independently before proceeding to   |
+| | the next.                                                  |
+| |============================================================|
