@@ -149,4 +149,38 @@
 | | Keep the boundary explicit.                                 |
 | |                                                             |
 | | Nothing left for collection in field.                       |
-| |==============================================================|
+| }==============================================================|
+| | █†█ Holo/Sim █†█ █†█ RUNTIME_INVARIANT █†█                 |
+| }============================================================|
+| | OBSERVATION                                                |
+| | Repository structure establishes capability.               |
+| |                                                            |
+| | Runtime execution establishes evidence.                    |
+| |                                                            |
+| | History establishes continuity.                            |
+| |                                                            |
+| | Stress establishes confidence.                             |
+| }============================================================|
+| | ORDER                                                      |
+| |                                                            |
+| | Structure                                                  |
+| |     ↓                                                      |
+| | Execution                                                  |
+| |     ↓                                                      |
+| | Verification                                               |
+| |     ↓                                                      |
+| | History                                                    |
+| |     ↓                                                      |
+| | Stress                                                     |
+| |     ↓                                                      |
+| | Confidence                                                 |
+| }============================================================|
+| | INVARIANT                                                  |
+| | Documentation alone does not establish runtime truth.      |
+| |                                                            |
+| | Runtime execution alone does not establish long-term       |
+| | stability.                                                 |
+| |                                                            |
+| | Stability emerges through repeated verified observation    |
+| | over time.                                                 |
+| }============================================================|
