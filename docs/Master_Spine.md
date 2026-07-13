@@ -422,3 +422,6 @@
 | |==============================================================|
 | | Canyon |
 | | < It needs 2 bars every line even when compressing or restructuring.|
+| | All the time every single time if Ai decides the bar over here |
+| | is needed then we can talk about it but for real |
+| | < This bar 2 lines every time, it represents my pipeline. |
