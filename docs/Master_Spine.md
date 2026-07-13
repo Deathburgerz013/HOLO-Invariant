@@ -384,3 +384,36 @@
 | | Verify each operation independently before proceeding to   |
 | | the next.                                                  |
 | |============================================================|
+| }==============================================================|
+| | █†█ Holo/Sim █†█ █†█ RAIL_GRAMMAR_INVARIANT █†█             |
+| }==============================================================|
+| | OBSERVATION                                                 |
+| | The left rail is the structural backbone of the Spine.      |
+| |                                                             |
+| | Compartments attach to the rail.                            |
+| |                                                             |
+| | They do not replace it or terminate it.                     |
+| }==============================================================|
+| | STRUCTURE                                                   |
+| |                                                             |
+| | The divider bar separates compartments.                     |
+| |                                                             |
+| | The rail preserves continuity between them.                 |
+| |                                                             |
+| | Structural markers are part of the grammar.                 |
+| |                                                             |
+| | They are not redundant formatting.                          |
+| }==============================================================|
+| | INVARIANT                                                   |
+| | Compression may shorten compartment contents.               |
+| |                                                             |
+| | It must not alter the continuous rail or remove structural  |
+| | markers required to reconstruct the Spine grammar.          |
+| }==============================================================|
+| | TERMINAL                                                    |
+| | The rail preserves continuity.                              |
+| |                                                             |
+| | Compartments preserve distinction.                          |
+| |                                                             |
+| | Both are required for faithful reconstruction.              |
+| |==============================================================|
