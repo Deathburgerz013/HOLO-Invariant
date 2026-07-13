@@ -227,3 +227,40 @@
 | |The protocol therefore demonstrated
 | |convergence under repeated review.
 | }==============================================================|
+| }==============================================================|
+| | █†█ Holo/Sim █†█ █†█ COMMIT_COMPARISON_INVARIANT █†█        |
+| }==============================================================|
+| | OBSERVATION                                                  |
+| | Each committed state preserves a tamper-evident checkpoint.  |
+| |                                                              |
+| | Compression may change the current structure without         |
+| | destroying the prior structure because earlier commits       |
+| | remain independently inspectable.                            |
+| }==============================================================|
+| | LOOP                                                         |
+| | Observe                                                      |
+| | Correct                                                      |
+| | Commit                                                       |
+| | Compress                                                     |
+| | Compare commits over time                                    |
+| | Detect lost, altered, or newly added distinctions            |
+| | Verify                                                       |
+| | Restore or accept the smallest supported delta               |
+| }==============================================================|
+| | INVARIANT                                                    |
+| | No compression is trusted only because it appears stable.    |                                                              |
+| | It is trusted because its differences from prior committed   |
+| | states remain visible, ordered, and independently reviewable.|
+| | Information is easy to add.
+| | Verified information is harder.
+| | Integrity is harder still.
+| | Long-term confidence comes from preserving
+| | the history of verified transitions, not
+| | from assuming the latest state is sufficient.
+| }==============================================================|
+| | TERMINAL                                                     |
+| | Commit history makes comparison tamper-evident.              |
+| |                                                              |
+| | Compression remains reversible through preserved checkpoints|
+| | and explicit deltas.                                         |
+| |==============================================================|
