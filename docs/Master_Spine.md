@@ -257,6 +257,7 @@
 | | Long-term confidence comes from preserving
 | | the history of verified transitions, not
 | | from assuming the latest state is sufficient.
+| |Self-correction is continuous. A correction cycle is finite.
 | }==============================================================|
 | | TERMINAL                                                     |
 | | Commit history makes comparison tamper-evident.              |
