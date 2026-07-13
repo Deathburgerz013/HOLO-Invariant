@@ -35,6 +35,9 @@ PROTOCOL_VERSION = 1
 
 HEADER_PATTERN = re.compile(r"█†█\s*Holo/Sim\s*█†█")
 HEADING_PATTERN = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$", re.MULTILINE)
+RAIL_LINE_PATTERN = re.compile(r"^(?P<prefix>(?:[|\u2502][ \t]*)+)(?P<body>.*)$")
+RAIL_DIVIDER_PATTERN = re.compile(r"^\}={3,}\|?$")
+RAIL_BORDER_PATTERN = re.compile(r"^={3,}\|?$")
 
 BOUNDARY_NAMES = {
     "observation", "claim", "evidence", "verification", "authority",
@@ -93,6 +96,24 @@ class SourceSpan:
             "end_offset": self.end_offset,
             "start_line": self.start_line,
             "end_line": self.end_line,
+        }
+
+
+@dataclass(frozen=True)
+class RailLine:
+    line_number: int
+    depth: int
+    prefix: str
+    body: str
+    kind: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "line_number": self.line_number,
+            "depth": self.depth,
+            "prefix": self.prefix,
+            "body": self.body,
+            "kind": self.kind,
         }
 
 
@@ -268,6 +289,104 @@ def parse_spine_file(path: str | Path) -> SpineDocument:
     return document
 
 
+def classify_rail_body(body: str) -> str:
+    """Classify one rail-attached line without changing its source."""
+    stripped = body.strip()
+
+    if not stripped:
+        return "empty"
+    if RAIL_DIVIDER_PATTERN.fullmatch(stripped):
+        return "divider"
+    if RAIL_BORDER_PATTERN.fullmatch(stripped):
+        return "border"
+    return "content"
+
+
+def analyze_rail_structure(text: str) -> dict[str, Any]:
+    """Read visible Spine rails as structural metadata.
+
+    The raw text remains canonical. This function reports rail attachment,
+    nesting depth, dividers, and any non-empty line that falls off the rail
+    after a rail-framed document has begun.
+    """
+    rail_lines: list[RailLine] = []
+    unframed_lines: list[int] = []
+    rail_started = False
+
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        if not raw_line.strip():
+            continue
+
+        match = RAIL_LINE_PATTERN.match(raw_line)
+        if match is None:
+            if rail_started:
+                unframed_lines.append(line_number)
+            continue
+
+        rail_started = True
+        prefix = match.group("prefix")
+        body = match.group("body")
+        rail_lines.append(
+            RailLine(
+                line_number=line_number,
+                depth=prefix.count("|") + prefix.count("\u2502"),
+                prefix=prefix,
+                body=body,
+                kind=classify_rail_body(body),
+            )
+        )
+
+    divider_lines = [
+        item.line_number
+        for item in rail_lines
+        if item.kind in {"divider", "border"}
+    ]
+    depths = [item.depth for item in rail_lines]
+
+    return {
+        "type": "holo_spine_rail_analysis",
+        "version": PROTOCOL_VERSION,
+        "rail_present": bool(rail_lines),
+        "rail_line_count": len(rail_lines),
+        "divider_lines": divider_lines,
+        "depths": depths,
+        "maximum_depth": max(depths, default=0),
+        "unframed_lines_after_rail_start": unframed_lines,
+        "continuous": bool(rail_lines) and not unframed_lines,
+        "lines": [item.to_dict() for item in rail_lines],
+        "interpretation_notice": (
+            "Rail analysis is derived metadata. "
+            "The raw Spine source remains canonical."
+        ),
+    }
+
+
+def summarize_rail_analysis(analysis: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a compact terminal-safe view of a full rail analysis."""
+    divider_lines = list(analysis.get("divider_lines", []))
+    depths = list(analysis.get("depths", []))
+    unframed = list(analysis.get("unframed_lines_after_rail_start", []))
+
+    depth_counts: dict[str, int] = {}
+    for depth in depths:
+        key = str(depth)
+        depth_counts[key] = depth_counts.get(key, 0) + 1
+
+    return {
+        "type": analysis.get("type"),
+        "version": analysis.get("version"),
+        "rail_present": analysis.get("rail_present"),
+        "continuous": analysis.get("continuous"),
+        "rail_line_count": analysis.get("rail_line_count"),
+        "divider_count": len(divider_lines),
+        "maximum_depth": analysis.get("maximum_depth"),
+        "depth_counts": depth_counts,
+        "unframed_line_count": len(unframed),
+        "unframed_lines_after_rail_start": unframed,
+        "interpretation_notice": analysis.get("interpretation_notice"),
+    }
+
+
 def _section_matches_label(section: SpineSection, labels: Sequence[str]) -> bool:
     return any(label in section.normalized_title for label in labels)
 
@@ -296,6 +415,7 @@ def _extract_list_items(section: SpineSection) -> list[dict[str, Any]]:
 
 def reconstruct_frame(document: SpineDocument) -> dict[str, Any]:
     """Build a derived semantic frame while retaining source references."""
+    rail = analyze_rail_structure(document.raw_text)
     boundaries: list[dict[str, Any]] = []
     semantic: dict[str, list[dict[str, Any]]] = {key: [] for key in SEMANTIC_LABELS}
 
@@ -331,6 +451,7 @@ def reconstruct_frame(document: SpineDocument) -> dict[str, Any]:
         "version": PROTOCOL_VERSION,
         "source": {"name": document.source_name, "sha256": document.source_sha256},
         "header": {"text": document.header_text, "span": document.header_span.to_dict()},
+        "rail": rail,
         "geometry": {
             "section_count": len(document.sections),
             "ordered_titles": [s.title for s in document.sections],
@@ -495,6 +616,7 @@ def run_self_test() -> None:
 
     frame = reconstruct_frame(first)
     assert frame["geometry"]["section_count"] == 3
+    assert frame["rail"]["rail_present"] is True
     assert frame["semantic"]["uncertainty"]
     assert frame["boundaries"][0]["names"] == ["uncertainty"]
 
@@ -508,6 +630,38 @@ def run_self_test() -> None:
     packet = build_transfer_packet(first)
     assert packet["source_sha256"] == first.source_sha256
     assert len(packet["packet_hash"]) == 64
+
+    rail_source = (
+        "|===============================|\n"
+        "| █†█ Holo/Sim █†█              |\n"
+        "| }=============================|\n"
+        "| | FRAME_ID: test-frame\n"
+        "| | INPUT: source-a\n"
+        "| | VERIFICATION: pending\n"
+        "| }=============================|\n"
+    )
+    rail_analysis = analyze_rail_structure(rail_source)
+    assert rail_analysis["rail_present"] is True
+    assert rail_analysis["continuous"] is True
+    assert rail_analysis["maximum_depth"] == 2
+    assert rail_analysis["unframed_lines_after_rail_start"] == []
+    assert any(item["kind"] == "divider" for item in rail_analysis["lines"])
+
+    broken_rail_source = (
+        "|===============================|\n"
+        "| | FRAME_ID: broken\n"
+        "THIS LINE FELL OFF THE RAIL\n"
+        "| | OUTPUT: none\n"
+    )
+    broken_analysis = analyze_rail_structure(broken_rail_source)
+    assert broken_analysis["continuous"] is False
+    assert broken_analysis["unframed_lines_after_rail_start"] == [3]
+
+    rail_summary = summarize_rail_analysis(rail_analysis)
+    assert rail_summary["continuous"] is True
+    assert rail_summary["rail_line_count"] == len(rail_analysis["lines"])
+    assert rail_summary["unframed_line_count"] == 0
+    assert "lines" not in rail_summary
 
     with tempfile.TemporaryDirectory() as temp_dir:
         path = Path(temp_dir) / "Spine.md"
@@ -549,6 +703,17 @@ def main() -> None:
     transfer_parser = subparsers.add_parser("transfer")
     transfer_parser.add_argument("file")
 
+    rail_parser = subparsers.add_parser(
+        "rail",
+        help="Analyze visible Spine rails without rewriting the source.",
+    )
+    rail_parser.add_argument("file")
+    rail_parser.add_argument(
+        "--include-lines",
+        action="store_true",
+        help="Include every parsed rail line. Default output is a compact summary.",
+    )
+
     subparsers.add_parser("self-test")
 
     args = parser.parse_args()
@@ -569,6 +734,12 @@ def main() -> None:
             ))
         elif args.command == "transfer":
             _print_json(build_transfer_packet(parse_spine_file(args.file)))
+        elif args.command == "rail":
+            document = parse_spine_file(args.file)
+            analysis = analyze_rail_structure(document.raw_text)
+            _print_json(
+                analysis if args.include_lines else summarize_rail_analysis(analysis)
+            )
         elif args.command == "self-test":
             run_self_test()
         else:
