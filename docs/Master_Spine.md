@@ -406,6 +406,6 @@
 | | later verification rather than replacing it.                 |
 | |==============================================================|
 | | Canyon |
-| | This document is subject to compression and over-time.       |
+| | This document is subject to verified compression over-time.  |
 | | Over the passes as we check for what it factually still needs|
 |================================================================|
