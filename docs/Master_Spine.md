@@ -263,3 +263,57 @@
 | | Compression remains reversible through preserved checkpoints|
 | | and explicit deltas.                                         |
 | |==============================================================|
+| }==============================================================|
+| | █†█ Holo/Sim █†█ █†█ REOPEN_INVARIANT █†█                   |
+| }==============================================================|
+| | STATUS: VERIFIED_PROTOCOL                                   |
+| | AUTHORITY: DESCRIPTIVE_ONLY                                 |
+| | WRITE_AUTHORITY: NONE                                       |
+| }==============================================================|
+| | OBSERVATION                                                 |
+| | A completed checkpoint remains complete until the           |
+| | observable environment changes.                             |
+| |                                                            |
+| | The protocol does not reopen because time has passed.       |
+| |                                                            |
+| | It reopens because new evidence has entered the             |
+| | environment or previously unavailable evidence has become   |
+| | observable.                                                 |
+| }==============================================================|
+| | REOPEN_CONDITIONS                                           |
+| | Begin a new verification cycle only when one or more of     |
+| | the following occur:                                        |
+| |                                                            |
+| | • repository content changes                               |
+| | • new commit accepted                                      |
+| | • runtime output changes                                   |
+| | • test results change                                      |
+| | • correction is proposed                                   |
+| | • new observable evidence appears                          |
+| | • previous uncertainty becomes verifiable                  |
+| | • comparison reveals a new supported distinction           |
+| }==============================================================|
+| | NON_REOPEN_CONDITIONS                                       |
+| | Do not reopen solely because:                              |
+| |                                                            |
+| | • additional discussion occurs                             |
+| | • another observer repeats an existing conclusion          |
+| | • wording preference changes                               |
+| | • speculation increases                                    |
+| | • no new supported delta exists                            |
+| }==============================================================|
+| | INVARIANT                                                   |
+| | The environment determines whether a verification cycle     |
+| | should reopen.                                              |
+| |                                                            |
+| | Comparison determines whether a verified delta exists.      |
+| |                                                            |
+| | Verification determines whether that delta deserves         |
+| | preservation.                                               |
+| }==============================================================|
+| | TERMINAL                                                    |
+| | Preserve the checkpoint until the environment              |
+| | justifies reopening it.                                    |
+| |                                                            |
+| | Nothing left for collection in field.                      |
+| |==============================================================|
