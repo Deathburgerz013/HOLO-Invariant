@@ -408,4 +408,15 @@
 | | Canyon |
 | | This document is subject to verified compression over-time.  |
 | | Over the passes as we check for what it factually still needs|
-|================================================================|
+| }==============================================================|
+| | REVIEW_INVARIANT                                             |
+| |                                                              |
+| | Proposed additions are provisional until independently       |
+| | reviewed against observable evidence.                        |
+| |                                                              |
+| | Commits record accepted reconstruction checkpoints,          |
+| | not final truth.                                             |
+| |                                                              |
+| | Future evidence may refine any checkpoint through            |
+| | additional verified deltas.                                  |
+| |==============================================================|
