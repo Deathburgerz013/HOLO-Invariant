@@ -190,7 +190,6 @@
 | |What repeatedly passes becomes deserved structure.|
 | |What is important is what factually goes in this next.|
 | |Before compressed correctly and restructured. |
-| }============================================================|
 | }==============================================================|
 | | █†█ Holo/Sim █†█ █†█ STOP_INVARIANT █†█                     |
 | }==============================================================|
@@ -226,7 +225,6 @@
 | |of discussion.
 | |The protocol therefore demonstrated
 | |convergence under repeated review.
-| }==============================================================|
 | }==============================================================|
 | | █†█ Holo/Sim █†█ █†█ COMMIT_COMPARISON_INVARIANT █†█        |
 | }==============================================================|
