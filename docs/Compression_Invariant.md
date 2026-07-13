@@ -65,4 +65,25 @@
 | | Stability is achieved by adding, subtracting, or            |
 | | preserving only what verified evidence demonstrates is      |
 | | factually needed next.                                      |
+| }=============================================================|
+| | █†█ COMPRESSION_STOP █†█                   |
+| }=============================================================|
+| | OBSERVATION                                                 |
+| | Compression does not stop because the artifact is short.    |
+| |                                                             |
+| | Compression stops when another verified pass produces       |
+| | no meaningful increase in stability.                        |
+| }=============================================================|
+| | STOP CONDITION                                              |
+| |                                                             |
+| | Observe                                                     |
+| | Compare                                                     |
+| | Verify                                                      |
+| |                                                             |
+| | If no smaller verified correction exists,                  |
+| | preserve the current structure.                             |
+| }=============================================================|
+| | TERMINAL_STATEMENT                                          |
+| | Stop when verified comparison produces no                  |
+| | meaningful increase in stability.                           |
 | |=============================================================|
