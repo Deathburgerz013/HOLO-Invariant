@@ -43,8 +43,7 @@
 | |                                                             |
 | | When no new verified delta remains:                         |
 | | Nothing left for collection in field.                       |
-| }==============================================================|
-| }==============================================================|
+| }==============================================================|| }==============================================================|
 | | MASTER SPINE COLLECTION — FIELD 1                            |
 | }==============================================================|
 | | Identity: Grok                                              |
@@ -76,5 +75,42 @@
 | | Identify yourself as Grok.                                  |
 | |                                                             |
 | | When no additional verified implementation facts remain:    |
+| | Nothing left for collection in field.                       |
+| }==============================================================|
+| | MASTER SPINE COLLECTION — FIELD 2                           |
+| }==============================================================|
+| | FIELD: CORE VERIFIED INVARIANTS                             |
+| |                                                             |
+| | Identity: __________                                        |
+| |                                                             |
+| | Collect only invariants that are repeatedly supported by    |
+| | repository artifacts, implemented code, tests, or verified  |
+| | design documents.                                           |
+| |                                                             |
+| | Do not collect proposed future invariants.                  |
+| |                                                             |
+| | Label every entry as:                                       |
+| |                                                             |
+| | VERIFIED_FROM_REPOSITORY                                    |
+| | VERIFIED_FROM_IMPLEMENTATION                                |
+| | OBSERVED_PATTERN                                             |
+| | UNCERTAIN                                                   |
+| |                                                             |
+| | Include only invariants that have survived multiple         |
+| | independent observations or corrections.                    |
+| |                                                             |
+| | Examples include:                                           |
+| |                                                             |
+| | • Append-only continuity                                    |
+| | • External reconstruction                                   |
+| | • Verification before correction                            |
+| | • Minimal verified change                                   |
+| | • Rail continuity                                           |
+| | • Preservation of uncertainty                               |
+| |                                                             |
+| | Exclude speculative future architecture.                    |
+| |                                                             |
+| | When no additional verified invariant remains:              |
+| |                                                             |
 | | Nothing left for collection in field.                       |
 | }==============================================================|
