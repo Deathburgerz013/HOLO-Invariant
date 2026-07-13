@@ -86,4 +86,25 @@
 | | TERMINAL_STATEMENT                                          |
 | | Stop when verified comparison produces no                  |
 | | meaningful increase in stability.                           |
+| }=============================================================|
+| | █†█ Holo/Sim █†█ █†█ PROOF_INVARIANT █†█                    |
+| }=============================================================|
+| | OBSERVATION                                                 |
+| | Proof is not a single observation.                          |
+| |                                                             |
+| | Proof is a claim that continues to survive                  |
+| | repeated verified comparison as time and the                |
+| | observable environment change.                              |
+| }=============================================================|
+| | INVARIANT                                                   |
+| | A claim gains confidence by surviving                       |
+| | independent checks across changing conditions.              |
+| |                                                             |
+| | Failed comparison produces correction.                      |
+| | Successful comparison increases confidence.                 |
+| |                                                             |
+| | Time is part of the verification process.                   |
+| }=============================================================|
+| | TERMINAL_STATEMENT                                          |
+| | Proof is repeated verified convergence over time.           |
 | |=============================================================|
