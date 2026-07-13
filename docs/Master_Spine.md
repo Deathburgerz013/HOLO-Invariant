@@ -191,3 +191,26 @@
 | |What is important is what factually goes in this next.|
 | |Before compressed correctly and restructured. |
 | }============================================================|
+| }==============================================================|
+| | █†█ Holo/Sim █†█ █†█ STOP_INVARIANT █†█                     |
+| }==============================================================|
+| | OBSERVATION                                                 |
+| | A completed collection field is not evidence that the       |
+| | project is complete.                                        |
+| |                                                            |
+| | It is evidence that no additional verified delta has        |
+| | survived comparison within the current observable state.    |
+| }==============================================================|
+| | INVARIANT                                                   |
+| | Continue only when new evidence, implementation, runtime    |
+| | output, correction, or verified observation enters the      |
+| | environment.                                                |
+| |                                                            |
+| | Otherwise preserve the current checkpoint unchanged.        |
+| }==============================================================|
+| | TERMINAL                                                    |
+| | The absence of a verified delta is itself a valid           |
+| | checkpoint.                                                 |
+| |                                                            |
+| | Nothing left for collection in field.                       |
+| |==============================================================|
