@@ -57,7 +57,7 @@ except ImportError:
 
 
 ENGINE_TYPE = "holo_sim_fixed_point"
-ENGINE_VERSION = "1.0"
+ENGINE_VERSION = "1.1"
 
 BASE_RELATION = "(C + I + E)^2"
 STABILITY_RELATION = "S = K + ΣF + (C + I + E)^2"
@@ -337,11 +337,36 @@ class HoloSim:
             source=source,
         ).packet()
 
+        verified_checks = []
+        if before_protected == after_protected:
+            verified_checks.append("protected_fields_preserved")
+        if stable_hash(self.specification) == self.fixed_point_hash:
+            verified_checks.append("fixed_point_specification_stable")
+        if not invalid_factors:
+            verified_checks.append("contextual_factors_numeric")
+
+        evidence = [
+            {"kind": "state_before", "sha256": stable_hash(current)},
+            {"kind": "proposed_delta", "sha256": stable_hash(normalized_delta)},
+            {"kind": "candidate_state", "sha256": stable_hash(candidate)},
+            {
+                "kind": "provenance",
+                "source": provenance.get("source"),
+                "commit": provenance.get("git", {}).get("commit"),
+            },
+        ]
+
         return {
-            "type": "holo_sim_transition",
+            "type": "holo_invariant_evaluation",
             "version": ENGINE_VERSION,
-            "status": "accepted" if preserved else "rejected",
+            "status": "PASS" if preserved else "FLAGGED",
             "preserved": preserved,
+            "verified_checks": verified_checks,
+            "violations": violations,
+            "uncertainty": [],
+            "evidence": evidence,
+            "accepted": False,
+            "write_authority": "NONE",
             "relations": {
                 "base": BASE_RELATION,
                 "stability": STABILITY_RELATION,
@@ -364,7 +389,6 @@ class HoloSim:
             "before_hash": stable_hash(current),
             "delta_hash": stable_hash(normalized_delta),
             "after_hash": stable_hash(candidate),
-            "violations": violations,
             "current_state": current,
             "normalized_delta": normalized_delta,
             "next_state": candidate if preserved else None,
@@ -379,8 +403,14 @@ class HoloSim:
         source: str = "holo_sim",
         factors: Mapping[str, float] | None = None,
         tags: Iterable[str] | None = None,
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
     ) -> Dict[str, Any]:
-        """Evaluate and explicitly append an accepted transition."""
+        """Append only after explicit external acceptance is supplied.
+
+        Evaluation never accepts its own result. Mutation requires both a
+        reviewer identity and an external approval reference.
+        """
         decision = self.evaluate(
             delta,
             source=source,
@@ -389,7 +419,46 @@ class HoloSim:
         )
 
         if not decision["preserved"]:
-            return decision
+            return {
+                **decision,
+                "commit_performed": False,
+                "mutation": None,
+            }
+
+        reviewer_value = reviewer.strip() if isinstance(reviewer, str) else ""
+        approval_value = (
+            approval_reference.strip()
+            if isinstance(approval_reference, str)
+            else ""
+        )
+
+        if not reviewer_value or not approval_value:
+            return {
+                **decision,
+                "status": "BLOCKED",
+                "commit_performed": False,
+                "mutation": None,
+                "authority": {
+                    "accepted": False,
+                    "source": "external_human_required",
+                    "reviewer": reviewer_value or None,
+                    "approval_reference": approval_value or None,
+                },
+                "violations": [
+                    *decision["violations"],
+                    (
+                        "Commit requires an external reviewer and "
+                        "approval reference."
+                    ),
+                ],
+            }
+
+        authority = {
+            "accepted": True,
+            "source": "external_human",
+            "reviewer": reviewer_value,
+            "approval_reference": approval_value,
+        }
 
         append_payload = {
             "type": "holo_sim_commit",
@@ -403,6 +472,7 @@ class HoloSim:
             "next_state": decision["next_state"],
             "provenance": decision["provenance"],
             "timestamp": decision["timestamp"],
+            "authority": authority,
         }
 
         entry = self.chain.append(
@@ -411,9 +481,13 @@ class HoloSim:
 
         return {
             **decision,
-            "status": "committed",
-            "append": entry,
-            "verify": self.verify_fixed_point(),
+            "status": "COMMITTED",
+            "commit_performed": True,
+            "mutation": {
+                "append": entry,
+                "verify": self.verify_fixed_point(),
+            },
+            "authority": authority,
         }
 
     def verify_fixed_point(self) -> Dict[str, Any]:
@@ -500,9 +574,11 @@ def main() -> None:
 
     commit_parser = subparsers.add_parser(
         "commit",
-        help="Evaluate and append a text delta",
+        help="Append only with explicit external acceptance",
     )
     commit_parser.add_argument("delta")
+    commit_parser.add_argument("--reviewer", required=True)
+    commit_parser.add_argument("--approval-reference", required=True)
 
     args = parser.parse_args()
 
@@ -518,7 +594,11 @@ def main() -> None:
     elif args.command == "evaluate":
         result = engine.evaluate(args.delta)
     elif args.command == "commit":
-        result = engine.commit(args.delta)
+        result = engine.commit(
+            args.delta,
+            reviewer=args.reviewer,
+            approval_reference=args.approval_reference,
+        )
     else:
         raise SystemExit(
             f"Unknown Holo/Sim command: {args.command}"
