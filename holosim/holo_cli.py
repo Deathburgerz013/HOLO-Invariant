@@ -116,6 +116,26 @@ File Inventory with SHA-256 hashes (for tamper-evidence):
     return content
 
 
+
+def has_bound_analysis_frame(path: Path, root: Path) -> bool:
+    """Return True when a raw artifact has a valid bound analysis frame."""
+    companion = path.with_name(f"{path.stem}_Analysis.md")
+    if not companion.is_file():
+        return False
+
+    try:
+        content = companion.read_text(encoding="utf-8")[:5000]
+    except (OSError, UnicodeError):
+        return False
+
+    relative_source = path.relative_to(root).as_posix()
+    return (
+        bool(HEADER_PATTERN.search(content))
+        and f"SOURCE_FILE: {relative_source}" in content
+        and "SOURCE_ROLE: RAW_EVIDENCE_TRACE" in content
+    )
+
+
 def check_spine_headers(directory: str | Path = REPO_ROOT) -> list[str]:
     """Validate required Holo/Sim header marker in important markdown files."""
     issues: list[str] = []
@@ -130,6 +150,8 @@ def check_spine_headers(directory: str | Path = REPO_ROOT) -> list[str]:
         try:
             content = path.read_text(encoding="utf-8")[:5000]
             if not HEADER_PATTERN.search(content):
+                if has_bound_analysis_frame(path, root):
+                    continue
                 issues.append(f"Missing █†█ Holo/Sim █†█ header in {path.relative_to(root).as_posix()}")
         except Exception as e:
             issues.append(f"Read error {path.as_posix()}: {e}")
