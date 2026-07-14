@@ -471,5 +471,5 @@
 | | TERMINAL                                                    |
 | | Preserve the frame.                                         |
 | |                                                             |
-| | Reconstruct the rest.                                       |
+| | Reconstruct then help construct the rest.                                       |
 | |==============================================================|
