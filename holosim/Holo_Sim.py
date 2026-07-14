@@ -57,7 +57,7 @@ except ImportError:
 
 
 ENGINE_TYPE = "holo_sim_fixed_point"
-ENGINE_VERSION = "1.1"
+ENGINE_VERSION = "1.2"
 
 BASE_RELATION = "(C + I + E)^2"
 STABILITY_RELATION = "S = K + ΣF + (C + I + E)^2"
@@ -278,6 +278,164 @@ class HoloSim:
 
         return merged
 
+    def _committed_assertions(self) -> list[Mapping[str, Any]]:
+        """Return structured assertions preserved in verified commits."""
+        assertions: list[Mapping[str, Any]] = []
+
+        for item in self.replay.state():
+            if not isinstance(item, Mapping):
+                continue
+
+            state = item.get("next_state", item)
+            if not isinstance(state, Mapping):
+                continue
+
+            stored = state.get("assertions", [])
+            if isinstance(stored, list):
+                assertions.extend(
+                    assertion
+                    for assertion in stored
+                    if isinstance(assertion, Mapping)
+                )
+
+        return assertions
+
+    def _check_non_contradiction(
+        self,
+        normalized_delta: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        """Check structured claims under matching scope and evidence state.
+
+        This deliberately does not infer meaning from free text. A structured
+        assertion has four fields: claim, polarity, scope, and evidence_state.
+        Only ``affirmed`` and ``negated`` are valid polarity values.
+        """
+        event = normalized_delta.get("event")
+        incoming_raw = event.get("assertions", []) if isinstance(event, Mapping) else []
+
+        uncertainty: list[Dict[str, Any]] = []
+        incoming: list[Mapping[str, Any]] = []
+
+        if not isinstance(incoming_raw, list):
+            uncertainty.append(
+                {
+                    "kind": "invalid_assertions_container",
+                    "message": "assertions must be a list",
+                }
+            )
+        else:
+            for index, assertion in enumerate(incoming_raw):
+                if not isinstance(assertion, Mapping):
+                    uncertainty.append(
+                        {
+                            "kind": "invalid_assertion",
+                            "index": index,
+                            "message": "assertion must be an object",
+                        }
+                    )
+                    continue
+
+                claim = assertion.get("claim")
+                polarity = assertion.get("polarity")
+                missing = [
+                    field
+                    for field in ("claim", "polarity", "scope", "evidence_state")
+                    if field not in assertion
+                ]
+
+                if missing or not isinstance(claim, str) or not claim.strip():
+                    uncertainty.append(
+                        {
+                            "kind": "invalid_assertion",
+                            "index": index,
+                            "message": "structured assertion fields are incomplete",
+                            "missing_fields": missing,
+                        }
+                    )
+                    continue
+
+                if polarity not in {"affirmed", "negated"}:
+                    uncertainty.append(
+                        {
+                            "kind": "invalid_polarity",
+                            "index": index,
+                            "message": "polarity must be affirmed or negated",
+                        }
+                    )
+                    continue
+
+                incoming.append(assertion)
+
+        historical = self._committed_assertions()
+        indexed: Dict[str, Dict[str, list[Dict[str, Any]]]] = {}
+
+        def add_assertion(
+            assertion: Mapping[str, Any],
+            *,
+            origin: str,
+            index: int,
+        ) -> None:
+            claim = assertion.get("claim")
+            polarity = assertion.get("polarity")
+            if (
+                not isinstance(claim, str)
+                or not claim.strip()
+                or polarity not in {"affirmed", "negated"}
+                or "scope" not in assertion
+                or "evidence_state" not in assertion
+            ):
+                return
+
+            identity = {
+                "claim": " ".join(claim.casefold().split()),
+                "scope": assertion["scope"],
+                "evidence_state": assertion["evidence_state"],
+            }
+            key = stable_hash(identity)
+            indexed.setdefault(
+                key,
+                {"affirmed": [], "negated": []},
+            )[polarity].append(
+                {
+                    "origin": origin,
+                    "index": index,
+                    "assertion_sha256": stable_hash(assertion),
+                }
+            )
+
+        for index, assertion in enumerate(historical):
+            add_assertion(assertion, origin="committed", index=index)
+        for index, assertion in enumerate(incoming):
+            add_assertion(assertion, origin="incoming", index=index)
+
+        contradictions = []
+        for key, polarities in sorted(indexed.items()):
+            if polarities["affirmed"] and polarities["negated"]:
+                contradictions.append(
+                    {
+                        "claim_scope_evidence_sha256": key,
+                        "affirmed": polarities["affirmed"],
+                        "negated": polarities["negated"],
+                    }
+                )
+
+        return {
+            "type": "structured_non_contradiction_check",
+            "version": 1,
+            "valid": not contradictions and not uncertainty,
+            "checked_assertion_count": len(historical) + len(incoming),
+            "historical_assertion_count": len(historical),
+            "incoming_assertion_count": len(incoming),
+            "contradiction_count": len(contradictions),
+            "contradictions": contradictions,
+            "uncertainty": uncertainty,
+            "interpretation_notice": (
+                "This check compares explicit structured assertions only; "
+                "it does not infer contradiction from free text."
+            ),
+            "write_authority": "NONE",
+        }
+
     def evaluate(
         self,
         delta: Any,
@@ -330,7 +488,15 @@ class HoloSim:
             else 0.0
         )
 
-        preserved = not violations
+        non_contradiction = self._check_non_contradiction(normalized_delta)
+        if non_contradiction["contradictions"]:
+            violations.append(
+                "Contradictory structured assertions share claim, scope, "
+                "and evidence state."
+            )
+
+        uncertainty = list(non_contradiction["uncertainty"])
+        preserved = not violations and not uncertainty
 
         provenance = get_provenance(
             thread_id=self.thread_id,
@@ -344,6 +510,8 @@ class HoloSim:
             verified_checks.append("fixed_point_specification_stable")
         if not invalid_factors:
             verified_checks.append("contextual_factors_numeric")
+        if non_contradiction["valid"]:
+            verified_checks.append("structured_non_contradiction")
 
         evidence = [
             {"kind": "state_before", "sha256": stable_hash(current)},
@@ -354,6 +522,10 @@ class HoloSim:
                 "source": provenance.get("source"),
                 "commit": provenance.get("git", {}).get("commit"),
             },
+            {
+                "kind": "non_contradiction_report",
+                "sha256": stable_hash(non_contradiction),
+            },
         ]
 
         return {
@@ -363,7 +535,7 @@ class HoloSim:
             "preserved": preserved,
             "verified_checks": verified_checks,
             "violations": violations,
-            "uncertainty": [],
+            "uncertainty": uncertainty,
             "evidence": evidence,
             "accepted": False,
             "write_authority": "NONE",
@@ -392,6 +564,7 @@ class HoloSim:
             "current_state": current,
             "normalized_delta": normalized_delta,
             "next_state": candidate if preserved else None,
+            "non_contradiction": non_contradiction,
             "provenance": provenance,
             "timestamp": utc_now(),
         }

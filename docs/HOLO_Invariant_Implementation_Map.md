@@ -32,14 +32,18 @@
 | | observers, evaluators, receipts, exports, and persistence.    |
 | | }==============================================================|
 | | NON_CONTRADICTION                                            |
-| | CLASSIFICATION: MISSING                                      |
+| | CLASSIFICATION: PARTIAL                                      |
 | |                                                              |
 | | EVIDENCE:                                                    |
-| | HoloSim detects protected-field drift, but it does not detect |
-| | a claim and its negation under matching scope and evidence.   |
+| | HoloSim 1.2 compares explicit structured assertions using    |
+| | normalized claim, scope, evidence state, and polarity.        |
+| | Opposite polarities under the same identity are violations.   |
+| | Incomplete assertion data is retained as uncertainty.         |
+| | Checks cover both an incoming delta and approved history.     |
 | |                                                              |
 | | GAP:                                                         |
-| | No scope-aware semantic contradiction check exists.          |
+| | Free-text semantic equivalence, implication, and negation are |
+| | not inferred. They require a separately bounded capability.   |
 | | }==============================================================|
 | | CAUSAL_ORDERING                                              |
 | | CLASSIFICATION: PARTIAL                                      |
