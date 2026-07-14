@@ -425,3 +425,52 @@
 | | All the time every single time if Ai decides the bar over here |
 | | is needed then we can talk about it but for real |
 | | < This bar 2 lines every time, it represents my pipeline. |
+| }==============================================================|
+| | █†█ Holo/Sim █†█ █†█ MASTER_SPINE_SELECTION █†█            |
+| }==============================================================|
+| | OBSERVATION                                                 |
+| | The Master Spine does not preserve everything.              |
+| |                                                             |
+| | It preserves the minimum verified structure required to     |
+| | honestly reconstruct the system across time.                |
+| }==============================================================|
+| | QUESTION                                                    |
+| | Before adding any information, ask:                         |
+| |                                                             |
+| | If every conversation disappeared except this document,     |
+| | what would an independent observer need in order to         |
+| | reconstruct the project faithfully?                         |
+| }==============================================================|
+| | INCLUDE                                                     |
+| | • identity                                                  |
+| | • invariants                                                |
+| | • boundaries                                                |
+| | • reconstruction rules                                      |
+| | • verification rules                                        |
+| | • evidence mapping                                          |
+| | • correction protocol                                       |
+| | • checkpoint lineage                                        |
+| | • known uncertainty                                         |
+| | • reopen conditions                                         |
+| }==============================================================|
+| | EXCLUDE                                                     |
+| | • implementation details preserved elsewhere                |
+| | • temporary discussion                                      |
+| | • speculative design                                        |
+| | • duplicated information                                    |
+| | • transient wording                                         |
+| | • information that can be regenerated from repository       |
+| |   evidence                                                   |
+| }==============================================================|
+| | INVARIANT                                                   |
+| | The Master Spine preserves what an AI must be able to       |
+| | reconstruct.                                                |
+| |                                                             |
+| | Everything else remains in the repository, commits, tests,  |
+| | runtime, and supporting documents.                          |
+| }==============================================================|
+| | TERMINAL                                                    |
+| | Preserve the frame.                                         |
+| |                                                             |
+| | Reconstruct the rest.                                       |
+| |==============================================================|
