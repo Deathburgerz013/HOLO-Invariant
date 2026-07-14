@@ -1,8 +1,19 @@
 from holosim.Holo_Sim import HoloSim
 
 
+EVIDENCE_SHA256 = "b" * 64
+
+
+def source_binding():
+    return {
+        "source_id": "causal-order:test-fixture",
+        "evidence_sha256": [EVIDENCE_SHA256],
+    }
+
+
 def causal_delta(event_id, predecessors):
     return {
+        "source_binding": source_binding(),
         "causal": {
             "event_id": event_id,
             "predecessors": predecessors,
@@ -96,7 +107,10 @@ def test_malformed_causal_metadata_is_explicit_uncertainty(tmp_path):
     engine = HoloSim(tmp_path / "chain.jsonl")
 
     result = engine.evaluate(
-        {"causal": {"event_id": "event-1"}}
+        {
+            "source_binding": source_binding(),
+            "causal": {"event_id": "event-1"},
+        }
     )
 
     report = result["causal_order"]

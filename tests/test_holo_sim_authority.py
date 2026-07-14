@@ -10,7 +10,7 @@ def test_evaluate_is_read_only_and_has_no_acceptance_authority(tmp_path):
     result = engine.evaluate("candidate change")
 
     assert result["type"] == "holo_invariant_evaluation"
-    assert result["version"] == "1.3"
+    assert result["version"] == "1.4"
     assert result["status"] == "PASS"
     assert result["preserved"] is True
     assert result["accepted"] is False

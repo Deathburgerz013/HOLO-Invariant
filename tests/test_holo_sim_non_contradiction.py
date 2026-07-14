@@ -1,6 +1,16 @@
 from holosim.Holo_Sim import HoloSim
 
 
+EVIDENCE_SHA256 = "a" * 64
+
+
+def source_binding():
+    return {
+        "source_id": "video-loop:test-fixture",
+        "evidence_sha256": [EVIDENCE_SHA256],
+    }
+
+
 def assertion(
     polarity,
     *,
@@ -23,6 +33,7 @@ def test_matching_claim_scope_and_evidence_with_opposite_polarity_is_flagged(
 
     result = engine.evaluate(
         {
+            "source_binding": source_binding(),
             "assertions": [
                 assertion("affirmed"),
                 assertion("negated"),
@@ -47,6 +58,7 @@ def test_opposite_polarity_under_different_scope_is_not_a_contradiction(tmp_path
 
     result = engine.evaluate(
         {
+            "source_binding": source_binding(),
             "assertions": [
                 assertion("affirmed", scope={"camera": "north"}),
                 assertion("negated", scope={"camera": "south"}),
@@ -69,6 +81,7 @@ def test_incomplete_assertion_is_preserved_as_uncertainty_and_blocks_result(
 
     result = engine.evaluate(
         {
+            "source_binding": source_binding(),
             "assertions": [
                 {
                     "claim": "camera records motion",
@@ -96,14 +109,20 @@ def test_incoming_assertion_is_checked_against_approved_history(tmp_path):
     engine = HoloSim(chain_path)
 
     committed = engine.commit(
-        {"assertions": [assertion("affirmed")]},
+        {
+            "source_binding": source_binding(),
+            "assertions": [assertion("affirmed")],
+        },
         reviewer="Canyon Haney",
         approval_reference="review:assertion-1",
     )
     assert committed["status"] == "COMMITTED"
 
     result = engine.evaluate(
-        {"assertions": [assertion("negated")]}
+        {
+            "source_binding": source_binding(),
+            "assertions": [assertion("negated")],
+        }
     )
 
     report = result["non_contradiction"]
