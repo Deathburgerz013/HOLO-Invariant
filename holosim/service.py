@@ -7,6 +7,8 @@ SQLite slot persistence.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -90,21 +92,71 @@ class HoloService:
         compress: bool = True,
         mirror_to_slots: bool = False,
         tier: str = "standard",
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
     ) -> Dict[str, Any]:
-        """Append content to HoloChain, optionally mirroring to SlotMerkleDB."""
+        """Append only after explicit external acceptance is supplied."""
+        reviewer_value = reviewer.strip() if isinstance(reviewer, str) else ""
+        approval_value = (
+            approval_reference.strip()
+            if isinstance(approval_reference, str)
+            else ""
+        )
+
+        if not reviewer_value or not approval_value:
+            return {
+                "status": "BLOCKED",
+                "commit_performed": False,
+                "mutation": None,
+                "entry": None,
+                "slot": None,
+                "authority": {
+                    "accepted": False,
+                    "source": "external_human_required",
+                    "reviewer": reviewer_value or None,
+                    "approval_reference": approval_value or None,
+                },
+                "write_authority": "NONE",
+                "reason": (
+                    "Service append requires an external reviewer and "
+                    "approval reference."
+                ),
+            }
+
+        authority = {
+            "accepted": True,
+            "source": "external_human",
+            "reviewer": reviewer_value,
+            "approval_reference": approval_value,
+        }
+        canonical_content = json.dumps(
+            content,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=str,
+        )
         payload = {
             "type": "service_append",
             "source": "HoloService",
             "active_hash": ACTIVE_HASH,
+            "content_sha256": hashlib.sha256(
+                canonical_content.encode("utf-8")
+            ).hexdigest(),
             "content": content,
+            "authority": authority,
         }
 
         entry = self.chain.append(payload, compress=compress)
 
         result: Dict[str, Any] = {
-            "status": "appended",
+            "status": "COMMITTED",
+            "commit_performed": True,
+            "mutation": {"append": entry},
             "entry": entry,
             "slot": None,
+            "authority": authority,
+            "write_authority": "EXTERNAL_HUMAN",
         }
 
         if mirror_to_slots:
@@ -120,6 +172,7 @@ class HoloService:
                     },
                 )
                 result["slot"] = slot
+                result["mutation"]["slot"] = slot
 
         return result
 

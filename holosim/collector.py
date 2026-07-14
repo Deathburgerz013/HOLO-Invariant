@@ -37,6 +37,8 @@ class Collector:
         tags: Iterable[str] | None = None,
         threshold: float = 0.85,
         force: bool = False,
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
     ) -> Dict[str, Any]:
         """Collect text into HoloChain if it is not a near-duplicate."""
         clean_text = text.strip()
@@ -67,7 +69,20 @@ class Collector:
             "content": clean_text,
         }
 
-        append_result = self.service.append(payload, compress=True)
+        append_result = self.service.append(
+            payload,
+            compress=True,
+            reviewer=reviewer,
+            approval_reference=approval_reference,
+        )
+
+        if not append_result.get("commit_performed"):
+            return {
+                "status": "blocked",
+                "reason": "external_approval_required",
+                "append": append_result,
+            }
+
         verify_result = self.service.verify()
 
         return {
@@ -84,6 +99,8 @@ class Collector:
         tags: Iterable[str] | None = None,
         threshold: float = 0.85,
         force: bool = False,
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
     ) -> Dict[str, Any]:
         """Collect text from a file."""
         file_path = Path(path)
@@ -103,6 +120,8 @@ class Collector:
             tags=[*(tags or []), file_path.name],
             threshold=threshold,
             force=force,
+            reviewer=reviewer,
+            approval_reference=approval_reference,
         )
 
 

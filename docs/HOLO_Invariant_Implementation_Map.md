@@ -85,20 +85,24 @@
 | | Evidence hashes establish identity, not truth or sufficiency. |
 | | }==============================================================|
 | | AUTHORITY_VALIDITY                                           |
-| | CLASSIFICATION: CONFLICTING                                  |
+| | CLASSIFICATION: PARTIAL                                      |
 | |                                                              |
 | | PRESERVED BOUNDARY:                                          |
 | | • Spine protocol is read-only and non-approving.            |
 | | • Transfer packets do not mutate canonical sources.         |
 | | • Transition receipts can record reviewer and approval data.|
+| | • HoloSim evaluation remains non-accepting and read-only.   |
+| | • HoloSim commits require reviewer and approval references. |
+| | • HoloService append requires the same external authority.  |
+| | • CLI, Collector, API, and ingest thread that authority.    |
+| | • Blocked service appends perform no chain or slot mutation.|
 | |                                                              |
-| | CONFLICT:                                                    |
-| | • HoloSim.evaluate() labels its own result accepted/rejected.|
-| | • HoloSim.commit() appends whenever evaluation is preserved.|
-| | • HoloService.append() provides direct append authority.     |
+| | GAP:                                                         |
+| | • HoloChain.append() remains a direct low-level primitive.  |
+| | • Other direct HoloChain callers require a separate audit.  |
 | |                                                              |
-| | Evaluation, verification, acceptance, and mutation therefore |
-| | remain conflated in active runtime paths.                    |
+| | Service evaluation, external acceptance, and mutation are   |
+| | separated. Repository-wide enforcement remains incomplete.  |
 | | }==============================================================|
 | | CORRECTION_VISIBILITY                                        |
 | | CLASSIFICATION: PARTIAL                                      |
