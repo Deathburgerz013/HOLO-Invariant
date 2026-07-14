@@ -53,10 +53,15 @@
 | | • Replay preserves stored entry order.                      |
 | | • Replay verifier distinguishes current and historical      |
 | |   commits and checks ancestor relationships.                |
+| | • HoloSim 1.3 validates explicit event IDs and predecessor  |
+| |   references against approved verified history.             |
+| | • Unknown, self, duplicate, and reused references are       |
+| |   reported without mutation.                                |
+| | • Malformed causal metadata remains explicit uncertainty.   |
 | |                                                              |
 | | GAP:                                                         |
-| | Timestamp monotonicity and cross-claim causal relationships   |
-| | are not independently validated.                             |
+| | Timestamp monotonicity and inferred real-world causality are  |
+| | not independently validated. No causal relation is inferred. |
 | | }==============================================================|
 | | PROVENANCE                                                   |
 | | CLASSIFICATION: PARTIAL                                      |

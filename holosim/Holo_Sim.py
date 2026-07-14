@@ -57,7 +57,7 @@ except ImportError:
 
 
 ENGINE_TYPE = "holo_sim_fixed_point"
-ENGINE_VERSION = "1.2"
+ENGINE_VERSION = "1.3"
 
 BASE_RELATION = "(C + I + E)^2"
 STABILITY_RELATION = "S = K + ΣF + (C + I + E)^2"
@@ -436,6 +436,163 @@ class HoloSim:
             "write_authority": "NONE",
         }
 
+    def _committed_causal_events(self) -> Dict[str, Dict[str, Any]]:
+        """Return structured causal events preserved in verified commits."""
+        events: Dict[str, Dict[str, Any]] = {}
+
+        for item in self.replay.state():
+            if not isinstance(item, Mapping):
+                continue
+
+            state = item.get("next_state", item)
+            if not isinstance(state, Mapping):
+                continue
+
+            causal = state.get("causal")
+            if not isinstance(causal, Mapping):
+                continue
+
+            event_id = causal.get("event_id")
+            if isinstance(event_id, str) and event_id.strip():
+                events[event_id.strip()] = {
+                    "event_id": event_id.strip(),
+                    "predecessors": causal.get("predecessors", []),
+                }
+
+        return events
+
+    def _check_causal_order(
+        self,
+        normalized_delta: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        """Validate explicit predecessor references against approved history."""
+        event = normalized_delta.get("event")
+        causal = event.get("causal") if isinstance(event, Mapping) else None
+        historical = self._committed_causal_events()
+
+        if causal is None:
+            return {
+                "type": "structured_causal_order_check",
+                "version": 1,
+                "applicable": False,
+                "valid": True,
+                "event_id": None,
+                "predecessors": [],
+                "historical_event_count": len(historical),
+                "violations": [],
+                "uncertainty": [],
+                "interpretation_notice": (
+                    "No causal ordering claim was supplied; no order was inferred."
+                ),
+                "write_authority": "NONE",
+            }
+
+        uncertainty: list[Dict[str, Any]] = []
+        violations: list[Dict[str, Any]] = []
+        event_id: str | None = None
+        predecessors: list[str] = []
+
+        if not isinstance(causal, Mapping):
+            uncertainty.append(
+                {
+                    "kind": "invalid_causal_container",
+                    "message": "causal must be an object",
+                }
+            )
+        else:
+            raw_event_id = causal.get("event_id")
+            raw_predecessors = causal.get("predecessors")
+
+            if not isinstance(raw_event_id, str) or not raw_event_id.strip():
+                uncertainty.append(
+                    {
+                        "kind": "invalid_event_id",
+                        "message": "causal.event_id must be a nonempty string",
+                    }
+                )
+            else:
+                event_id = raw_event_id.strip()
+
+            if not isinstance(raw_predecessors, list):
+                uncertainty.append(
+                    {
+                        "kind": "invalid_predecessors",
+                        "message": "causal.predecessors must be a list",
+                    }
+                )
+            elif any(
+                not isinstance(value, str) or not value.strip()
+                for value in raw_predecessors
+            ):
+                uncertainty.append(
+                    {
+                        "kind": "invalid_predecessor_id",
+                        "message": "every predecessor must be a nonempty string",
+                    }
+                )
+            else:
+                predecessors = [value.strip() for value in raw_predecessors]
+
+        if event_id is not None:
+            if event_id in historical:
+                violations.append(
+                    {
+                        "kind": "duplicate_event_id",
+                        "event_id": event_id,
+                    }
+                )
+
+            if event_id in predecessors:
+                violations.append(
+                    {
+                        "kind": "self_predecessor",
+                        "event_id": event_id,
+                    }
+                )
+
+            duplicates = sorted(
+                predecessor
+                for predecessor in set(predecessors)
+                if predecessors.count(predecessor) > 1
+            )
+            if duplicates:
+                violations.append(
+                    {
+                        "kind": "duplicate_predecessor",
+                        "predecessors": duplicates,
+                    }
+                )
+
+            unknown = sorted(
+                predecessor
+                for predecessor in set(predecessors)
+                if predecessor not in historical and predecessor != event_id
+            )
+            if unknown:
+                violations.append(
+                    {
+                        "kind": "unknown_predecessor",
+                        "predecessors": unknown,
+                    }
+                )
+
+        return {
+            "type": "structured_causal_order_check",
+            "version": 1,
+            "applicable": True,
+            "valid": not violations and not uncertainty,
+            "event_id": event_id,
+            "predecessors": predecessors,
+            "historical_event_count": len(historical),
+            "violations": violations,
+            "uncertainty": uncertainty,
+            "interpretation_notice": (
+                "Only explicit event identifiers and predecessor references are "
+                "checked; no temporal or causal relation is inferred."
+            ),
+            "write_authority": "NONE",
+        }
+
     def evaluate(
         self,
         delta: Any,
@@ -495,7 +652,16 @@ class HoloSim:
                 "and evidence state."
             )
 
-        uncertainty = list(non_contradiction["uncertainty"])
+        causal_order = self._check_causal_order(normalized_delta)
+        if causal_order["violations"]:
+            violations.append(
+                "Structured causal ordering contains invalid predecessor references."
+            )
+
+        uncertainty = [
+            *non_contradiction["uncertainty"],
+            *causal_order["uncertainty"],
+        ]
         preserved = not violations and not uncertainty
 
         provenance = get_provenance(
@@ -512,6 +678,8 @@ class HoloSim:
             verified_checks.append("contextual_factors_numeric")
         if non_contradiction["valid"]:
             verified_checks.append("structured_non_contradiction")
+        if causal_order["applicable"] and causal_order["valid"]:
+            verified_checks.append("structured_causal_order")
 
         evidence = [
             {"kind": "state_before", "sha256": stable_hash(current)},
@@ -525,6 +693,10 @@ class HoloSim:
             {
                 "kind": "non_contradiction_report",
                 "sha256": stable_hash(non_contradiction),
+            },
+            {
+                "kind": "causal_order_report",
+                "sha256": stable_hash(causal_order),
             },
         ]
 
@@ -565,6 +737,7 @@ class HoloSim:
             "normalized_delta": normalized_delta,
             "next_state": candidate if preserved else None,
             "non_contradiction": non_contradiction,
+            "causal_order": causal_order,
             "provenance": provenance,
             "timestamp": utc_now(),
         }
