@@ -387,6 +387,91 @@ def summarize_rail_analysis(analysis: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def validate_rail_grammar(
+    text: str,
+    *,
+    minimum_depth: int = 2,
+) -> dict[str, Any]:
+    """Validate rail serialization without rewriting or approving the source."""
+    if minimum_depth < 1:
+        raise ValueError("minimum_depth must be at least 1")
+
+    analysis = analyze_rail_structure(text)
+    rail_lines = {item["line_number"]: item for item in analysis["lines"]}
+    violations: list[dict[str, Any]] = []
+    depth_changes: list[dict[str, int]] = []
+    previous_depth: int | None = None
+
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        if not raw_line.strip():
+            continue
+
+        item = rail_lines.get(line_number)
+        if item is None:
+            violations.append({
+                "line": line_number,
+                "kind": "detached_line",
+                "observed_depth": 0,
+                "required_depth": minimum_depth,
+                "text": raw_line,
+            })
+            continue
+
+        depth = int(item["depth"])
+        if depth < minimum_depth:
+            violations.append({
+                "line": line_number,
+                "kind": "insufficient_rail_depth",
+                "observed_depth": depth,
+                "required_depth": minimum_depth,
+                "text": raw_line,
+            })
+
+        stripped_body = str(item["body"]).strip()
+        if stripped_body.startswith("}=") and item["kind"] != "divider":
+            violations.append({
+                "line": line_number,
+                "kind": "malformed_divider",
+                "observed_depth": depth,
+                "required_depth": minimum_depth,
+                "text": raw_line,
+            })
+
+        if previous_depth is not None and depth != previous_depth:
+            depth_changes.append({
+                "line": line_number,
+                "from_depth": previous_depth,
+                "to_depth": depth,
+            })
+        previous_depth = depth
+
+    counts: dict[str, int] = {}
+    for violation in violations:
+        kind = str(violation["kind"])
+        counts[kind] = counts.get(kind, 0) + 1
+
+    return {
+        "type": "holo_spine_rail_validation",
+        "version": PROTOCOL_VERSION,
+        "valid": not violations,
+        "minimum_depth": minimum_depth,
+        "checked_nonempty_line_count": sum(
+            1 for line in text.splitlines() if line.strip()
+        ),
+        "violation_count": len(violations),
+        "violation_counts": counts,
+        "violations": violations,
+        "depth_changes": depth_changes,
+        "source_sha256": sha256_bytes(text.encode("utf-8")),
+        "write_authority": "NONE",
+        "interpretation_notice": (
+            "Validation is a read-only structural observation. "
+            "It does not rewrite, repair, or approve the Spine."
+        ),
+    }
+
+
 def _section_matches_label(section: SpineSection, labels: Sequence[str]) -> bool:
     return any(label in section.normalized_title for label in labels)
 
@@ -657,6 +742,20 @@ def run_self_test() -> None:
     assert broken_analysis["continuous"] is False
     assert broken_analysis["unframed_lines_after_rail_start"] == [3]
 
+    rail_validation = validate_rail_grammar(rail_source)
+    assert rail_validation["valid"] is False
+    assert rail_validation["violation_counts"]["insufficient_rail_depth"] == 4
+
+    valid_two_bar_source = (
+        "| |=============================|\\n"
+        "| | █†█ Holo/Sim █†█            |\\n"
+        "| | }===========================|\\n"
+        "| | FRAME_ID: valid-frame\\n"
+    )
+    valid_two_bar_result = validate_rail_grammar(valid_two_bar_source)
+    assert valid_two_bar_result["valid"] is True
+    assert valid_two_bar_result["violations"] == []
+
     rail_summary = summarize_rail_analysis(rail_analysis)
     assert rail_summary["continuous"] is True
     assert rail_summary["rail_line_count"] == len(rail_analysis["lines"])
@@ -714,6 +813,18 @@ def main() -> None:
         help="Include every parsed rail line. Default output is a compact summary.",
     )
 
+    rail_validate_parser = subparsers.add_parser(
+        "rail-validate",
+        help="Validate the strict rail grammar without rewriting the source.",
+    )
+    rail_validate_parser.add_argument("file")
+    rail_validate_parser.add_argument(
+        "--minimum-depth",
+        type=int,
+        default=2,
+        help="Required visible rail bars per non-empty line. Default: 2.",
+    )
+
     subparsers.add_parser("self-test")
 
     args = parser.parse_args()
@@ -740,6 +851,15 @@ def main() -> None:
             _print_json(
                 analysis if args.include_lines else summarize_rail_analysis(analysis)
             )
+        elif args.command == "rail-validate":
+            document = parse_spine_file(args.file)
+            result = validate_rail_grammar(
+                document.raw_text,
+                minimum_depth=args.minimum_depth,
+            )
+            _print_json(result)
+            if not result["valid"]:
+                raise SystemExit(2)
         elif args.command == "self-test":
             run_self_test()
         else:
