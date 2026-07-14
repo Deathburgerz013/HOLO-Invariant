@@ -30,6 +30,8 @@ def ingest_chunk(
     *,
     source: str = "miner",
     force: bool = False,
+    reviewer: str | None = None,
+    approval_reference: str | None = None,
 ) -> Dict[str, Any]:
     """Ingest one mined chunk through Collector."""
     chunk_path = Path(path)
@@ -49,6 +51,8 @@ def ingest_chunk(
         source=source,
         tags=tags,
         force=force,
+        reviewer=reviewer,
+        approval_reference=approval_reference,
     )
 
     return {
@@ -65,6 +69,8 @@ def ingest_directory(
     source: str = "miner",
     force: bool = False,
     limit: int | None = None,
+    reviewer: str | None = None,
+    approval_reference: str | None = None,
 ) -> Dict[str, Any]:
     """Ingest mined chunk JSON files from a directory."""
     root = Path(directory)
@@ -81,11 +87,14 @@ def ingest_directory(
                 file_path,
                 source=source,
                 force=force,
+                reviewer=reviewer,
+                approval_reference=approval_reference,
             )
         )
 
     collected = sum(1 for item in results if item["result"].get("status") == "collected")
     skipped = sum(1 for item in results if item["result"].get("status") == "skipped")
+    blocked = sum(1 for item in results if item["result"].get("status") == "blocked")
 
     return {
         "status": "ingested",
@@ -93,6 +102,7 @@ def ingest_directory(
         "files_seen": len(files),
         "collected": collected,
         "skipped": skipped,
+        "blocked": blocked,
         "results": results,
     }
 
@@ -103,6 +113,12 @@ def main() -> None:
     parser.add_argument("--source", default="miner", help="Source label")
     parser.add_argument("--force", action="store_true", help="Force ingest even if duplicate")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of chunks from directory")
+    parser.add_argument("--reviewer", required=True, help="External reviewer identity")
+    parser.add_argument(
+        "--approval-reference",
+        required=True,
+        help="External approval record reference",
+    )
 
     args = parser.parse_args()
     path = Path(args.path)
@@ -113,12 +129,16 @@ def main() -> None:
             source=args.source,
             force=args.force,
             limit=args.limit,
+            reviewer=args.reviewer,
+            approval_reference=args.approval_reference,
         )
     else:
         result = ingest_chunk(
             path,
             source=args.source,
             force=args.force,
+            reviewer=args.reviewer,
+            approval_reference=args.approval_reference,
         )
 
     print(json.dumps(result, indent=2))

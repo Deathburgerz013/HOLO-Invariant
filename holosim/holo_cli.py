@@ -320,9 +320,11 @@ def run_service_append(args: argparse.Namespace) -> int:
             compress=not args.no_compress,
             mirror_to_slots=args.mirror_slots,
             tier=args.tier,
+            reviewer=args.reviewer,
+            approval_reference=args.approval_reference,
         )
         print(json.dumps(result, indent=2))
-        return 0
+        return 0 if result.get("commit_performed") else 1
     except Exception as e:
         print(f"❌ Service append failed: {e}")
         return 1
@@ -359,6 +361,12 @@ def main() -> None:
     append_parser.add_argument("--no-compress", action="store_true", help="Disable compression")
     append_parser.add_argument("--mirror-slots", action="store_true", help="Mirror append into SlotMerkleDB")
     append_parser.add_argument("--tier", default="standard", help="Slot tier when mirroring")
+    append_parser.add_argument("--reviewer", required=True, help="External reviewer identity")
+    append_parser.add_argument(
+        "--approval-reference",
+        required=True,
+        help="External approval record reference",
+    )
 
     args = parser.parse_args()
     chain = HoloChain(file_path=args.file)

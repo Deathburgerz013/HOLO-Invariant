@@ -98,6 +98,8 @@ class HoloAPI:
         *,
         source: str = "api",
         force: bool = False,
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
         limit: int | None = None,
     ) -> Dict[str, Any]:
         result = self.runtime.ingest(
@@ -154,6 +156,8 @@ class HoloAPI:
             json.dumps(payload, ensure_ascii=False),
             source=source,
             force=force,
+            reviewer=reviewer,
+            approval_reference=approval_reference,
         )
 
         return {
