@@ -57,7 +57,7 @@ except ImportError:
 
 
 ENGINE_TYPE = "holo_sim_fixed_point"
-ENGINE_VERSION = "1.3"
+ENGINE_VERSION = "1.4"
 
 BASE_RELATION = "(C + I + E)^2"
 STABILITY_RELATION = "S = K + ΣF + (C + I + E)^2"
@@ -593,6 +593,135 @@ class HoloSim:
             "write_authority": "NONE",
         }
 
+    def _check_source_binding(
+        self,
+        normalized_delta: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        """Validate explicit source identity and evidence hash bindings."""
+        event = normalized_delta.get("event")
+        structured_claim = isinstance(event, Mapping) and (
+            "assertions" in event or "causal" in event
+        )
+        binding = event.get("source_binding") if isinstance(event, Mapping) else None
+
+        if binding is None and not structured_claim:
+            return {
+                "type": "structured_source_binding_check",
+                "version": 1,
+                "applicable": False,
+                "required": False,
+                "valid": True,
+                "source_id": None,
+                "evidence_sha256": [],
+                "binding_sha256": None,
+                "violations": [],
+                "uncertainty": [],
+                "write_authority": "NONE",
+            }
+
+        uncertainty: list[Dict[str, Any]] = []
+        violations: list[Dict[str, Any]] = []
+        source_id: str | None = None
+        evidence_hashes: list[str] = []
+
+        if binding is None:
+            uncertainty.append(
+                {
+                    "kind": "missing_source_binding",
+                    "message": (
+                        "structured assertions and causal claims require "
+                        "source_binding"
+                    ),
+                }
+            )
+        elif not isinstance(binding, Mapping):
+            uncertainty.append(
+                {
+                    "kind": "invalid_source_binding",
+                    "message": "source_binding must be an object",
+                }
+            )
+        else:
+            raw_source_id = binding.get("source_id")
+            raw_hashes = binding.get("evidence_sha256")
+
+            if not isinstance(raw_source_id, str) or not raw_source_id.strip():
+                uncertainty.append(
+                    {
+                        "kind": "invalid_source_id",
+                        "message": "source_id must be a nonempty string",
+                    }
+                )
+            else:
+                source_id = raw_source_id.strip()
+
+            if not isinstance(raw_hashes, list) or not raw_hashes:
+                uncertainty.append(
+                    {
+                        "kind": "invalid_evidence_hashes",
+                        "message": "evidence_sha256 must be a nonempty list",
+                    }
+                )
+            elif any(
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+                for value in raw_hashes
+            ):
+                uncertainty.append(
+                    {
+                        "kind": "invalid_evidence_sha256",
+                        "message": (
+                            "every evidence hash must be lowercase SHA-256 hex"
+                        ),
+                    }
+                )
+            else:
+                evidence_hashes = list(raw_hashes)
+                duplicates = sorted(
+                    value
+                    for value in set(evidence_hashes)
+                    if evidence_hashes.count(value) > 1
+                )
+                if duplicates:
+                    violations.append(
+                        {
+                            "kind": "duplicate_evidence_hash",
+                            "evidence_sha256": duplicates,
+                        }
+                    )
+
+        canonical_binding = (
+            {
+                "source_id": source_id,
+                "evidence_sha256": evidence_hashes,
+            }
+            if source_id is not None and evidence_hashes
+            else None
+        )
+
+        return {
+            "type": "structured_source_binding_check",
+            "version": 1,
+            "applicable": binding is not None or structured_claim,
+            "required": structured_claim,
+            "valid": not violations and not uncertainty,
+            "source_id": source_id,
+            "evidence_sha256": evidence_hashes,
+            "binding_sha256": (
+                stable_hash(canonical_binding)
+                if canonical_binding is not None
+                else None
+            ),
+            "violations": violations,
+            "uncertainty": uncertainty,
+            "interpretation_notice": (
+                "Hashes bind supplied evidence bytes by identity; they do not "
+                "prove that the evidence is true or sufficient."
+            ),
+            "write_authority": "NONE",
+        }
+
     def evaluate(
         self,
         delta: Any,
@@ -658,9 +787,16 @@ class HoloSim:
                 "Structured causal ordering contains invalid predecessor references."
             )
 
+        source_binding = self._check_source_binding(normalized_delta)
+        if source_binding["violations"]:
+            violations.append(
+                "Structured source binding contains invalid evidence references."
+            )
+
         uncertainty = [
             *non_contradiction["uncertainty"],
             *causal_order["uncertainty"],
+            *source_binding["uncertainty"],
         ]
         preserved = not violations and not uncertainty
 
@@ -680,6 +816,8 @@ class HoloSim:
             verified_checks.append("structured_non_contradiction")
         if causal_order["applicable"] and causal_order["valid"]:
             verified_checks.append("structured_causal_order")
+        if source_binding["applicable"] and source_binding["valid"]:
+            verified_checks.append("structured_source_binding")
 
         evidence = [
             {"kind": "state_before", "sha256": stable_hash(current)},
@@ -697,6 +835,10 @@ class HoloSim:
             {
                 "kind": "causal_order_report",
                 "sha256": stable_hash(causal_order),
+            },
+            {
+                "kind": "source_binding_report",
+                "sha256": stable_hash(source_binding),
             },
         ]
 
@@ -738,6 +880,7 @@ class HoloSim:
             "next_state": candidate if preserved else None,
             "non_contradiction": non_contradiction,
             "causal_order": causal_order,
+            "source_binding": source_binding,
             "provenance": provenance,
             "timestamp": utc_now(),
         }
@@ -817,6 +960,7 @@ class HoloSim:
             "after_hash": decision["after_hash"],
             "next_state": decision["next_state"],
             "provenance": decision["provenance"],
+            "source_binding": decision["source_binding"],
             "timestamp": decision["timestamp"],
             "authority": authority,
         }

@@ -72,10 +72,17 @@
 | | • HoloSim evaluations and delta exports attach provenance.   |
 | | • transition receipts preserve proposal and observation      |
 | |   hashes plus reviewer metadata.                             |
+| | • HoloSim 1.4 requires structured assertions and causal     |
+| |   claims to bind a source ID to lowercase SHA-256 evidence.  |
+| | • Malformed bindings remain uncertainty; duplicate evidence |
+| |   references are violations.                                |
+| | • Approved commits preserve the exact validated binding     |
+| |   report separately from external acceptance authority.     |
 | |                                                              |
 | | GAP:                                                         |
 | | HoloChain.append() and HoloService.append() do not require a  |
 | | standardized provenance packet for every accepted delta.      |
+| | Evidence hashes establish identity, not truth or sufficiency. |
 | | }==============================================================|
 | | AUTHORITY_VALIDITY                                           |
 | | CLASSIFICATION: CONFLICTING                                  |
