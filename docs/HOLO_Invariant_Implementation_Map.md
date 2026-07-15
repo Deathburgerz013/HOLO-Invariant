@@ -385,6 +385,41 @@
 | | Independently falsify decision priority and candidate        |
 | | semantics before exposing CLI, persistence, or write paths.  |
 | | }==============================================================|
+| | TEMPORAL_DECISION_INTEGRITY_FIXTURE_DELTA                 |
+| | CLASSIFICATION: PARTIAL                                      |
+| |                                                              |
+| | EVIDENCE:                                                    |
+| | • docs/Temporal_Decision_Integrity_Falsification_Fixture.md |
+| |   preserves a scoped case where identifiers and timestamps   |
+| |   survived retrieval but the temporal relation and dependent |
+| |   compliance finding were inverted.                         |
+| | • The supplied timestamps deterministically place the       |
+| |   question 82187 seconds after the continuing boundary.      |
+| | • The fixture preserves the reported incorrect relation and |
+| |   finding beside their deterministic corrections.            |
+| |                                                              |
+| | PRESERVED_BOUNDARY:                                          |
+| | Historical public references and screenshots remain         |
+| | session-observed rather than byte-archived repository        |
+| | evidence.                                                    |
+| |                                                              |
+| | The fixture does not establish intent, deception, private    |
+| | memory, model identity, complete public-history retrieval,   |
+| | acceptance, or write authority.                             |
+| |                                                              |
+| | GAP:                                                         |
+| | • The transfer protocol does not yet bind timestamp evidence|
+| |   to a mechanically derived temporal relation.               |
+| | • No destination evaluator preserves reported and derived   |
+| |   findings when they conflict.                              |
+| | • Public post content and timestamps remain independently   |
+| |   unverified by repository evidence.                        |
+| |                                                              |
+| | NEXT_BOUNDARY:                                               |
+| | Review and falsify the fixture before extending              |
+| | holosim/spine_protocol.py with destination compatibility.    |
+| | Do not create a parallel parser or model-judged similarity.  |
+| | }==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
