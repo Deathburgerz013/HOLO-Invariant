@@ -347,6 +347,44 @@
 | | Independently review the fixture's retained source claims and|
 | | terminal classification without expanding implementation.    |
 | | }==============================================================|
+| | COMPRESSION_STOP_EVALUATOR_DELTA                           |
+| | CLASSIFICATION: PARTIAL                                      |
+| |                                                              |
+| | IMPLEMENTED:                                                 |
+| | • holosim/environment_snapshot.py now derives scoped        |
+| |   compression-phase stop findings from structured evidence.  |
+| | • The evaluator distinguishes fixed point, budget           |
+| |   exhaustion, blocking required distinctions, reconstruction |
+| |   failure, temporary pause, false convergence, reopening,    |
+| |   and a nonterminal no-stop finding.                         |
+| | • Required and evaluated operators, lower-cost candidates,  |
+| |   lost distinctions, reported findings, reasons, and         |
+| |   uncertainties remain separately represented.              |
+| | • Deterministic finding identity binds the complete derived |
+| |   result while accepted remains false and write authority    |
+| |   remains NONE.                                              |
+| | • tests/test_environment_snapshot.py binds the merged       |
+| |   falsification fixture to COMPRESSION_FIXED_POINT and tests |
+| |   each implemented decision boundary.                       |
+| |                                                              |
+| | PRESERVED_BOUNDARY:                                          |
+| | The evaluator classifies caller-supplied structured evidence.|
+| | It does not execute compression, verify source truth, prove   |
+| | operator execution, establish losslessness or global         |
+| | optimality, accept a finding, or authorize mutation.         |
+| |                                                              |
+| | GAP:                                                         |
+| | • Collection completion remains outside the compression     |
+| |   evaluator and has no runtime evaluator in this change.     |
+| | • No receipt verifier or persistence layer independently    |
+| |   replays the supplied operator and candidate evidence.      |
+| | • Cost measurement and compression operators remain        |
+| |   caller-supplied rather than runtime-executed.              |
+| |                                                              |
+| | NEXT_BOUNDARY:                                               |
+| | Independently falsify decision priority and candidate        |
+| | semantics before exposing CLI, persistence, or write paths.  |
+| | }==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
