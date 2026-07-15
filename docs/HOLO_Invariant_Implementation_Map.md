@@ -225,6 +225,34 @@
 | | These remain later work because authority separation is the  |
 | | prerequisite boundary that protects every later evaluator.   |
 | | }==============================================================|
+| | ENVIRONMENT_COMPLETION_EVALUATOR_DELTA                        |
+| | CLASSIFICATION: PARTIAL                                      |
+| |                                                              |
+| | EVIDENCE:                                                    |
+| | • environment_completion_evaluator.py evaluates an ordered   |
+| |   window of verified canonical snapshots and exact adjacent  |
+| |   comparisons under one explicit versioned contract.         |
+| | • Every required contract and measurement field is validated;|
+| |   unsupported or missing fields cannot silently pass.        |
+| | • Coverage, distance, stable count, sampling, signals,        |
+| |   provenance, and uncertainty remain separate predicates.    |
+| | • Results are COMPLETE_ELIGIBLE, INCOMPLETE, or UNCERTAIN.   |
+| | • Certificate identity binds ordered observations, adjacent  |
+| |   comparisons, contract, measurements, frozen evidence, and  |
+| |   provenance.                                                |
+| | • Results keep accepted=false and write_authority=NONE.      |
+| |                                                              |
+| | PRESERVED BOUNDARY:                                          |
+| | Completion eligibility permits later evaluation only. It does|
+| | not establish truth, correction gain, acceptance, persistence,|
+| | or permission to mutate state.                              |
+| |                                                              |
+| | GAP:                                                         |
+| | Distance, coverage, provenance, and uncertainty measurements  |
+| | remain externally supplied and are not empirically calibrated.|
+| | No correction trigger or persistence path consumes the       |
+| | certificate yet.                                            |
+| | }==============================================================|
 | | CORRECTION_MARKER                                            |
 | | Future code or tests may change these classifications.       |
 | | Append a new comparison delta when repository evidence       |
