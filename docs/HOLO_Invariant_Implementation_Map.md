@@ -230,6 +230,30 @@
 | | Append a new comparison delta when repository evidence       |
 | | changes. Do not rewrite this checkpoint as prior knowledge.  |
 | | }==============================================================|
+| | ENVIRONMENT_OBSERVATION_COMPARISON_DELTA                      |
+| | CLASSIFICATION: PARTIAL                                      |
+| |                                                              |
+| | EVIDENCE:                                                    |
+| | • environment_snapshot.py builds canonical read-only         |
+| |   observations with explicit observed, missing, unknown,     |
+| |   assumed, falsifier, evidence, provenance, and uncertainty. |
+| | • environment_snapshot_comparator.py verifies both source    |
+| |   snapshots before comparing the same episode and environment.|
+| | • Comparison requires a strictly later caller-supplied       |
+| |   observation time and reports context and schema changes.   |
+| | • Observed, epistemic, evidence, and provenance deltas remain|
+| |   separate and retain added, removed, and retained states.   |
+| | • Comparison identity canonically binds both snapshot IDs.   |
+| | • Results keep accepted=false and write_authority=NONE.      |
+| |                                                              |
+| | PRESERVED BOUNDARY:                                          |
+| | Comparison does not establish truth, improvement, completion,|
+| | correction eligibility, acceptance, or permission to write. |
+| |                                                              |
+| | GAP:                                                         |
+| | No runtime component yet selects the next useful check,      |
+| | evaluates a completion certificate, or persists a comparison.|
+| | }==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
