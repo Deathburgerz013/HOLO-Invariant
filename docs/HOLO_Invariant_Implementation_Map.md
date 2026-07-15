@@ -317,6 +317,36 @@
 | | environment snapshot implementation.                        |
 | | Do not create a parallel evaluator.                         |
 | | }==============================================================|
+| | COMPRESSION_FIXED_POINT_FIXTURE_DELTA                       |
+| | CLASSIFICATION: PARTIAL                                      |
+| |                                                              |
+| | EVIDENCE:                                                    |
+| | • docs/Compression_Fixed_Point_Falsification_Fixture.md     |
+| |   preserves a scoped audit episode in which substantive      |
+| |   findings stabilized before the terminal stop finding.      |
+| | • The fixture distinguishes the blocked-by-distinction      |
+| |   finding from a fixed point by comparing each finding with  |
+| |   its declared decision conditions.                          |
+| | • The corrected episode preserves four source-bound findings|
+| |   and two unresolved operational uncertainties.              |
+| |                                                              |
+| | PRESERVED_BOUNDARY:                                          |
+| | The fixture is reconstructed from session-observed material. |
+| | It does not archive the originating conversation or source,  |
+| | prove SteadyLog correctness, establish model continuity,     |
+| | grant authority, or establish global compression optimality. |
+| |                                                              |
+| | GAP:                                                         |
+| | • The originating source and conversation are not preserved |
+| |   as byte-archived repository evidence.                      |
+| | • The four direct falsifier tests remain described rather   |
+| |   than repository-executed.                                 |
+| | • No runtime component evaluates compression-stop findings.|
+| |                                                              |
+| | NEXT_BOUNDARY:                                               |
+| | Independently review the fixture's retained source claims and|
+| | terminal classification without expanding implementation.    |
+| | }==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
