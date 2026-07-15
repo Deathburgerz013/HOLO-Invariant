@@ -282,6 +282,41 @@
 | | No runtime component yet selects the next useful check,      |
 | | evaluates a completion certificate, or persists a comparison.|
 | | }==============================================================|
+| | ENVIRONMENT_OBSERVATION_RECEIPT_SPINE_DELTA                  |
+| | CLASSIFICATION: PARTIAL                                      |
+| |                                                              |
+| | EVIDENCE:                                                    |
+| | • docs/Environment_Observation_Receipt_Spine.md defines     |
+| |   proposed boundaries between fact, observation,             |
+| |   communication, receipt evidence, capability, authority,    |
+| |   state or instance change, temporal continuation, blind     |
+| |   verification, correction, and scoped compression stopping. |
+| | • The proposal preserves COMPLETE, PARTIAL, UNVERIFIED,      |
+| |   CONFLICT, and UNAVAILABLE as separate receipt findings.    |
+| | • Compression findings distinguish collection completion,   |
+| |   scoped fixed point, budget exhaustion, blocking required   |
+| |   distinctions, reconstruction failure, temporary pause,     |
+| |   false convergence, and reopening.                         |
+| |                                                              |
+| | PRESERVED_BOUNDARY:                                          |
+| | The proposal is descriptive only.                           |
+| | It does not certify the originating conversation as          |
+| | byte-archived evidence, establish inherited private model    |
+| | state, grant acceptance, or authorize implementation.        |
+| |                                                              |
+| | GAP:                                                         |
+| | • environment_snapshot.py does not yet implement an explicit|
+| |   operation-receipt or blind-verification contract.          |
+| | • No stable state or instance identity contract binds       |
+| |   temporal continuation across surfaces.                    |
+| | • No runtime component evaluates the proposed scoped        |
+| |   compression-stop findings.                                |
+| |                                                              |
+| | NEXT_BOUNDARY:                                               |
+| | Review and falsify the proposal before extending the existing|
+| | environment snapshot implementation.                        |
+| | Do not create a parallel evaluator.                         |
+| | }==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
