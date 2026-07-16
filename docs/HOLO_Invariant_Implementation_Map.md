@@ -457,6 +457,38 @@
 | | to execute the matrix, preserving failures before format repair.     |
 | | Do not add a parallel Spine parser or model-judged similarity.       |
 | | }==============================================================|
+| |}==============================================================|
+| | GROUNDED_MULTI_INSTANCE_HOLO_RECEIPT_DELTA
+| |}==============================================================|
+| | ARTIFACTS
+| | - docs/F1_Useful_Falsifiable_Feedback_Loops_Raw.txt.b64
+| | - docs/F1_Useful_Falsifiable_Feedback_Loops.md
+| | - docs/Grounded_Multi_Instance_HOLO_Receipt.md
+| |
+| | RAW_SOURCE_SHA256:
+| | f92264bf9630962359f2b855feff0b9d2ce1faf88f7e627db0393512b09dc73a
+| | CORRECTED_SPINE_SHA256:
+| | d45479029944cbabacf43898f4ba6ce29ca7349594590e0f77bfd178ca9be463
+| | RECEIPT_SHA256:
+| | 79bbddab6ddc28e81ae6274a2a9ca185a391ab208f5f87d88347f3ce6ae88ab9
+| |
+| | CLASSIFICATION: DOCUMENTATION_AND_OBSERVATION_RECEIPT
+| | RUNTIME_IMPLEMENTATION: NOT_PRESENT
+| | WRITE_AUTHORITY: NONE
+| |
+| | The Base64 artifact losslessly preserves the transferred raw bytes.
+| | The corrected Spine repairs four divider defects, normalizes fifty-seven
+| | trailing-whitespace instances, and passes
+| | strict two-rail validation with zero violations.
+| | The receipt distinguishes printed output from branch advancement,
+| | preserves instance separation, and defines the minimum executable
+| | two-instance conflict fixture needed for the next grounded test.
+| |
+| | NOT_ESTABLISHED:
+| | Byte-identical delivery to every destination branch; platform-level
+| | thread identity; per-branch output hashes; automated propagation;
+| | autonomous continuity; permanent correction; or large-scale execution.
+| |}==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
