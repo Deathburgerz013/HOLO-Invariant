@@ -420,6 +420,43 @@
 | | holosim/spine_protocol.py with destination compatibility.    |
 | | Do not create a parallel parser or model-judged similarity.  |
 | | }==============================================================|
+| | CONTEXT_WEAVER_FRAMING_ROUNDTRIP_FIXTURE_DELTA                      |
+| | CLASSIFICATION: PARTIAL                                             |
+| |                                                                    |
+| | EVIDENCE:                                                          |
+| | - docs/Context_Weaver_Framing_Roundtrip_Falsification_Fixture.md    |
+| |   defines an adversarial reconstruction contract for the candidate  |
+| |   XML, Markdown, and compact virtual-file framing formats.           |
+| | - Twelve fixture classes pressure path escaping, embedded framing,   |
+| |   duplicate instances, empty state, newline and Unicode identity,    |
+| |   control bytes, size boundaries, and delimiter density.             |
+| | - The fixture separates exact framing from lossy minification,       |
+| |   runtime-dependent persistence, and destination compatibility.      |
+| | - Current scoped finding is DECODER_UNAVAILABLE because the supplied |
+| |   candidate defines encoders without declared inverse decoders or    |
+| |   repository-executed roundtrip tests.                               |
+| |                                                                    |
+| | PRESERVED_BOUNDARY:                                                 |
+| | The 248390-byte originating conversation remains session-supplied    |
+| | evidence and is not archived in this repository. Its observed        |
+| | SHA-256 is retained only as a receipt of the attachment read here.   |
+| |                                                                    |
+| | The fixture does not establish application safety, semantic          |
+| | equivalence, browser execution, prompt quality, token savings, model |
+| | compatibility, continuity, acceptance, or write authority.          |
+| |                                                                    |
+| | GAP:                                                               |
+| | - No runtime encoder or decoder executes the adversarial matrix.     |
+| | - Candidate separators remain collision-prone until tested and       |
+| |   repaired under the declared reconstruction contract.              |
+| | - window.storage persistence remains receiving-runtime-dependent.    |
+| |                                                                    |
+| | NEXT_BOUNDARY:                                                     |
+| | Independently review and falsify the fixture before implementation.  |
+| | Then add only the smallest deterministic encoder-decoder pair needed |
+| | to execute the matrix, preserving failures before format repair.     |
+| | Do not add a parallel Spine parser or model-judged similarity.       |
+| | }==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
