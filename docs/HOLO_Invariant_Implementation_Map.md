@@ -599,3 +599,143 @@
 | | Verification remains bound to the uncommitted branch state above.
 | | Nothing left for collection in field.
 | |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_COMPATIBILITY_FALSIFICATION_FIXTURE_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | STATUS: PROPOSED_NOT_ACCEPTED
+| | BASE: main@7a122446485a538bbf793c97693dde3fa7d449fb
+| | FIXTURE:
+| | - docs/Destination_Compatibility_Falsification_Fixture.md
+| |
+| | FIXTURE_SHA256:
+| | 2f0637d8d2871b07e16e266e3de1f1906b9ccc808c5e52cf447334bf5cbbbd8d
+| |
+| | EVIDENCE:
+| | - One structured source fixture and one structured destination
+| |   profile define exact ordered requirement evaluation.
+| | - The expected partition preserves VERIFIED_REQUIREMENT,
+| |   MISSING_REQUIREMENT, CONFLICT, and UNCERTAIN separately.
+| | - A separate malformed-profile case requires fail-closed
+| |   INVALID_PROFILE behavior.
+| | - Source-hash and profile-hash change cases require prior
+| |   findings to become stale rather than inherited.
+| | - Compatibility remains separate from acceptance and authority.
+| |
+| | VALIDATION:
+| | - Rail validation: valid.
+| | - Checked nonempty lines: 272.
+| | - Violation count: 0.
+| | - External review: PENDING.
+| | - Full repository test suite: PENDING_FOR_THIS_BRANCH.
+| |
+| | IMPLEMENTATION_STATUS:
+| | No destination-profile evaluator is implemented.
+| | holosim/spine_protocol.py remains unchanged.
+| |
+| | PRESERVED_BOUNDARY:
+| | The fixture uses symbolic binding hashes and structured values.
+| | It does not establish source truth, real-platform compatibility,
+| | semantic equivalence, acceptance, persistence, or mutation.
+| |
+| | NEXT_BOUNDARY:
+| | Independently review and falsify the fixture before extending
+| | holosim/spine_protocol.py with the minimum deterministic EXISTS
+| | and EXACT_VALUE destination-profile evaluator.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Destination compatibility fixture preserved as PARTIAL.
+| | Runtime implementation remains absent and unauthorized.
+| | Stop at independent review and branch verification.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_FIXTURE_EXTERNAL_REVIEW_CORRECTION
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-011
+| | REVIEW_RESULT: FAIL
+| | BLOCKING_FINDINGS: 1
+| | NONBLOCKING_FINDINGS: 0
+| |
+| | PRESERVED_REVIEW_FINDING:
+| | The original fixture tested COMPATIBLE false with ACCEPTED false
+| | and WRITE_AUTHORITY NONE, but supplied no compatible control case.
+| | An evaluator could therefore couple acceptance or authority to a
+| | true compatibility result without being falsified.
+| |
+| | STALE_FIXTURE_SHA256:
+| | 2f0637d8d2871b07e16e266e3de1f1906b9ccc808c5e52cf447334bf5cbbbd8d
+| |
+| | [CORRECTION_MARKER]
+| | The fixture now includes a structured compatible control profile
+| | with exact expected findings:
+| | - COMPATIBLE: true
+| | - ACCEPTED: false
+| | - WRITE_AUTHORITY: NONE
+| |
+| | CURRENT_FIXTURE_SHA256:
+| | e0eba69308de05c7e70eb409df2a0c0ead18e103bcb51593418f6b4f171f7e94
+| |
+| | CORRECTED_VALIDATION:
+| | - Rail validation: valid.
+| | - Checked nonempty lines: 334.
+| | - Violation count: 0.
+| | - Corrected external review: PENDING.
+| |
+| | STATUS:
+| | The failed review is preserved and not converted into approval.
+| | The corrected fixture remains PROPOSED_NOT_ACCEPTED until a new
+| | independent review evaluates the current exact hash.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Review 011 failure preserved.
+| | Original fixture verification is stale after correction.
+| | Corrected fixture awaits hash-bound independent re-review.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_FIXTURE_EXTERNAL_REREVIEW_RECEIPT
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-012
+| | REVIEW_RESULT: PASS
+| | BLOCKING_FINDINGS: 0
+| | NONBLOCKING_FINDINGS: 0
+| |
+| | REVIEWED_FIXTURE_SHA256:
+| | e0eba69308de05c7e70eb409df2a0c0ead18e103bcb51593418f6b4f171f7e94
+| |
+| | REVIEWED_MAP_SHA256:
+| | cdfee753153583acfce907cb085fd3ab76f5fd225dc481f8401309ea73bf321a
+| |
+| | VERIFIED_BOUNDARIES:
+| | - Exact structured EXISTS and EXACT_VALUE requirements.
+| | - Ordered verified, missing, conflict, and uncertain findings.
+| | - Unsupported comparator fails closed as INVALID_PROFILE.
+| | - Source and destination-profile changes stale prior findings.
+| | - Incompatible primary case remains COMPATIBLE false.
+| | - Compatible control remains COMPATIBLE true while ACCEPTED stays
+| |   false and WRITE_AUTHORITY stays NONE.
+| | - No semantic similarity, persistence, mutation, or inferred
+| |   acceptance or authority is introduced.
+| |
+| | REVIEW_HISTORY:
+| | HOLO-EXT-REV-20260716-011 remains preserved as FAIL against the
+| | earlier stale fixture hash. It is not converted into a pass.
+| | Review 012 applies only to the corrected exact hashes above.
+| |
+| | CURRENT_STATUS:
+| | FIXTURE_REVIEW: PASS
+| | FIXTURE_CLASSIFICATION: PARTIAL
+| | RUNTIME_IMPLEMENTATION: NOT_PRESENT
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Corrected destination compatibility fixture independently reviewed.
+| | Review 012 passed with no findings at the exact bound hashes.
+| | Runtime implementation remains absent and unauthorized.
+| |}==============================================================|
