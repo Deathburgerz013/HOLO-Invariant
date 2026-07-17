@@ -739,3 +739,412 @@
 | | Review 012 passed with no findings at the exact bound hashes.
 | | Runtime implementation remains absent and unauthorized.
 | |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_COMPATIBILITY_EVALUATOR_IMPLEMENTATION_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL_IMPLEMENTATION
+| | STATUS: IMPLEMENTED_ON_BRANCH
+| | BRANCH: feat/destination-compatibility-evaluator
+| | BASE: main@410ab83ffd18ca4476c28bb37f52f86ab57018a8
+| | IMPLEMENTATION: holosim/spine_protocol.py
+| | FOCUSED_TESTS: tests/test_spine_protocol_destination.py
+| |
+| | IMPLEMENTATION_SHA256:
+| | b023ee999565431f7c368d23949f74c101021cd40744ee241a0271273f7e966a
+| | FOCUSED_TEST_SHA256:
+| | 7e9ab4d9b9502fb251a3a9e605aa81c01ccdfc6f794890b52a0b434fbc620801
+| |
+| | THEOREM:
+| | Given a valid structured source description and valid structured
+| | destination profile using only EXISTS and EXACT_VALUE, the
+| | evaluator deterministically partitions every ordered requirement
+| | into verified, missing, conflict, or uncertain findings.
+| |
+| | A compatible partition establishes only COMPATIBLE true.
+| | It never changes ACCEPTED from false or WRITE_AUTHORITY from NONE.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - evaluate_destination_compatibility(source, destination_profile)
+| | - check_destination_finding_current(finding, source, profile)
+| |
+| | IMPLEMENTED_BEHAVIOR:
+| | - Dotted paths traverse declared mappings without free-text
+| |   interpretation.
+| | - EXISTS and EXACT_VALUE are the only supported comparators.
+| | - Requirement order is preserved within each finding partition.
+| | - Missing paths remain missing.
+| | - Present unequal exact values remain conflicts.
+| | - Explicit UNAVAILABLE values become uncertain only when the
+| |   profile declares unavailable_as UNCERTAIN.
+| | - Unsupported comparators return a fail-closed INVALID_PROFILE
+| |   finding with COMPATIBLE false.
+| | - Other malformed contracts raise SpineStructureError.
+| | - Duplicate requirement identifiers fail closed.
+| | - Exact source and profile identity fields bind each finding.
+| | - Changed source bindings produce SOURCE_CHANGED staleness.
+| | - Changed profile bindings produce DESTINATION_PROFILE_CHANGED
+| |   staleness.
+| | - Identical structured inputs produce identical finding hashes.
+| |
+| | VERIFICATION:
+| | - spine_protocol self-test: PASS.
+| | - Focused destination tests: 12 passed.
+| | - Full repository suite: 160 passed.
+| | - External implementation review: PENDING.
+| |
+| | PRESERVED_BOUNDARY:
+| | The evaluator consumes caller-supplied structured descriptions.
+| | It does not verify that supplied symbolic hashes bind real bytes.
+| | It is not yet wired to a transfer-packet adapter or CLI command.
+| | It performs no semantic similarity, source-truth verification,
+| | acceptance, persistence, destination mutation, or external action.
+| |
+| | PROOF_STATUS:
+| | The merged fixture cases execute and pass at the branch state.
+| | Universal correctness is not established by finite tests.
+| | Verification becomes stale if implementation or tests change.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Minimum structured destination evaluator executes the fixture.
+| | Transfer-packet integration and external review remain open.
+| | Stop before commit until exact-hash external review completes.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_EVALUATOR_EXTERNAL_REVIEW_CORRECTION
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-013
+| | REVIEW_RESULT: FAIL
+| | BLOCKING_FINDINGS: 4
+| | NONBLOCKING_FINDINGS: 2
+| |
+| | PRESERVED_BLOCKING_FINDINGS:
+| | - EXACT_VALUE used Python loose equality and accepted cross-type
+| |   values such as true and 1.
+| | - Finding currentness did not authenticate finding_hash or reject
+| |   rehashed attempts to grant acceptance or write authority.
+| | - Unsupported-comparator prescan could bypass duplicate, path, and
+| |   source-field validation.
+| | - The reported test execution was not cryptographically bound to
+| |   the reviewed implementation and focused-test artifacts.
+| |
+| | STALE_IMPLEMENTATION_SHA256:
+| | b023ee999565431f7c368d23949f74c101021cd40744ee241a0271273f7e966a
+| | STALE_FOCUSED_TEST_SHA256:
+| | 7e9ab4d9b9502fb251a3a9e605aa81c01ccdfc6f794890b52a0b434fbc620801
+| | STALE_VERIFICATION:
+| | - Focused destination tests: 12 passed.
+| | - Full repository suite: 160 passed.
+| |
+| | [CORRECTION_MARKER]
+| | - EXACT_VALUE now requires recursive type-exact equality.
+| | - Finding hashes are recomputed and authenticated before binding
+| |   currentness is evaluated.
+| | - Finding partitions must be unique, disjoint, and consistent with
+| |   the compatible field.
+| | - Rehashed findings cannot grant acceptance or write authority.
+| | - Unsupported comparators are classified only after common profile,
+| |   requirement, path, duplicate-id, and source-field validation.
+| | - INVALID_PROFILE findings can be checked for currentness.
+| |
+| | CURRENT_IMPLEMENTATION_SHA256:
+| | 42edb0e2910b4d6320a773c750dd3d4c4cd989ebf33b86b6514fc91e91ef4044
+| | CURRENT_FOCUSED_TEST_SHA256:
+| | 5754145c7616441ed4986488c766316b7325465e93943dcffa341ef5638075ba
+| |
+| | WINDOWS_HASH_RECEIPT:
+| | - certutil bound holosim/spine_protocol.py to the current
+| |   implementation hash before execution.
+| | - certutil bound tests/test_spine_protocol_destination.py to the
+| |   current focused-test hash before execution.
+| | - An initial cached test-file replacement mismatch was detected and
+| |   corrected before the current tests ran.
+| |
+| | CORRECTED_VERIFICATION:
+| | - spine_protocol self-test: PASS.
+| | - Focused destination tests: 23 passed.
+| | - Full repository suite: 171 passed.
+| | - Corrected external review: PENDING.
+| |
+| | PRESERVED_LIMIT:
+| | Staleness remains binding-based. Caller-supplied symbolic hashes are
+| | not independently recomputed from source fields or profile rules.
+| | Finding authentication does not establish source truth.
+| |
+| | STATUS:
+| | Review 013 remains FAIL against the stale exact hashes.
+| | Corrected verification applies only to the current hashes above.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Review 013 failure and cached-file mismatch preserved.
+| | Corrected exact Windows artifacts pass 23 focused and 171 full tests.
+| | Stop before commit until corrected external review completes.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_EVALUATOR_THIRD_REVIEW_CORRECTION
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-015
+| | REVIEW_RESULT: FAIL
+| | BLOCKING_FINDINGS: 1
+| | NONBLOCKING_FINDINGS: 0
+| |
+| | PRESERVED_BLOCKING_FINDING:
+| | The shared nonempty-string validator stripped surrounding
+| | whitespace from opaque source, destination, profile, and digest
+| | values before comparison. Whitespace-modified bindings could be
+| | treated as unchanged, and a padded finding hash could pass syntax
+| | validation after normalization.
+| |
+| | STALE_IMPLEMENTATION_SHA256:
+| | 504e83ed9316ada3a7934416de6a82b1b98814f7e7d5422659520409b17cc1e7
+| | STALE_FOCUSED_TEST_SHA256:
+| | d1fc35ed1ec296ee5bf5b30f297782cbcab000b815fcdf469d1677ac377d52be
+| | STALE_VERIFICATION:
+| | - Focused destination tests: 34 passed.
+| | - Full repository suite: 182 passed.
+| |
+| | [CORRECTION_MARKER]
+| | - Opaque identity and digest strings are preserved exactly.
+| | - Leading or trailing whitespace is rejected as malformed rather
+| |   than silently normalized.
+| | - Whitespace-modified source and profile bindings cannot appear
+| |   current.
+| | - Padded finding hashes fail before digest comparison.
+| |
+| | CURRENT_IMPLEMENTATION_SHA256:
+| | 6d0c9eeb270ebcfbae2f2820ada9d517745c6b365ee77e81087309f57a8c4908
+| | CURRENT_FOCUSED_TEST_SHA256:
+| | b6d34072a8d64dc3ff45a4d06950bd6154b1b44bf7897571d7834ba44ec40730
+| |
+| | WINDOWS_HASH_RECEIPT:
+| | - certutil matched both current hashes before execution.
+| | - spine_protocol self-test: PASS.
+| | - Focused destination tests: 40 passed.
+| | - Full repository suite: 188 passed.
+| |
+| | CORRECTED_EXTERNAL_REVIEW: PENDING
+| |
+| | STATUS:
+| | Review 015 remains FAIL against its stale exact hashes.
+| | Corrected verification applies only to the current hashes above.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Reviews 013, 014, and 015 remain preserved failures.
+| | Current exact artifacts pass 40 focused and 188 full tests.
+| | Stop before commit until corrected external review completes.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_EVALUATOR_SECOND_REVIEW_CORRECTION
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-014
+| | REVIEW_RESULT: FAIL
+| | BLOCKING_FINDINGS: 2
+| | NONBLOCKING_FINDINGS: 1
+| |
+| | PRESERVED_BLOCKING_FINDINGS:
+| | - Recursive exact equality still admitted Python-loose mapping
+| |   keys and unsupported non-JSON containers.
+| | - A self-consistent rehashed finding was not recomputed against
+| |   the bound source and destination profile, permitting semantic
+| |   partition, coverage, order, and INVALID_PROFILE forgeries.
+| |
+| | PRESERVED_NONBLOCKING_FINDING:
+| | - finding_hash accepted malformed or non-ASCII strings before
+| |   compare_digest could enforce a bounded failure.
+| |
+| | STALE_IMPLEMENTATION_SHA256:
+| | 42edb0e2910b4d6320a773c750dd3d4c4cd989ebf33b86b6514fc91e91ef4044
+| | STALE_FOCUSED_TEST_SHA256:
+| | 5754145c7616441ed4986488c766316b7325465e93943dcffa341ef5638075ba
+| | STALE_VERIFICATION:
+| | - Focused destination tests: 23 passed.
+| | - Full repository suite: 171 passed.
+| |
+| | [CORRECTION_MARKER]
+| | - Source fields and EXACT_VALUE expectations now require a closed
+| |   JSON value model.
+| | - JSON object keys must be strings.
+| | - Tuples, sets, custom containers, non-string object keys, and
+| |   non-finite floats fail closed.
+| | - A binding-current finding is recomputed canonically from the
+| |   supplied source and profile and must match the complete expected
+| |   finding exactly.
+| | - Rehashed omitted, moved, reordered, unknown, invalid-profile, or
+| |   extra-field findings fail current evaluation.
+| | - finding_hash must contain exactly 64 lowercase hexadecimal
+| |   characters.
+| |
+| | TERMINOLOGY_CORRECTION:
+| | SHA-256 supplies deterministic integrity evidence only.
+| | It does not authenticate origin. Currentness requires both valid
+| | integrity and exact canonical recomputation against bound inputs.
+| |
+| | CURRENT_IMPLEMENTATION_SHA256:
+| | 504e83ed9316ada3a7934416de6a82b1b98814f7e7d5422659520409b17cc1e7
+| | CURRENT_FOCUSED_TEST_SHA256:
+| | d1fc35ed1ec296ee5bf5b30f297782cbcab000b815fcdf469d1677ac377d52be
+| |
+| | WINDOWS_HASH_RECEIPT:
+| | - certutil matched both current hashes before execution.
+| | - spine_protocol self-test: PASS.
+| | - Focused destination tests: 34 passed.
+| | - Full repository suite: 182 passed.
+| |
+| | CORRECTED_EXTERNAL_REVIEW: PENDING
+| |
+| | PRESERVED_LIMIT:
+| | Symbolic source and profile hashes remain caller-supplied.
+| | Canonical recomputation validates finding semantics against those
+| | supplied current inputs; it does not establish external source truth
+| | or origin authentication.
+| |
+| | STATUS:
+| | Review 014 remains FAIL against its stale exact hashes.
+| | Corrected verification applies only to the current hashes above.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Reviews 013 and 014 remain preserved failures.
+| | Current exact artifacts pass 34 focused and 182 full tests.
+| | Stop before commit until corrected external review completes.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_EVALUATOR_FOURTH_REVIEW_CORRECTION
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-016
+| | REVIEW_RESULT: FAIL
+| | BLOCKING_FINDINGS: 1
+| | NONBLOCKING_FINDINGS: 1
+| |
+| | PRESERVED_BLOCKING_FINDING:
+| | - The physical tail placed the older Review 014 correction after
+| |   Review 015, leaving stale hashes and test counts as the apparent
+| |   current state despite the append-only correction history.
+| |
+| | PRESERVED_NONBLOCKING_FINDING:
+| | - Cyclic or excessively deep otherwise-JSON-shaped values could
+| |   escape the protocol error boundary as raw RecursionError failures.
+| |
+| | STALE_IMPLEMENTATION_SHA256:
+| | 6d0c9eeb270ebcfbae2f2820ada9d517745c6b365ee77e81087309f57a8c4908
+| | STALE_FOCUSED_TEST_SHA256:
+| | b6d34072a8d64dc3ff45a4d06950bd6154b1b44bf7897571d7834ba44ec40730
+| | STALE_VERIFICATION:
+| | - Spine protocol self-test: PASS.
+| | - Focused destination tests: 40 passed.
+| | - Full repository suite: 188 passed.
+| |
+| | [CORRECTION_MARKER]
+| | - No historical review block was reordered, rewritten, or deleted.
+| | - This final overlay explicitly supersedes the stale physical tail.
+| | - Effective review order is 013 -> 014 -> 015 -> 016.
+| | - Closed JSON validation now detects container cycles and enforces
+| |   a maximum nesting depth, returning SpineStructureError at the
+| |   protocol boundary.
+| | - Focused failure paths cover cyclic dictionaries, cyclic lists,
+| |   and excessive nesting.
+| |
+| | CURRENT_IMPLEMENTATION_SHA256:
+| | 0eb75d3c105da20b2d8ea35c2296c7602cd1d8975e757dbd49459f5a9433bed5
+| | CURRENT_FOCUSED_TEST_SHA256:
+| | f7b0ab2e830511200e9e8414a8e32f8d12f0bbb83ba2bec99cca2aba92c5dbce
+| |
+| | WINDOWS_HASH_RECEIPT:
+| | - certutil matched both current hashes before execution.
+| | - Spine protocol self-test: PASS.
+| | - Focused destination tests: 43 passed.
+| | - Full repository suite: FAIL; 190 passed and one Hypothesis timing
+| |   test failed after exceeding its 200 ms deadline once, then
+| |   completing in 15.43 ms on replay.
+| | - Bounded suite excluding only test_hash_chain_monotonicity:
+| |   190 passed, 1 deselected.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded suite is evidence for every executed test except the
+| | explicitly deselected timing-sensitive property test. It is not a
+| | full-suite pass and does not erase the preserved failed execution.
+| |
+| | EFFECTIVE_STATE:
+| | Review blocks 013, 014, 015, and 016 remain preserved failures
+| | against their exact reviewed artifacts. The hashes and receipts in
+| | this overlay are the current candidate state. The prior Review 014
+| | physical tail is stale and superseded by this append-only overlay.
+| |
+| | CORRECTED_EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Current candidate passes its self-test, 43 focused tests, and the
+| | bounded 190-test suite. Full-suite verification remains failed due
+| | to the preserved Hypothesis deadline event.
+| | Stop before commit until corrected external review completes.
+| |}==============================================================|
+| |}==============================================================|
+| | DESTINATION_EVALUATOR_CORRECTED_EXTERNAL_REVIEW
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260716-017
+| | REVIEW_RESULT: PASS
+| | BLOCKING_FINDINGS: 0
+| | NONBLOCKING_FINDINGS: 0
+| |
+| | EXACT_ARTIFACTS_REVIEWED:
+| | IMPLEMENTATION_SHA256:
+| | 0eb75d3c105da20b2d8ea35c2296c7602cd1d8975e757dbd49459f5a9433bed5
+| | FOCUSED_TEST_SHA256:
+| | f7b0ab2e830511200e9e8414a8e32f8d12f0bbb83ba2bec99cca2aba92c5dbce
+| | IMPLEMENTATION_MAP_SHA256:
+| | 5f778b00898382aa390d852c57f27685007ead20f7478f6ed5f93b5cb89631c4
+| |
+| | VERIFIED:
+| | - Opaque bindings and digests reject surrounding whitespace rather
+| |   than silently normalizing identity.
+| | - Finding integrity validation rejects malformed, tampered,
+| |   authorizing, overlapping, contradictory, and semantically forged
+| |   findings before currentness decisions.
+| | - Canonical recomputation binds a current finding to the supplied
+| |   source and destination profile.
+| | - Closed JSON validation detects cyclic lists and dictionaries,
+| |   rejects unsupported values, and bounds maximum nesting depth with
+| |   SpineStructureError.
+| | - Exact comparison preserves value-type identity.
+| | - Generated findings retain accepted=false and
+| |   write_authority=NONE.
+| | - Focused failure paths and the built-in self-test passed review.
+| | - Historical Reviews 013 through 016 remain append-only and the
+| |   final Review 016 overlay makes their effective order explicit.
+| |
+| | PRESERVED_EXECUTION_EVIDENCE:
+| | - Spine protocol self-test: PASS.
+| | - Focused destination tests: 43 passed.
+| | - Full repository suite: FORMALLY FAILED; 190 passed and one
+| |   Hypothesis deadline failure, with 15.43 ms on replay.
+| | - Bounded suite: 190 passed, 1 explicitly deselected.
+| |
+| | PRESERVED_LIMITS:
+| | - The bounded suite is not a substitute full-suite pass.
+| | - Source and profile hashes are caller-supplied symbolic bindings,
+| |   not independently derived external truth.
+| | - SHA-256 supplies deterministic integrity evidence, not origin
+| |   authentication.
+| | - The evaluator does not authorize acceptance, persistence,
+| |   mutation, or external action.
+| |
+| | REVIEW_SCOPE:
+| | This PASS is bound only to the three exact hashes listed above.
+| | Any content change makes it stale until separately re-reviewed.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 017 passed the exact corrected candidate with zero
+| | findings. Evidence stops at the preserved limits above.
+| |}==============================================================|
