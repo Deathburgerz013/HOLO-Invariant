@@ -489,6 +489,35 @@
 | | thread identity; per-branch output hashes; automated propagation;
 | | autonomous continuity; permanent correction; or large-scale execution.
 | |}==============================================================|
+| |}==============================================================|
+| | APPEND_ONLY_CORRECTION_OVERLAY_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED
+| | IMPLEMENTATION:
+| | - holosim/core.py
+| | TESTS:
+| | - holosim/tests/test_core.py
+| |
+| | HoloChain.correct() appends a namespaced correction record.
+| | The correction binds the original entry index and hash, requires
+| | a non-empty reason, and retains JSON-serializable replacement data.
+| |
+| | HoloChain.get_effective_state() derives the latest corrected view
+| | without editing or deleting the original entry or correction records.
+| | HoloChain.get_corrections() preserves ordered correction history.
+| |
+| | Malformed versions, missing or forward targets, correction-to-
+| | correction targets, target-hash mismatch, missing replacement data,
+| | and empty reasons fail closed during effective-view reconstruction.
+| |
+| | CANONICAL_EVIDENCE: RAW_APPEND_ONLY_CHAIN
+| | DERIVED_OUTPUT: EFFECTIVE_CORRECTED_VIEW
+| | WRITE_AUTHORITY: NONE
+| |
+| | NOT_ESTABLISHED:
+| | Automatic truth verification, autonomous correction, correction
+| | acceptance, deletion, pruning, compaction, or external mutation.
+| |}==============================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
