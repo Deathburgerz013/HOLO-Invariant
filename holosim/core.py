@@ -331,6 +331,198 @@ class HoloChain:
             if correction["corrects_idx"] == target_idx
         ]
 
+    # === Append-only revalidation receipts ===
+    @staticmethod
+    def _is_revalidation(value: Any) -> bool:
+        return (
+            isinstance(value, dict)
+            and value.get("_holo_record_type") == "holo_revalidation"
+        )
+
+    @staticmethod
+    def _content_digest(value: Any) -> str:
+        """Return a deterministic digest for one decoded effective value."""
+        try:
+            canonical = json.dumps(
+                value, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+            )
+        except (TypeError, ValueError) as exc:
+            raise TypeError("Revalidation content must be JSON-serializable") from exc
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def _revalidation_view(
+        self,
+    ) -> tuple[List[Dict], List[Any], List[Dict], List[tuple[Dict, Dict]]]:
+        """Validate receipts against the effective claim version they checked."""
+        entries, decoded, corrections = self._correction_view()
+        effective = self.get_effective_state()
+        effective_by_idx = {item["idx"]: item for item in effective}
+        entries_by_idx = {entry["idx"]: entry for entry in entries}
+        receipts: List[tuple[Dict, Dict]] = []
+        allowed = {"HELD", "FAILED", "REVISED", "UNAVAILABLE"}
+
+        for entry, value in zip(entries, decoded):
+            if not self._is_revalidation(value):
+                continue
+            if value.get("version") != 1:
+                raise ValueError(f"Unsupported revalidation version at idx {entry['idx']}")
+            target = value.get("target_idx")
+            if (
+                not isinstance(target, int)
+                or isinstance(target, bool)
+                or target < 1
+                or target >= entry["idx"]
+                or target not in entries_by_idx
+            ):
+                raise ValueError(f"Invalid revalidation target at idx {entry['idx']}")
+            target_value = decoded[target - 1]
+            if self._is_correction(target_value) or self._is_revalidation(target_value):
+                raise ValueError("Revalidations must target an original entry")
+            if value.get("target_hash") != entries_by_idx[target].get("hash"):
+                raise ValueError(f"Revalidation target hash mismatch at idx {entry['idx']}")
+            outcome = value.get("outcome")
+            if outcome not in allowed:
+                raise ValueError(f"Invalid revalidation outcome at idx {entry['idx']}")
+            for field in ("method", "evidence"):
+                field_value = value.get(field)
+                if not isinstance(field_value, str) or not field_value.strip():
+                    raise ValueError(
+                        f"Revalidation at idx {entry['idx']} requires non-empty {field}"
+                    )
+            if not isinstance(value.get("subject_hash"), str):
+                raise ValueError(f"Revalidation at idx {entry['idx']} lacks subject hash")
+            subject_correction_idx = value.get("subject_correction_idx")
+            if subject_correction_idx is not None and (
+                not isinstance(subject_correction_idx, int)
+                or isinstance(subject_correction_idx, bool)
+                or subject_correction_idx < 1
+                or subject_correction_idx >= entry["idx"]
+            ):
+                raise ValueError(
+                    f"Invalid revalidation correction reference at idx {entry['idx']}"
+                )
+
+            historical_subject = target_value
+            historical_correction_idx = None
+            for correction_entry, correction in corrections:
+                if (
+                    correction["corrects_idx"] == target
+                    and correction_entry["idx"] < entry["idx"]
+                ):
+                    historical_subject = correction["replacement"]
+                    historical_correction_idx = correction_entry["idx"]
+            if subject_correction_idx != historical_correction_idx:
+                raise ValueError(
+                    f"Revalidation correction reference mismatch at idx {entry['idx']}"
+                )
+            if value["subject_hash"] != self._content_digest(historical_subject):
+                raise ValueError("Revalidation subject hash mismatch at idx {entry['idx']}")
+            receipts.append((entry, value))
+
+        return entries, decoded, effective, receipts
+
+    def revalidate(
+        self,
+        target_idx: int,
+        outcome: str,
+        evidence: str,
+        method: str,
+    ) -> Dict:
+        """Append a check of the current effective version of an original claim."""
+        if (
+            not isinstance(target_idx, int)
+            or isinstance(target_idx, bool)
+            or target_idx < 1
+        ):
+            raise ValueError("target_idx must be a positive integer")
+        if not isinstance(outcome, str) or outcome not in {
+            "HELD", "FAILED", "REVISED", "UNAVAILABLE"
+        }:
+            raise ValueError("outcome must be HELD, FAILED, REVISED, or UNAVAILABLE")
+        if not isinstance(evidence, str) or not evidence.strip():
+            raise ValueError("evidence must be a non-empty string")
+        if not isinstance(method, str) or not method.strip():
+            raise ValueError("method must be a non-empty string")
+
+        entries, decoded, _ = self._correction_view()
+        entries_by_idx = {entry["idx"]: entry for entry in entries}
+        if target_idx not in entries_by_idx:
+            raise ValueError(f"No entry with idx {target_idx} to revalidate")
+        target_value = decoded[target_idx - 1]
+        if self._is_correction(target_value) or self._is_revalidation(target_value):
+            raise ValueError("Revalidations must target an original entry")
+        effective_by_idx = {item["idx"]: item for item in self.get_effective_state()}
+        subject = effective_by_idx[target_idx]
+        payload = {
+            "_holo_record_type": "holo_revalidation",
+            "version": 1,
+            "target_idx": target_idx,
+            "target_hash": entries_by_idx[target_idx]["hash"],
+            "subject_hash": self._content_digest(subject["content"]),
+            "subject_correction_idx": subject.get("corrected_by"),
+            "outcome": outcome,
+            "method": method.strip(),
+            "evidence": evidence.strip(),
+        }
+        return self.append(payload)
+
+    def get_revalidations(self, target_idx: int) -> List[Dict]:
+        """Return all checks and whether each still matches the effective claim."""
+        entries, _, effective, receipts = self._revalidation_view()
+        if not any(entry["idx"] == target_idx for entry in entries):
+            raise ValueError(f"No entry with idx {target_idx}")
+        effective_by_idx = {item["idx"]: item for item in effective}
+        if target_idx not in effective_by_idx:
+            raise ValueError("Revalidations must target an original entry")
+        current = effective_by_idx[target_idx]
+        current_hash = self._content_digest(current["content"])
+        current_correction = current.get("corrected_by")
+        return [
+            {
+                "idx": entry["idx"],
+                "timestamp": entry["timestamp"],
+                "outcome": value["outcome"],
+                "method": value["method"],
+                "evidence": value["evidence"],
+                "subject_hash": value["subject_hash"],
+                "subject_correction_idx": value.get("subject_correction_idx"),
+                "current": (
+                    value["subject_hash"] == current_hash
+                    and value.get("subject_correction_idx") == current_correction
+                ),
+            }
+            for entry, value in receipts
+            if value["target_idx"] == target_idx
+        ]
+
+    def get_claim_index(self) -> List[Dict]:
+        """Index originals, corrections, checks, and current usable status."""
+        entries, decoded, effective, _ = self._revalidation_view()
+        effective_by_idx = {item["idx"]: item for item in effective}
+        index = []
+        for entry, value in zip(entries, decoded):
+            if self._is_correction(value) or self._is_revalidation(value):
+                continue
+            current = effective_by_idx[entry["idx"]]
+            checks = self.get_revalidations(entry["idx"])
+            current_checks = [check for check in checks if check["current"]]
+            latest = current_checks[-1] if current_checks else None
+            row = {
+                "idx": entry["idx"],
+                "original_hash": entry["hash"],
+                "content": current["content"],
+                "content_hash": self._content_digest(current["content"]),
+                "correction_history": current.get("correction_history", []),
+                "revalidation_history": [check["idx"] for check in checks],
+                "status": latest["outcome"] if latest else "UNCHECKED",
+            }
+            if current.get("corrected_by") is not None:
+                row["corrected_by"] = current["corrected_by"]
+            if latest is not None:
+                row["revalidated_by"] = latest["idx"]
+            index.append(row)
+        return index
+
     # === Relevance & Maintenance Methods ===
     def needs_review(self, days_old: int = 90, min_access: int = 1) -> List[Dict]:
         """Flag low-need entries for human review (basic relevance tracking)."""

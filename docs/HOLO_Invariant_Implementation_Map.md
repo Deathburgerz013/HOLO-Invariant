@@ -518,6 +518,40 @@
 | | Automatic truth verification, autonomous correction, correction
 | | acceptance, deletion, pruning, compaction, or external mutation.
 | |}==============================================================|
+| |}=================================================================|
+| | APPEND_ONLY_REVALIDATION_RECEIPTS_DELTA                          |
+| |}=================================================================|
+| | RUNTIME_IMPLEMENTATION: holosim/core.py                          |
+| | TEST_IMPLEMENTATION: holosim/tests/test_core.py                  |
+| | WRITE_AUTHORITY: HUMAN_CALLER_ONLY                               |
+| |                                                                  |
+| | IMPLEMENTED:                                                     |
+| | - revalidate(target_idx, outcome, evidence, method) appends a    |
+| |   versioned holo_revalidation record without changing its claim. |
+| | - Receipts bind the original entry index and raw chain hash.      |
+| | - Receipts also bind the exact effective-content digest and the  |
+| |   correction index, if any, that existed when the check occurred.|
+| | - Outcomes are bounded to HELD, FAILED, REVISED, or UNAVAILABLE.  |
+| | - get_revalidations(target_idx) preserves every validated check  |
+| |   and marks whether it still matches the current effective claim.|
+| | - A later correction makes prior receipts stale automatically;   |
+| |   it does not erase them or carry their status onto new content.  |
+| | - get_claim_index() joins original hash, effective content,       |
+| |   correction history, revalidation history, and current status.  |
+| | - Claims without a receipt matching their current effective      |
+| |   version are reported as UNCHECKED.                              |
+| | - Malformed versions, targets, hashes, correction references,    |
+| |   outcomes, methods, and evidence fail closed.                    |
+| |                                                                  |
+| | PRESERVED:                                                       |
+| | Raw append-only history; correction history; failed and stale     |
+| | checks; instance-local chain identity; human write authority.     |
+| |                                                                  |
+| | NOT_ESTABLISHED:                                                 |
+| | Automatic truth discovery; autonomous checking or correction;    |
+| | permanent truth; cross-instance agreement; external acceptance;  |
+| | deletion, pruning, compaction, signing, or distributed consensus.|
+| |}=================================================================|
 | | TERMINAL                                                     |
 | | Repository comparison complete at main@28de5bc.             |
 | | Smallest missing capability identified.                     |
