@@ -7,7 +7,8 @@ This module:
 - parses ordered Markdown sections without rewriting source text,
 - preserves unknown sections,
 - reconstructs a derived semantic frame with source locations,
-- compares two Spine documents without modifying either source.
+- compares two Spine documents without modifying either source,
+- evaluates structured source descriptions against bounded destination profiles.
 
 It does not:
 - normalize or rewrite Spine content,
@@ -15,13 +16,16 @@ It does not:
 - update canonical documents,
 - claim inherited memory,
 - treat parser output as authoritative truth.
+- infer acceptance or grant write authority from compatibility.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
+import math
 import re
 import sys
 import tempfile
@@ -672,6 +676,436 @@ def build_transfer_packet(document: SpineDocument) -> dict[str, Any]:
     return {**packet_body, "packet_hash": packet_hash}
 
 
+DESTINATION_FINDING_TYPE = "holo_destination_compatibility_finding"
+DESTINATION_FINDING_VERSION = 1
+DESTINATION_COMPARATORS = {"EXISTS", "EXACT_VALUE"}
+DESTINATION_MAX_JSON_DEPTH = 100
+_MISSING = object()
+
+
+def _require_nonempty_string(value: Any, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise SpineStructureError(f"{field_name} must be a non-empty string")
+    if value != value.strip():
+        raise SpineStructureError(
+            f"{field_name} must not contain surrounding whitespace"
+        )
+    return value
+
+
+def _require_positive_int(value: Any, field_name: str) -> int:
+    if (
+        not isinstance(value, int)
+        or isinstance(value, bool)
+        or value < 1
+    ):
+        raise SpineStructureError(f"{field_name} must be a positive integer")
+    return value
+
+
+def _resolve_structured_path(source: Mapping[str, Any], path: str) -> Any:
+    """Resolve a dotted mapping path without interpreting free text."""
+    current: Any = source
+    for component in path.split("."):
+        if not component or not isinstance(current, Mapping) or component not in current:
+            return _MISSING
+        current = current[component]
+    return current
+
+
+def _exact_structured_equal(actual: Any, expected: Any) -> bool:
+    """Compare validated JSON values without Python's cross-type equality."""
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(actual, Mapping):
+        if set(actual) != set(expected):
+            return False
+        return all(
+            _exact_structured_equal(actual[key], expected[key]) for key in actual
+        )
+    if isinstance(actual, list):
+        return len(actual) == len(expected) and all(
+            _exact_structured_equal(left, right)
+            for left, right in zip(actual, expected)
+        )
+    return bool(actual == expected)
+
+
+def _validate_json_value(
+    value: Any,
+    field_name: str,
+    *,
+    _seen: set[int] | None = None,
+    _depth: int = 0,
+) -> None:
+    """Require a closed JSON value model with string-only object keys."""
+    if _depth > DESTINATION_MAX_JSON_DEPTH:
+        raise SpineStructureError(f"{field_name} exceeds maximum JSON depth")
+    if value is None or type(value) in {bool, int, str}:
+        return
+    if type(value) is float:
+        if not math.isfinite(value):
+            raise SpineStructureError(f"{field_name} contains a non-finite float")
+        return
+    if type(value) is list:
+        seen = set() if _seen is None else _seen
+        identity = id(value)
+        if identity in seen:
+            raise SpineStructureError(f"{field_name} contains a cyclic JSON value")
+        seen.add(identity)
+        try:
+            for index, item in enumerate(value):
+                _validate_json_value(
+                    item,
+                    f"{field_name}[{index}]",
+                    _seen=seen,
+                    _depth=_depth + 1,
+                )
+        finally:
+            seen.remove(identity)
+        return
+    if type(value) is dict:
+        seen = set() if _seen is None else _seen
+        identity = id(value)
+        if identity in seen:
+            raise SpineStructureError(f"{field_name} contains a cyclic JSON value")
+        seen.add(identity)
+        try:
+            for key, item in value.items():
+                if not isinstance(key, str):
+                    raise SpineStructureError(
+                        f"{field_name} object keys must be strings"
+                    )
+                _validate_json_value(
+                    item,
+                    f"{field_name}.{key}",
+                    _seen=seen,
+                    _depth=_depth + 1,
+                )
+        finally:
+            seen.remove(identity)
+        return
+    raise SpineStructureError(f"{field_name} contains a non-JSON value")
+
+
+def _destination_bindings(
+    source: Mapping[str, Any],
+    destination_profile: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    if not isinstance(source, Mapping):
+        raise SpineStructureError("source must be a mapping")
+    if not isinstance(destination_profile, Mapping):
+        raise SpineStructureError("destination_profile must be a mapping")
+    return (
+        {
+            "source_id": _require_nonempty_string(
+                source.get("source_id"), "source_id"
+            ),
+            "source_version": _require_positive_int(
+                source.get("source_version"), "source_version"
+            ),
+            "source_hash": _require_nonempty_string(
+                source.get("source_hash"), "source_hash"
+            ),
+        },
+        {
+            "destination_id": _require_nonempty_string(
+                destination_profile.get("destination_id"), "destination_id"
+            ),
+            "profile_version": _require_positive_int(
+                destination_profile.get("profile_version"), "profile_version"
+            ),
+            "profile_hash": _require_nonempty_string(
+                destination_profile.get("profile_hash"), "profile_hash"
+            ),
+        },
+    )
+
+
+def _validate_destination_inputs(
+    source: Mapping[str, Any],
+    destination_profile: Mapping[str, Any],
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    list[dict[str, Any]],
+    list[str],
+]:
+    """Validate the complete structured contract before evaluating any rule."""
+    source_binding, profile_binding = _destination_bindings(
+        source, destination_profile
+    )
+
+    fields = source.get("fields")
+    if type(fields) is not dict:
+        raise SpineStructureError("source.fields must be a JSON object")
+    _validate_json_value(fields, "source.fields")
+
+    raw_requirements = destination_profile.get("requirements")
+    if not isinstance(raw_requirements, list) or not raw_requirements:
+        raise SpineStructureError(
+            "destination_profile.requirements must be a non-empty list"
+        )
+
+    normalized: list[dict[str, Any]] = []
+    invalid_requirements: list[str] = []
+    seen_ids: set[str] = set()
+    for position, raw in enumerate(raw_requirements, start=1):
+        if not isinstance(raw, Mapping):
+            raise SpineStructureError(
+                f"requirement at position {position} must be a mapping"
+            )
+        requirement_id = _require_nonempty_string(
+            raw.get("id"), f"requirement {position} id"
+        )
+        if requirement_id in seen_ids:
+            raise SpineStructureError(f"duplicate requirement id: {requirement_id}")
+        seen_ids.add(requirement_id)
+
+        comparator = _require_nonempty_string(
+            raw.get("comparator"), f"requirement {requirement_id} comparator"
+        )
+        source_path = _require_nonempty_string(
+            raw.get("source_path"), f"requirement {requirement_id} source_path"
+        )
+        if any(not component for component in source_path.split(".")):
+            raise SpineStructureError(
+                f"requirement {requirement_id} has an invalid source_path"
+            )
+
+        item = {
+            "id": requirement_id,
+            "comparator": comparator,
+            "source_path": source_path,
+        }
+        if comparator not in DESTINATION_COMPARATORS:
+            invalid_requirements.append(requirement_id)
+            normalized.append(item)
+            continue
+        if comparator == "EXISTS":
+            if raw.get("required") is not True:
+                raise SpineStructureError(
+                    f"EXISTS requirement {requirement_id} must declare required=true"
+                )
+            item["required"] = True
+        else:
+            if "expected" not in raw:
+                raise SpineStructureError(
+                    f"EXACT_VALUE requirement {requirement_id} lacks expected"
+                )
+            _validate_json_value(
+                raw["expected"], f"requirement {requirement_id} expected"
+            )
+            item["expected"] = raw["expected"]
+            unavailable_as = raw.get("unavailable_as")
+            if unavailable_as is not None and unavailable_as != "UNCERTAIN":
+                raise SpineStructureError(
+                    f"requirement {requirement_id} has invalid unavailable_as"
+                )
+            if unavailable_as is not None:
+                item["unavailable_as"] = unavailable_as
+        normalized.append(item)
+
+    return source_binding, profile_binding, normalized, invalid_requirements
+
+
+def _finalize_destination_finding(body: Mapping[str, Any]) -> dict[str, Any]:
+    try:
+        canonical = json.dumps(
+            body,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise SpineStructureError(
+            "destination finding must be canonically JSON-serializable"
+        ) from exc
+    return {**body, "finding_hash": sha256_bytes(canonical)}
+
+
+def _validate_destination_finding_integrity(
+    finding: Mapping[str, Any],
+) -> None:
+    """Verify finding integrity and enforce its non-authorizing schema."""
+    if type(finding) is not dict:
+        raise SpineStructureError("finding must be a JSON object")
+    _validate_json_value(finding, "finding")
+    if finding.get("type") != DESTINATION_FINDING_TYPE:
+        raise SpineStructureError("unsupported destination finding type")
+    _require_positive_int(finding.get("version"), "finding version")
+    if finding["version"] != DESTINATION_FINDING_VERSION:
+        raise SpineStructureError("unsupported destination finding version")
+    for key in ("source_version", "profile_version"):
+        _require_positive_int(finding.get(key), f"finding {key}")
+    for key in (
+        "source_id",
+        "source_hash",
+        "destination_id",
+        "profile_hash",
+    ):
+        _require_nonempty_string(finding.get(key), f"finding {key}")
+
+    supplied_hash = _require_nonempty_string(
+        finding.get("finding_hash"), "finding_hash"
+    )
+    if re.fullmatch(r"[0-9a-f]{64}", supplied_hash) is None:
+        raise SpineStructureError("finding_hash must be 64 lowercase hex characters")
+    body = dict(finding)
+    body.pop("finding_hash", None)
+    expected = _finalize_destination_finding(body)["finding_hash"]
+    if not hmac.compare_digest(supplied_hash, expected):
+        raise SpineStructureError("destination finding hash mismatch")
+
+    partitions: list[list[str]] = []
+    for key in (
+        "verified_requirements",
+        "missing_requirements",
+        "conflicts",
+        "uncertain",
+        "invalid_requirements",
+    ):
+        values = finding.get(key)
+        if (
+            not isinstance(values, list)
+            or any(not isinstance(item, str) or not item for item in values)
+            or len(values) != len(set(values))
+        ):
+            raise SpineStructureError(f"finding {key} must contain unique ids")
+        partitions.append(values)
+    flattened = [item for values in partitions for item in values]
+    if len(flattened) != len(set(flattened)):
+        raise SpineStructureError("finding partitions overlap")
+
+    if type(finding.get("compatible")) is not bool:
+        raise SpineStructureError("finding compatible must be boolean")
+    expected_compatible = not any(partitions[1:])
+    if finding["compatible"] is not expected_compatible:
+        raise SpineStructureError("finding compatible contradicts partitions")
+    if finding.get("accepted") is not False:
+        raise SpineStructureError("destination finding cannot grant acceptance")
+    if finding.get("write_authority") != "NONE":
+        raise SpineStructureError("destination finding cannot grant write authority")
+    if finding.get("finding_current") is not True:
+        raise SpineStructureError("stored destination finding must begin current")
+    if finding.get("stale_reason") is not None:
+        raise SpineStructureError("current destination finding cannot be stale")
+    if finding["invalid_requirements"]:
+        if finding.get("profile_status") != "INVALID_PROFILE":
+            raise SpineStructureError("invalid requirements need INVALID_PROFILE")
+    elif "profile_status" in finding:
+        raise SpineStructureError("valid profile cannot report INVALID_PROFILE")
+
+
+def evaluate_destination_compatibility(
+    source: Mapping[str, Any],
+    destination_profile: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Evaluate a structured source against a deterministic destination profile.
+
+    Compatibility is descriptive only. This function never accepts a transfer,
+    persists a finding, mutates a destination, or grants write authority.
+    """
+    (
+        source_binding,
+        profile_binding,
+        requirements,
+        invalid_requirements,
+    ) = _validate_destination_inputs(source, destination_profile)
+
+    if invalid_requirements:
+        invalid_body = {
+            "type": DESTINATION_FINDING_TYPE,
+            "version": DESTINATION_FINDING_VERSION,
+            **source_binding,
+            **profile_binding,
+            "profile_status": "INVALID_PROFILE",
+            "verified_requirements": [],
+            "missing_requirements": [],
+            "conflicts": [],
+            "uncertain": [],
+            "invalid_requirements": invalid_requirements,
+            "compatible": False,
+            "accepted": False,
+            "write_authority": "NONE",
+            "finding_current": True,
+            "stale_reason": None,
+        }
+        return _finalize_destination_finding(invalid_body)
+
+    fields = source["fields"]
+    verified: list[str] = []
+    missing: list[str] = []
+    conflicts: list[str] = []
+    uncertain: list[str] = []
+
+    for requirement in requirements:
+        requirement_id = requirement["id"]
+        actual = _resolve_structured_path(fields, requirement["source_path"])
+        if actual is _MISSING:
+            missing.append(requirement_id)
+        elif requirement["comparator"] == "EXISTS":
+            verified.append(requirement_id)
+        elif (
+            actual == "UNAVAILABLE"
+            and requirement.get("unavailable_as") == "UNCERTAIN"
+        ):
+            uncertain.append(requirement_id)
+        elif _exact_structured_equal(actual, requirement["expected"]):
+            verified.append(requirement_id)
+        else:
+            conflicts.append(requirement_id)
+
+    compatible = not (missing or conflicts or uncertain)
+    finding_body = {
+        "type": DESTINATION_FINDING_TYPE,
+        "version": DESTINATION_FINDING_VERSION,
+        **source_binding,
+        **profile_binding,
+        "verified_requirements": verified,
+        "missing_requirements": missing,
+        "conflicts": conflicts,
+        "uncertain": uncertain,
+        "invalid_requirements": [],
+        "compatible": compatible,
+        "accepted": False,
+        "write_authority": "NONE",
+        "finding_current": True,
+        "stale_reason": None,
+    }
+    return _finalize_destination_finding(finding_body)
+
+
+def check_destination_finding_current(
+    finding: Mapping[str, Any],
+    source: Mapping[str, Any],
+    destination_profile: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Check whether a prior finding still binds the exact current inputs."""
+    _validate_destination_finding_integrity(finding)
+    source_binding, profile_binding, _, _ = _validate_destination_inputs(
+        source, destination_profile
+    )
+
+    for key in ("source_id", "source_version", "source_hash"):
+        if finding.get(key) != source_binding[key]:
+            return {"finding_current": False, "stale_reason": "SOURCE_CHANGED"}
+    for key in ("destination_id", "profile_version", "profile_hash"):
+        if finding.get(key) != profile_binding[key]:
+            return {
+                "finding_current": False,
+                "stale_reason": "DESTINATION_PROFILE_CHANGED",
+            }
+    expected_finding = evaluate_destination_compatibility(
+        source, destination_profile
+    )
+    if not _exact_structured_equal(finding, expected_finding):
+        raise SpineStructureError(
+            "destination finding does not match current evaluation"
+        )
+    return {"finding_current": True, "stale_reason": None}
+
+
 def run_self_test() -> None:
     header = (
         "|===========================================|\n"
@@ -715,6 +1149,216 @@ def run_self_test() -> None:
     packet = build_transfer_packet(first)
     assert packet["source_sha256"] == first.source_sha256
     assert len(packet["packet_hash"]) == 64
+
+    destination_source = {
+        "source_id": "source-spine-alpha",
+        "source_version": 1,
+        "source_hash": "fixture-source-hash-alpha-v1",
+        "fields": {
+            "document_type": "HOLO_CONTINUITY_SPINE",
+            "protocol_version": 1,
+            "sections": {"IDENTITY": {"present": True}},
+            "evidence": {"content_support": "UNAVAILABLE"},
+        },
+    }
+    mixed_profile = {
+        "destination_id": "destination-beta",
+        "profile_version": 1,
+        "profile_hash": "fixture-profile-hash-beta-v1",
+        "requirements": [
+            {
+                "id": "R1",
+                "comparator": "EXISTS",
+                "source_path": "sections.IDENTITY.present",
+                "required": True,
+            },
+            {
+                "id": "R2",
+                "comparator": "EXACT_VALUE",
+                "source_path": "document_type",
+                "expected": "HOLO_CONTINUITY_SPINE",
+            },
+            {
+                "id": "R3",
+                "comparator": "EXISTS",
+                "source_path": "sections.AUTHORITY.present",
+                "required": True,
+            },
+            {
+                "id": "R4",
+                "comparator": "EXACT_VALUE",
+                "source_path": "protocol_version",
+                "expected": 2,
+            },
+            {
+                "id": "R5",
+                "comparator": "EXACT_VALUE",
+                "source_path": "evidence.content_support",
+                "expected": "VERIFIED",
+                "unavailable_as": "UNCERTAIN",
+            },
+        ],
+    }
+    mixed_finding = evaluate_destination_compatibility(
+        destination_source, mixed_profile
+    )
+    assert mixed_finding["verified_requirements"] == ["R1", "R2"]
+    assert mixed_finding["missing_requirements"] == ["R3"]
+    assert mixed_finding["conflicts"] == ["R4"]
+    assert mixed_finding["uncertain"] == ["R5"]
+    assert mixed_finding["compatible"] is False
+    assert mixed_finding["accepted"] is False
+    assert mixed_finding["write_authority"] == "NONE"
+
+    compatible_profile = {
+        "destination_id": "destination-gamma-compatible",
+        "profile_version": 1,
+        "profile_hash": "fixture-profile-hash-gamma-v1",
+        "requirements": mixed_profile["requirements"][:2],
+    }
+    compatible_finding = evaluate_destination_compatibility(
+        destination_source, compatible_profile
+    )
+    assert compatible_finding["verified_requirements"] == ["R1", "R2"]
+    assert compatible_finding["compatible"] is True
+    assert compatible_finding["accepted"] is False
+    assert compatible_finding["write_authority"] == "NONE"
+
+    changed_source = dict(destination_source)
+    changed_source["source_hash"] = "fixture-source-hash-alpha-v2"
+    assert check_destination_finding_current(
+        mixed_finding, changed_source, mixed_profile
+    ) == {"finding_current": False, "stale_reason": "SOURCE_CHANGED"}
+
+    changed_profile = dict(mixed_profile)
+    changed_profile["profile_hash"] = "fixture-profile-hash-beta-v2"
+    assert check_destination_finding_current(
+        mixed_finding, destination_source, changed_profile
+    ) == {
+        "finding_current": False,
+        "stale_reason": "DESTINATION_PROFILE_CHANGED",
+    }
+
+    malformed_profile = dict(mixed_profile)
+    malformed_profile["requirements"] = [{
+        "id": "MX1",
+        "comparator": "MODEL_JUDGED_SIMILARITY",
+        "source_path": "document_type",
+        "expected": "approximately a continuity document",
+    }]
+    malformed_finding = evaluate_destination_compatibility(
+        destination_source, malformed_profile
+    )
+    assert malformed_finding["profile_status"] == "INVALID_PROFILE"
+    assert malformed_finding["invalid_requirements"] == ["MX1"]
+    assert malformed_finding["compatible"] is False
+    assert malformed_finding["accepted"] is False
+    assert malformed_finding["write_authority"] == "NONE"
+    assert check_destination_finding_current(
+        malformed_finding, destination_source, malformed_profile
+    ) == {"finding_current": True, "stale_reason": None}
+
+    typed_source = dict(destination_source)
+    typed_source["fields"] = dict(destination_source["fields"])
+    typed_source["fields"]["typed_value"] = True
+    typed_profile = dict(compatible_profile)
+    typed_profile["requirements"] = [{
+        "id": "TYPE",
+        "comparator": "EXACT_VALUE",
+        "source_path": "typed_value",
+        "expected": 1,
+    }]
+    typed_finding = evaluate_destination_compatibility(
+        typed_source, typed_profile
+    )
+    assert typed_finding["conflicts"] == ["TYPE"]
+
+    tampered_finding = dict(mixed_finding)
+    tampered_finding["accepted"] = True
+    try:
+        check_destination_finding_current(
+            tampered_finding, destination_source, mixed_profile
+        )
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Tampered finding did not fail integrity validation.")
+
+    non_json_source = dict(destination_source)
+    non_json_source["fields"] = dict(destination_source["fields"])
+    non_json_source["fields"]["typed_value"] = {True: "x"}
+    try:
+        evaluate_destination_compatibility(non_json_source, typed_profile)
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Non-JSON object key did not fail closed.")
+
+    forged_body = dict(mixed_finding)
+    forged_body.pop("finding_hash")
+    forged_body["conflicts"] = []
+    forged_body["missing_requirements"] = ["R3", "R4"]
+    forged_finding = _finalize_destination_finding(forged_body)
+    try:
+        check_destination_finding_current(
+            forged_finding, destination_source, mixed_profile
+        )
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Rehashed semantic forgery did not fail closed.")
+
+    padded_source = dict(destination_source)
+    padded_source["source_hash"] = f" {destination_source['source_hash']} "
+    try:
+        check_destination_finding_current(
+            mixed_finding, padded_source, mixed_profile
+        )
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Whitespace-modified binding did not fail closed.")
+
+    padded_finding_hash = dict(mixed_finding)
+    padded_finding_hash["finding_hash"] = (
+        f" {mixed_finding['finding_hash']} "
+    )
+    try:
+        check_destination_finding_current(
+            padded_finding_hash, destination_source, mixed_profile
+        )
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Padded finding hash did not fail closed.")
+
+    cyclic_source = dict(destination_source)
+    cyclic_source["fields"] = dict(destination_source["fields"])
+    cyclic_value: dict[str, Any] = {}
+    cyclic_value["self"] = cyclic_value
+    cyclic_source["fields"]["cyclic"] = cyclic_value
+    try:
+        evaluate_destination_compatibility(cyclic_source, mixed_profile)
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Cyclic JSON value did not fail closed.")
+
+    deep_source = dict(destination_source)
+    deep_source["fields"] = dict(destination_source["fields"])
+    nested_value: dict[str, Any] = {}
+    current_value = nested_value
+    for _ in range(102):
+        child_value: dict[str, Any] = {}
+        current_value["next"] = child_value
+        current_value = child_value
+    deep_source["fields"]["deep"] = nested_value
+    try:
+        evaluate_destination_compatibility(deep_source, mixed_profile)
+    except SpineStructureError:
+        pass
+    else:
+        raise AssertionError("Excessive JSON depth did not fail closed.")
 
     rail_source = (
         "|===============================|\n"
