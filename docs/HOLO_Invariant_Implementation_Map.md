@@ -557,3 +557,45 @@
 | | Smallest missing capability identified.                     |
 | | Nothing left for collection in field.                       |
 | | }==============================================================|
+| |}==============================================================|
+| | CLAIM_STATUS_STALENESS_CORRECTION_DELTA
+| |}==============================================================|
+| | CORRECTION_STATUS: IMPLEMENTED_ON_BRANCH
+| | BRANCH: fix/distinguish-stale-claim-status
+| | BASE: main@08c56eba6b3a6144118a9f6b9d57378174d1b0f6
+| | IMPLEMENTATION: holosim/core.py
+| | TESTS: holosim/tests/test_core.py
+| |
+| | ORIGINAL_CLAIM_PRESERVED:
+| | Claims without a receipt matching their current effective
+| | version were reported as UNCHECKED.
+| |
+| | CORRECTION:
+| | get_claim_index() now distinguishes two evidence states.
+| | - UNCHECKED means no revalidation receipt exists.
+| | - STALE means revalidation history exists, but no receipt binds
+| |   the current effective-content digest and correction version.
+| | - A current matching receipt still exposes its bounded outcome.
+| |
+| | FAILURE_PATHS_PRESERVED:
+| | A correction after a current check produces STALE without erasing
+| | the prior receipt. Revalidation of the corrected content restores
+| | the new bounded outcome while retaining ordered receipt history.
+| |
+| | VERIFICATION_BOUNDARY:
+| | - Focused core suite: 15 passed.
+| | - Full repository suite: 148 passed.
+| | - git diff --check: no errors; Windows line-ending warnings only.
+| | - git diff --cached --check: clean before this documentation delta.
+| | - Commit identity is not yet assigned.
+| |
+| | NOT_ESTABLISHED:
+| | Truth, permanent validity, autonomous checking, external acceptance,
+| | cross-instance agreement, or expanded write authority.
+| |}==============================================================|
+| | TERMINAL
+| | Historical UNCHECKED behavior preserved as the original claim.
+| | Effective status distinction corrected by append-only overlay.
+| | Verification remains bound to the uncommitted branch state above.
+| | Nothing left for collection in field.
+| |}==============================================================|

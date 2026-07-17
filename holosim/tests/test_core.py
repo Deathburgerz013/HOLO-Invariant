@@ -131,6 +131,13 @@ class TestHoloChain(unittest.TestCase):
         self.assertEqual(claim["status"], "HELD")
         self.assertEqual(claim["revalidated_by"], receipt["idx"])
 
+    def test_never_checked_claim_remains_unchecked(self):
+        self.chain.append("Claim: awaiting first check")
+
+        claim = self.chain.get_claim_index()[0]
+        self.assertEqual(claim["status"], "UNCHECKED")
+        self.assertEqual(claim["revalidation_history"], [])
+
     def test_correction_makes_prior_revalidation_stale_until_rechecked(self):
         original = self.chain.append("Claim: v1")
         old_check = self.chain.revalidate(
@@ -144,7 +151,7 @@ class TestHoloChain(unittest.TestCase):
         self.assertEqual(checks[0]["idx"], old_check["idx"])
         self.assertFalse(checks[0]["current"])
         claim = self.chain.get_claim_index()[0]
-        self.assertEqual(claim["status"], "UNCHECKED")
+        self.assertEqual(claim["status"], "STALE")
         self.assertEqual(claim["corrected_by"], correction["idx"])
 
         new_check = self.chain.revalidate(

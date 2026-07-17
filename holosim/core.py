@@ -514,7 +514,13 @@ class HoloChain:
                 "content_hash": self._content_digest(current["content"]),
                 "correction_history": current.get("correction_history", []),
                 "revalidation_history": [check["idx"] for check in checks],
-                "status": latest["outcome"] if latest else "UNCHECKED",
+                "status": (
+                    latest["outcome"]
+                    if latest
+                    else "STALE"
+                    if checks
+                    else "UNCHECKED"
+                ),
             }
             if current.get("corrected_by") is not None:
                 row["corrected_by"] = current["corrected_by"]
