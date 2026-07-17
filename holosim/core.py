@@ -208,6 +208,129 @@ class HoloChain:
         entries = self.load_and_verify()
         return entries[-1] if entries else None
 
+    # === Append-only correction overlay ===
+    @staticmethod
+    def _is_correction(value: Any) -> bool:
+        return (
+            isinstance(value, dict)
+            and value.get("_holo_record_type") == "holo_correction"
+        )
+
+    def _correction_view(self) -> tuple[List[Dict], List[Any], List[tuple[Dict, Dict]]]:
+        """Load correction records and fail closed on malformed references."""
+        entries = self.load_and_verify()
+        decoded = self.get_state()
+        if len(entries) != len(decoded):
+            raise ValueError("Decoded state length does not match raw chain length")
+
+        by_idx = {entry["idx"]: entry for entry in entries}
+        decoded_by_idx = {
+            entry["idx"]: value for entry, value in zip(entries, decoded)
+        }
+        corrections: List[tuple[Dict, Dict]] = []
+
+        for entry, value in zip(entries, decoded):
+            if not self._is_correction(value):
+                continue
+            target = value.get("corrects_idx")
+            reason = value.get("reason")
+            if value.get("version") != 1:
+                raise ValueError(f"Unsupported correction version at idx {entry['idx']}")
+            if (
+                not isinstance(target, int)
+                or isinstance(target, bool)
+                or target < 1
+                or target >= entry["idx"]
+            ):
+                raise ValueError(f"Invalid correction target at idx {entry['idx']}")
+            if target not in by_idx:
+                raise ValueError(f"Correction targets missing idx {target}")
+            if self._is_correction(decoded_by_idx[target]):
+                raise ValueError("Corrections must target an original entry")
+            if value.get("corrects_hash") != by_idx[target].get("hash"):
+                raise ValueError(f"Correction target hash mismatch at idx {entry['idx']}")
+            if not isinstance(reason, str) or not reason.strip():
+                raise ValueError(f"Correction at idx {entry['idx']} requires a reason")
+            if "replacement" not in value:
+                raise ValueError(f"Correction at idx {entry['idx']} lacks replacement")
+            corrections.append((entry, value))
+
+        return entries, decoded, corrections
+
+    def correct(self, target_idx: int, new_content: Any, reason: str) -> Dict:
+        """Append a reasoned correction without changing the original entry."""
+        if (
+            not isinstance(target_idx, int)
+            or isinstance(target_idx, bool)
+            or target_idx < 1
+        ):
+            raise ValueError("target_idx must be a positive integer")
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError("A correction requires a non-empty reason")
+
+        entries = self.load_and_verify()
+        decoded = self.get_state()
+        positions = {entry["idx"]: pos for pos, entry in enumerate(entries)}
+        if target_idx not in positions:
+            raise ValueError(f"No entry with idx {target_idx} to correct")
+        target = entries[positions[target_idx]]
+        if self._is_correction(decoded[positions[target_idx]]):
+            raise ValueError("Corrections must target an original entry")
+
+        payload = {
+            "_holo_record_type": "holo_correction",
+            "version": 1,
+            "corrects_idx": target_idx,
+            "corrects_hash": target["hash"],
+            "reason": reason.strip(),
+            "replacement": new_content,
+        }
+        try:
+            json.dumps(payload, ensure_ascii=False)
+        except (TypeError, ValueError) as exc:
+            raise TypeError("Correction replacement must be JSON-serializable") from exc
+        return self.append(payload)
+
+    def get_effective_state(self) -> List[Dict]:
+        """Return the corrected view while leaving raw history untouched."""
+        entries, decoded, corrections = self._correction_view()
+        correction_ids = {entry["idx"] for entry, _ in corrections}
+        effective = {
+            entry["idx"]: {"idx": entry["idx"], "content": value}
+            for entry, value in zip(entries, decoded)
+            if entry["idx"] not in correction_ids
+        }
+        for entry, correction in corrections:
+            target = correction["corrects_idx"]
+            history = list(effective[target].get("correction_history", []))
+            history.append(entry["idx"])
+            effective[target] = {
+                "idx": target,
+                "content": correction["replacement"],
+                "corrected_by": entry["idx"],
+                "reason": correction["reason"],
+                "correction_history": history,
+            }
+        return [effective[idx] for idx in sorted(effective)]
+
+    def get_corrections(self, target_idx: int) -> List[Dict]:
+        """Return every validated correction for one original entry."""
+        entries, _, corrections = self._correction_view()
+        if not any(entry["idx"] == target_idx for entry in entries):
+            raise ValueError(f"No entry with idx {target_idx}")
+        return [
+            {
+                "idx": entry["idx"],
+                "timestamp": entry["timestamp"],
+                "corrects_idx": correction["corrects_idx"],
+                "corrects_hash": correction["corrects_hash"],
+                "reason": correction["reason"],
+                "content": correction["replacement"],
+            }
+            for entry, correction in corrections
+            if correction["corrects_idx"] == target_idx
+        ]
+
     # === Relevance & Maintenance Methods ===
     def needs_review(self, days_old: int = 90, min_access: int = 1) -> List[Dict]:
         """Flag low-need entries for human review (basic relevance tracking)."""
