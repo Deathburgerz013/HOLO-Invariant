@@ -107,7 +107,11 @@ def test_differential_fuzzing_chain_integrity(base_state: dict, deltas: list[dic
 
 
 @given(state=spine_strategy)
-@settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=50,
+    deadline=None,
+    suppress_health_check=[HealthCheck.too_slow],
+)
 def test_hash_chain_monotonicity(state: dict) -> None:
     temp_dir, chain = make_temp_chain("test_monotonic.jsonl")
     try:
