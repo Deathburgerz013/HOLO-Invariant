@@ -1661,3 +1661,191 @@
 | | External Review 024 passed the exact corrected candidate with no
 | | blocking findings. Evidence stops at the bound hashes and stated limits.
 | |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_CALIBRATION_RECEIPT_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL_IMPLEMENTATION
+| | STATUS: IMPLEMENTED_ON_BRANCH
+| | BRANCH: feat/version-bound-calibration-receipts
+| | BASE: main@4dc0f7e84bc963c490d9be9f327c22fb9b99a395
+| | IMPLEMENTATION: holosim/calibration.py
+| | FOCUSED_TESTS: tests/test_calibration.py
+| |
+| | IMPLEMENTATION_SHA256:
+| | 0dd727ba1562e0ffdec0c03dce8602fbd008ffc4ebb250422a5024a6f0b0dace
+| | FOCUSED_TEST_SHA256:
+| | 85fccc0980e89e65aef323166686bcd250947456102019e965886bd05af246e9
+| |
+| | MAPPED_GAP:
+| | The chain preserved claims, evidence, corrections, revalidations,
+| | staleness, retrieval observations, and authority boundaries, but it
+| | could not compare past numerical confidence with later resolved binary
+| | outcomes under an exact version-bound calculation.
+| |
+| | WORKING_THEORY:
+| | Comparing retained forecast confidence with later resolved outcomes can
+| | expose bounded forecast error and supply information for future
+| | correction. The resulting score applies only to the exact supplied
+| | history; it does not establish universal calibration or truth.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - evaluate_forecast_calibration(records)
+| | - check_calibration_receipt_current(receipt, records)
+| |
+| | IMPLEMENTED_BEHAVIOR:
+| | - Accepts ordered, uniquely identified, resolved binary forecasts.
+| | - Binds normalized records and each ordered record with SHA-256.
+| | - Calculates sample count, Brier score, mean stated confidence,
+| |   observed outcome frequency, and absolute aggregate gap.
+| | - Empty history returns INSUFFICIENT_DATA without invented metrics.
+| | - Changed confidence, outcome, order, addition, or removal makes the
+| |   prior receipt stale.
+| | - Duplicate IDs, unresolved outcomes, Boolean confidence, non-finite or
+| |   out-of-range confidence, malformed records, hostile identifiers,
+| |   materialization failures, and oversized histories fail closed.
+| | - Receipt schema, integrity, semantics, depth, cycles, finite values,
+| |   acceptance, and authority are validated before stale classification.
+| | - Evaluation does not mutate the supplied history.
+| |
+| | TEST_CORRECTION_RECEIPT:
+| | The first oversized confidence fixture used a 10,001-digit integer.
+| | Pytest attempted to stringify it while constructing the parameter ID and
+| | failed collection before executing the implementation. The fixture was
+| | corrected to a 401-digit integer, which remains printable and still
+| | overflows float conversion.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused calibration tests: 53 passed in 0.37 s.
+| | - Full repository suite: FORMALLY FAILED; 305 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity produced a flaky deadline
+| |   failure: 268.79 ms initially and 15.66 ms on replay against 200 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   305 passed, 1 explicitly deselected in 6.03 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. Brier score is a
+| | proper score for supplied binary probabilistic forecasts, but one sample
+| | aggregate does not independently establish population calibration.
+| | Sample selection, outcome quality, dependence, resolution, bin-level
+| | reliability, and future performance remain outside this receipt.
+| |
+| | NOT_IMPLEMENTED:
+| | - automatic confidence correction
+| | - unresolved or non-binary outcome scoring
+| | - calibration bins or reliability diagrams
+| | - sample-independence or selection-bias proof
+| | - outcome truth adjudication
+| | - collection mutation
+| | - acceptance or authority
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Exact implementation and focused tests exist on the branch. Stop before
+| | commit until rail validation and external review bind these artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_CALIBRATION_RECEIPT_REVIEW_025_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260718-025
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 0dd727ba1562e0ffdec0c03dce8602fbd008ffc4ebb250422a5024a6f0b0dace
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 85fccc0980e89e65aef323166686bcd250947456102019e965886bd05af246e9
+| | REVIEW_BOUND_MAP_SHA256:
+| | 2f36b699b15de790017201f4bd0ad7fd3b96fbde83e603b44c0f785d57afbcf9
+| |
+| | BLOCKING_FINDING:
+| | Forecast-record schema comparison constructed a set before requiring
+| | exact plain-string keys. A hostile string-subclass key could execute
+| | custom equality and leak RuntimeError outside CalibrationReceiptError.
+| |
+| | NONBLOCKING_EPISTEMIC_FINDINGS:
+| | Brier score measures probabilistic forecast performance, not calibration
+| | alone. Aggregate mean gap can conceal subgroup or bin miscalibration.
+| | Caller-supplied triples do not establish provenance, subject identity,
+| | pre-outcome forecast timing, or outcome truth.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_CALIBRATION_RECEIPT_CORRECTION_025_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | 9bd384916ca2fccb464edac1d4736f4b99df0846b3646c01b7ec9ac6ff3cd345
+| | FOCUSED_TEST_SHA256:
+| | c258886beb3e31dc00bf3d25921dde3fe676d78d0e3b5ae5421b1725b8a353e6
+| |
+| | CORRECTION:
+| | - Materialize record keys without equality-based schema comparison.
+| | - Require every record key to have exact plain-string type.
+| | - Compare against the required schema only after exact key validation.
+| | - Focused tests cover hostile string-subclass keys in evaluation and
+| |   currentness paths.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused calibration tests: 55 passed in 0.42 s.
+| | - Full repository suite: FORMALLY FAILED; 307 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity produced a flaky deadline
+| |   failure: 279.16 ms initially and 17.61 ms on replay against 200 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   307 passed, 1 explicitly deselected in 6.06 s.
+| |
+| | PRESERVED_LIMITS:
+| | The receipt scores supplied resolved triples only. It does not establish
+| | forecast provenance, subject attribution, pre-outcome commitment,
+| | independence, representative sampling, outcome truth, bin-level
+| | reliability, universal calibration, or future performance.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. Review 025 does not
+| | transfer to the corrected hashes. A new review is required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The corrected candidate closes the reviewed hostile-key boundary. Stop
+| | before commit until rail validation and a new external review bind the
+| | exact corrected artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_CALIBRATION_RECEIPT_REVIEW_026_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260718-026
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 9bd384916ca2fccb464edac1d4736f4b99df0846b3646c01b7ec9ac6ff3cd345
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | c258886beb3e31dc00bf3d25921dde3fe676d78d0e3b5ae5421b1725b8a353e6
+| | REVIEW_BOUND_MAP_SHA256:
+| | ba20d9c858c461bccb76062f7c2503d4d7cb0994623d856fb26a80a52a4fb931
+| |
+| | REVIEW_VERIFICATION:
+| | - Review 025 hostile-key correction holds in evaluation and currentness.
+| | - Validation fails closed before stale classification.
+| | - Brier calculations, ordered history binding, same-history currentness,
+| |   changed-outcome staleness, and nonmutation passed independent checks.
+| | - Schema, integrity, semantic, numeric, depth, cycle, acceptance, and
+| |   authority boundaries held within reviewed scope.
+| | - Execution receipts and append-only map claims agree.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMIT:
+| | Receipt calculation identity relies on method and schema-version
+| | discipline. Individual receipts do not embed the implementation artifact
+| | hash that executed the calculation.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 026 passed the exact corrected calibration candidate
+| | with no blocking findings. Evidence stops at the bound hashes and limits.
+| |}==============================================================|
