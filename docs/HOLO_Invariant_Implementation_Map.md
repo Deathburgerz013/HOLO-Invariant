@@ -1849,3 +1849,147 @@
 | | External Review 026 passed the exact corrected calibration candidate
 | | with no blocking findings. Evidence stops at the bound hashes and limits.
 | |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_THEORY_STATE_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | BRANCH: feat/version-bound-theory-states
+| | BASE: main@71577f6
+| | IMPLEMENTATION: holosim/theory.py
+| | IMPLEMENTATION_SHA256:
+| | f43f58c2d36f96666bea970b5fbcdab914ae43c1688fac2c40e717333af9c39f
+| | FOCUSED_TEST: tests/test_theory.py
+| | FOCUSED_TEST_SHA256:
+| | f0dd3f94448195731e4af27d4991e248f4935f1a80c2bb6ec67a53471b5e06ff
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | The repository could generate falsifying examples with Hypothesis, but
+| | had no first-class state for a theory that distinguishes possibility,
+| | contradiction, unavailable checks, and untested predictions. It could
+| | not bind that navigation state to the exact theory and checks evaluated.
+| |
+| | WORKING_THEOREM:
+| | A supplied theory remains POSSIBLE only when it has predictions and none
+| | of the supplied checks contradict them. Consistency does not establish
+| | truth, proof, probability, or acceptance. A supplied contradiction can
+| | falsify the evaluated theory state. Missing checks remain explicit.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - evaluate_theory_state(theory, checks)
+| | - check_theory_receipt_current(receipt, theory, checks)
+| |
+| | STATE_RULES:
+| | - POSSIBLE: at least one prediction exists and no supplied check has the
+| |   outcome CONTRADICTED.
+| | - FALSIFIED: at least one supplied check has outcome CONTRADICTED.
+| | - UNTESTABLE: the supplied theory has no predictions.
+| | - CONSISTENT never upgrades POSSIBLE to true, proven, or probable.
+| | - UNAVAILABLE identifies a check that did not test its prediction.
+| | - accepted is always false and write_authority is always NONE.
+| |
+| | NAVIGATION_OUTPUT:
+| | The receipt preserves checked and unchecked prediction identifiers,
+| | unavailable checks, contradictions, and the next missing prediction and
+| | action. Ordering is deterministic and bound into the receipt integrity.
+| |
+| | VERSION_BINDING_AND_STALENESS:
+| | The receipt binds canonical hashes of the exact theory and ordered checks
+| | evaluated. Currentness reconstructs the expected receipt from the supplied
+| | material. Changed theory is classified before old checks are reinterpreted;
+| | changed observations are stale and prior evaluation is not inherited.
+| |
+| | FAIL_CLOSED_BOUNDARIES:
+| | - Exact plain container, scalar, and key types are required.
+| | - Schemas are closed and hostile string-subclass keys are rejected before
+| |   equality-based schema comparison.
+| | - Collections are materialized within explicit bounds and generators are
+| |   consumed once per public currentness evaluation.
+| | - Duplicate identifiers and unknown prediction references are rejected.
+| | - Input length, collection size, nesting depth, cycles, numeric-like
+| |   coercion paths, receipt integrity, semantics, acceptance, and authority
+| |   are validated with domain errors.
+| | - Evaluation and currentness are read-only and do not mutate inputs.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused theory tests: 65 passed in 0.46 s.
+| | - Full repository suite: FORMALLY FAILED; 372 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity produced a flaky deadline
+| |   failure: 263.53 ms initially and 17.62 ms on replay against 200 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   372 passed, 1 explicitly deselected in 5.44 s.
+| |
+| | EXECUTED_ARTIFACT_BINDING:
+| | The uploaded executed implementation and focused test files match the
+| | handed source content. Their only byte-level difference is removal of the
+| | final newline by the Windows save path. The hashes above are the exact
+| | files used for the recorded executions.
+| |
+| | PRESERVED_LIMITS:
+| | - The module does not validate the mathematical derivation or basis.
+| | - It does not authenticate evidence or establish evidence quality.
+| | - It does not prove that a check method is correct or independent.
+| | - POSSIBLE is not probability, confirmation, proof, or truth.
+| | - FALSIFIED is bound only to supplied checks and their asserted outcomes.
+| | - It does not revise theories automatically or mutate a chain.
+| | - It grants no authority to accept, publish, or act on a theory.
+| |
+| | VERIFICATION_SCOPE:
+| | The focused and bounded executions bind behavior only to the exact hashes
+| | recorded above. The bounded run is not a substitute full-suite pass. Rail
+| | validation and independent external review remain required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The smallest falsifiable theory-state mechanism is implemented. Stop at
+| | the recorded evidence until rail validation and external review complete.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_THEORY_STATE_REVIEW_027_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260718-027
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | f43f58c2d36f96666bea970b5fbcdab914ae43c1688fac2c40e717333af9c39f
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | f0dd3f94448195731e4af27d4991e248f4935f1a80c2bb6ec67a53471b5e06ff
+| | REVIEW_BOUND_MAP_SHA256:
+| | f7f66db761ddb82b6c5bd138f1b534f5bd7b25b721ff7493406f0f04d7043379
+| |
+| | REVIEW_VERIFICATION:
+| | - Exact artifact hashes match the reviewed implementation, tests, and map.
+| | - Exact-type and closed-schema normalization precede equality-sensitive
+| |   comparisons, including hostile-key rejection.
+| | - Bounded materialization converts generator failures to domain errors;
+| |   unchanged-theory currentness consumes supplied checks once.
+| | - Theory identity is checked before old checks can be reinterpreted.
+| | - Ordered check hashes bind content, addition, removal, and reordering.
+| | - Receipt schema, integrity, and semantic regeneration occur before stale
+| |   classification; authority and acceptance remain NONE and false.
+| | - POSSIBLE never becomes truth, proof, or probability. UNAVAILABLE remains
+| |   unresolved, and asserted contradiction yields receipt-bound FALSIFIED.
+| | - Tests cover state transitions, unavailable and later-resolved checks,
+| |   staleness ordering, hostile keys, malformed and duplicate identifiers,
+| |   unknown references, generator behavior, nonmutation, tampering, numeric
+| |   boundaries, cycles, depth, acceptance, and authority.
+| | - Recorded execution claims agree with the reviewed map. The reviewer did
+| |   not claim independent execution of the Windows receipts.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMITS:
+| | - Evidence and check outcomes are caller-supplied and unauthenticated.
+| | - Mathematical basis and check-method correctness are not validated.
+| | - Individual receipts do not embed the implementation artifact hash.
+| | - Input items, text, and depth are bounded, but there is no separate total
+| |   canonical receipt-byte cap beyond those constraints.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 027 passed the exact theory-state candidate with no
+| | blocking findings. Evidence stops at the bound hashes and stated limits.
+| |}==============================================================|
