@@ -1148,3 +1148,516 @@
 | | External Review 017 passed the exact corrected candidate with zero
 | | findings. Evidence stops at the preserved limits above.
 | |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL_IMPLEMENTATION
+| | STATUS: IMPLEMENTED_ON_BRANCH
+| | BRANCH: feat/version-bound-ingestion-receipts
+| | BASE: main@d968ef55c59c84d3630943955eb5e22a3b49d364
+| | IMPLEMENTATION: holosim/embeddings.py
+| | FOCUSED_TESTS: tests/test_embeddings_ingestion.py
+| |
+| | IMPLEMENTATION_SHA256:
+| | 9fa06f3f451df9281641749e3de230896ab92ddd6e1305872d9d82895a2ef054
+| | FOCUSED_TEST_SHA256:
+| | 14ee2bd6f64120b6313c77a15d3e82b832242f904cf6c89d23191c151c9e7739
+| |
+| | MAPPED_GAP:
+| | Existing ingestion selection could silently use an enabled sentence
+| | transformer, installed scikit-learn TF-IDF, or token-overlap fallback
+| | while returning only a Boolean. The surviving result did not bind the
+| | exact inputs, comparison window, threshold, backend, model identity,
+| | or environmental conditions that produced the selection.
+| |
+| | WORKING_THEORY:
+| | Similarity may select which objects are useful to retrieve or ingest,
+| | but that decision remains reconstructable only when its exact inputs,
+| | configuration, method, and result survive in a version-bound receipt.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - compute_similarity_observation(text1, text2)
+| | - evaluate_ingestion(candidate, existing_entries, threshold, window)
+| | - check_ingestion_receipt_current(receipt, candidate, entries,
+| |   threshold, window)
+| |
+| | IMPLEMENTED_BEHAVIOR:
+| | - Existing compute_similarity and should_ingest APIs remain available.
+| | - Candidate text and ordered recent comparison entries are bound by
+| |   exact SHA-256 digests.
+| | - Threshold and recent-window configuration are preserved exactly.
+| | - Each comparison records score, backend, backend version, and model
+| |   identity where applicable.
+| | - Best match, final selection, and reason survive in the receipt.
+| | - Candidate, comparison-window, configuration, backend, and observed
+| |   score changes produce distinct stale results.
+| | - Malformed configuration and non-finite or materially out-of-range
+| |   backend scores fail closed.
+| | - Floating-point cosine roundoff within 1e-12 is clamped to the valid
+| |   range without admitting materially invalid scores.
+| | - Receipt-integrity failure and attempts to grant acceptance or write
+| |   authority fail closed.
+| | - Evaluation does not mutate the candidate collection.
+| |
+| | PRESERVED_BOUNDARY:
+| | Similarity is an observation for retrieval and ingestion selection.
+| | It does not establish truth, relevance beyond the configured method,
+| | acceptance, authority, or permission to mutate a collection.
+| | A SHA-256 receipt supplies deterministic integrity evidence only; it
+| | does not authenticate origin or prove that the selected backend is
+| | semantically correct.
+| |
+| | WINDOWS_HASH_RECEIPT:
+| | - certutil matched the exact implementation hash before execution.
+| | - certutil matched the exact focused-test hash before execution.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 29 passed.
+| | - Full repository suite: FORMALLY FAILED; 219 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity exceeded its 200 ms deadline
+| |   at 277 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   219 passed, 1 explicitly deselected.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. The focused run
+| | directly supports the ingestion boundary only. The preserved deadline
+| | event is not erased or classified as an ingestion failure.
+| |
+| | NOT_IMPLEMENTED:
+| | - persistent vector storage
+| | - automatic collection mutation
+| | - background environment monitoring
+| | - semantic truth evaluation
+| | - automatic re-embedding
+| | - acceptance or authority
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | Exact implementation and focused tests exist on the branch. Stop
+| | before commit until the map is rail-validated and external review is
+| | completed against the exact current hashes.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_018_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-018
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 9fa06f3f451df9281641749e3de230896ab92ddd6e1305872d9d82895a2ef054
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 14ee2bd6f64120b6313c77a15d3e82b832242f904cf6c89d23191c151c9e7739
+| | REVIEW_BOUND_MAP_SHA256:
+| | 961f921cf4c984ccfc1b88418057251c65aeee15cdbd2861cc395345809ed166
+| |
+| | BLOCKING_FINDING:
+| | Receipt validation did not form a closed semantic/domain-error
+| | boundary. Rehashed malformed or contradictory bodies could be called
+| | stale rather than invalid, early stale checks could bypass comparison
+| | validation, and cyclic, deeply nested, or non-finite bodies could leak
+| | raw serialization exceptions.
+| |
+| | NONBLOCKING_FINDING:
+| | The sentence-transformer model field records the declared mutable
+| | alias all-MiniLM-L6-v2 plus package version. It is not an exact model
+| | revision or weights digest.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_CORRECTION_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | f2226e849f57ba99b1b14fafee22c0b1e0d959e0fd3796691e71ea1c690debea
+| | FOCUSED_TEST_SHA256:
+| | 244bbee54f351a04c3e8e15a13075096f7ef6f0bed7cec26acf43621143922d4
+| |
+| | CORRECTION:
+| | - Validate a bounded, acyclic, finite, plain-JSON domain before
+| |   canonical hashing or stale classification.
+| | - Validate the exact versioned field set and field types.
+| | - Validate ordered comparison indexes and entry-hash correspondence.
+| | - Validate score bounds, best-match consistency, decision/reason
+| |   consistency, and initial current/stale invariants.
+| | - Reject malformed receipts before candidate, configuration, window,
+| |   environment, or observation stale classification.
+| | - Preserve model_identity as a declared alias, not proof of an exact
+| |   model revision or weights digest.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 43 passed in 0.39 s.
+| | - Full repository suite: FORMALLY FAILED; 233 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity exceeded its 200 ms deadline
+| |   at 264.68 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   233 passed, 1 explicitly deselected in 5.68 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. Review 018 does
+| | not transfer to these corrected hashes. A new external review is
+| | required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The corrected candidate closes the identified validation boundary in
+| | focused execution. Stop before commit until rail validation and a new
+| | external review bind these exact corrected artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_019_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-019
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | f2226e849f57ba99b1b14fafee22c0b1e0d959e0fd3796691e71ea1c690debea
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 244bbee54f351a04c3e8e15a13075096f7ef6f0bed7cec26acf43621143922d4
+| | REVIEW_BOUND_MAP_SHA256:
+| | 1f90ea78bcb26f675a7f673b8c2d4bea941f3196596fa14f96d097cf6f6d7fc1
+| |
+| | BLOCKING_FINDING:
+| | Python equality allowed Boolean values to impersonate integer receipt
+| | fields: version true could equal version 1, and a Boolean comparison
+| | index could equal its integer position. Comparison count was also not
+| | constrained by the declared recent window.
+| |
+| | TEST_FINDING:
+| | The 43 focused tests did not falsify Boolean substitution for integer
+| | fields or comparison-count/window inconsistency.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_CORRECTION_019_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | 59874531d24832739a863573aaf3b39ca7f5bed62dd5acb16972fa19a8d18d6c
+| | FOCUSED_TEST_SHA256:
+| | d49f9fa9fb314ef718f204b1a87532bf85ee037e82ec046fc399faebbee6c74d
+| |
+| | CORRECTION:
+| | - Receipt version requires exact integer type before value comparison.
+| | - Every comparison index requires exact integer type and ordered value.
+| | - Comparison count cannot exceed the declared recent window.
+| | - Focused tests cover Boolean version substitution, Boolean comparison
+| |   index substitution, and comparison-count/window contradiction.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 46 passed in 0.38 s.
+| | - Full repository suite: FORMALLY FAILED; 236 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity produced a flaky deadline
+| |   failure: 277.33 ms initially and 18.15 ms on replay against 200 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   236 passed, 1 explicitly deselected in 5.63 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. Review 019 does
+| | not transfer to these corrected hashes. A new external review is
+| | required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The second corrected candidate closes the exact integer and declared
+| | window findings in focused execution. Stop before commit until rail
+| | validation and a new review bind these exact artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_020_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-020
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 59874531d24832739a863573aaf3b39ca7f5bed62dd5acb16972fa19a8d18d6c
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | d49f9fa9fb314ef718f204b1a87532bf85ee037e82ec046fc399faebbee6c74d
+| | REVIEW_BOUND_MAP_SHA256:
+| | 7a426805a5970aa5b74386904093db156a854d727582d4b528780ce6b1c24eb6
+| |
+| | VERIFIED_PRIOR_CORRECTIONS:
+| | Exact integer version and comparison indexes, comparison-count/window
+| | consistency, validation ordering, and their focused falsifiers passed
+| | review.
+| |
+| | BLOCKING_FINDING:
+| | Arbitrarily large plain-JSON integers could leak raw OverflowError
+| | during float conversion for thresholds, backend scores, or rehashed
+| | receipt values instead of failing through IngestionReceiptError.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_CORRECTION_020_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | 7f6f1030326305a4f3262b17fb14d8f94ec5c2803f7c7d57c85c2457a4bf2abf
+| | FOCUSED_TEST_SHA256:
+| | 27db52658def14889587c726485458d9a4b2e205bc7e11de8299b1c33436828e
+| |
+| | CORRECTION:
+| | - Threshold conversion catches numeric overflow and raises the receipt
+| |   domain error.
+| | - Backend-score conversion catches numeric overflow and raises the
+| |   receipt domain error.
+| | - Stored receipt-score conversion catches numeric overflow before any
+| |   stale classification.
+| | - Focused tests cover oversized evaluation thresholds, backend scores,
+| |   and rehashed threshold/comparison scores on an early stale path.
+| |
+| | TEST_CORRECTION_RECEIPT:
+| | The first rehashed oversized fixture used a 10,001-digit integer that
+| | Python refused to JSON-encode before reaching the implementation. That
+| | test attempt failed with ValueError. The fixture was corrected to a
+| | JSON-encodable 401-digit integer that still overflows float conversion.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 50 passed in 0.39 s.
+| | - Full repository suite: FORMALLY FAILED; 240 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity exceeded its 200 ms deadline
+| |   at 307.77 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   240 passed, 1 explicitly deselected in 5.78 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. Review 020 does
+| | not transfer to these corrected hashes. A new external review is
+| | required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The third corrected candidate closes the reviewed numeric conversion
+| | boundary in focused execution. Stop before commit until rail validation
+| | and a new review bind these exact artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_021_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-021
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 7f6f1030326305a4f3262b17fb14d8f94ec5c2803f7c7d57c85c2457a4bf2abf
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 27db52658def14889587c726485458d9a4b2e205bc7e11de8299b1c33436828e
+| | REVIEW_BOUND_MAP_SHA256:
+| | e11a375c0769f34479d45ed758a59dd4028f725384198da04429506f810191df
+| |
+| | VERIFIED_PRIOR_CORRECTION:
+| | Oversized thresholds, backend scores, and stored receipt scores fail
+| | through IngestionReceiptError as required.
+| |
+| | BLOCKING_FINDING:
+| | recent_window remained an unbounded positive integer. An enormous
+| | value could reach receipt serialization and leak raw ValueError rather
+| | than the receipt domain error.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_CORRECTION_021_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | 3e0afa7de6b686d5a567e76a1d2bc1e26f1ada06289d0fd7df5882accc16a8f7
+| | FOCUSED_TEST_SHA256:
+| | 7d1b3fc3f540d4487e64ea89b1f8bc726b0811a52110db8459a9a47e4aa692a7
+| |
+| | CORRECTION:
+| | - recent_window requires an exact integer from 1 through 1,000,000.
+| | - Final receipt canonicalization translates serialization failures to
+| |   IngestionReceiptError.
+| | - Focused tests cover oversized evaluation configuration, currentness
+| |   configuration, and a rehashed stored window before stale paths.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 53 passed in 0.41 s.
+| | - Full repository suite: 244 passed in 6.69 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The clean full-suite pass binds only the exact corrected implementation
+| | and test hashes above. Review 021 does not transfer to these artifacts.
+| | A new external review is required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The fourth corrected candidate closes the reviewed configuration and
+| | canonicalization boundary. Stop before commit until rail validation and
+| | a new review bind these exact artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_022_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-022
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 3e0afa7de6b686d5a567e76a1d2bc1e26f1ada06289d0fd7df5882accc16a8f7
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 7d1b3fc3f540d4487e64ea89b1f8bc726b0811a52110db8459a9a47e4aa692a7
+| | REVIEW_BOUND_MAP_SHA256:
+| | 0ad441a334970cdabf3ed556d25fa3e4bdf97bb475927f5d51b4980da832a8a8
+| |
+| | VERIFIED_PRIOR_CORRECTION:
+| | The bounded recent window and final canonicalization exception wrapper
+| | passed review.
+| |
+| | BLOCKING_FINDINGS:
+| | - A nonempty comparison with an exact score of -1.0 selected no best
+| |   comparison, producing a receipt inconsistent with its own evidence.
+| | - Lone-surrogate strings could leak raw UnicodeEncodeError during text
+| |   hashing or receipt canonicalization.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_CORRECTION_022_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | 580d0dbd58e9cda3bbb62c6cb4b2fd9ac3767f01b3431fe4e73f4f2ac370dbaa
+| | FOCUSED_TEST_SHA256:
+| | f2fd346ff595ce5df8e9489e81572b125c4ad351203aca605a0adc0ff497b23b
+| |
+| | CORRECTION:
+| | - The first comparison is selected as best even when its score is
+| |   exactly -1.0; later comparisons replace it only with a higher score.
+| | - Text hashing translates invalid UTF-8 surrogate input to
+| |   IngestionReceiptError.
+| | - Closed receipt JSON validation rejects strings that cannot encode as
+| |   UTF-8 before hashing or stale classification.
+| | - Canonicalization wrappers include UnicodeError.
+| | - Focused tests cover exact -1.0 currentness, surrogate candidate and
+| |   entry text, and a surrogate stored receipt string on a stale path.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 57 passed in 0.40 s.
+| | - Full repository suite: FORMALLY FAILED; 247 passed and the existing
+| |   Hypothesis test_hash_chain_monotonicity produced a flaky deadline
+| |   failure: 264.33 ms initially and 15.32 ms on replay against 200 ms.
+| | - Bounded suite excluding only that timing-sensitive property test:
+| |   247 passed, 1 explicitly deselected in 5.54 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The bounded run is not a substitute full-suite pass. Review 022 does
+| | not transfer to these corrected hashes. A new external review is
+| | required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The fifth corrected candidate closes the reviewed score-selection and
+| | UTF-8 domain boundaries. Stop before commit until rail validation and a
+| | new review bind these exact artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_023_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-023
+| | REVIEW_RESULT: FAIL
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 580d0dbd58e9cda3bbb62c6cb4b2fd9ac3767f01b3431fe4e73f4f2ac370dbaa
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | f2fd346ff595ce5df8e9489e81572b125c4ad351203aca605a0adc0ff497b23b
+| | REVIEW_BOUND_MAP_SHA256:
+| | d16a0c0d15a7d180f36b9c03cfae01d8636cb8f0164adb59517be0269f7aea02
+| |
+| | VERIFIED_PRIOR_CORRECTIONS:
+| | Exact -1.0 best-match selection and ordinary surrogate candidate,
+| | entry, and stored-receipt rejection passed review.
+| |
+| | BLOCKING_FINDING:
+| | Accepted input shapes could still leak raw exceptions: hostile string
+| | subclasses, entries with failing string conversion, and non-iterable
+| | existing-entry collections escaped the receipt error boundary.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_CORRECTION_023_OVERLAY
+| |}==============================================================|
+| | STATUS: CORRECTED_CANDIDATE_AWAITING_REVIEW
+| | IMPLEMENTATION_SHA256:
+| | 0a1587deb81b2b9f9a3ac72241ac075535ecca109d2cf480501aa5f5e127c7e6
+| | FOCUSED_TEST_SHA256:
+| | 3de8745a7ff05cbefd47fe0e749911d6353a5693848967885f3d3790726b64f9
+| |
+| | CORRECTION:
+| | - Candidate inputs require exact plain-string type in evaluation and
+| |   currentness checks.
+| | - Extracted mapping text requires exact plain-string type.
+| | - Entry string conversion failures translate to IngestionReceiptError.
+| | - Entry-collection materialization failures translate to
+| |   IngestionReceiptError.
+| | - Focused tests cover hostile string-subclass candidates, failing entry
+| |   conversion, and non-iterable collections in both public paths.
+| |
+| | CORRECTED_EXECUTION_RECEIPTS:
+| | - Focused ingestion tests: 62 passed in 0.44 s.
+| | - Full repository suite: 253 passed in 6.31 s.
+| |
+| | VERIFICATION_SCOPE:
+| | The clean full-suite pass binds only the exact corrected implementation
+| | and test hashes above. Review 023 does not transfer to these artifacts.
+| | A new external review is required before commit.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The sixth corrected candidate closes the reviewed accepted-shape error
+| | boundary. Stop before commit until rail validation and a new review bind
+| | these exact artifacts.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_INGESTION_RECEIPT_REVIEW_024_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260717-024
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 0a1587deb81b2b9f9a3ac72241ac075535ecca109d2cf480501aa5f5e127c7e6
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 3de8745a7ff05cbefd47fe0e749911d6353a5693848967885f3d3790726b64f9
+| | REVIEW_BOUND_MAP_SHA256:
+| | 18819e45d93503227a78801a89d306df6d51b146bdf414546cc15be52b238aa1
+| |
+| | REVIEW_VERIFICATION:
+| | - Review 023 accepted-shape corrections hold.
+| | - Schema, hash, semantic, numeric, UTF-8, depth, cycle, window, and
+| |   authority boundaries hold within reviewed scope.
+| | - Validation precedes stale classification.
+| | - Generators are materialized once per public receipt call.
+| | - No candidate collection mutation or authority grant was found.
+| | - Focused 62-pass and full 253-pass receipts agree with the map.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | PRESERVED_LIMITS:
+| | The sentence model alias and backend/model labels are observational and
+| | not independently authenticated. The receipt self-hash establishes
+| | deterministic integrity, not origin authentication.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 024 passed the exact corrected candidate with no
+| | blocking findings. Evidence stops at the bound hashes and stated limits.
+| |}==============================================================|
