@@ -1993,3 +1993,114 @@
 | | External Review 027 passed the exact theory-state candidate with no
 | | blocking findings. Evidence stops at the bound hashes and stated limits.
 | |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_PERFORMANCE_OBSERVATION_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | BRANCH: feat/version-bound-performance-observation
+| | BASE: main@acbdcb9
+| | IMPLEMENTATION: holosim/performance.py
+| | IMPLEMENTATION_SHA256:
+| | 463a9c843ee5ef7ad6ae813086b35fedbcda14e42d43c822284454986f0f9f36
+| | FOCUSED_TEST: tests/test_performance.py
+| | FOCUSED_TEST_SHA256:
+| | 8153f5748237c8180edbce62da5c10593e724224f31709deb6b7f7e34d263943
+| | CORRECTED_PROPERTY_TEST: tests/test_invariants.py
+| | CORRECTED_PROPERTY_TEST_SHA256:
+| | dbf9cc21350797b856f71fdc1b7c6d30ac87fb68919a3af52083c4ae05698113
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | The repository recorded an intermittent Hypothesis deadline failure but
+| | had no bounded observation that separated disposable-chain setup, append,
+| | health verification, and cleanup timing across explicit chain sizes.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - observe_chain_performance(entry_counts, repeats, payload)
+| | - validate_performance_receipt(receipt)
+| |
+| | OBSERVATION_BOUNDARY:
+| | - Measurements use newly created disposable temporary chains only.
+| | - Caller-owned chains are not accepted or opened by the observer.
+| | - Setup, append, health, and cleanup durations remain separate.
+| | - Root hashes bind each measured disposable chain.
+| | - Adjacent entry-count and median append-time ratios are reported.
+| | - No fixed millisecond threshold, verdict, regression claim, defect claim,
+| |   hardware requirement, optimization, or production mutation is emitted.
+| |
+| | RECEIPT_BOUNDARY:
+| | - The receipt binds environment identity, requested sizes, repeats,
+| |   payload hash, raw samples, medians, scaling ratios, and receipt hash.
+| | - Schema, JSON depth, finite numbers, bounds, hashes, sample counts,
+| |   medians, ratios, acceptance, and authority fail closed on validation.
+| | - accepted is always false and write_authority is always NONE.
+| |
+| | DEADLINE_FAILURE_CORRECTION:
+| | The same generated monotonicity example took 267.84 ms on its first run
+| | and 18.16 ms on replay. The property performs temporary filesystem work
+| | but asserts semantic hash-chain monotonicity, not a performance threshold.
+| | Its implicit 200 ms Hypothesis deadline was therefore removed while its
+| | 50 generated examples and semantic assertions remain unchanged.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused performance tests: 18 passed in 0.52 s.
+| | - Corrected monotonicity property: 1 passed in 2.22 s.
+| | - Full repository suite: 391 passed in 7.16 s.
+| |
+| | PRESERVED_LIMITS:
+| | - Timings describe one execution environment and bounded workload only.
+| | - Scaling ratios do not establish cause, complexity class, regression,
+| |   acceptable latency, or a hardware limit.
+| | - The observer does not authenticate the host environment or clock.
+| | - The observer does not optimize HoloChain or change verification policy.
+| | - Receipt integrity establishes internal consistency, not performance truth.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The smallest bounded performance observation is implemented. Stop at the
+| | recorded evidence until rail validation and external review complete.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_PERFORMANCE_OBSERVATION_REVIEW_028_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260718-028
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 463a9c843ee5ef7ad6ae813086b35fedbcda14e42d43c822284454986f0f9f36
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 8153f5748237c8180edbce62da5c10593e724224f31709deb6b7f7e34d263943
+| | REVIEW_BOUND_CORRECTED_PROPERTY_TEST_SHA256:
+| | dbf9cc21350797b856f71fdc1b7c6d30ac87fb68919a3af52083c4ae05698113
+| | REVIEW_BOUND_MAP_SHA256:
+| | bbcdfe1197e88dba7284c28a0019fa03b3e934b87cda840881927d364684ebd5
+| |
+| | REVIEW_VERIFICATION:
+| | - Disposable temporary chains remain isolated from caller-owned files.
+| | - Receipt structure, integrity, semantics, bounds, cycles, non-finite
+| |   values, acceptance, and authority fail closed.
+| | - Direct tests now cover oversized counts and payloads, cyclic receipts,
+| |   and non-finite timing values without hardware timing assertions.
+| | - The monotonicity property retains 50 examples and semantic assertions;
+| |   only its unrelated wall-clock deadline was removed after the same input
+| |   measured 267.84 ms and then 18.16 ms on replay.
+| | - Recorded focused, property, full-suite, and rail-validation claims agree
+| |   with the reviewed candidate and implementation-map overlay.
+| | - No defect, regression, hardware limit, optimization, acceptance, or
+| |   authority is inferred from the bounded observations.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMITS:
+| | - Timings remain environment-specific observations.
+| | - Receipt integrity does not authenticate environment origin or clock.
+| | - No optimization, policy mutation, or acceptance is triggered.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 028 passed the corrected exact performance-observation
+| | candidate. Evidence stops at the bound hashes and preserved limits.
+| |}==============================================================|
