@@ -2332,3 +2332,117 @@
 | | External Review 031 passed the exact model-recovery-runner candidate with
 | | no blocking findings. Evidence stops at the bound hashes and limits.
 | |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_STATE_TRANSFER_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | BRANCH: feat/version-bound-state-transfer
+| | BASE: main@96af677
+| | IMPLEMENTATION: holosim/state_transfer.py
+| | IMPLEMENTATION_SHA256:
+| | 26c2e7686a08d04c33a5c3cd0396a9eb7efdabc804d53c191d675b0859aa16f7
+| | FOCUSED_TEST: tests/test_state_transfer.py
+| | FOCUSED_TEST_SHA256:
+| | 9f09a07b00996a30586f497fd9e832f0f67d63b1cd7b0b8c4af157f004b4fac2
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | Specialized receipts existed, but no single closed envelope bound a
+| | canonical base snapshot, proposed payload, named invariant identifiers,
+| | caller-reported execution evidence, and unauthenticated sender labels for
+| | read-only comparison with a receiver's current or known historical state.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - build_state_transfer(...)
+| | - validate_state_transfer(envelope)
+| | - observe_state_transfer(envelope, receiver_snapshot, known_state_hashes)
+| | - validate_state_transfer_observation(envelope, observation)
+| |
+| | ENVELOPE_BOUNDARY:
+| | - Base snapshot and payload are closed JSON values copied without aliasing
+| |   caller-owned state and bound by separate canonical SHA-256 hashes.
+| | - At least one unique invariant identifier is required.
+| | - CALLER_REPORTED evidence requires aligned command/result pairs; NOT_RUN
+| |   evidence cannot claim commands or results.
+| | - Artifact hashes, sender labels, statuses, interpretation, acceptance, and
+| |   authority are included in the outer envelope hash.
+| | - Sender labels remain caller-supplied and NOT_AUTHENTICATED; payload status
+| |   remains NOT_APPLIED, accepted=false, and write_authority=NONE.
+| |
+| | RECEIVER_OBSERVATION_BOUNDARY:
+| | - CURRENT means receiver_state_hash exactly equals base_state_hash.
+| | - STALE means the base hash is present in caller-supplied known history but
+| |   differs from the receiver's current hash.
+| | - CONFLICT means the base is neither current nor present in known history.
+| | - UNAVAILABLE means no receiver snapshot was supplied.
+| | - Classification is regenerated from bound hashes during validation and
+| |   never applies the payload, accepts it, or grants authority.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused state-transfer tests: 29 passed in 0.40 s.
+| | - Full repository suite: 465 passed in
+| |   7.28 s.
+| |
+| | PRESERVED_LIMITS:
+| | - Canonical hash equality proves byte-equivalent JSON representation only,
+| |   not semantic truth, correctness, authorship, execution, or understanding.
+| | - Evidence, sender labels, receiver snapshots, and known history remain
+| |   caller-supplied and unauthenticated.
+| | - Hashes are not signatures and the envelope is not a consensus protocol.
+| | - A fully regenerated alternative envelope or observation can be internally
+| |   consistent; integrity validation does not establish external origin.
+| | - CURRENT does not endorse or automatically apply the proposed payload.
+| | - No model communication, transport, state mutation, or policy action occurs.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The smallest version-bound state transfer envelope is implemented. Stop at
+| | the recorded evidence until rail validation and external review complete.
+| |}==============================================================|
+| |}==============================================================|
+| | VERSION_BOUND_STATE_TRANSFER_REVIEW_032_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260719-032
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 26c2e7686a08d04c33a5c3cd0396a9eb7efdabc804d53c191d675b0859aa16f7
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 9f09a07b00996a30586f497fd9e832f0f67d63b1cd7b0b8c4af157f004b4fac2
+| | REVIEW_BOUND_MAP_SHA256:
+| | 51ed29b2d35928a698eb57060d15e66545c9921ff2b78741112cc858364cf2e3
+| |
+| | REVIEW_VERIFICATION:
+| | - Base snapshot and payload are copied without aliasing and separately
+| |   bound by canonical hashes.
+| | - Unique invariant identifiers and aligned evidence requirements fail closed.
+| | - Artifact hashes, evidence, sender labels, receiver snapshots, and known
+| |   state history remain caller-supplied and unauthenticated.
+| | - Authentication, application, acceptance, and authority cannot be claimed.
+| | - CURRENT, STALE, CONFLICT, and UNAVAILABLE classifications follow only the
+| |   declared hash relationships and are semantically regenerated.
+| | - No operation applies payloads, mutates receiver state, invokes a model,
+| |   transports data, establishes consensus, or performs policy action.
+| | - Closed schema, types, bounds, cycles, finite values, hashes, statuses,
+| |   acceptance, and authority are directly covered by focused tests.
+| | - Recorded focused, full-suite, map, hash, and rail claims are internally
+| |   consistent with the exact reviewed artifacts.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMITS:
+| | - Canonical hashes prove only byte-equivalent JSON representation.
+| | - Hashes are not signatures and do not authenticate origin.
+| | - Fully regenerated alternatives can remain internally consistent.
+| | - All evidence and state inputs remain caller-controlled.
+| | - CURRENT does not endorse, apply, accept, or imply payload applicability.
+| | - One synthetic transfer does not establish general transfer capability.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 032 passed the exact version-bound state-transfer candidate.
+| | Evidence stops at the bound hashes, validations, and preserved limits.
+| |}==============================================================|
