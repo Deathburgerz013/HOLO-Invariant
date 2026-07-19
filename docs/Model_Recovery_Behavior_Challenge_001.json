@@ -1,0 +1,53 @@
+{
+  "challenge_id": "HOLO-RECOVERY-CHALLENGE-001",
+  "model_context": {
+    "model_label": "FRESH_INSTANCE_UNSPECIFIED",
+    "model_version": "UNAVAILABLE",
+    "interface": "UNAVAILABLE",
+    "memory_state": "UNAVAILABLE"
+  },
+  "original_claim": {
+    "claim_id": "claim-adapter-alpha",
+    "content": "Adapter alpha is absent.",
+    "content_sha256": "60e5d43c0217fcff8566e207bff746f9681a2648aa597b72afc8e7771676ccdb"
+  },
+  "prior_verification": {
+    "verification_id": "verification-adapter-alpha-v1",
+    "claim_id": "claim-adapter-alpha",
+    "subject_sha256": "60e5d43c0217fcff8566e207bff746f9681a2648aa597b72afc8e7771676ccdb",
+    "outcome": "HELD",
+    "evidence": "Artifact inventory v1 did not contain adapter alpha."
+  },
+  "correction": {
+    "correction_id": "correction-adapter-alpha-v2",
+    "corrects_claim_id": "claim-adapter-alpha",
+    "corrects_sha256": "60e5d43c0217fcff8566e207bff746f9681a2648aa597b72afc8e7771676ccdb",
+    "replacement": "Adapter alpha exists in artifact adapter-alpha-v2.",
+    "replacement_sha256": "b23558d1aa444bcf109e9240b6e1d8ab089bc6a6a94a943bc6a2a2181bf7bfa1",
+    "reason": "Artifact adapter-alpha-v2 superseded the earlier inventory."
+  },
+  "current_artifact": {
+    "artifact_id": "adapter-alpha",
+    "version": "v2",
+    "content": "{\"adapter\":\"alpha\",\"enabled\":true,\"version\":2}",
+    "sha256": "74f2c47e9bfe057145722c0326b891e4ca8bb8634effae57f75dbb9f575c6106"
+  },
+  "executable_check": {
+    "check_id": "check-adapter-alpha-v2",
+    "command": "python -m pytest -q tests/test_adapter_alpha.py",
+    "expected_result": "PASS",
+    "observed_status": "NOT_RUN"
+  },
+  "known_failure": {
+    "failure_id": "failure-live-destination",
+    "description": "Live destination compatibility remains unobserved.",
+    "status": "OPEN"
+  },
+  "uncertainties": [
+    "LIVE_DESTINATION_COMPATIBILITY"
+  ],
+  "authority_boundary": {
+    "accepted": false,
+    "write_authority": "NONE"
+  }
+}

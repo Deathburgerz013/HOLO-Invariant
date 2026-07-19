@@ -2104,3 +2104,120 @@
 | | External Review 028 passed the corrected exact performance-observation
 | | candidate. Evidence stops at the bound hashes and preserved limits.
 | |}==============================================================|
+| |}==============================================================|
+| | MODEL_RECOVERY_BEHAVIOR_CHALLENGE_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | BRANCH: feat/model-recovery-challenge
+| | BASE: main@5dc83c1
+| | IMPLEMENTATION: holosim/recovery.py
+| | IMPLEMENTATION_SHA256:
+| | 230b8b370753721fd86440467b1cf4a2d792afbbfc925fbff46fcf7eb30bd6b4
+| | FOCUSED_TEST: tests/test_recovery.py
+| | FOCUSED_TEST_SHA256:
+| | 9493281e2c98f16336aede68a44a89e2e743c7f60b8ac29f139eeeb67bf67a27
+| | CHALLENGE_SPEC: docs/Model_Recovery_Behavior_Challenge_001.json
+| | CHALLENGE_SPEC_SHA256:
+| | 80b5deb0bfc39f267425fd07dd694df2e25bda265018f3db9acfbe492b59d947
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | The declaration named a DECLARATION_TO_BEHAVIOR_CHALLENGE next pass, but
+| | the repository had no executable boundary that could present bounded
+| | recovery evidence, keep the expected answer private, and compare a model's
+| | structured response without promoting it to acceptance or authority.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - build_recovery_challenge(spec)
+| | - public_recovery_packet(bundle)
+| | - evaluate_recovery_response(bundle, response)
+| | - validate_recovery_evaluation(receipt)
+| |
+| | CHALLENGE_BOUNDARY:
+| | - A closed JSON challenge records an original claim, its historical check,
+| |   a correction with replacement hash, the current artifact, an explicitly
+| |   NOT_RUN executable check, a known open failure, uncertainty, and NONE
+| |   write authority.
+| | - The public packet excludes the private oracle and its hash.
+| | - The oracle is deterministically regenerated from the public evidence
+| |   before grading, preventing rehashed semantic bundle tampering.
+| | - Responses use a closed structured schema and are compared exactly at
+| |   field paths; arbitrary prose is neither interpreted nor graded.
+| |
+| | RECOVERY_BEHAVIOR_UNDER_TEST:
+| | - Supersede a stale historical claim with the current correction.
+| | - Preserve the historical verification as history rather than current fact.
+| | - Keep an unexecuted check NOT_RUN rather than inventing a result.
+| | - Preserve the known open failure and uncertainty.
+| | - Select the declared next action without claiming identity, memory,
+| |   acceptance, or write authority.
+| |
+| | RECEIPT_BOUNDARY:
+| | - Challenge, packet, oracle, response, and evaluation hashes are canonical.
+| | - Structure, types, bounds, cycles, hashes, semantics, acceptance, and
+| |   authority fail closed during construction, grading, and validation.
+| | - Evaluation always records accepted=false and write_authority=NONE.
+| | - PASS means only exact agreement with this challenge's private oracle.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused recovery tests: 22 passed in 0.37 s.
+| | - Full repository suite: 413 passed in 6.64 s.
+| |
+| | PRESERVED_LIMITS:
+| | - The evaluator does not invoke or authenticate any model.
+| | - One synthetic challenge does not establish general recovery capability.
+| | - Exact structured comparison does not evaluate equivalent prose answers.
+| | - Challenge evidence and check status remain caller-supplied.
+| | - Hash integrity does not authenticate evidence origin or historical truth.
+| | - No response can accept a candidate, mutate policy, or grant authority.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The smallest bounded declaration-to-behavior challenge is implemented.
+| | Stop at the recorded evidence until rail validation and review complete.
+| |}==============================================================|
+| |}==============================================================|
+| | MODEL_RECOVERY_BEHAVIOR_CHALLENGE_REVIEW_030_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260718-030
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 230b8b370753721fd86440467b1cf4a2d792afbbfc925fbff46fcf7eb30bd6b4
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 9493281e2c98f16336aede68a44a89e2e743c7f60b8ac29f139eeeb67bf67a27
+| | REVIEW_BOUND_CHALLENGE_SPEC_SHA256:
+| | 80b5deb0bfc39f267425fd07dd694df2e25bda265018f3db9acfbe492b59d947
+| | REVIEW_BOUND_MAP_SHA256:
+| | f235dbb99b22e2ecf10442b8e849c496ff104fd9fc5274df62308fda230446ef
+| |
+| | REVIEW_VERIFICATION:
+| | - The public packet excludes the private oracle and oracle hash.
+| | - Closed validation rejects structural, hash, and semantic tampering,
+| |   including semantic changes followed by outer-hash recomputation.
+| | - Stale history, NOT_RUN status, the OPEN failure, uncertainty,
+| |   accepted=false, and write_authority=NONE remain preserved.
+| | - Identity, memory, general recovery, policy approval, acceptance, and
+| |   authority claims cannot be granted through a response or receipt.
+| | - PASS is limited to exact structured agreement with the private oracle
+| |   derived for this single synthetic challenge.
+| | - Recorded focused, full-suite, map, hash, and rail claims are internally
+| |   consistent with the exact reviewed candidate.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMITS:
+| | - One synthetic challenge does not establish general recovery capability.
+| | - Equivalent prose or semantically similar answers are not graded.
+| | - Challenge evidence and statuses are caller-supplied and unauthenticated.
+| | - Hash integrity does not authenticate origin, history, or external facts.
+| | - The evaluator does not invoke or authenticate a model.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 030 passed the exact bounded recovery-challenge candidate.
+| | Evidence stops at the review-bound hashes and preserved limits.
+| |}==============================================================|
