@@ -2446,3 +2446,120 @@
 | | External Review 032 passed the exact version-bound state-transfer candidate.
 | | Evidence stops at the bound hashes, validations, and preserved limits.
 | |}==============================================================|
+| |}==============================================================|
+| | EXACT_AI_CALCULATOR_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | BRANCH: feat/ai-calculator
+| | BASE: main@2c8c628
+| | IMPLEMENTATION: holosim/ai_calculator.py
+| | IMPLEMENTATION_SHA256:
+| | 8385a22665b8a128d9e276507c9c5a04f86b37d82213df0bad0c612112d97367
+| | FOCUSED_TEST: tests/test_ai_calculator.py
+| | FOCUSED_TEST_SHA256:
+| | b325b75f8a8b6867314089e07d8bbc3738edea3b7ef7ec0e82a51622a99ca341
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | The repository could bind claims, observations, recovery runs, and state
+| | transfers, but had no deterministic arithmetic boundary that could safely
+| | evaluate a model- or human-supplied expression, preserve exact rational
+| | results, and independently recompute a stored calculation receipt.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - calculate_expression(expression, variables, decimal_places)
+| | - validate_calculation_receipt(receipt)
+| |
+| | ARITHMETIC_BOUNDARY:
+| | - A restricted Python AST permits numeric literals, named variables,
+| |   parentheses, unary signs, addition, subtraction, multiplication, exact
+| |   division, floor division, modulo, and bounded integer exponentiation.
+| | - Calls, attributes, imports, collections, comprehensions, lambdas,
+| |   conditionals, assignment expressions, strings, booleans, and arbitrary
+| |   Python execution are rejected.
+| | - Integers, decimal literals, scientific notation, decimal variable strings,
+| |   and fraction strings are evaluated as exact fractions without binary-float
+| |   arithmetic.
+| | - AST nodes/depth, expression and numeric bytes, variables, result bit size,
+| |   exponent magnitude, JSON structure, and decimal places are bounded.
+| |
+| | RECEIPT_BOUNDARY:
+| | - The receipt binds the original expression hash, normalized AST, normalized
+| |   exact variables, ordered operation identifiers, numerator/denominator,
+| |   bounded decimal approximation, premise status, acceptance, and authority.
+| | - Validation rejects malformed structure, cycles, non-finite values, hash
+| |   tampering, semantic changes, promoted premises, acceptance, and authority,
+| |   then recomputes the entire expected body from expression and variables.
+| | - premise_status remains NOT_VALIDATED, accepted=false, and
+| |   write_authority=NONE.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused exact-calculator tests: 54 passed in 0.44 s.
+| | - Full repository suite: 519 passed
+| |   in 7.17 s.
+| |
+| | PRESERVED_LIMITS:
+| | - Arithmetic correctness does not establish that supplied premises, units,
+| |   measurements, formulas, variable meanings, or conclusions are true.
+| | - Decimal output is a bounded approximation; numerator/denominator is the
+| |   authoritative exact arithmetic result.
+| | - The language is intentionally not a general computer algebra system and
+| |   does not support functions, symbolic proofs, units, or complex numbers.
+| | - Receipt hashes provide internal integrity, not authorship or signatures.
+| | - No expression can execute code, accept a conclusion, mutate policy, or
+| |   grant write authority.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The smallest exact AI-facing arithmetic verifier is implemented. Stop at
+| | the recorded evidence until rail validation and external review complete.
+| |}==============================================================|
+| |}==============================================================|
+| | EXACT_AI_CALCULATOR_REVIEW_033_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260719-033
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 8385a22665b8a128d9e276507c9c5a04f86b37d82213df0bad0c612112d97367
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | b325b75f8a8b6867314089e07d8bbc3738edea3b7ef7ec0e82a51622a99ca341
+| | REVIEW_BOUND_MAP_SHA256:
+| | 85ea37ae90a245ae6bb101f5761cd58583e4bb49004a2492bb19204a06623c3a
+| |
+| | REVIEW_VERIFICATION:
+| | - The restricted AST exposes no eval, exec, calls, imports, attributes,
+| |   comprehensions, lambdas, collections, assignments, or execution path.
+| | - Integer, decimal, scientific, and fraction inputs retain exact rational
+| |   semantics for the authoritative numerator/denominator result.
+| | - Supported arithmetic and all declared failures remain bounded and closed.
+| | - Receipts bind expressions, normalized AST and variables, ordered operations,
+| |   exact and decimal results, premise status, acceptance, and authority.
+| | - Validation reconstructs variables and recomputes the complete expected
+| |   receipt body, rejecting semantic tampering even after outer rehashing.
+| | - premise_status=NOT_VALIDATED, accepted=false, and write_authority=NONE
+| |   remain enforced.
+| | - Recorded focused, full-suite, hash, map, and rail claims are internally
+| |   consistent with the exact reviewed artifacts.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMITS:
+| | - Arithmetic correctness does not validate premises, units, measurements,
+| |   formulas, meanings, conclusions, applicability, or external facts.
+| | - decimal_approximation uses Decimal.quantize default ROUND_HALF_EVEN and is
+| |   subordinate to the exact numerator/denominator result.
+| | - The language intentionally excludes functions, symbolic proofs, units,
+| |   complex numbers, and general computer-algebra features.
+| | - Receipt hashes provide internal consistency, not signatures or authorship.
+| | - 0 ** 0 evaluates to 1 under the implemented conventional power semantics.
+| | - One bounded calculator does not establish general arithmetic capability.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 033 passed the exact AI-calculator candidate with no
+| | blocking findings. Evidence stops at the bound hashes and preserved limits.
+| |}==============================================================|
