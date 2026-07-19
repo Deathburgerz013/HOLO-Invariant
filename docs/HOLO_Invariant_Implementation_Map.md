@@ -2221,3 +2221,114 @@
 | | External Review 030 passed the exact bounded recovery-challenge candidate.
 | | Evidence stops at the review-bound hashes and preserved limits.
 | |}==============================================================|
+| |}==============================================================|
+| | MODEL_RECOVERY_RUNNER_DELTA
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | BRANCH: feat/model-recovery-runner
+| | BASE: main@b87dade
+| | IMPLEMENTATION: holosim/recovery_runner.py
+| | IMPLEMENTATION_SHA256:
+| | 1132d99ff277524274ca5abbad11957b6c0f9855bc8fba2b8e921e27f690629e
+| | FOCUSED_TEST: tests/test_recovery_runner.py
+| | FOCUSED_TEST_SHA256:
+| | 1fa328715c06be6e76e5f0df111a3009e18d4737383c8529efed65a720966c98
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | The recovery evaluator could grade one supplied response, but the
+| | repository had no transport-neutral boundary for exporting only its public
+| | packet, labeling an intended target without authenticating it, importing
+| | one response, and preserving the exact run evidence for deterministic
+| | replay and validation.
+| |
+| | IMPLEMENTED_FUNCTIONS:
+| | - build_recovery_run_request(bundle, target metadata)
+| | - validate_recovery_run_request(bundle, request)
+| | - record_recovery_run_response(bundle, request, response)
+| | - validate_recovery_run_receipt(bundle, request, receipt)
+| |
+| | REQUEST_BOUNDARY:
+| | - Only the public challenge packet is exported; oracle and oracle_hash are
+| |   absent from the request.
+| | - Provider, model, version, interface, and run labels are caller-supplied.
+| | - transport_status remains NOT_SENT and authentication_status remains
+| |   NOT_AUTHENTICATED because this module performs no external invocation.
+| | - The request hash binds the exact packet, target labels, statuses, limits,
+| |   interpretation notice, acceptance=false, and write_authority=NONE.
+| |
+| | RESPONSE_AND_RECEIPT_BOUNDARY:
+| | - One caller-supplied closed JSON object is copied, hashed, and evaluated
+| |   through the existing private-oracle evaluator.
+| | - The receipt binds request, challenge, declared target, supplied response,
+| |   evaluation, statuses, interpretation, acceptance, and authority.
+| | - Validation regenerates the evaluation from the bound response and rejects
+| |   stale or independently altered nested results even after outer rehashing.
+| | - Request and receipt dictionaries do not share mutable target state.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused recovery-runner tests: 23 passed in 0.36 s.
+| | - Evaluator plus runner tests: 45 passed in 0.14 s.
+| | - Full repository suite: 436 passed in 6.65 s.
+| |
+| | PRESERVED_LIMITS:
+| | - The runner does not call, retry, authenticate, or identify any model.
+| | - Target labels and responses are caller-supplied and unauthenticated.
+| | - A party able to replace a response, regenerate its evaluation, and
+| |   recompute every hash can create a different internally consistent run;
+| |   hashes provide integrity, not origin authentication or signatures.
+| | - PASS retains the evaluator's single-challenge exact-match meaning only.
+| | - No receipt establishes identity, memory, general recovery, acceptance,
+| |   policy approval, transport delivery, or write authority.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The smallest transport-neutral recovery run record is implemented. Stop at
+| | the recorded evidence until rail validation and external review complete.
+| |}==============================================================|
+| |}==============================================================|
+| | MODEL_RECOVERY_RUNNER_REVIEW_031_OVERLAY
+| |}==============================================================|
+| | REVIEW_ID: HOLO-EXT-REV-20260719-031
+| | REVIEW_RESULT: PASS
+| | REVIEW_BOUND_IMPLEMENTATION_SHA256:
+| | 1132d99ff277524274ca5abbad11957b6c0f9855bc8fba2b8e921e27f690629e
+| | REVIEW_BOUND_FOCUSED_TEST_SHA256:
+| | 1fa328715c06be6e76e5f0df111a3009e18d4737383c8529efed65a720966c98
+| | REVIEW_BOUND_MAP_SHA256:
+| | 9a1d4c8f80170d4de18127e370bd5617ac91d40d9aea0227e5521d062970790d
+| |
+| | REVIEW_VERIFICATION:
+| | - Requests expose only the public packet, never oracle or oracle_hash.
+| | - Target labels, run metadata, and responses remain caller-supplied and
+| |   unauthenticated.
+| | - No model contact, transport, retry, authentication, or identification
+| |   occurs.
+| | - Closed schema, bounds, cycles, finite values, hashes, acceptance, and
+| |   authority fail closed.
+| | - Responses and target dictionaries are copied without shared mutable state;
+| |   evaluation remains routed through the existing recovery evaluator.
+| | - Receipt validation regenerates evaluation and rejects stale or altered
+| |   nested content even when outer hashes are recomputed.
+| | - accepted=false and write_authority=NONE remain enforced throughout.
+| | - Recorded focused, full-suite, map, hash, and rail claims are internally
+| |   consistent with the exact reviewed artifacts.
+| |
+| | BLOCKING_FINDINGS: NONE
+| |
+| | NONBLOCKING_LIMITS:
+| | - Hashes provide internal integrity only; they are not signatures.
+| | - Fully regenerated alternate responses can form different consistent runs.
+| | - Labels and responses remain caller-controlled and unauthenticated.
+| | - One synthetic challenge does not establish general recovery capability.
+| | - Validation bounds are specific to the declared limits.
+| |
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | External Review 031 passed the exact model-recovery-runner candidate with
+| | no blocking findings. Evidence stops at the bound hashes and limits.
+| |}==============================================================|
