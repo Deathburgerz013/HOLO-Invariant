@@ -5,6 +5,7 @@ import pytest
 from holosim.reconstructor import (
     ReconstructionError,
     build_reconstruction_manifest,
+    build_reconstruction_path,
     validate_reconstruction_manifest,
 )
 
@@ -121,3 +122,102 @@ def test_empty_states_are_valid_and_bounded():
     assert manifest["prior_count"] == 0
     assert manifest["current_count"] == 0
     assert validate_reconstruction_manifest(manifest) is True
+
+
+def test_reconstruction_path_follows_direct_dependency():
+    path = build_reconstruction_path(
+        "current reference",
+        ["answer"],
+        [
+            {"id": "answer", "requires": ["evidence"]},
+            {"id": "evidence", "requires": []},
+        ],
+    )
+
+    assert path["status"] == "COMPLETE"
+    assert path["reachable_ids"] == ["answer", "evidence"]
+    assert path["missing_ids"] == []
+
+
+def test_reconstruction_path_follows_multi_hop_dependencies():
+    path = build_reconstruction_path(
+        "current reference",
+        ["a"],
+        [
+            {"id": "a", "requires": ["b"]},
+            {"id": "b", "requires": ["c"]},
+            {"id": "c", "requires": []},
+        ],
+    )
+
+    assert path["reachable_ids"] == ["a", "b", "c"]
+    assert path["dependency_edges"] == [
+        {"from": "a", "to": "b"},
+        {"from": "b", "to": "c"},
+    ]
+
+
+def test_reconstruction_path_excludes_unrelated_branch():
+    path = build_reconstruction_path(
+        "current reference",
+        ["needed"],
+        [
+            {"id": "needed", "requires": ["base"]},
+            {"id": "base", "requires": []},
+            {"id": "unrelated", "requires": ["other"]},
+            {"id": "other", "requires": []},
+        ],
+    )
+
+    assert path["reachable_ids"] == ["base", "needed"]
+    assert path["excluded_ids"] == ["other", "unrelated"]
+
+
+def test_reconstruction_path_exposes_missing_dependency():
+    path = build_reconstruction_path(
+        "current reference",
+        ["needed"],
+        [{"id": "needed", "requires": ["missing"]}],
+    )
+
+    assert path["status"] == "INCOMPLETE"
+    assert path["reachable_ids"] == ["needed"]
+    assert path["missing_ids"] == ["missing"]
+
+
+def test_reconstruction_path_cycle_terminates_and_reports_edge():
+    path = build_reconstruction_path(
+        "current reference",
+        ["a"],
+        [
+            {"id": "a", "requires": ["b"]},
+            {"id": "b", "requires": ["a"]},
+        ],
+    )
+
+    assert path["status"] == "COMPLETE"
+    assert path["reachable_ids"] == ["a", "b"]
+    assert path["cycle_edges"] == [{"from": "b", "to": "a"}]
+
+
+def test_reconstruction_path_does_not_guess_semantic_links():
+    path = build_reconstruction_path(
+        "teacher learner relation",
+        ["teacher"],
+        [
+            {"id": "teacher", "requires": []},
+            {"id": "learner", "requires": []},
+        ],
+    )
+
+    assert path["reachable_ids"] == ["teacher"]
+    assert path["excluded_ids"] == ["learner"]
+
+
+def test_reconstruction_path_rejects_duplicate_targets():
+    with pytest.raises(ReconstructionError, match="unique"):
+        build_reconstruction_path(
+            "reference",
+            ["a", "a"],
+            [{"id": "a", "requires": []}],
+        )
