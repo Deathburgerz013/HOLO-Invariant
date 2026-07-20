@@ -81,12 +81,13 @@ def test_receiver_preserves_explicit_unknown_as_difference_not_truth():
     state = build_reconstructed_state("receiver task", ["a"], source)
     present = copy.deepcopy(state["carried_items"])
     present_by_id = {item["id"]: item for item in present}
-    present_by_id["c"] = {
+    present_by_id["c"].clear()
+    present_by_id["c"].update({
         "id": "c",
         "requires": [],
         "state": "unknown",
         "value": None,
-    }
+    })
 
     result = build_reconstruction_manifest(
         state["reference"],
