@@ -11,20 +11,24 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Mapping, Sequence
 
 try:
     from holosim.config import ACTIVE_HASH, ANCHOR, DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
+    from holosim.correction_cycle import build_correction_cycle
     from holosim.ingest import ingest_directory
     from holosim.miner import mine_file
+    from holosim.reconstructor import build_reconstructed_state, build_reconstruction_manifest
     from holosim.scheduler import run_health
     from holosim.service import get_service
     from holosim.watcher import watch_once
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.config import ACTIVE_HASH, ANCHOR, DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
+    from holosim.correction_cycle import build_correction_cycle
     from holosim.ingest import ingest_directory
     from holosim.miner import mine_file
+    from holosim.reconstructor import build_reconstructed_state, build_reconstruction_manifest
     from holosim.scheduler import run_health
     from holosim.service import get_service
     from holosim.watcher import watch_once
@@ -100,6 +104,55 @@ class HoloRuntime:
             "status": "ok",
             "identity": self.identity(),
             "replay": result,
+            "timestamp": int(time.time()),
+        }
+
+    def reference_loop(
+        self,
+        *,
+        reference: str,
+        target_ids: Sequence[str],
+        prior_items: Sequence[Mapping[str, Any]],
+        observations: Sequence[Sequence[Mapping[str, Any]]],
+    ) -> Dict[str, Any]:
+        """Run a bounded, read-only reconstruction/correction observation loop.
+
+        The runtime reconstructs only explicit dependencies from ``prior_items``,
+        compares that carried state against each supplied observation in order,
+        and delegates stopping semantics to the correction cycle. It does not
+        choose hooks, execute corrections, mutate observations, grant acceptance,
+        or grant write authority.
+        """
+        if type(observations) not in {list, tuple} or not observations:
+            raise ValueError("observations must be a nonempty list or tuple")
+
+        reconstructed = build_reconstructed_state(reference, target_ids, prior_items)
+        manifests = []
+        for observation in observations:
+            manifest = build_reconstruction_manifest(
+                reconstructed["reference"],
+                reconstructed["carried_items"],
+                observation,
+            )
+            manifests.append(manifest)
+            if not manifest["changed"] and not manifest["missing_ids"]:
+                break
+
+        cycle = build_correction_cycle(reconstructed["reference"], manifests)
+        return {
+            "status": cycle["status"],
+            "identity": self.identity(),
+            "reference": reconstructed["reference"],
+            "reconstructed_state": reconstructed,
+            "manifests": manifests,
+            "correction_cycle": cycle,
+            "accepted": False,
+            "write_authority": "NONE",
+            "interpretation_notice": (
+                "The runtime coordinates existing reconstruction and correction "
+                "observations only. It does not choose or execute hooks, apply "
+                "corrections, establish truth, acceptance, or authority."
+            ),
             "timestamp": int(time.time()),
         }
 
