@@ -16,6 +16,7 @@ from typing import Any, Mapping, Sequence
 
 RECONSTRUCTION_TYPE = "holo_reconstruction_manifest"
 RECONSTRUCTION_PATH_TYPE = "holo_reconstruction_path"
+RECONSTRUCTED_STATE_TYPE = "holo_reconstructed_state"
 RECONSTRUCTION_VERSION = 1
 MAX_ITEMS = 10_000
 MAX_JSON_DEPTH = 8
@@ -253,6 +254,87 @@ def build_reconstruction_path(
         ),
     }
     return {**body, "path_hash": _hash(body)}
+
+
+def build_reconstructed_state(
+    reference: str,
+    target_ids: Sequence[str],
+    items: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Carry only exact items reachable from an explicit reconstruction path."""
+    normalized = _normalize_items(items, "items")
+    by_id = {item["id"]: item for item in normalized}
+    path = build_reconstruction_path(reference, target_ids, normalized)
+    reachable_ids = path["reachable_ids"]
+    carried_items = [by_id[item_id] for item_id in reachable_ids]
+    body: dict[str, Any] = {
+        "type": RECONSTRUCTED_STATE_TYPE,
+        "version": RECONSTRUCTION_VERSION,
+        "reference": path["reference"],
+        "target_ids": list(path["target_ids"]),
+        "path_hash": path["path_hash"],
+        "reachable_ids": list(reachable_ids),
+        "missing_ids": list(path["missing_ids"]),
+        "carried_items": carried_items,
+        "status": "COMPLETE" if not path["missing_ids"] else "INCOMPLETE",
+        "accepted": False,
+        "write_authority": "NONE",
+        "interpretation_notice": (
+            "Reconstructed state carries exact reachable items from an explicit "
+            "dependency path only. It does not infer truth, memory, acceptance, "
+            "or authority."
+        ),
+    }
+    return {**body, "state_hash": _hash(body)}
+
+
+def validate_reconstructed_state(
+    state: Mapping[str, Any],
+    items: Sequence[Mapping[str, Any]],
+) -> bool:
+    """Fail closed unless a reconstructed state regenerates from its source items."""
+    if type(state) is not dict:
+        raise ReconstructionError("state must be a plain dictionary")
+    _closed_json(state)
+    expected = {
+        "type", "version", "reference", "target_ids", "path_hash",
+        "reachable_ids", "missing_ids", "carried_items", "status",
+        "accepted", "write_authority", "interpretation_notice", "state_hash",
+    }
+    if set(state) != expected:
+        raise ReconstructionError("state fields do not match the versioned schema")
+    if state["type"] != RECONSTRUCTED_STATE_TYPE or state["version"] != RECONSTRUCTION_VERSION:
+        raise ReconstructionError("state type or version is invalid")
+    if state["accepted"] is not False or state["write_authority"] != "NONE":
+        raise ReconstructionError("reconstructed state cannot grant acceptance or write authority")
+    _require_text(state["reference"], "reference")
+    targets = _normalize_text_list(state["target_ids"], "target_ids")
+    reachable = _normalize_text_list(state["reachable_ids"], "reachable_ids")
+    missing = _normalize_text_list(state["missing_ids"], "missing_ids")
+    carried = _normalize_items(state["carried_items"], "carried_items")
+    if [item["id"] for item in carried] != reachable:
+        raise ReconstructionError("carried item ids must match reachable_ids in order")
+    if state["status"] not in {"COMPLETE", "INCOMPLETE"}:
+        raise ReconstructionError("state status is invalid")
+    expected_status = "COMPLETE" if not missing else "INCOMPLETE"
+    if state["status"] != expected_status:
+        raise ReconstructionError("state status is inconsistent with missing_ids")
+    if type(state["path_hash"]) is not str or not re.fullmatch(r"[0-9a-f]{64}", state["path_hash"]):
+        raise ReconstructionError("path_hash must be a SHA-256 hex digest")
+    if type(state["state_hash"]) is not str or not re.fullmatch(r"[0-9a-f]{64}", state["state_hash"]):
+        raise ReconstructionError("state_hash must be a SHA-256 hex digest")
+    regenerated = build_reconstructed_state(state["reference"], targets, items)
+    if regenerated["path_hash"] != state["path_hash"]:
+        raise ReconstructionError("path hash mismatch")
+    if regenerated["reachable_ids"] != reachable or regenerated["missing_ids"] != missing:
+        raise ReconstructionError("reconstructed reachability mismatch")
+    if regenerated["carried_items"] != carried:
+        raise ReconstructionError("reconstructed carried items mismatch")
+    body = dict(state)
+    state_hash = body.pop("state_hash")
+    if _hash(body) != state_hash:
+        raise ReconstructionError("state hash mismatch")
+    return True
 
 
 def validate_reconstruction_manifest(manifest: Mapping[str, Any]) -> bool:
