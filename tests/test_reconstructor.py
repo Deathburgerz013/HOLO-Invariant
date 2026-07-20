@@ -4,8 +4,10 @@ import pytest
 
 from holosim.reconstructor import (
     ReconstructionError,
+    build_reconstructed_state,
     build_reconstruction_manifest,
     build_reconstruction_path,
+    validate_reconstructed_state,
     validate_reconstruction_manifest,
 )
 
@@ -221,3 +223,61 @@ def test_reconstruction_path_rejects_duplicate_targets():
             ["a", "a"],
             [{"id": "a", "requires": []}],
         )
+
+
+def test_reconstructed_state_carries_only_reachable_items():
+    items = [
+        {"id": "a", "requires": ["b"], "value": "target"},
+        {"id": "b", "requires": ["c"], "value": "middle"},
+        {"id": "c", "requires": [], "value": "base"},
+        {"id": "x", "requires": [], "value": "unrelated"},
+    ]
+
+    state = build_reconstructed_state("current reference", ["a"], items)
+
+    assert state["status"] == "COMPLETE"
+    assert state["reachable_ids"] == ["a", "b", "c"]
+    assert [item["id"] for item in state["carried_items"]] == ["a", "b", "c"]
+    assert all(item["id"] != "x" for item in state["carried_items"])
+    assert validate_reconstructed_state(state, items) is True
+
+
+def test_reconstructed_state_remains_incomplete_when_dependency_is_missing():
+    items = [{"id": "a", "requires": ["missing"], "value": 1}]
+
+    state = build_reconstructed_state("current reference", ["a"], items)
+
+    assert state["status"] == "INCOMPLETE"
+    assert state["missing_ids"] == ["missing"]
+    assert [item["id"] for item in state["carried_items"]] == ["a"]
+    assert validate_reconstructed_state(state, items) is True
+
+
+def test_reconstructed_state_tampered_carried_item_is_rejected():
+    items = [
+        {"id": "a", "requires": ["b"], "value": 1},
+        {"id": "b", "requires": [], "value": 2},
+    ]
+    state = build_reconstructed_state("reference", ["a"], items)
+    state["carried_items"][0]["value"] = 999
+
+    with pytest.raises(ReconstructionError):
+        validate_reconstructed_state(state, items)
+
+
+def test_reconstructed_state_tampered_path_identity_is_rejected():
+    items = [{"id": "a", "requires": [], "value": 1}]
+    state = build_reconstructed_state("reference", ["a"], items)
+    state["path_hash"] = "0" * 64
+
+    with pytest.raises(ReconstructionError, match="path hash mismatch"):
+        validate_reconstructed_state(state, items)
+
+
+def test_reconstructed_state_authority_escalation_is_rejected():
+    items = [{"id": "a", "requires": []}]
+    state = build_reconstructed_state("reference", ["a"], items)
+    state["accepted"] = True
+
+    with pytest.raises(ReconstructionError, match="cannot grant"):
+        validate_reconstructed_state(state, items)
