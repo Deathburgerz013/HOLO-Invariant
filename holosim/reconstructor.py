@@ -15,6 +15,7 @@ import re
 from typing import Any, Mapping, Sequence
 
 RECONSTRUCTION_TYPE = "holo_reconstruction_manifest"
+RECONSTRUCTION_PATH_TYPE = "holo_reconstruction_path"
 RECONSTRUCTION_VERSION = 1
 MAX_ITEMS = 10_000
 MAX_JSON_DEPTH = 8
@@ -105,6 +106,17 @@ def _normalize_items(items: Sequence[Mapping[str, Any]], field: str) -> list[dic
     return normalized
 
 
+def _normalize_text_list(values: Sequence[str], field: str) -> list[str]:
+    if type(values) not in {list, tuple}:
+        raise ReconstructionError(f"{field} must be a list or tuple")
+    if len(values) > MAX_ITEMS:
+        raise ReconstructionError(f"{field} exceeds maximum item count")
+    normalized = [_require_text(value, f"{field}[{index}]") for index, value in enumerate(values)]
+    if len(normalized) != len(set(normalized)):
+        raise ReconstructionError(f"{field} values must be unique")
+    return normalized
+
+
 def build_reconstruction_manifest(
     reference: str,
     prior_items: Sequence[Mapping[str, Any]],
@@ -162,6 +174,85 @@ def build_reconstruction_manifest(
         ),
     }
     return {**body, "reconstruction_hash": _hash(body)}
+
+
+def build_reconstruction_path(
+    reference: str,
+    target_ids: Sequence[str],
+    items: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Trace only explicit ``requires`` links needed by the requested targets.
+
+    The pathfinder performs no semantic search. Missing dependencies remain
+    explicit, unrelated items are excluded, and cycles terminate safely.
+    """
+    checked_reference = _require_text(reference, "reference")
+    targets = _normalize_text_list(target_ids, "target_ids")
+    if not targets:
+        raise ReconstructionError("target_ids must not be empty")
+    normalized = _normalize_items(items, "items")
+    by_id = {item["id"]: item for item in normalized}
+
+    requirements: dict[str, list[str]] = {}
+    for item in normalized:
+        raw_requires = item.get("requires", [])
+        requirements[item["id"]] = _normalize_text_list(raw_requires, f"requires[{item['id']}]")
+
+    reachable: set[str] = set()
+    missing: set[str] = set()
+    edges: set[tuple[str, str]] = set()
+    cycle_edges: set[tuple[str, str]] = set()
+    active: set[str] = set()
+
+    def visit(item_id: str) -> None:
+        if item_id not in by_id:
+            missing.add(item_id)
+            return
+        if item_id in active:
+            return
+        if item_id in reachable:
+            return
+        active.add(item_id)
+        reachable.add(item_id)
+        try:
+            for dependency in requirements[item_id]:
+                edges.add((item_id, dependency))
+                if dependency in active:
+                    cycle_edges.add((item_id, dependency))
+                    continue
+                visit(dependency)
+        finally:
+            active.remove(item_id)
+
+    for target_id in targets:
+        visit(target_id)
+
+    excluded = sorted(set(by_id) - reachable)
+    body: dict[str, Any] = {
+        "type": RECONSTRUCTION_PATH_TYPE,
+        "version": RECONSTRUCTION_VERSION,
+        "reference": checked_reference,
+        "target_ids": targets,
+        "reachable_ids": sorted(reachable),
+        "missing_ids": sorted(missing),
+        "excluded_ids": excluded,
+        "dependency_edges": [
+            {"from": source, "to": destination}
+            for source, destination in sorted(edges)
+        ],
+        "cycle_edges": [
+            {"from": source, "to": destination}
+            for source, destination in sorted(cycle_edges)
+        ],
+        "status": "COMPLETE" if not missing else "INCOMPLETE",
+        "accepted": False,
+        "write_authority": "NONE",
+        "interpretation_notice": (
+            "Reconstruction paths follow explicit dependency links only. They do "
+            "not infer semantic relevance, truth, memory, acceptance, or authority."
+        ),
+    }
+    return {**body, "path_hash": _hash(body)}
 
 
 def validate_reconstruction_manifest(manifest: Mapping[str, Any]) -> bool:
