@@ -1,0 +1,29 @@
+{
+  "function": {
+    "function_id": "STORE",
+    "description": "Preserve a supplied value at an address so an equivalent value can later be recovered from that address.",
+    "contract": {
+      "observable_input": ["address", "value"],
+      "operation": "store",
+      "required_observation": {
+        "operation": "read_same_address",
+        "outcome": "equivalent_stored_value_recovered"
+      }
+    },
+    "evidence_reference": "computer-function-collection@addressable-memory-write"
+  },
+  "implementations": [
+    {
+      "id": "williams-kilburn-tube",
+      "kind": "electrostatic-addressable-memory"
+    },
+    {
+      "id": "modern-addressable-memory",
+      "kind": "semiconductor-addressable-memory"
+    }
+  ],
+  "reproduction": {
+    "status": "REPRODUCED",
+    "reference": "store-contract@address-value-recovery"
+  }
+}
