@@ -12,9 +12,11 @@ import json
 import re
 from typing import Any, Iterable, Mapping
 
+from holosim.check_identity import build_check_identity
+
 
 THEORY_STATE_TYPE = "holo_theory_state_observation"
-THEORY_STATE_VERSION = 1
+THEORY_STATE_VERSION = 2
 MAX_THEORY_ITEMS = 100_000
 MAX_TEXT_UTF8_BYTES = 16_384
 MAX_RECEIPT_JSON_DEPTH = 10
@@ -165,6 +167,34 @@ def _normalize_checks(
     return checks
 
 
+def _build_check_identities(
+    theory: dict[str, Any], checks: list[dict[str, str]]
+) -> list[dict[str, Any]]:
+    """Bind each local theory check to the shared check-identity contract."""
+    theory_hash = _digest(theory)
+    identities: list[dict[str, Any]] = []
+    for check in checks:
+        identities.append(
+            build_check_identity(
+                check_id=check["check_id"],
+                check_type="theory_prediction_check",
+                subject={
+                    "theory_id": theory["theory_id"],
+                    "prediction_id": check["prediction_id"],
+                },
+                reference_ids=[
+                    f"theory:{theory['theory_id']}",
+                    f"prediction:{check['prediction_id']}",
+                ],
+                scope={"method": check["method"]},
+                evidence_references=[check["evidence"]],
+                rule_references=[],
+                input_state_hash=theory_hash,
+            )
+        )
+    return identities
+
+
 def _derive_navigation(
     theory: dict[str, Any], checks: list[dict[str, str]]
 ) -> dict[str, Any]:
@@ -212,6 +242,7 @@ def evaluate_theory_state(theory: Any, checks: Iterable[Any]) -> dict[str, Any]:
         item["prediction_id"] for item in normalized_theory["predictions"]
     }
     normalized_checks = _normalize_checks(checks, prediction_ids)
+    check_identities = _build_check_identities(normalized_theory, normalized_checks)
     body = {
         "type": THEORY_STATE_TYPE,
         "version": THEORY_STATE_VERSION,
@@ -219,6 +250,7 @@ def evaluate_theory_state(theory: Any, checks: Iterable[Any]) -> dict[str, Any]:
         "theory_hash": _digest(normalized_theory),
         "checks": normalized_checks,
         "check_hashes": [_digest(check) for check in normalized_checks],
+        "check_identities": check_identities,
         **_derive_navigation(normalized_theory, normalized_checks),
         "current": True,
         "stale_reason": None,
@@ -283,6 +315,7 @@ def _validate_theory_receipt(receipt: Mapping[str, Any]) -> None:
         "theory_hash",
         "checks",
         "check_hashes",
+        "check_identities",
         "state",
         "checked_prediction_ids",
         "unchecked_prediction_ids",
