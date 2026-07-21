@@ -1,0 +1,40 @@
+{
+  "reference": "Problems.md@d154b49e91adb181624cf497eb126642dc90b9c2",
+  "source": {
+    "repository": "Deathburgerz013/HOLO-Invariant",
+    "commit": "d154b49e91adb181624cf497eb126642dc90b9c2",
+    "commit_message": "Restructure Problems.md for clarity and protocol definition",
+    "evidence_note": "The commit diff replaces long inline model contribution blocks with consolidated summaries and placeholder statements that the full original text is available in history. This fixture tests only whether direct inline inspectability of those baseline contributions survived that restructure."
+  },
+  "baseline_substrate": [
+    {"id": "canyon-intro-inline", "kind": "historical-source-text"},
+    {"id": "grok-block-inline", "kind": "model-contribution"},
+    {"id": "gemini-block-inline", "kind": "model-contribution"},
+    {"id": "copilot-block-inline", "kind": "model-contribution"},
+    {"id": "chatgpt-block-inline", "kind": "model-contribution"}
+  ],
+  "candidate_substrate": [
+    {"id": "core-invariants-consolidated", "kind": "summary"},
+    {"id": "model-contribution-placeholders", "kind": "history-pointer"}
+  ],
+  "baseline_outcomes": [
+    {"id": "grok-contribution-directly-inspectable", "value": true},
+    {"id": "gemini-contribution-directly-inspectable", "value": true},
+    {"id": "chatgpt-contribution-directly-inspectable", "value": true}
+  ],
+  "candidate_outcomes": [
+    {"id": "grok-contribution-directly-inspectable", "value": false},
+    {"id": "gemini-contribution-directly-inspectable", "value": false},
+    {"id": "chatgpt-contribution-directly-inspectable", "value": false},
+    {"id": "history-pointer-present", "value": true}
+  ],
+  "expected": {
+    "status": "NOT_REPRODUCED",
+    "changed_outcome_ids": [
+      "chatgpt-contribution-directly-inspectable",
+      "gemini-contribution-directly-inspectable",
+      "grok-contribution-directly-inspectable"
+    ],
+    "removed_substrate_not_required_for_observed_reproduction": []
+  }
+}
