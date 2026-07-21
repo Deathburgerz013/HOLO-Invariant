@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from holosim.function_registry import (
@@ -9,6 +12,9 @@ from holosim.function_registry import (
     register_function,
     relate_implementation,
 )
+
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures" / "function_registry"
 
 
 def test_register_store_function_without_claiming_authority() -> None:
@@ -147,3 +153,29 @@ def test_hashes_are_deterministic() -> None:
     second = register_function(**kwargs)
 
     assert first == second
+
+
+def test_real_store_implementations_share_validated_function() -> None:
+    fixture = json.loads(
+        (FIXTURE_DIR / "store_reproduction.json").read_text(encoding="utf-8")
+    )
+
+    function_data = fixture["function"]
+
+    function = register_function(
+        function_id=function_data["function_id"],
+        description=function_data["description"],
+        contract=function_data["contract"],
+        evidence_reference=function_data["evidence_reference"],
+    )
+
+    result = evaluate_functional_merge(
+        function_id=function["function_id"],
+        implementation_ids=[item["id"] for item in fixture["implementations"]],
+        reproduction_status=fixture["reproduction"]["status"],
+        reproduction_reference=fixture["reproduction"]["reference"],
+    )
+
+    assert result["merge_status"] == "SHARED_FUNCTION"
+    assert result["implementations_declared_identical"] is False
+    assert result["obsolete_implementations"] == []
