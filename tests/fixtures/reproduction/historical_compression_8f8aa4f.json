@@ -1,0 +1,37 @@
+{
+  "reference": "Historical_Compression.md@8f8aa4fb5b304e5334c4739f776a6e949e56cf6a",
+  "source_commit": "8f8aa4fb5b304e5334c4739f776a6e949e56cf6a",
+  "source_file": "Historical_Compression.md",
+  "observation_note": "The commit densified the document from a much longer repeated spine while preserving explicit era anchors, compression summaries, meanings/keys, and verification notes. This fixture tests only those explicitly retained capabilities, not global semantic equivalence.",
+  "baseline_substrate": [
+    {"id": "repeated-spine-header"},
+    {"id": "repeated-integration-note"},
+    {"id": "era-structure"},
+    {"id": "era-content"},
+    {"id": "verification-notes"}
+  ],
+  "candidate_substrate": [
+    {"id": "era-structure"},
+    {"id": "era-content"},
+    {"id": "verification-notes"}
+  ],
+  "baseline_outcomes": [
+    {"id": "era-structure-present", "value": true},
+    {"id": "era-anchors-present", "value": true},
+    {"id": "compression-keys-present", "value": true},
+    {"id": "verification-notes-present", "value": true}
+  ],
+  "candidate_outcomes": [
+    {"id": "era-structure-present", "value": true},
+    {"id": "era-anchors-present", "value": true},
+    {"id": "compression-keys-present", "value": true},
+    {"id": "verification-notes-present", "value": true}
+  ],
+  "expected": {
+    "status": "REPRODUCED",
+    "removed_substrate_not_required_for_observed_reproduction": [
+      "repeated-integration-note",
+      "repeated-spine-header"
+    ]
+  }
+}
