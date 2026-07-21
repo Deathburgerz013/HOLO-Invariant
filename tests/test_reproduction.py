@@ -115,6 +115,28 @@ def test_historical_problems_restructure_exposes_compression_loss() -> None:
     ]["removed_substrate_not_required_for_observed_reproduction"]
 
 
+def test_historical_compression_can_remove_repetition_and_preserve_capability() -> None:
+    fixture = json.loads(
+        (FIXTURE_DIR / "historical_compression_8f8aa4f.json").read_text(encoding="utf-8")
+    )
+
+    result = build_reproduction_check(
+        fixture["reference"],
+        baseline_substrate=fixture["baseline_substrate"],
+        candidate_substrate=fixture["candidate_substrate"],
+        baseline_outcomes=fixture["baseline_outcomes"],
+        candidate_outcomes=fixture["candidate_outcomes"],
+    )
+
+    assert result["status"] == fixture["expected"]["status"]
+    assert result["candidate_is_smaller"] is True
+    assert result["changed_outcomes"] == []
+    assert result["missing_outcome_ids"] == []
+    assert result["removed_substrate_not_required_for_observed_reproduction"] == fixture[
+        "expected"
+    ]["removed_substrate_not_required_for_observed_reproduction"]
+
+
 def test_duplicate_ids_fail_closed() -> None:
     with pytest.raises(ReproductionError, match="duplicate baseline_substrate id"):
         build_reproduction_check(
