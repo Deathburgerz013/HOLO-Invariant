@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import json
 import math
+from pathlib import Path
 
 import pytest
 
 from holosim.reproduction import ReproductionError, build_reproduction_check
+
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures" / "reproduction"
 
 
 def test_smaller_candidate_can_reproduce_same_explicit_outcomes() -> None:
@@ -85,6 +90,29 @@ def test_exact_outcome_identity_not_semantic_similarity() -> None:
 
     assert result["status"] == "NOT_REPRODUCED"
     assert result["changed_outcomes"][0]["id"] == "answer"
+
+
+def test_historical_problems_restructure_exposes_compression_loss() -> None:
+    fixture = json.loads(
+        (FIXTURE_DIR / "problems_restructure_d154b49.json").read_text(encoding="utf-8")
+    )
+
+    result = build_reproduction_check(
+        fixture["reference"],
+        baseline_substrate=fixture["baseline_substrate"],
+        candidate_substrate=fixture["candidate_substrate"],
+        baseline_outcomes=fixture["baseline_outcomes"],
+        candidate_outcomes=fixture["candidate_outcomes"],
+    )
+
+    assert result["status"] == fixture["expected"]["status"]
+    assert [item["id"] for item in result["changed_outcomes"]] == fixture["expected"][
+        "changed_outcome_ids"
+    ]
+    assert result["candidate_is_smaller"] is True
+    assert result["removed_substrate_not_required_for_observed_reproduction"] == fixture[
+        "expected"
+    ]["removed_substrate_not_required_for_observed_reproduction"]
 
 
 def test_duplicate_ids_fail_closed() -> None:
