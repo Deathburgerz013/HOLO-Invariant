@@ -1,4 +1,4 @@
-|=============================================================|
+||=============================================================|
 || █†█ Holo/Sim █†█ █†█ AI_REQUIRED_INVARIANTS_SPINE █†█
 || [CORRECTION_MARKER: refine only when evidence shows a
 || required distinction is missing, wrong, or redundant.]
@@ -142,4 +142,4 @@
 ||
 || No justified relevant difference -> no justified correction.
 ||
-|=============================================================|
+||=============================================================|
