@@ -143,6 +143,8 @@ The system therefore preserves the path needed to reconstruct where reasoning le
 - Version-bound performance observations
 - SQLite + Merkle persistence backend
 - Runtime orchestration
+- Bounded software-building loop
+- Bounded software convergence loop
 - Stable internal API
 - Cross-platform
 - Zero runtime dependencies
@@ -209,6 +211,48 @@ python -m holosim.Holo_Sim verify
 python -m holosim.Holo_Sim evaluate "Example delta"
 ```
 
+## Software Builder and Converger
+
+HOLO-Invariant includes a bounded software-building loop and a bounded convergence loop.
+
+`holosim/software_builder.py` owns the propose -> apply -> verify cycle. Proposal generation and verification are injected by the caller, workspace mutation is bounded to the supplied workspace, genuine verifier feedback can drive later correction attempts, and emitted receipts remain observational with `accepted: false`, `truth_claimed: false`, and `write_authority: "NONE"`.
+
+`holosim/software_converger.py` sits one layer above the builder. It compares an explicit goal against the observed workspace state, invokes the builder only while a relevant difference exists, verifies the result, compares again, and stops when no relevant difference remains.
+
+```text
+COMPARE
+  |
+  +-- no relevant difference -> STOP
+  |
+  +-- relevant difference
+         |
+         v
+       BUILDER
+         |
+         v
+       VERIFY
+         |
+         v
+       COMPARE AGAIN
+```
+
+A runnable disposable-workspace example is provided at:
+
+```bash
+python examples/software_convergence.py
+```
+
+Expected result:
+
+```text
+converged: True
+terminal_reason: NO_RELEVANT_DIFFERENCE
+cycles: 2
+builds: 1
+```
+
+The example demonstrates one real software difference, one verified build, one re-check, and termination after convergence. It does not grant truth, acceptance, or write authority.
+
 ---
 
 # Repository Layout
@@ -229,6 +273,8 @@ holosim/
     performance.py                   version-bound performance observations
     slot_merkle_sqlite.py            separate SQLite + Merkle persistence backend
     runtime.py                       runtime orchestration
+    software_builder.py              bounded propose -> apply -> verify software-building loop
+    software_converger.py            compare -> build -> verify -> recompare convergence loop
     api.py                           internal API surface
     provenance.py                    provenance packets
     delta_export.py                  delta export
