@@ -7,7 +7,7 @@ verification.
 Instead of treating the language model as memory, HOLO externalizes
 continuity into a cryptographically verifiable append-only chain.
 Continuity depends less on preserving every fact than on preserving the distinctions that let future observers reconstruct and correct those facts.
-
+Continuity is not preserved by memory; it is preserved by independently verifiable evidence that allows honest reconstruction of prior state without granting authority over future reasoning.
 ---
 
 HOLO is not an attempt to preserve minds.
