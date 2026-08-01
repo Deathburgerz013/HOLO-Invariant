@@ -97,3 +97,28 @@ def evaluate_attention_candidate(
         **body,
         "decision_hash": _canonical_hash(body),
     }
+def build_attention_guarantee() -> dict[str, Any]:
+    """Describe the bounded guarantee made by attention evaluation."""
+    return {
+        "guarantee_id": "attention-cost-value-decision",
+        "guarantee_type": "attention-allocation",
+        "scope": "holosim.attention_cost_value.evaluate_attention_candidate",
+        "dependencies": [
+            "finite numeric inputs",
+            "explicit additive scoring rule",
+            "canonical JSON encoding",
+            "SHA-256",
+        ],
+        "validator": (
+            "holosim.attention_cost_value."
+            "evaluate_attention_candidate"
+        ),
+        "failure_condition": (
+            "inputs are invalid or the bounded score and decision "
+            "cannot be reproduced"
+        ),
+        "evidence": [
+            "holosim/attention_cost_value.py",
+            "tests/test_attention_cost_value.py",
+        ],
+    }
