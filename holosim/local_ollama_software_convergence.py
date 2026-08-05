@@ -54,6 +54,8 @@ class LocalOllamaSoftwareConvergence:
         comparator: LocalOllamaCapabilityComparator | None = None,
         proposer: LocalOllamaCapabilityProposer | None = None,
         verifier: BoundedPythonWorkspaceVerifier | None = None,
+        capability_verifier: Any | None = None,
+        project_verifier: Any | None = None,
     ) -> None:
         if (
             not isinstance(max_cycles, int)
@@ -92,17 +94,30 @@ class LocalOllamaSoftwareConvergence:
                 timeout_seconds=timeout_seconds,
             )
         )
-        self._verifier = verifier or (
+
+        default_verifier = verifier or (
             build_bounded_python_workspace_verifier(
                 timeout_seconds=verifier_timeout_seconds,
             )
+        )
+
+        self._capability_verifier = (
+            capability_verifier
+            if capability_verifier is not None
+            else default_verifier
+        )
+        self._project_verifier = (
+            project_verifier
+            if project_verifier is not None
+            else default_verifier
         )
 
         for name, dependency in (
             ("decomposer", self._decomposer),
             ("comparator", self._comparator),
             ("proposer", self._proposer),
-            ("verifier", self._verifier),
+            ("capability_verifier", self._capability_verifier),
+            ("project_verifier", self._project_verifier),
         ):
             if not callable(dependency):
                 raise TypeError(f"{name} must be callable")
@@ -146,8 +161,8 @@ class LocalOllamaSoftwareConvergence:
             self._decomposer,
             self._comparator,
             self._proposer,
-            self._verifier,
-            self._verifier,
+            self._capability_verifier,
+            self._project_verifier,
             max_cycles=self._max_cycles,
             max_builder_attempts=self._max_builder_attempts,
             environmental_constraints=constraints,
