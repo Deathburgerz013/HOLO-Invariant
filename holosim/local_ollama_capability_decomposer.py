@@ -108,10 +108,12 @@ class LocalOllamaCapabilityDecomposer:
                 "local Ollama output must contain non-empty capabilities"
             )
 
-        copied = [
-            deepcopy(dict(capability))
-            for capability in capabilities
-        ]
+        copied: list[dict[str, Any]] = []
+
+        for capability in capabilities:
+            copied_capability = deepcopy(dict(capability))
+            copied_capability.setdefault("depends_on", [])
+            copied.append(copied_capability)
         self.last_receipt = deepcopy(dict(receipt))
         return copied
 
