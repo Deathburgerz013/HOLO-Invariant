@@ -152,3 +152,44 @@ def test_existing_planner_accepts_ordered_model_proposal_for_planning_only():
     assert receipt["verified"] is False
     assert receipt["accepted"] is False
     assert receipt["write_authority"] == "NONE"
+
+
+def test_missing_root_depends_on_is_normalized_to_empty_list():
+    def requester(*args, **kwargs):
+        return {
+            "output": {
+                "capabilities": [
+                    {
+                        "id": "parse_input",
+                        "requirement": "Parse calculator input",
+                    },
+                    {
+                        "id": "evaluate_expression",
+                        "requirement": "Evaluate parsed input",
+                        "depends_on": ["parse_input"],
+                    },
+                ]
+            }
+        }
+
+    decomposer = build_local_ollama_capability_decomposer(
+        requester=requester,
+    )
+
+    capabilities = decomposer(
+        "build a calculator",
+        {"language": "python"},
+    )
+
+    assert capabilities == [
+        {
+            "id": "parse_input",
+            "requirement": "Parse calculator input",
+            "depends_on": [],
+        },
+        {
+            "id": "evaluate_expression",
+            "requirement": "Evaluate parsed input",
+            "depends_on": ["parse_input"],
+        },
+    ]
