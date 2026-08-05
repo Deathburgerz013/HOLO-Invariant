@@ -61,6 +61,22 @@ def run_software_converger(
             raise TypeError("comparator must return a mapping")
 
         comparison_record = deepcopy(dict(comparison))
+
+        if (
+            comparison_record.get("model_generated") is True
+            and comparison_record.get("verified") is not True
+        ):
+            terminal_reason = "UNVERIFIED_MODEL_COMPARISON"
+            cycles.append(
+                {
+                    "cycle": cycle_number,
+                    "comparison": comparison_record,
+                    "builder_invoked": False,
+                    "builder_receipt_hash": None,
+                }
+            )
+            break
+
         relevant_difference = (
             comparison_record.get("relevant_difference") is True
         )
