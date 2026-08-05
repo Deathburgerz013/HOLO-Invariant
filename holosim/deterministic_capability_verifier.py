@@ -8,7 +8,7 @@ before deterministic verification can proceed.
 from __future__ import annotations
 
 from copy import deepcopy
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Callable, Mapping
 
 from holosim.canonical import stable_hash
@@ -101,10 +101,15 @@ class DeterministicCapabilityVerifier:
 
         for relative_path in required_files:
             candidate = Path(relative_path)
+            posix_candidate = PurePosixPath(relative_path)
+            windows_candidate = PureWindowsPath(relative_path)
 
             if (
-                candidate.is_absolute()
-                or ".." in candidate.parts
+                posix_candidate.is_absolute()
+                or windows_candidate.is_absolute()
+                or bool(windows_candidate.drive)
+                or ".." in posix_candidate.parts
+                or ".." in windows_candidate.parts
             ):
                 return self._receipt(
                     capability_record,
