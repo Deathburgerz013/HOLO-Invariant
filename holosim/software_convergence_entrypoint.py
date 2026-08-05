@@ -23,6 +23,27 @@ RECEIPT_TYPE = "software_convergence_request_receipt"
 RECEIPT_VERSION = 1
 
 
+def _bind_capability_verifier(
+    capability_verifier: Any,
+    capability: Mapping[str, Any],
+) -> Callable[[Path], Mapping[str, Any]]:
+    """Bind a capability-aware verifier to the builder verifier contract."""
+    bind = getattr(capability_verifier, "bind", None)
+
+    if callable(bind):
+        bound_verifier = bind(deepcopy(dict(capability)))
+        if not callable(bound_verifier):
+            raise TypeError(
+                "capability_verifier.bind must return a callable"
+            )
+        return bound_verifier
+
+    if not callable(capability_verifier):
+        raise TypeError("capability_verifier must be callable")
+
+    return capability_verifier
+
+
 def run_software_convergence_request(
     software_request: Any,
     workspace: str | Path,
@@ -32,7 +53,7 @@ def run_software_convergence_request(
     ],
     comparator: Callable[[Any, Path], Mapping[str, Any]],
     proposer: Callable[..., Mapping[str, Any]],
-    capability_verifier: Callable[[Path], Mapping[str, Any]],
+    capability_verifier: Any,
     project_verifier: Callable[[Path], Mapping[str, Any]],
     *,
     max_cycles: int = 3,
@@ -69,12 +90,16 @@ def run_software_convergence_request(
         runnable = False
 
         for capability in plan["capabilities"]:
+            bound_capability_verifier = _bind_capability_verifier(
+                capability_verifier,
+                capability,
+            )
             receipt = run_software_generator(
                 capability,
                 workspace_path,
                 comparator,
                 proposer,
-                capability_verifier,
+                bound_capability_verifier,
                 max_cycles=max_cycles,
                 max_builder_attempts=max_builder_attempts,
                 environmental_constraints=constraints,
