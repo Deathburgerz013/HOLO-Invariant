@@ -1,13 +1,14 @@
 """Deterministic, non-writing text transformation primitives.
 
-The engine applies one declared exact replacement to recognized source text
-and returns an auditable receipt. It grants no write, acceptance, truth,
+The engine applies declared exact replacements to recognized source text
+and returns auditable receipts. It grants no write, acceptance, truth,
 or execution authority.
 """
 
 from __future__ import annotations
 
 import difflib
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from holosim.canonical import stable_hash
@@ -80,6 +81,64 @@ def replace_exact_once(
         "write_authority": "NONE",
         "execution_authority": "NONE",
     }
+
+    return {
+        **body,
+        "receipt_hash": stable_hash(body),
+    }
+
+
+def replace_exact_once_validated(
+    source: str,
+    *,
+    expected: str,
+    replacement: str,
+    validator: Callable[[str], Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Replace one exact fragment and validate the resulting text."""
+
+    if not callable(validator):
+        raise TypeError("validator must be callable")
+
+    transformation = replace_exact_once(
+        source,
+        expected=expected,
+        replacement=replacement,
+    )
+
+    validator_result = validator(
+        transformation["result_text"]
+    )
+
+    if (
+        not isinstance(validator_result, Mapping)
+        or "status" not in validator_result
+    ):
+        raise ValueError(
+            "validator must return a receipt with status VALID"
+        )
+
+    validator_receipt = dict(validator_result)
+    validation_status = validator_receipt["status"]
+
+    if validation_status != "VALID":
+        raise ValueError(
+            "transformed result failed validation"
+        )
+
+    body = {
+        key: value
+        for key, value in transformation.items()
+        if key != "receipt_hash"
+    }
+
+    body.update(
+        {
+            "status": "TRANSFORMED_AND_VALIDATED",
+            "validation_status": validation_status,
+            "validator_receipt": validator_receipt,
+        }
+    )
 
     return {
         **body,
