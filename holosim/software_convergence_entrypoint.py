@@ -32,10 +32,12 @@ def _bind_capability_verifier(
 
     if callable(bind):
         bound_verifier = bind(deepcopy(dict(capability)))
+
         if not callable(bound_verifier):
             raise TypeError(
                 "capability_verifier.bind must return a callable"
             )
+
         return bound_verifier
 
     if not callable(capability_verifier):
@@ -59,14 +61,40 @@ def run_software_convergence_request(
     max_cycles: int = 3,
     max_builder_attempts: int = 3,
     environmental_constraints: Mapping[str, Any] | None = None,
+    residue_verifier: Callable[..., Mapping[str, Any]] | None = None,
+    preserved_record: Mapping[str, Any] | None = None,
+    reconstructed_state: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Converge one request into a verified runnable project or exact blocker."""
     workspace_path = Path(workspace).resolve()
+
     if not workspace_path.is_dir():
         raise ValueError("workspace must be an existing directory")
 
+    if (
+        preserved_record is not None
+        and not isinstance(preserved_record, Mapping)
+    ):
+        raise TypeError("preserved_record must be a mapping")
+
+    if (
+        reconstructed_state is not None
+        and not isinstance(reconstructed_state, Mapping)
+    ):
+        raise TypeError("reconstructed_state must be a mapping")
+
+    if residue_verifier is not None and not callable(residue_verifier):
+        raise TypeError("residue_verifier must be callable")
+
+    if (residue_verifier is None) != (preserved_record is None):
+        raise ValueError(
+            "residue_verifier and preserved_record "
+            "must be provided together"
+        )
+
     request = deepcopy(software_request)
     constraints = deepcopy(dict(environmental_constraints or {}))
+
     plan = run_software_capability_planner(
         request,
         decomposer,
@@ -77,6 +105,7 @@ def run_software_convergence_request(
     completed_capability_ids: list[str] = []
     blocked_capability_id: str | None = None
     final_verification: dict[str, Any] | None = None
+    residue_verification: dict[str, Any] | None = None
 
     if plan["planned"] is not True:
         status = "PLANNING_FAILED"
@@ -94,6 +123,7 @@ def run_software_convergence_request(
                 capability_verifier,
                 capability,
             )
+
             receipt = run_software_generator(
                 capability,
                 workspace_path,
@@ -104,6 +134,7 @@ def run_software_convergence_request(
                 max_builder_attempts=max_builder_attempts,
                 environmental_constraints=constraints,
             )
+
             generation_receipts.append(receipt)
 
             if receipt["converged"] is not True:
@@ -115,30 +146,84 @@ def run_software_convergence_request(
             completed_capability_ids.append(capability["id"])
         else:
             verification = project_verifier(workspace_path)
+
             if not isinstance(verification, Mapping):
-                raise TypeError("project_verifier must return a mapping")
+                raise TypeError(
+                    "project_verifier must return a mapping"
+                )
+
             final_verification = deepcopy(dict(verification))
-            project_passed = final_verification.get("passed") is True
-            project_runnable = final_verification.get("runnable") is True
+
+            project_passed = (
+                final_verification.get("passed") is True
+            )
+            project_runnable = (
+                final_verification.get("runnable") is True
+            )
             run_command = final_verification.get("command")
             has_run_command = (
-                isinstance(run_command, str) and bool(run_command.strip())
+                isinstance(run_command, str)
+                and bool(run_command.strip())
             )
 
-            if project_passed and project_runnable and has_run_command:
-                status = "CONVERGED"
-                terminal_reason = "PROJECT_VERIFIED_RUNNABLE"
-                converged = True
-                runnable = True
-            else:
+            if not (
+                project_passed
+                and project_runnable
+                and has_run_command
+            ):
                 status = "PROJECT_VERIFICATION_FAILED"
+                converged = False
+                runnable = False
+
                 if project_runnable and not has_run_command:
-                    terminal_reason = "PROJECT_RUN_COMMAND_MISSING"
+                    terminal_reason = (
+                        "PROJECT_RUN_COMMAND_MISSING"
+                    )
                 else:
                     terminal_reason = final_verification.get(
                         "reason",
                         "PROJECT_NOT_VERIFIED_RUNNABLE",
                     )
+            else:
+                if residue_verifier is not None:
+                    residue_result = residue_verifier(
+                        preserved_record=deepcopy(
+                            dict(preserved_record)
+                        ),
+                        reconstructed_state=deepcopy(
+                            dict(
+                                reconstructed_state
+                                if reconstructed_state is not None
+                                else final_verification
+                            )
+                        ),
+                    )
+
+                    if not isinstance(residue_result, Mapping):
+                        raise TypeError(
+                            "residue_verifier must return a mapping"
+                        )
+
+                    residue_verification = deepcopy(
+                        dict(residue_result)
+                    )
+
+                if (
+                    residue_verification is not None
+                    and residue_verification.get("verified") is not True
+                ):
+                    status = "RESIDUE_VERIFICATION_FAILED"
+                    terminal_reason = residue_verification.get(
+                        "reason",
+                        "AUDITABLE_RESIDUE_NOT_VERIFIED",
+                    )
+                    converged = False
+                    runnable = False
+                else:
+                    status = "CONVERGED"
+                    terminal_reason = "PROJECT_VERIFIED_RUNNABLE"
+                    converged = True
+                    runnable = True
 
     body: dict[str, Any] = {
         "type": RECEIPT_TYPE,
@@ -147,11 +232,14 @@ def run_software_convergence_request(
         "workspace": str(workspace_path),
         "environmental_constraints": constraints,
         "plan_receipt_hash": plan["receipt_hash"],
-        "planned_capabilities": deepcopy(plan["capabilities"]),
+        "planned_capabilities": deepcopy(
+            plan["capabilities"]
+        ),
         "generation_receipts": generation_receipts,
         "completed_capability_ids": completed_capability_ids,
         "blocked_capability_id": blocked_capability_id,
         "final_verification": final_verification,
+        "residue_verification": residue_verification,
         "status": status,
         "terminal_reason": terminal_reason,
         "converged": converged,
@@ -160,4 +248,8 @@ def run_software_convergence_request(
         "truth_claimed": False,
         "write_authority": "NONE",
     }
-    return {**body, "receipt_hash": stable_hash(body)}
+
+    return {
+        **body,
+        "receipt_hash": stable_hash(body),
+    }

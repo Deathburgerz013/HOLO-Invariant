@@ -250,3 +250,72 @@ def test_already_satisfied_capability_counts_as_converged(tmp_path):
         generation["converged"] is True
         for generation in receipt["generation_receipts"]
     )
+def test_residue_failure_blocks_runnable_convergence(tmp_path):
+    def residue_verifier(*, preserved_record, reconstructed_state):
+        return {
+            "verified": False,
+            "reason": "RECORDED_CONTRADICTION_OMITTED",
+            "omitted_contradiction_ids": ["status-conflict"],
+        }
+
+    receipt = run_software_convergence_request(
+        REQUEST,
+        tmp_path,
+        _decomposer,
+        _comparator,
+        _proposer,
+        _capability_verifier,
+        _project_verifier,
+        residue_verifier=residue_verifier,
+        preserved_record={
+            "contradictions": [
+                {
+                    "id": "status-conflict",
+                    "field": "status",
+                    "observed_values": [
+                        "ready",
+                        "blocked",
+                    ],
+                }
+            ]
+        },
+    )
+
+    assert receipt["status"] == "RESIDUE_VERIFICATION_FAILED"
+    assert (
+        receipt["terminal_reason"]
+        == "RECORDED_CONTRADICTION_OMITTED"
+    )
+    assert receipt["converged"] is False
+    assert receipt["runnable"] is False
+    assert receipt["final_verification"]["passed"] is True
+    assert receipt["residue_verification"]["verified"] is False
+def test_residue_verifier_without_preserved_record_is_rejected(
+    tmp_path,
+):
+    def residue_verifier(*, preserved_record, reconstructed_state):
+        return {
+            "verified": True,
+            "reason": "AUDITABLE_RESIDUE_VERIFIED",
+        }
+
+    try:
+        run_software_convergence_request(
+            REQUEST,
+            tmp_path,
+            _decomposer,
+            _comparator,
+            _proposer,
+            _capability_verifier,
+            _project_verifier,
+            residue_verifier=residue_verifier,
+        )
+    except ValueError as error:
+        assert str(error) == (
+            "residue_verifier and preserved_record "
+            "must be provided together"
+        )
+    else:
+        raise AssertionError(
+            "missing preserved_record must be rejected"
+        )
