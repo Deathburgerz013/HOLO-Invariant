@@ -38,6 +38,11 @@ def replace_exact_once(
     if not expected:
         raise ValueError("expected must not be empty")
 
+    if expected == replacement:
+        raise ValueError(
+            "replacement must change the matched fragment"
+        )
+
     match_count = source.count(expected)
 
     if match_count == 0:
@@ -67,7 +72,7 @@ def replace_exact_once(
         "type": RECEIPT_TYPE,
         "version": RECEIPT_VERSION,
         "status": "TRANSFORMED",
-        "changed": source != result,
+        "changed": True,
         "match_count": match_count,
         "expected_fragment": expected,
         "replacement_fragment": replacement,
