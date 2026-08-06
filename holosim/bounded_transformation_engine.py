@@ -126,6 +126,14 @@ def replace_exact_once_validated(
             "transformed result failed validation"
         )
 
+    if (
+        validator_receipt.get("validated_result_hash")
+        != transformation["result_hash"]
+    ):
+        raise ValueError(
+            "validator receipt is not bound to transformed result"
+        )
+
     body = {
         key: value
         for key, value in transformation.items()

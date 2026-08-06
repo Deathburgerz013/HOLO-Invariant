@@ -5,6 +5,7 @@ import pytest
 from holosim.bounded_transformation_engine import (
     replace_exact_once_validated,
 )
+from holosim.canonical import stable_hash
 
 
 def test_validated_replacement_returns_validator_receipt():
@@ -12,6 +13,7 @@ def test_validated_replacement_returns_validator_receipt():
         return {
             "status": "VALID",
             "checked_text": result_text,
+            "validated_result_hash": stable_hash(result_text),
         }
 
     receipt = replace_exact_once_validated(
@@ -24,9 +26,10 @@ def test_validated_replacement_returns_validator_receipt():
     assert receipt["status"] == "TRANSFORMED_AND_VALIDATED"
     assert receipt["validation_status"] == "VALID"
     assert receipt["validator_receipt"] == {
-        "status": "VALID",
-        "checked_text": "alpha\nreplacement\nomega\n",
-    }
+    "status": "VALID",
+    "checked_text": "alpha\nreplacement\nomega\n",
+    "validated_result_hash": receipt["result_hash"],
+}
     assert receipt["accepted"] is False
     assert receipt["write_authority"] == "NONE"
 
