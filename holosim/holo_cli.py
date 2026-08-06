@@ -24,6 +24,9 @@ try:
         REPO_ROOT,
     )
     from holosim.core import HoloChain
+    from holosim.auditable_residue_verifier import (
+        AuditableResidueVerifier,
+    )
     from holosim.local_ollama_software_convergence import (
         run_local_ollama_software_convergence,
     )
@@ -42,6 +45,9 @@ except ImportError:
         REPO_ROOT,
     )
     from holosim.core import HoloChain
+    from holosim.auditable_residue_verifier import (
+        AuditableResidueVerifier,
+    )
     from holosim.local_ollama_software_convergence import (
         run_local_ollama_software_convergence,
     )
@@ -589,17 +595,62 @@ def run_local_converge_command(
     """Run bounded local Ollama software convergence."""
 
     try:
-        result = (
-            run_local_ollama_software_convergence(
-                args.request,
-                Path(args.workspace),
-                model=args.model,
-                endpoint=args.endpoint,
-                max_cycles=args.max_cycles,
-                max_builder_attempts=(
-                    args.max_builder_attempts
-                ),
+        if (
+            (args.preserved_record is None)
+            != (args.reconstructed_state is None)
+        ):
+            raise ValueError(
+                "--preserved-record and "
+                "--reconstructed-state "
+                "must be provided together"
             )
+
+        residue_kwargs = {}
+
+        if args.preserved_record is not None:
+            preserved_record = json.loads(
+                Path(args.preserved_record).read_text(
+                    encoding="utf-8",
+                )
+            )
+            reconstructed_state = json.loads(
+                Path(args.reconstructed_state).read_text(
+                    encoding="utf-8",
+                )
+            )
+
+            if not isinstance(preserved_record, dict):
+                raise TypeError(
+                    "preserved record JSON "
+                    "must contain an object"
+                )
+
+            if not isinstance(reconstructed_state, dict):
+                raise TypeError(
+                    "reconstructed state JSON "
+                    "must contain an object"
+                )
+
+            residue_kwargs = {
+                "residue_verifier": (
+                    AuditableResidueVerifier()
+                ),
+                "preserved_record": preserved_record,
+                "reconstructed_state": (
+                    reconstructed_state
+                ),
+            }
+
+        result = run_local_ollama_software_convergence(
+            args.request,
+            Path(args.workspace),
+            model=args.model,
+            endpoint=args.endpoint,
+            max_cycles=args.max_cycles,
+            max_builder_attempts=(
+                args.max_builder_attempts
+            ),
+            **residue_kwargs,
         )
 
         print(
@@ -617,7 +668,7 @@ def run_local_converge_command(
             )
             else 1
         )
-    except Exception as e:
+    except Exception as error:
         result = {
             "status": "ERROR",
             "converged": False,
@@ -625,7 +676,7 @@ def run_local_converge_command(
             "terminal_reason": (
                 "LOCAL_CONVERGENCE_ERROR"
             ),
-            "error": str(e),
+            "error": str(error),
         }
 
         print(
@@ -636,7 +687,6 @@ def run_local_converge_command(
         )
 
         return 1
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -829,6 +879,22 @@ def main() -> None:
         help=(
             "Maximum builder attempts "
             "per capability"
+        ),
+    )
+
+    local_converge_parser.add_argument(
+        "--preserved-record",
+        help=(
+            "JSON file containing the "
+            "preserved contradiction record"
+        ),
+    )
+
+    local_converge_parser.add_argument(
+        "--reconstructed-state",
+        help=(
+            "JSON file containing the "
+            "reconstructed state"
         ),
     )
 
