@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from holosim.bounded_python_workspace_verifier import (
     BoundedPythonWorkspaceVerifier,
@@ -56,13 +56,18 @@ class LocalOllamaSoftwareConvergence:
         verifier: BoundedPythonWorkspaceVerifier | None = None,
         capability_verifier: Any | None = None,
         project_verifier: Any | None = None,
+        residue_verifier: (
+            Callable[..., Mapping[str, Any]] | None
+        ) = None,
     ) -> None:
         if (
             not isinstance(max_cycles, int)
             or isinstance(max_cycles, bool)
             or max_cycles < 1
         ):
-            raise ValueError("max_cycles must be a positive integer")
+            raise ValueError(
+                "max_cycles must be a positive integer"
+            )
 
         if (
             not isinstance(max_builder_attempts, int)
@@ -80,6 +85,7 @@ class LocalOllamaSoftwareConvergence:
                 timeout_seconds=timeout_seconds,
             )
         )
+
         self._comparator = comparator or (
             build_local_ollama_capability_comparator(
                 model=model,
@@ -87,6 +93,7 @@ class LocalOllamaSoftwareConvergence:
                 timeout_seconds=timeout_seconds,
             )
         )
+
         self._proposer = proposer or (
             build_local_ollama_capability_proposer(
                 model=model,
@@ -106,21 +113,40 @@ class LocalOllamaSoftwareConvergence:
             if capability_verifier is not None
             else default_verifier
         )
+
         self._project_verifier = (
             project_verifier
             if project_verifier is not None
             else default_verifier
         )
 
+        self._residue_verifier = residue_verifier
+
         for name, dependency in (
             ("decomposer", self._decomposer),
             ("comparator", self._comparator),
             ("proposer", self._proposer),
-            ("capability_verifier", self._capability_verifier),
-            ("project_verifier", self._project_verifier),
+            (
+                "capability_verifier",
+                self._capability_verifier,
+            ),
+            (
+                "project_verifier",
+                self._project_verifier,
+            ),
         ):
             if not callable(dependency):
-                raise TypeError(f"{name} must be callable")
+                raise TypeError(
+                    f"{name} must be callable"
+                )
+
+        if (
+            self._residue_verifier is not None
+            and not callable(self._residue_verifier)
+        ):
+            raise TypeError(
+                "residue_verifier must be callable"
+            )
 
         self._max_cycles = max_cycles
         self._max_builder_attempts = max_builder_attempts
@@ -131,21 +157,50 @@ class LocalOllamaSoftwareConvergence:
         software_request: Any,
         workspace: str | Path,
         *,
-        environmental_constraints: Mapping[str, Any] | None = None,
+        environmental_constraints: (
+            Mapping[str, Any] | None
+        ) = None,
+        preserved_record: Mapping[str, Any] | None = None,
+        reconstructed_state: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         if (
             environmental_constraints is not None
-            and not isinstance(environmental_constraints, Mapping)
+            and not isinstance(
+                environmental_constraints,
+                Mapping,
+            )
         ):
             raise TypeError(
                 "environmental_constraints must be a mapping"
+            )
+
+        if (
+            preserved_record is not None
+            and not isinstance(preserved_record, Mapping)
+        ):
+            raise TypeError(
+                "preserved_record must be a mapping"
+            )
+
+        if (
+            reconstructed_state is not None
+            and not isinstance(
+                reconstructed_state,
+                Mapping,
+            )
+        ):
+            raise TypeError(
+                "reconstructed_state must be a mapping"
             )
 
         constraints = deepcopy(
             dict(environmental_constraints or {})
         )
 
-        constraints.setdefault("language", "python")
+        constraints.setdefault(
+            "language",
+            "python",
+        )
         constraints.setdefault(
             "model_authority",
             "PROPOSAL_ONLY",
@@ -164,8 +219,13 @@ class LocalOllamaSoftwareConvergence:
             self._capability_verifier,
             self._project_verifier,
             max_cycles=self._max_cycles,
-            max_builder_attempts=self._max_builder_attempts,
+            max_builder_attempts=(
+                self._max_builder_attempts
+            ),
             environmental_constraints=constraints,
+            residue_verifier=self._residue_verifier,
+            preserved_record=preserved_record,
+            reconstructed_state=reconstructed_state,
         )
 
         self.last_receipt = deepcopy(receipt)
@@ -177,14 +237,20 @@ def build_local_ollama_software_convergence(
 ) -> LocalOllamaSoftwareConvergence:
     """Build the complete bounded local Ollama convergence callable."""
 
-    return LocalOllamaSoftwareConvergence(**kwargs)
+    return LocalOllamaSoftwareConvergence(
+        **kwargs,
+    )
 
 
 def run_local_ollama_software_convergence(
     software_request: Any,
     workspace: str | Path,
     *,
-    environmental_constraints: Mapping[str, Any] | None = None,
+    environmental_constraints: (
+        Mapping[str, Any] | None
+    ) = None,
+    preserved_record: Mapping[str, Any] | None = None,
+    reconstructed_state: Mapping[str, Any] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Build and run one bounded local Ollama convergence request."""
@@ -192,8 +258,13 @@ def run_local_ollama_software_convergence(
     convergence = build_local_ollama_software_convergence(
         **kwargs,
     )
+
     return convergence(
         software_request,
         workspace,
-        environmental_constraints=environmental_constraints,
+        environmental_constraints=(
+            environmental_constraints
+        ),
+        preserved_record=preserved_record,
+        reconstructed_state=reconstructed_state,
     )
