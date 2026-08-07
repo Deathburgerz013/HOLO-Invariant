@@ -186,7 +186,7 @@ def create_receipt(*, repo_root: Path, output_dir: Path, reviewer: str,
         "authority": {
             "reviewer": reviewer,
             "approval_reference": approval_reference,
-            "approved": bool(reviewer.strip()),
+            "approved": False,
         },
         "lineage": {
             "observation_hash": observation_hash,
@@ -217,27 +217,55 @@ def load_receipt(path: Path) -> dict[str, Any]:
     return value
 
 
-def verify_receipt(receipt: Mapping[str, Any], *, repo_root: Path | None = None,
-                   require_current_commit: bool = False) -> dict[str, Any]:
+def verify_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    repo_root: Path | None = None,
+    require_current_commit: bool = False,
+) -> dict[str, Any]:
     expected = compute_receipt_hash(receipt)
     stored = receipt.get("receipt_hash")
     hash_valid = isinstance(stored, str) and stored == expected
     type_valid = receipt.get("type") == RECEIPT_TYPE
     version_valid = receipt.get("version") == RECEIPT_VERSION
+
+    authority = receipt.get("authority")
+    authority_valid = (
+        isinstance(authority, Mapping)
+        and isinstance(authority.get("reviewer"), str)
+        and bool(authority["reviewer"].strip())
+        and authority.get("approved") is False
+    )
+
     current_commit = None
     commit_matches = None
+
     if repo_root is not None:
         current_commit = git_snapshot(repo_root.resolve()).get("commit")
-        recorded = receipt.get("git_after", {}).get("commit") if isinstance(receipt.get("git_after"), dict) else None
+        git_after = receipt.get("git_after")
+        recorded = (
+            git_after.get("commit")
+            if isinstance(git_after, Mapping)
+            else None
+        )
         commit_matches = current_commit == recorded
-    valid = hash_valid and type_valid and version_valid
+
+    valid = (
+        hash_valid
+        and type_valid
+        and version_valid
+        and authority_valid
+    )
+
     if require_current_commit:
         valid = valid and commit_matches is True
+
     return {
         "valid": valid,
         "hash_valid": hash_valid,
         "type_valid": type_valid,
         "version_valid": version_valid,
+        "authority_valid": authority_valid,
         "verification_passed": receipt.get("verification_passed"),
         "stored_receipt_hash": stored,
         "computed_receipt_hash": expected,
@@ -245,14 +273,13 @@ def verify_receipt(receipt: Mapping[str, Any], *, repo_root: Path | None = None,
         "commit_matches": commit_matches,
     }
 
-
 def run_self_test() -> None:
     sample: dict[str, Any] = {
         "type": RECEIPT_TYPE,
         "version": RECEIPT_VERSION,
         "created_at": "2026-01-01T00:00:00Z",
         "verification_passed": True,
-        "authority": {"reviewer": "self-test", "approval_reference": "test", "approved": True},
+        "authority": {"reviewer": "self-test", "approval_reference": "test", "approved": False},
         "lineage": {"observation_hash": "a" * 64, "proposal_hash": "b" * 64},
         "git_before": {"commit": "c" * 40},
         "git_after": {"commit": "c" * 40},
