@@ -235,6 +235,17 @@ def verify_transformation_receipt(
         raise ValueError("invalid transformation receipt")
 
     if (
+        candidate["status"] == "TRANSFORMED"
+        and (
+            "validation_status" in candidate
+            or "validator_receipt" in candidate
+        )
+    ):
+        raise ValueError(
+            "invalid transformation receipt schema"
+        )
+
+    if (
         candidate["accepted"] is not False
         or candidate["truth_claimed"] is not False
         or candidate["write_authority"] != "NONE"
