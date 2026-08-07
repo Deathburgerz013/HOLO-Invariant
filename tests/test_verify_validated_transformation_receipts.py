@@ -112,6 +112,8 @@ def test_verify_validated_transformation_rejects_nested_authority(
         match="invalid validator receipt authority boundaries",
     ):
         verify_transformation_receipt(receipt)
+
+
 def test_verify_validated_transformation_rejects_status_downgrade():
     receipt = deepcopy(_validated_receipt())
     receipt["status"] = "TRANSFORMED"

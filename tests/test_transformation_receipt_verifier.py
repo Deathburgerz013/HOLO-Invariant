@@ -118,3 +118,23 @@ def test_verify_transformation_receipt_rejects_forged_authority(
         match="invalid transformation authority boundaries",
     ):
         verify_transformation_receipt(receipt)
+def test_verify_transformation_receipt_rejects_undeclared_field():
+    receipt = replace_exact_once(
+        "alpha\ntarget\nomega\n",
+        expected="target",
+        replacement="replacement",
+    )
+
+    receipt["undeclared_claim"] = "GRANTED"
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    receipt["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        ValueError,
+        match="invalid transformation receipt schema",
+    ):
+        verify_transformation_receipt(receipt)
