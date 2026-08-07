@@ -88,3 +88,27 @@ def test_verify_validated_transformation_receipt_rejects_false_claim(
         match="invalid validated transformation receipt",
     ):
         verify_transformation_receipt(receipt)
+
+
+@pytest.mark.parametrize(
+    ("field", "forged_value"),
+    [
+        ("accepted", True),
+        ("truth_claimed", True),
+        ("write_authority", "GRANTED"),
+        ("execution_authority", "GRANTED"),
+    ],
+)
+def test_verify_validated_transformation_rejects_nested_authority(
+    field,
+    forged_value,
+):
+    receipt = deepcopy(_validated_receipt())
+    receipt["validator_receipt"][field] = forged_value
+    _rehash(receipt)
+
+    with pytest.raises(
+        ValueError,
+        match="invalid validator receipt authority boundaries",
+    ):
+        verify_transformation_receipt(receipt)
