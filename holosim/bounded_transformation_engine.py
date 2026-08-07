@@ -37,6 +37,14 @@ _REQUIRED_RECEIPT_FIELDS = {
     "receipt_hash",
 }
 
+_VALIDATED_RECEIPT_FIELDS = (
+    _REQUIRED_RECEIPT_FIELDS
+    | {
+        "validation_status",
+        "validator_receipt",
+    }
+)
+
 
 def _unified_diff(
     source: str,
@@ -165,25 +173,10 @@ def replace_exact_once_validated(
         )
 
     if (
-        validator_receipt.get(
-            "accepted",
-            False,
-        )
-        is not False
-        or validator_receipt.get(
-            "truth_claimed",
-            False,
-        )
-        is not False
-        or validator_receipt.get(
-            "write_authority",
-            "NONE",
-        )
-        != "NONE"
-        or validator_receipt.get(
-            "execution_authority",
-            "NONE",
-        )
+        validator_receipt.get("accepted", False) is not False
+        or validator_receipt.get("truth_claimed", False) is not False
+        or validator_receipt.get("write_authority", "NONE") != "NONE"
+        or validator_receipt.get("execution_authority", "NONE")
         != "NONE"
     ):
         raise ValueError(
@@ -234,12 +227,15 @@ def verify_transformation_receipt(
     ):
         raise ValueError("invalid transformation receipt")
 
-    if (
-        candidate["status"] == "TRANSFORMED"
-        and (
-            "validation_status" in candidate
-            or "validator_receipt" in candidate
-        )
+    candidate_fields = set(candidate)
+
+    if candidate["status"] == "TRANSFORMED":
+        if candidate_fields != _REQUIRED_RECEIPT_FIELDS:
+            raise ValueError(
+                "invalid transformation receipt schema"
+            )
+    elif not candidate_fields.issubset(
+        _VALIDATED_RECEIPT_FIELDS
     ):
         raise ValueError(
             "invalid transformation receipt schema"
@@ -319,25 +315,10 @@ def verify_transformation_receipt(
             )
 
         if (
-            validator_receipt.get(
-                "accepted",
-                False,
-            )
-            is not False
-            or validator_receipt.get(
-                "truth_claimed",
-                False,
-            )
-            is not False
-            or validator_receipt.get(
-                "write_authority",
-                "NONE",
-            )
-            != "NONE"
-            or validator_receipt.get(
-                "execution_authority",
-                "NONE",
-            )
+            validator_receipt.get("accepted", False) is not False
+            or validator_receipt.get("truth_claimed", False) is not False
+            or validator_receipt.get("write_authority", "NONE") != "NONE"
+            or validator_receipt.get("execution_authority", "NONE")
             != "NONE"
         ):
             raise ValueError(
