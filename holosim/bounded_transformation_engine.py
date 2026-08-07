@@ -208,6 +208,16 @@ def verify_transformation_receipt(
     ):
         raise ValueError("invalid transformation receipt")
 
+    if (
+        candidate["accepted"] is not False
+        or candidate["truth_claimed"] is not False
+        or candidate["write_authority"] != "NONE"
+        or candidate["execution_authority"] != "NONE"
+    ):
+        raise ValueError(
+            "invalid transformation authority boundaries"
+        )
+
     source = candidate["source_text"]
     result = candidate["result_text"]
     expected = candidate["expected_fragment"]

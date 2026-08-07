@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-
+from holosim.canonical import stable_hash
 import pytest
 
 from holosim.bounded_transformation_engine import (
@@ -84,5 +84,37 @@ def test_verify_transformation_receipt_rejects_malformed_receipt(
     with pytest.raises(
         ValueError,
         match="invalid transformation receipt",
+    ):
+        verify_transformation_receipt(receipt)
+@pytest.mark.parametrize(
+    ("field", "forged_value"),
+    [
+        ("accepted", True),
+        ("truth_claimed", True),
+        ("write_authority", "GRANTED"),
+        ("execution_authority", "GRANTED"),
+    ],
+)
+def test_verify_transformation_receipt_rejects_forged_authority(
+    field,
+    forged_value,
+):
+    receipt = replace_exact_once(
+        "alpha\ntarget\nomega\n",
+        expected="target",
+        replacement="replacement",
+    )
+
+    receipt[field] = forged_value
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    receipt["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        ValueError,
+        match="invalid transformation authority boundaries",
     ):
         verify_transformation_receipt(receipt)
