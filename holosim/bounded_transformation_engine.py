@@ -246,6 +246,31 @@ def verify_transformation_receipt(
             "declared transformation does not reproduce result"
         )
 
+    if candidate["status"] == "TRANSFORMED_AND_VALIDATED":
+        validation_status = candidate.get(
+            "validation_status"
+        )
+        validator_receipt = candidate.get(
+            "validator_receipt"
+        )
+
+        if (
+            validation_status != "VALID"
+            or not isinstance(
+                validator_receipt,
+                Mapping,
+            )
+            or validator_receipt.get("status")
+            != "VALID"
+            or validator_receipt.get(
+                "validated_result_hash"
+            )
+            != candidate["result_hash"]
+        ):
+            raise ValueError(
+                "invalid validated transformation receipt"
+            )
+
     body = {
         key: value
         for key, value in candidate.items()
