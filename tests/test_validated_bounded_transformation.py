@@ -26,10 +26,10 @@ def test_validated_replacement_returns_validator_receipt():
     assert receipt["status"] == "TRANSFORMED_AND_VALIDATED"
     assert receipt["validation_status"] == "VALID"
     assert receipt["validator_receipt"] == {
-    "status": "VALID",
-    "checked_text": "alpha\nreplacement\nomega\n",
-    "validated_result_hash": receipt["result_hash"],
-}
+        "status": "VALID",
+        "checked_text": "alpha\nreplacement\nomega\n",
+        "validated_result_hash": receipt["result_hash"],
+    }
     assert receipt["accepted"] is False
     assert receipt["write_authority"] == "NONE"
 
@@ -73,6 +73,38 @@ def test_validated_replacement_rejects_invalid_validator_receipt(
     with pytest.raises(
         ValueError,
         match="validator must return a receipt with status VALID",
+    ):
+        replace_exact_once_validated(
+            "alpha\ntarget\nomega\n",
+            expected="target",
+            replacement="replacement",
+            validator=validator,
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "forged_value"),
+    [
+        ("accepted", True),
+        ("truth_claimed", True),
+        ("write_authority", "GRANTED"),
+        ("execution_authority", "GRANTED"),
+    ],
+)
+def test_validated_replacement_rejects_validator_authority(
+    field,
+    forged_value,
+):
+    def validator(result_text: str) -> dict[str, object]:
+        return {
+            "status": "VALID",
+            "validated_result_hash": stable_hash(result_text),
+            field: forged_value,
+        }
+
+    with pytest.raises(
+        ValueError,
+        match="invalid validator receipt authority boundaries",
     ):
         replace_exact_once_validated(
             "alpha\ntarget\nomega\n",

@@ -164,6 +164,32 @@ def replace_exact_once_validated(
             "validator receipt is not bound to transformed result"
         )
 
+    if (
+        validator_receipt.get(
+            "accepted",
+            False,
+        )
+        is not False
+        or validator_receipt.get(
+            "truth_claimed",
+            False,
+        )
+        is not False
+        or validator_receipt.get(
+            "write_authority",
+            "NONE",
+        )
+        != "NONE"
+        or validator_receipt.get(
+            "execution_authority",
+            "NONE",
+        )
+        != "NONE"
+    ):
+        raise ValueError(
+            "invalid validator receipt authority boundaries"
+        )
+
     body = {
         key: value
         for key, value in transformation.items()
