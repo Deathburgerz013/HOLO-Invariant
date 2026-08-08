@@ -36,6 +36,37 @@ MEASUREMENT_FIELDS = (
     "uncertainty_within_bounds",
 )
 
+COMPLETION_CERTIFICATE_FIELDS = (
+    "type",
+    "version",
+    "status",
+    "episode_id",
+    "environment_id",
+    "observer_ids",
+    "clock_id",
+    "window_start",
+    "window_end",
+    "observation_count",
+    "observation_hashes",
+    "comparison_hashes",
+    "evidence_snapshot_sha256",
+    "contract",
+    "measurements",
+    "observed_max_distance",
+    "observed_stable_count",
+    "checks",
+    "failed_checks",
+    "uncertain_checks",
+    "unresolved_required_signals",
+    "provenance",
+    "evaluation_eligible",
+    "correction_evaluated",
+    "accepted",
+    "write_authority",
+    "interpretation_notice",
+    "certificate_id",
+)
+
 
 class CompletionEvaluationError(ValueError):
     """Raised when completion eligibility cannot be evaluated structurally."""
