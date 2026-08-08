@@ -10,6 +10,7 @@ from holosim.canonical import CanonicalValueError, stable_hash
 from holosim.environment_completion_evaluator import (
     CERTIFICATE_TYPE,
     CERTIFICATE_VERSION,
+    COMPLETION_CERTIFICATE_FIELDS,
 )
 from holosim.environment_snapshot import verify_snapshot
 
@@ -96,6 +97,18 @@ def _completion_certificate(value: Any) -> dict[str, Any]:
             "completion_certificate must be an object"
         )
     certificate = deepcopy(dict(value))
+    missing = sorted(set(COMPLETION_CERTIFICATE_FIELDS) - set(certificate))
+    extra = sorted(set(certificate) - set(COMPLETION_CERTIFICATE_FIELDS))
+    if missing:
+        raise EpisodeReopenError(
+            "completion certificate is missing fields: "
+            + ", ".join(missing)
+        )
+    if extra:
+        raise EpisodeReopenError(
+            "completion certificate has unsupported fields: "
+            + ", ".join(extra)
+        )
     if certificate.get("type") != CERTIFICATE_TYPE:
         raise EpisodeReopenError("completion certificate type is invalid")
     if certificate.get("version") != CERTIFICATE_VERSION:

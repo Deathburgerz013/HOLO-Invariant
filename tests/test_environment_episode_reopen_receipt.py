@@ -239,3 +239,27 @@ def test_verifier_rejects_rehashed_undeclared_fields():
 
     assert result["valid"] is False
     assert "unsupported fields" in result["violations"][0]
+
+
+def test_reopen_rejects_rehashed_undeclared_completion_certificate_field():
+    certificate = _completion_certificate()
+    certificate["approval"] = "GRANTED"
+    certificate["certificate_id"] = stable_hash(
+        {
+            key: value
+            for key, value in certificate.items()
+            if key != "certificate_id"
+        }
+    )
+
+    with pytest.raises(EpisodeReopenError, match="unsupported fields"):
+        create_reopen_receipt(
+            completion_certificate=certificate,
+            trigger_snapshot=_snapshot(
+                4,
+                episode_id="episode:camera-1:reopen-1",
+            ),
+            relation="reopens",
+            reasons=["new relevant evidence"],
+            provenance={"source_id": "operator-review:1"},
+        )
