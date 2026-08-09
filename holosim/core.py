@@ -4,6 +4,7 @@ import logging
 import platform
 import sys
 import zlib
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -50,15 +51,46 @@ class HoloChain:
         data = prev_hash.encode() + canonical.encode()
         return hashlib.sha256(data).hexdigest()
 
-    def _acquire_lock(self, f):
-        """Platform-aware file lock for concurrent safety."""
-        if platform.system() != "Windows":
+    def _acquire_lock(self, lock_file):
+        """Acquire one blocking byte-range or advisory append lock."""
+        if platform.system() == "Windows":
+            import msvcrt
+
+            lock_file.seek(0, 2)
+            if lock_file.tell() == 0:
+                lock_file.write(b"\0")
+                lock_file.flush()
+            lock_file.seek(0)
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+            return
+
+        import fcntl
+
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+
+    def _release_lock(self, lock_file):
+        """Release a lock acquired by :meth:`_acquire_lock`."""
+        if platform.system() == "Windows":
+            import msvcrt
+
+            lock_file.seek(0)
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+            return
+
+        import fcntl
+
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+    @contextmanager
+    def _append_transaction(self):
+        """Serialize the complete read-verify-compute-write transaction."""
+        lock_path = self.file_path.with_name(self.file_path.name + ".lock")
+        with lock_path.open("a+b") as lock_file:
+            self._acquire_lock(lock_file)
             try:
-                import fcntl
-                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-            except (ImportError, AttributeError):
-                pass  # Fallback for environments without fcntl
-        # Windows: simple retry-based safety (no native flock)
+                yield
+            finally:
+                self._release_lock(lock_file)
 
     def load_and_verify(self) -> List[Dict]:
         """Load and fully verify the entire chain. Fails fast on tampering."""
@@ -91,46 +123,54 @@ class HoloChain:
         return entries
 
     def append(self, content: Any, compress: bool = False, min_compress_size: int = 128) -> Dict:
-        """Append new entry with smart optional compression for density."""
-        entries = self.load_and_verify()
-        idx = len(entries) + 1
-        timestamp = datetime.now(timezone.utc).isoformat() + "Z"
-        prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]
+        """Atomically verify the current head and append one new entry."""
+        with self._append_transaction():
+            entries = self.load_and_verify()
+            idx = len(entries) + 1
+            timestamp = datetime.now(timezone.utc).isoformat() + "Z"
+            prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]
 
-        if isinstance(content, (dict, list)):
-            content_str = json.dumps(content, ensure_ascii=False)
-        elif not isinstance(content, str):
-            content_str = str(content)
-        else:
-            content_str = content
+            if isinstance(content, (dict, list)):
+                content_str = json.dumps(content, ensure_ascii=False)
+            elif not isinstance(content, str):
+                content_str = str(content)
+            else:
+                content_str = content
 
-        original_content = content_str
-        entry_type = "plain"
+            original_content = content_str
+            entry_type = "plain"
 
-        if compress and len(original_content) >= min_compress_size:
-            compressed = zlib.compress(original_content.encode('utf-8'))
-            compressed_hex = compressed.hex()
-            if len(compressed_hex) < len(original_content):
-                content_str = compressed_hex
-                entry_type = "compressed"
+            if compress and len(original_content) >= min_compress_size:
+                compressed = zlib.compress(original_content.encode("utf-8"))
+                compressed_hex = compressed.hex()
+                if len(compressed_hex) < len(original_content):
+                    content_str = compressed_hex
+                    entry_type = "compressed"
 
-        hash_val = self._compute_hash(prev_hash, content_str, timestamp, idx)
+            hash_val = self._compute_hash(
+                prev_hash,
+                content_str,
+                timestamp,
+                idx,
+            )
+            entry = {
+                "idx": idx,
+                "timestamp": timestamp,
+                "content": content_str,
+                "prev_hash": prev_hash,
+                "hash": hash_val,
+                "type": entry_type,
+                "original_size": len(original_content),
+            }
 
-        entry = {
-            "idx": idx,
-            "timestamp": timestamp,
-            "content": content_str,
-            "prev_hash": prev_hash,
-            "hash": hash_val,
-            "type": entry_type,
-            "original_size": len(original_content)
-        }
+            with self.file_path.open("a", encoding="utf-8") as chain_file:
+                chain_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                chain_file.flush()
 
-        with self.file_path.open("a", encoding="utf-8") as f:
-            self._acquire_lock(f)
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-
-        logger.info(f"✅ Appended entry {idx} ({entry_type}) [HoloChain v{self.VERSION}]")
+        logger.info(
+            f"✅ Appended entry {idx} ({entry_type}) "
+            f"[HoloChain v{self.VERSION}]"
+        )
         return entry
 
     def create_checkpoint(self) -> Dict:

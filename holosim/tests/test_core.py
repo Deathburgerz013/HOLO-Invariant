@@ -15,6 +15,9 @@ class TestHoloChain(unittest.TestCase):
     def tearDown(self):
         if os.path.exists(self.test_file):
             os.remove(self.test_file)
+        lock_file = self.test_file + ".lock"
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
         os.rmdir(self.test_dir)
 
     def test_append_and_verify(self):
