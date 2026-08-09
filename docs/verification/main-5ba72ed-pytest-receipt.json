@@ -1,0 +1,34 @@
+{
+  "accepted": false,
+  "command": "python -m pytest -q -rs --color=no --basetemp=.pytest-temp-verification --junitxml=.pytest-temp-verification/results.xml",
+  "execution_authority": "NONE",
+  "exit_code": 0,
+  "interpretation_notice": "This receipt binds one observed pytest execution to one commit and environment. It does not prove untested behavior, acceptance, deployment fitness, or authority.",
+  "observed_at": "2026-08-09T01:02:51.647525+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": {
+    "implementation": "CPython",
+    "version": "3.13.5"
+  },
+  "raw_output_path": "docs/verification/main-5ba72ed-pytest.txt",
+  "raw_output_sha256": "2c3ed04069a3fade8aee419756140c25d04e08049b5e3e27a9199a271431716d",
+  "receipt_hash": "08d747fc8a45ed5548113d3ece5dc103f1fc29a71edbcc4d68b67bbbc46d2bac",
+  "result": "PASS",
+  "skips": [
+    "tests\\test_bounded_python_workspace_verifier.py:148: symlink creation unavailable",
+    "tests\\test_computer_observer.py:78: symlinks are unavailable in this environment",
+    "tests\\test_local_ollama_capability_comparator.py:107: symlink creation unavailable"
+  ],
+  "subject_commit": "5ba72ed7949414181ae2451ae4954fb1a85b484d",
+  "subject_ref": "main",
+  "summary": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 1065,
+    "skipped": 3
+  },
+  "truth_claimed": false,
+  "type": "repository_test_verification_receipt",
+  "version": 1,
+  "write_authority": "NONE"
+}
