@@ -48,6 +48,7 @@ Spine_Validation_Report.json
 holo_memory.jsonl
 holo_merkle.jsonl
 metrics_audit.jsonl
+*.lock
 
 *.db
 *.sqlite
