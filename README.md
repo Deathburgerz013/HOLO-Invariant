@@ -7,7 +7,7 @@
 **Verified continuity for systems that cannot safely treat stored state as truth.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-111111?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-1040%20passed-111111?style=flat-square)](#verification)
+[![Tests](https://img.shields.io/badge/tests-1065%20passed-111111?style=flat-square)](#verification)
 [![Runtime dependencies](https://img.shields.io/badge/runtime%20dependencies-0-111111?style=flat-square)](#installation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](holosim/LICENSE)
 
@@ -331,12 +331,18 @@ Run the complete test suite:
 python -m pytest -q
 ```
 
-Last verified on `main` before this README rebuild:
+Latest retained post-merge observation:
 
 ```text
-1040 passed, 3 skipped
-main commit: cd7ad7a
+1065 passed, 3 skipped
+main commit: 5ba72ed
 ```
+
+Evidence is preserved in the
+[`main-5ba72ed-pytest-receipt.json`](docs/verification/main-5ba72ed-pytest-receipt.json) receipt and its separately
+hashed [`main-5ba72ed-pytest.txt`](docs/verification/main-5ba72ed-pytest.txt) raw output. The
+receipt is observational and grants no acceptance, truth, write, or execution
+authority.
 
 Run the integrated CLI self-test:
 
