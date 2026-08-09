@@ -4,6 +4,8 @@ import pytest
 
 from holosim.bounded_repository_compression_evaluator import (
     DISTINCTION_LOST,
+    EFFECT_BOUNDARY_UNVERIFIED,
+    EFFECT_RUNNER_REQUIRED,
     EQUIVALENT,
     NOT_SIZE_REDUCING,
     UNKNOWN,
@@ -34,6 +36,11 @@ def _scope():
         },
         platform_id="test-platform",
         platform_contract={"python": "declared-test-runtime"},
+        effect_runner_id="runner:captured-effects-v1",
+        effect_runner_contract={
+            "external_effects": "blocked",
+            "effect_ledger": "required-empty",
+        },
         determinism={
             "seed": 7,
             "clock": "fixed",
@@ -80,6 +87,15 @@ def _contexts():
     return {"default": {"platform": "test-platform", "effects": "captured"}}
 
 
+def _effect_runner(operation, function, *arguments):
+    return {
+        "status": "COMPLETED",
+        "value": function(*arguments),
+        "effects": [],
+        "external_effects_blocked": True,
+    }
+
+
 def _evaluate(**overrides):
     arguments = {
         "baseline": _baseline(),
@@ -89,6 +105,7 @@ def _evaluate(**overrides):
         "contexts": _contexts(),
         "rounds": 3,
         "scope": _scope(),
+        "effect_runner": _effect_runner,
     }
     arguments.update(overrides)
     return evaluate_repository_compression(**arguments)
@@ -163,6 +180,40 @@ def test_observer_failure_is_unknown():
 
     assert receipt["result"] == UNKNOWN
     assert receipt["reason"] == "EVALUATION_ERROR:RuntimeError"
+    assert verify_compression_receipt(receipt)["valid"] is True
+
+
+def test_missing_effect_runner_fails_closed_before_user_code_runs(tmp_path):
+    marker = tmp_path / "observer-ran.txt"
+
+    def side_effecting_observer(context, block):
+        marker.write_text("executed", encoding="utf-8")
+        return block["value"]
+
+    receipt = _evaluate(
+        observers={"side-effecting": side_effecting_observer},
+        effect_runner=None,
+    )
+
+    assert receipt["result"] == UNKNOWN
+    assert receipt["reason"] == EFFECT_RUNNER_REQUIRED
+    assert marker.exists() is False
+    assert verify_compression_receipt(receipt)["valid"] is True
+
+
+def test_unverified_effect_boundary_is_unknown():
+    def unverified_runner(operation, function, *arguments):
+        return {
+            "status": "COMPLETED",
+            "value": function(*arguments),
+            "effects": ["external-write"],
+            "external_effects_blocked": False,
+        }
+
+    receipt = _evaluate(effect_runner=unverified_runner)
+
+    assert receipt["result"] == UNKNOWN
+    assert receipt["reason"] == EFFECT_BOUNDARY_UNVERIFIED
     assert verify_compression_receipt(receipt)["valid"] is True
 
 

@@ -24,6 +24,8 @@ UNKNOWN = "UNKNOWN"
 
 NOT_SIZE_REDUCING = "NOT_SIZE_REDUCING"
 EVALUATION_ERROR = "EVALUATION_ERROR"
+EFFECT_RUNNER_REQUIRED = "EFFECT_RUNNER_REQUIRED"
+EFFECT_BOUNDARY_UNVERIFIED = "EFFECT_BOUNDARY_UNVERIFIED"
 
 MAX_ROUNDS = 64
 MAX_OBSERVERS = 128
@@ -45,7 +47,16 @@ SCOPE_FIELDS = {
     "representation_encoder_hash",
     "platform_id",
     "platform_hash",
+    "effect_runner_id",
+    "effect_runner_hash",
     "determinism",
+}
+
+EFFECT_RESULT_FIELDS = {
+    "status",
+    "value",
+    "effects",
+    "external_effects_blocked",
 }
 
 ROUND_FIELDS = {
@@ -93,10 +104,15 @@ RECEIPT_BODY_FIELDS = {
 
 Observer = Callable[[Mapping[str, Any], Any], Any]
 Transform = Callable[[Any], Any]
+EffectRunner = Callable[..., Mapping[str, Any]]
 
 
 class BoundedRepositoryCompressionError(ValueError):
     """Raised when evaluation input or a receipt violates its contract."""
+
+
+class _EffectBoundaryUnknown(RuntimeError):
+    """Raised internally when execution confinement is not established."""
 
 
 def _hash(value: Any) -> str:
@@ -172,6 +188,8 @@ def build_evaluation_scope(
     representation_encoder_contract: Any,
     platform_id: str,
     platform_contract: Any,
+    effect_runner_id: str,
+    effect_runner_contract: Any,
     determinism: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Build the finite evaluation-scope identity used by a receipt."""
@@ -202,6 +220,10 @@ def build_evaluation_scope(
         ),
         "platform_id": _required_text(platform_id, "platform_id"),
         "platform_hash": _hash(platform_contract),
+        "effect_runner_id": _required_text(
+            effect_runner_id, "effect_runner_id"
+        ),
+        "effect_runner_hash": _hash(effect_runner_contract),
         "determinism": normalized_determinism,
     }
 
@@ -249,6 +271,7 @@ def _observe(
     block: Any,
     observers: Mapping[str, Observer],
     contexts: Mapping[str, Mapping[str, Any]],
+    effect_runner: EffectRunner,
 ) -> list[dict[str, Any]]:
     vector: list[dict[str, Any]] = []
     for observer_id in sorted(observers):
@@ -263,7 +286,10 @@ def _observe(
                 raise BoundedRepositoryCompressionError(
                     f"context must be an object: {context_id}"
                 )
-            observation = observer(
+            observation = _execute_bounded(
+                effect_runner,
+                f"observe:{observer_id}:{context_id}",
+                observer,
                 deepcopy(dict(context)),
                 deepcopy(block),
             )
@@ -276,6 +302,34 @@ def _observe(
                 }
             )
     return vector
+
+
+def _execute_bounded(
+    effect_runner: EffectRunner,
+    operation: str,
+    function: Callable[..., Any],
+    *arguments: Any,
+) -> Any:
+    result = effect_runner(operation, function, *arguments)
+    try:
+        normalized = _exact_fields(
+            result,
+            EFFECT_RESULT_FIELDS,
+            "effect runner result",
+        )
+    except BoundedRepositoryCompressionError as exc:
+        raise _EffectBoundaryUnknown(str(exc)) from exc
+    if (
+        normalized["status"] != "COMPLETED"
+        or normalized["external_effects_blocked"] is not True
+        or not isinstance(normalized["effects"], list)
+        or normalized["effects"]
+    ):
+        raise _EffectBoundaryUnknown(
+            "effect runner did not establish effect-free completion"
+        )
+    _canonical_size(normalized["value"])
+    return deepcopy(normalized["value"])
 
 
 def _first_mismatch(
@@ -375,6 +429,7 @@ def evaluate_repository_compression(
     contexts: Mapping[str, Mapping[str, Any]],
     rounds: int,
     scope: Mapping[str, Any],
+    effect_runner: EffectRunner | None = None,
 ) -> dict[str, Any]:
     """Evaluate repeated reconstruction against one unchanged baseline."""
     if not isinstance(rounds, int) or isinstance(rounds, bool) or not (
@@ -395,20 +450,41 @@ def evaluate_repository_compression(
     _canonical_size(baseline)
 
     baseline_copy = deepcopy(baseline)
+    baseline_id = _block_id(baseline_copy, 0, None)
+    if effect_runner is None:
+        return _receipt(
+            scope=normalized_scope,
+            round_bound=rounds,
+            baseline_block_id=baseline_id,
+            baseline_observation_vector=[],
+            rounds=[],
+            result=UNKNOWN,
+            reason=EFFECT_RUNNER_REQUIRED,
+            mismatch_witness=None,
+        )
+    if not callable(effect_runner):
+        raise BoundedRepositoryCompressionError(
+            "effect_runner must be callable"
+        )
     try:
         baseline_vector = _observe(
             baseline_copy,
             normalized_observers,
             normalized_contexts,
+            effect_runner,
         )
-        baseline_id = _block_id(baseline_copy, 0, None)
         current = deepcopy(baseline_copy)
         previous_id = baseline_id
         round_records: list[dict[str, Any]] = []
 
         for round_index in range(1, rounds + 1):
             source_size = _canonical_size(current)
-            representation = compress(deepcopy(current))
+            representation = _execute_bounded(
+                effect_runner,
+                f"compress:{round_index}",
+                compress,
+                deepcopy(current),
+            )
             representation_size = _canonical_size(representation)
             representation_id = _hash(
                 {
@@ -431,7 +507,12 @@ def evaluate_repository_compression(
                     mismatch_witness=None,
                 )
 
-            reconstructed = reconstruct(deepcopy(representation))
+            reconstructed = _execute_bounded(
+                effect_runner,
+                f"reconstruct:{round_index}",
+                reconstruct,
+                deepcopy(representation),
+            )
             _canonical_size(reconstructed)
             reconstructed_id = _block_id(
                 reconstructed, round_index, previous_id
@@ -440,6 +521,7 @@ def evaluate_repository_compression(
                 reconstructed,
                 normalized_observers,
                 normalized_contexts,
+                effect_runner,
             )
             record = {
                 "round": round_index,
@@ -468,6 +550,17 @@ def evaluate_repository_compression(
                 )
             current = reconstructed
             previous_id = reconstructed_id
+    except _EffectBoundaryUnknown:
+        return _receipt(
+            scope=normalized_scope,
+            round_bound=rounds,
+            baseline_block_id=baseline_id,
+            baseline_observation_vector=[],
+            rounds=[],
+            result=UNKNOWN,
+            reason=EFFECT_BOUNDARY_UNVERIFIED,
+            mismatch_witness=None,
+        )
     except (BoundedRepositoryCompressionError, CanonicalValueError):
         raise
     except Exception as exc:
