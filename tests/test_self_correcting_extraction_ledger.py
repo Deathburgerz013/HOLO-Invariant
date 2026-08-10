@@ -240,6 +240,83 @@ def test_reopen_can_continue_from_a_prior_stopped_extraction(tmp_path):
     assert reopened["stop_condition"] is None
 
 
+def test_reopen_conflict_retires_its_still_active_ancestor(tmp_path):
+    original = _append(
+        _ledger(),
+        tmp_path,
+        relationship="ADD",
+        name="original-conflict.txt",
+        content="Original supported account.",
+        solution={"response": "first account"},
+    )
+    active_parent = original["entries"][0]["extraction_id"]
+    conflicted = _append(
+        original,
+        tmp_path,
+        relationship="CONFLICT",
+        name="stopped-conflict.txt",
+        content="A conflicting account stops extraction.",
+        solution={"alternatives": ["first account", "second account"]},
+        parent_extraction_id=active_parent,
+        recheck_conditions=["obtain distinguishing evidence"],
+    )
+    conflict_id = conflicted["entries"][1]["extraction_id"]
+
+    reopened = _append(
+        conflicted,
+        tmp_path,
+        relationship="REOPEN",
+        name="resolved-conflict.txt",
+        content="New evidence resolves the conflict.",
+        solution={"response": "resolved account"},
+        parent_extraction_id=conflict_id,
+    )
+
+    successor = reopened["entries"][2]
+    assert successor["parent_extraction_id"] == conflict_id
+    assert active_parent not in reopened["active_extraction_ids"]
+    assert reopened["active_extraction_ids"] == [successor["extraction_id"]]
+    assert validate_extraction_ledger(reopened) is True
+
+
+def test_reopen_same_retires_its_still_active_ancestor(tmp_path):
+    original = _append(
+        _ledger(),
+        tmp_path,
+        relationship="ADD",
+        name="original-same.txt",
+        content="Original supported expression.",
+        solution={"response": "stable meaning"},
+    )
+    active_parent = original["entries"][0]["extraction_id"]
+    same = _append(
+        original,
+        tmp_path,
+        relationship="SAME",
+        name="stopped-same.txt",
+        content="Equivalent expression stops without duplication.",
+        solution={"response": "stable meaning"},
+        parent_extraction_id=active_parent,
+    )
+    same_id = same["entries"][1]["extraction_id"]
+
+    reopened = _append(
+        same,
+        tmp_path,
+        relationship="REOPEN",
+        name="extended-same.txt",
+        content="New evidence adds a distinction to the stopped expression.",
+        solution={"response": "meaning with retained distinction"},
+        parent_extraction_id=same_id,
+    )
+
+    successor = reopened["entries"][2]
+    assert successor["parent_extraction_id"] == same_id
+    assert active_parent not in reopened["active_extraction_ids"]
+    assert reopened["active_extraction_ids"] == [successor["extraction_id"]]
+    assert validate_extraction_ledger(reopened) is True
+
+
 def test_correction_requires_an_existing_active_parent(tmp_path):
     with pytest.raises(ExtractionLedgerError, match="active parent"):
         _append(
