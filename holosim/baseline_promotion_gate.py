@@ -29,13 +29,15 @@ def _required_text(value: Any, field: str) -> str:
 def _verify_comparison(comparison: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(comparison, Mapping):
         raise BaselinePromotionError("comparison must be an object")
-    required = {
+    expected_fields = {
         "type",
         "version",
         "baseline_id",
         "baseline_state_hash",
         "left_observation_id",
         "right_observation_id",
+        "observer_ids",
+        "per_claim",
         "agreement",
         "extension",
         "correction",
@@ -47,9 +49,10 @@ def _verify_comparison(comparison: Mapping[str, Any]) -> dict[str, Any]:
         "write_authority",
         "comparison_id",
     }
-    missing = sorted(required - set(comparison))
-    if missing:
-        raise BaselinePromotionError(f"comparison missing fields: {', '.join(missing)}")
+    if set(comparison) != expected_fields:
+        raise BaselinePromotionError(
+            "comparison fields do not match the versioned schema"
+        )
     body = {key: deepcopy(value) for key, value in comparison.items() if key != "comparison_id"}
     try:
         expected = stable_hash(body)
