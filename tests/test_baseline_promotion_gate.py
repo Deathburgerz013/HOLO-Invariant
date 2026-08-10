@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 
+from holosim.canonical import stable_hash
 from holosim.baseline_observation_compare import (
     FINDING_CORRECTION,
     FINDING_EXTENSION,
@@ -136,5 +137,26 @@ def test_tampered_comparison_fails_closed():
     with pytest.raises(BaselinePromotionError, match="comparison_id does not match"):
         evaluate_baseline_promotion(
             comparison=tampered,
+            justification_references={"claim-a": "justifier:claim-a:v1"},
+        )
+
+
+def test_rehashed_comparison_with_undeclared_authority_field_fails_closed():
+    comparison = _comparison(
+        {"claim-a": FINDING_EXTENSION},
+        {"claim-a": FINDING_EXTENSION},
+    )
+    forged = deepcopy(comparison)
+    forged["approval"] = "GRANTED"
+    body = {
+        key: value
+        for key, value in forged.items()
+        if key != "comparison_id"
+    }
+    forged["comparison_id"] = stable_hash(body)
+
+    with pytest.raises(BaselinePromotionError, match="schema"):
+        evaluate_baseline_promotion(
+            comparison=forged,
             justification_references={"claim-a": "justifier:claim-a:v1"},
         )
