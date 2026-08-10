@@ -309,8 +309,23 @@ def _append_checked(
     if checked_relationship == "ADD":
         active_ids.append(entry["extraction_id"])
         decision, stop = "CONTINUE", None
-    elif checked_relationship in {"CORRECT", "REOPEN"}:
+    elif checked_relationship == "CORRECT":
         active_ids = [item for item in active_ids if item != checked_parent]
+        active_ids.append(entry["extraction_id"])
+        decision, stop = "CONTINUE", None
+    elif checked_relationship == "REOPEN":
+        retired_ids: set[str] = set()
+        lineage_id = checked_parent
+        while lineage_id is not None:
+            if lineage_id in active_ids:
+                retired_ids.add(lineage_id)
+            lineage_entry = entries_by_id.get(lineage_id)
+            lineage_id = (
+                lineage_entry["parent_extraction_id"]
+                if lineage_entry is not None
+                else None
+            )
+        active_ids = [item for item in active_ids if item not in retired_ids]
         active_ids.append(entry["extraction_id"])
         decision, stop = "CONTINUE", None
     elif checked_relationship in {"SAME", "NO_NEW_DISTINCTION"}:
