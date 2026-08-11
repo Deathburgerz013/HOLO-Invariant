@@ -138,6 +138,8 @@ class HoloAPI:
         *,
         source: str = "api",
         force: bool = False,
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
     ) -> Dict[str, Any]:
         """Collect plain text through Collector with provenance attached."""
         from holosim.collector import get_collector
