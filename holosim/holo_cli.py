@@ -31,6 +31,7 @@ try:
         run_local_ollama_software_convergence,
     )
     from holosim.operator import get_operator
+    from holosim.operator_console import serve_operator_console
     from holosim.service import get_service
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -52,6 +53,7 @@ except ImportError:
         run_local_ollama_software_convergence,
     )
     from holosim.operator import get_operator
+    from holosim.operator_console import serve_operator_console
     from holosim.service import get_service
 
 
@@ -830,6 +832,30 @@ def main() -> None:
         help="External approval record reference",
     )
 
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Start the local read-only operator console",
+    )
+
+    serve_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Loopback host",
+    )
+
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        help="Local console port",
+    )
+
+    serve_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not open the console in a browser",
+    )
+
     local_converge_parser = (
         subparsers.add_parser(
             "local-converge",
@@ -985,6 +1011,16 @@ def main() -> None:
     elif args.command == "append":
         sys.exit(
             run_service_append(args)
+        )
+
+    elif args.command == "serve":
+        sys.exit(
+            serve_operator_console(
+                args.file,
+                host=args.host,
+                port=args.port,
+                open_browser=not args.no_browser,
+            )
         )
 
     elif args.command == "local-converge":
