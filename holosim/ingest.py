@@ -32,6 +32,7 @@ def ingest_chunk(
     force: bool = False,
     reviewer: str | None = None,
     approval_reference: str | None = None,
+    chain_path: str | Path | None = None,
 ) -> Dict[str, Any]:
     """Ingest one mined chunk through Collector."""
     chunk_path = Path(path)
@@ -45,7 +46,11 @@ def ingest_chunk(
         chunk_path.name,
     ]
 
-    collector = get_collector()
+    collector = (
+        get_collector()
+        if chain_path is None
+        else get_collector(chain_path)
+    )
     result = collector.collect_text(
         text,
         source=source,
@@ -71,6 +76,7 @@ def ingest_directory(
     limit: int | None = None,
     reviewer: str | None = None,
     approval_reference: str | None = None,
+    chain_path: str | Path | None = None,
 ) -> Dict[str, Any]:
     """Ingest mined chunk JSON files from a directory."""
     root = Path(directory)
@@ -89,6 +95,7 @@ def ingest_directory(
                 force=force,
                 reviewer=reviewer,
                 approval_reference=approval_reference,
+                chain_path=chain_path,
             )
         )
 

@@ -106,6 +106,8 @@ class HoloAPI:
             directory,
             source=source,
             force=force,
+            reviewer=reviewer,
+            approval_reference=approval_reference,
             limit=limit,
         )
         return self._with_provenance(result, source="runtime.ingest")

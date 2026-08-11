@@ -176,9 +176,19 @@ class HoloRuntime:
         *,
         source: str = "runtime",
         force: bool = False,
+        reviewer: str | None = None,
+        approval_reference: str | None = None,
         limit: int | None = None,
     ) -> Dict[str, Any]:
-        result = ingest_directory(directory, source=source, force=force, limit=limit)
+        result = ingest_directory(
+            directory,
+            source=source,
+            force=force,
+            limit=limit,
+            reviewer=reviewer,
+            approval_reference=approval_reference,
+            chain_path=self.chain_path,
+        )
         return {
             "status": "ingested",
             "identity": self.identity(),
