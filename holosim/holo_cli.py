@@ -30,6 +30,10 @@ try:
     from holosim.local_ollama_software_convergence import (
         run_local_ollama_software_convergence,
     )
+    from holosim.operator_resume_handoff import (
+        OperatorResumeHandoffError,
+        resume_operator_handoff,
+    )
     from holosim.operator import get_operator
     from holosim.operator_console import serve_operator_console
     from holosim.service import get_service
@@ -51,6 +55,10 @@ except ImportError:
     )
     from holosim.local_ollama_software_convergence import (
         run_local_ollama_software_convergence,
+    )
+    from holosim.operator_resume_handoff import (
+        OperatorResumeHandoffError,
+        resume_operator_handoff,
     )
     from holosim.operator import get_operator
     from holosim.operator_console import serve_operator_console
@@ -690,6 +698,27 @@ def run_local_converge_command(
 
         return 1
 
+
+def run_resume_command(args: argparse.Namespace) -> int:
+    """Verify one operator handoff and print its reconstructed resume frame."""
+    try:
+        handoff = json.loads(Path(args.handoff).read_text(encoding="utf-8"))
+        if type(handoff) is not dict:
+            raise OperatorResumeHandoffError(
+                "handoff JSON must contain an object"
+            )
+        result = resume_operator_handoff(handoff)
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        OperatorResumeHandoffError,
+    ) as exc:
+        print(f"Operator resume blocked: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -708,6 +737,16 @@ def main() -> None:
     subparsers = parser.add_subparsers(
         dest="command",
         required=True,
+    )
+
+    resume_parser = subparsers.add_parser(
+        "resume",
+        help="Resume from a verified operator handoff",
+    )
+
+    resume_parser.add_argument(
+        "handoff",
+        help="Operator handoff JSON file",
     )
 
     subparsers.add_parser(
@@ -930,7 +969,12 @@ def main() -> None:
         file_path=args.file
     )
 
-    if args.command == "health":
+    if args.command == "resume":
+        sys.exit(
+            run_resume_command(args)
+        )
+
+    elif args.command == "health":
         print(
             json.dumps(
                 chain.health(),
