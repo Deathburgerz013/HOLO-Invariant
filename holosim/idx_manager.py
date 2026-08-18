@@ -69,12 +69,13 @@ class IDXManager:
         self,
         idx_path: str | Path = "idx_spine.txt",
     ) -> Dict[str, Any]:
-        """Load IDX text when present; never fabricate a missing IDX."""
+        """Load an existing frozen IDX without fabricating missing state."""
         path = Path(idx_path)
 
         if not path.exists():
-            self.idx_data = {}
-            return {}
+            raise FileNotFoundError(
+                f"Frozen IDX file does not exist: {path}"
+            )
 
         content = path.read_text(encoding="utf-8")
         return self.parse_spine(content)
