@@ -253,6 +253,28 @@ class IDXManager:
                 "rebirth_result": rebirth_result,
             }
 
+        rebirth_hash = rebirth_result.get("hash")
+
+        if not isinstance(rebirth_hash, str) or not rebirth_hash:
+            return {
+                "status": "abort",
+                "code": "REBIRTH_HASH_MISSING",
+                "fused": False,
+                "admission": admission_record,
+                "rebirth_result": rebirth_result,
+            }
+
+        if rebirth_hash != gate.active_hash:
+            return {
+                "status": "abort",
+                "code": "REBIRTH_HASH_MISMATCH",
+                "fused": False,
+                "expected": gate.active_hash,
+                "observed": rebirth_hash,
+                "admission": admission_record,
+                "rebirth_result": rebirth_result,
+            }
+
         record = {
             "type": "idx_applied",
             "config": config,
