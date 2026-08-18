@@ -112,7 +112,16 @@ class IDXManager:
             if "=" not in part:
                 raise ValueError("Frozen IDX header metadata is invalid.")
             key, value = part.split("=", 1)
-            metadata[key.strip()] = value.strip()
+            key = key.strip()
+            value = value.strip()
+
+            if key in metadata:
+                raise ValueError(
+                    "Frozen IDX header contains duplicate "
+                    f"metadata {key}."
+                )
+
+            metadata[key] = value
 
         try:
             slot_count = int(metadata["n"])
