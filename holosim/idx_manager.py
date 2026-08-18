@@ -1,41 +1,41 @@
 """IDX manager for Holo/Sim.
 
 Centralizes IDX parsing and exposes the core configuration used by the
-continuity engine. This file now reads anchor/hash/path values from
-holosim.config instead of carrying duplicate hardcoded state.
+continuity engine. A moving Spine must pass the frozen IDX gate before
+rebirth or chain mutation can occur.
 """
 
 from __future__ import annotations
 
-import json
-import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
 try:
-    from holosim.core import HoloChain
-    from holosim.rebirth_engine import run_rebirth
     from holosim.config import (
         ACTIVE_HASH,
         ANCHOR,
         DEFAULT_CHAIN_FILE,
         HEARTBEAT_SECONDS,
     )
+    from holosim.core import HoloChain
+    from holosim.frozen_idx_gate import FrozenIDXGate
+    from holosim.rebirth_engine import run_rebirth
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from holosim.core import HoloChain
-    from holosim.rebirth_engine import run_rebirth
     from holosim.config import (
         ACTIVE_HASH,
         ANCHOR,
         DEFAULT_CHAIN_FILE,
         HEARTBEAT_SECONDS,
     )
+    from holosim.core import HoloChain
+    from holosim.frozen_idx_gate import FrozenIDXGate
+    from holosim.rebirth_engine import run_rebirth
 
 
 class IDXManager:
-    """Manage IDX spine parsing and configuration handoff."""
+    """Manage IDX parsing and fail-closed admission into the engine."""
 
     def __init__(self, chain: Optional[HoloChain] = None) -> None:
         self.chain = chain or HoloChain(str(DEFAULT_CHAIN_FILE))
@@ -43,7 +43,7 @@ class IDXManager:
         self.active_hash = ACTIVE_HASH
 
     def parse_spine(self, content: str) -> Dict[str, Any]:
-        """Parse simple IDX/key-value spine text into a dictionary."""
+        """Parse simple IDX/key-value Spine text into a dictionary."""
         data: Dict[str, Any] = {}
 
         for raw_line in content.strip().splitlines():
@@ -65,8 +65,11 @@ class IDXManager:
         self.idx_data = data
         return data
 
-    def load_idx_file(self, idx_path: str | Path = "idx_spine.txt") -> Dict[str, Any]:
-        """Load and parse an IDX spine file if present."""
+    def load_idx_file(
+        self,
+        idx_path: str | Path = "idx_spine.txt",
+    ) -> Dict[str, Any]:
+        """Load IDX text when present; never fabricate a missing IDX."""
         path = Path(idx_path)
 
         if not path.exists():
@@ -106,30 +109,77 @@ class IDXManager:
             ],
             "rebirth": {
                 "active": True,
-                "triggers": ["MANUAL_OVERRIDE", "HARD_RESET", "FAULT_HEARTBEAT"],
+                "triggers": [
+                    "MANUAL_OVERRIDE",
+                    "HARD_RESET",
+                    "FAULT_HEARTBEAT",
+                ],
             },
             "active_hash": self.active_hash,
             "idx_data": self.idx_data,
         }
 
-    def apply_to_engine(self) -> Dict[str, Any]:
-        """Append IDX config to the chain and trigger a valid rebirth event."""
-        config = self.get_core_config()
-
-        result = run_rebirth("MANUAL_OVERRIDE")
-
-        self.chain.append(
-            {
-                "type": "idx_applied",
-                "config": config,
-                "rebirth_result": result,
-                "active_hash": self.active_hash,
-                "ts": "now",
-            },
-            compress=True,
+    def apply_to_engine(
+        self,
+        *,
+        gate: FrozenIDXGate,
+        spine_version: int,
+        slots: Sequence[tuple[str, str]],
+    ) -> Dict[str, Any]:
+        """Apply state only after the moving Spine matches the frozen IDX."""
+        admission = gate.check(
+            version=spine_version,
+            slots=slots,
         )
 
-        return config
+        admission_record = {
+            "status": admission.status,
+            "code": admission.code,
+            "fused": admission.fused,
+            "slot": admission.slot,
+            "expected": admission.expected,
+            "observed": admission.observed,
+        }
+
+        if admission.status != "PASS":
+            return {
+                "status": "abort",
+                "code": admission.code,
+                "fused": False,
+                "admission": admission_record,
+            }
+
+        config = self.get_core_config()
+        rebirth_result = run_rebirth("MANUAL_OVERRIDE")
+
+        if rebirth_result.get("status") != "ok":
+            return {
+                "status": "abort",
+                "code": "REBIRTH_ABORTED",
+                "fused": False,
+                "admission": admission_record,
+                "rebirth_result": rebirth_result,
+            }
+
+        record = {
+            "type": "idx_applied",
+            "config": config,
+            "admission": admission_record,
+            "rebirth_result": rebirth_result,
+            "active_hash": self.active_hash,
+            "ts": "now",
+        }
+
+        self.chain.append(record, compress=True)
+
+        return {
+            "status": "ok",
+            "action": "idx_applied",
+            "fused": bool(rebirth_result.get("fused", False)),
+            "admission": admission_record,
+            "rebirth_result": rebirth_result,
+            "config": config,
+        }
 
 
 _idx: Optional[IDXManager] = None
