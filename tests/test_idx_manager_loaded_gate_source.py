@@ -16,20 +16,18 @@ class RecordingChain:
         self.entries.append((payload, compress))
 
 
-def build_manager(
-    expected_text: str,
-) -> tuple[IDXManager, RecordingChain]:
+def build_manager(content_hash: str) -> tuple[IDXManager, RecordingChain]:
     chain = RecordingChain()
     manager = IDXManager(chain=chain)
     manager.parse_spine(
         "IDX:v=1;n=1\n"
-        f"S1=CORE@{digest(expected_text)}\n"
+        f"S1=CORE@{content_hash}\n"
         "ACTIVE_HASH=frozen-head\n"
     )
     return manager, chain
 
 
-def test_mismatch_aborts_before_rebirth_or_chain_append(monkeypatch):
+def test_apply_uses_loaded_idx_and_aborts_mismatch(monkeypatch):
     rebirth_calls = []
 
     def fake_rebirth(event):
@@ -42,7 +40,7 @@ def test_mismatch_aborts_before_rebirth_or_chain_append(monkeypatch):
         fake_rebirth,
     )
 
-    manager, chain = build_manager("original")
+    manager, chain = build_manager(digest("original"))
 
     result = manager.apply_to_engine(
         spine_version=1,
@@ -55,7 +53,7 @@ def test_mismatch_aborts_before_rebirth_or_chain_append(monkeypatch):
     assert chain.entries == []
 
 
-def test_exact_match_allows_rebirth_and_chain_append(monkeypatch):
+def test_apply_uses_loaded_idx_and_allows_exact_match(monkeypatch):
     rebirth_calls = []
 
     def fake_rebirth(event):
@@ -72,7 +70,7 @@ def test_exact_match_allows_rebirth_and_chain_append(monkeypatch):
         fake_rebirth,
     )
 
-    manager, chain = build_manager("original")
+    manager, chain = build_manager(digest("original"))
 
     result = manager.apply_to_engine(
         spine_version=1,
