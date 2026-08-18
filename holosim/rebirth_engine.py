@@ -79,7 +79,7 @@ DEFAULT_MEMORY_LOOP = {
         "tag_index": "tags.json",
     },
     "fallback_behavior": {
-        "if_tag_missing": "default_to_recent",
+        "if_tag_missing": "abort",
         "if_loop_break": "retain_last_stable_memory",
         "on_conflict": "prefer_recent_mutation",
     },
@@ -186,10 +186,10 @@ class RebirthEngine:
             return self._abort("STALE_STATUS", f">{self.stale_threshold_sec}s")
 
         if not self.p.read_bloodstream(BLOODSTREAM_SENTINEL):
-            fallback = self.memory_loop.get("fallback_behavior", {})
-            policy = fallback.get("if_tag_missing", "default_to_recent")
-            if policy != "default_to_recent":
-                return self._abort("BLOODSTREAM_MISMATCH", policy)
+            return self._abort(
+                "BLOODSTREAM_MISMATCH",
+                "required bloodstream sentinel is missing",
+            )
 
         global CURRENT_FUSED_HASH
         if CURRENT_FUSED_HASH == self.active_hash:
