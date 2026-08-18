@@ -30,12 +30,16 @@ class FrozenIDXGate:
         self,
         *,
         version: int,
+        active_hash: str,
         slots: Sequence[SlotHash],
     ) -> None:
         frozen_slots = tuple(slots)
 
         if version < 1:
             raise ValueError("IDX version must be at least 1.")
+
+        if not active_hash:
+            raise ValueError("Frozen IDX active hash must be non-empty.")
 
         if not frozen_slots:
             raise ValueError("Frozen IDX must contain at least one slot.")
@@ -49,11 +53,16 @@ class FrozenIDXGate:
             raise ValueError("Frozen IDX cannot contain duplicate slot names.")
 
         self._version = version
+        self._active_hash = active_hash
         self._slots = frozen_slots
 
     @property
     def version(self) -> int:
         return self._version
+
+    @property
+    def active_hash(self) -> str:
+        return self._active_hash
 
     @property
     def slots(self) -> tuple[SlotHash, ...]:
@@ -63,6 +72,7 @@ class FrozenIDXGate:
         self,
         *,
         version: int,
+        active_hash: str,
         slots: Sequence[SlotPayload],
     ) -> IDXGateResult:
         transported = tuple(slots)
@@ -73,6 +83,14 @@ class FrozenIDXGate:
                 code="VERSION_MISMATCH",
                 expected=str(self._version),
                 observed=str(version),
+            )
+
+        if active_hash != self._active_hash:
+            return IDXGateResult(
+                status="ABORT",
+                code="ACTIVE_HASH_MISMATCH",
+                expected=self._active_hash,
+                observed=active_hash,
             )
 
         expected_names = tuple(name for name, _ in self._slots)

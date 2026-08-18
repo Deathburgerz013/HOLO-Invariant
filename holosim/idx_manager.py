@@ -159,8 +159,13 @@ class IDXManager:
 
             slots.append((class_name, content_hash))
 
+        active_hash = self.idx_data.get("ACTIVE_HASH")
+        if not isinstance(active_hash, str) or not active_hash:
+            raise ValueError("Frozen IDX ACTIVE_HASH is missing.")
+
         return FrozenIDXGate(
             version=version,
+            active_hash=active_hash,
             slots=tuple(slots),
         )
     def get_core_config(self) -> Dict[str, Any]:
@@ -207,12 +212,14 @@ class IDXManager:
         self,
         *,
         spine_version: int,
+        spine_active_hash: str,
         slots: Sequence[tuple[str, str]],
     ) -> Dict[str, Any]:
         """Apply state only after the moving Spine matches the frozen IDX."""
         gate = self.build_frozen_gate()
         admission = gate.check(
             version=spine_version,
+            active_hash=spine_active_hash,
             slots=slots,
         )
 
@@ -233,6 +240,7 @@ class IDXManager:
                 "admission": admission_record,
             }
 
+        self.active_hash = gate.active_hash
         config = self.get_core_config()
         rebirth_result = run_rebirth("MANUAL_OVERRIDE")
 
