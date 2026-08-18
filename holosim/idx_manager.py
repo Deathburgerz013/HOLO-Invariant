@@ -240,8 +240,6 @@ class IDXManager:
                 "admission": admission_record,
             }
 
-        self.active_hash = gate.active_hash
-        config = self.get_core_config()
         rebirth_result = run_rebirth("MANUAL_OVERRIDE")
 
         if rebirth_result.get("status") != "ok":
@@ -274,6 +272,9 @@ class IDXManager:
                 "admission": admission_record,
                 "rebirth_result": rebirth_result,
             }
+
+        self.active_hash = gate.active_hash
+        config = self.get_core_config()
 
         record = {
             "type": "idx_applied",
