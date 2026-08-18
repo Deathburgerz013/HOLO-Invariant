@@ -273,19 +273,20 @@ class IDXManager:
                 "rebirth_result": rebirth_result,
             }
 
-        self.active_hash = gate.active_hash
         config = self.get_core_config()
+        config["active_hash"] = gate.active_hash
 
         record = {
             "type": "idx_applied",
             "config": config,
             "admission": admission_record,
             "rebirth_result": rebirth_result,
-            "active_hash": self.active_hash,
+            "active_hash": gate.active_hash,
             "ts": "now",
         }
 
         self.chain.append(record, compress=True)
+        self.active_hash = gate.active_hash
 
         return {
             "status": "ok",
