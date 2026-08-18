@@ -7,6 +7,7 @@ rebirth or chain mutation can occur.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Sequence
@@ -80,6 +81,77 @@ class IDXManager:
         content = path.read_text(encoding="utf-8")
         return self.parse_spine(content)
 
+    def build_frozen_gate(self) -> FrozenIDXGate:
+        """Build the immutable admission gate from the loaded IDX."""
+        if not self.idx_data:
+            raise ValueError("Frozen IDX has not been loaded.")
+
+        header = self.idx_data.get("IDX:v")
+        if not isinstance(header, str) or not header:
+            raise ValueError("Frozen IDX header IDX:v is missing.")
+
+        parts = [part.strip() for part in header.split(";")]
+        try:
+            version = int(parts[0])
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Frozen IDX version is invalid.") from exc
+
+        metadata: Dict[str, str] = {}
+        for part in parts[1:]:
+            if "=" not in part:
+                raise ValueError("Frozen IDX header metadata is invalid.")
+            key, value = part.split("=", 1)
+            metadata[key.strip()] = value.strip()
+
+        try:
+            slot_count = int(metadata["n"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("Frozen IDX slot count n is invalid.") from exc
+
+        if slot_count < 1:
+            raise ValueError("Frozen IDX must declare at least one slot.")
+
+        expected_keys = [
+            f"S{index}" for index in range(1, slot_count + 1)
+        ]
+
+        for key in expected_keys:
+            if key not in self.idx_data:
+                raise ValueError(f"Frozen IDX slot {key} is missing.")
+
+        observed_keys = [
+            key
+            for key in self.idx_data
+            if re.fullmatch(r"S\d+", key)
+        ]
+        unexpected_keys = [
+            key for key in observed_keys if key not in expected_keys
+        ]
+        if unexpected_keys:
+            raise ValueError(
+                f"Frozen IDX contains unexpected slot {unexpected_keys[0]}."
+            )
+
+        slots: list[tuple[str, str]] = []
+        for key in expected_keys:
+            binding = self.idx_data[key]
+            if not isinstance(binding, str):
+                raise ValueError(
+                    f"Frozen IDX slot {key} must use CLASS@HASH."
+                )
+
+            class_name, separator, content_hash = binding.partition("@")
+            if not separator or not class_name or not content_hash:
+                raise ValueError(
+                    f"Frozen IDX slot {key} must use CLASS@HASH."
+                )
+
+            slots.append((class_name, content_hash))
+
+        return FrozenIDXGate(
+            version=version,
+            slots=tuple(slots),
+        )
     def get_core_config(self) -> Dict[str, Any]:
         """Return the current core IDX configuration."""
         return {
