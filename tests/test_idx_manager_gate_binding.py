@@ -24,6 +24,7 @@ def test_loaded_idx_builds_ordered_frozen_gate():
     gate = manager.build_frozen_gate()
 
     assert gate.version == 1
+    assert gate.active_hash == "frozen-head"
     assert gate.slots == (
         ("CORE", "core-hash"),
         ("PROTO", "proto-hash"),

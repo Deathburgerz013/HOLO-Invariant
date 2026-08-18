@@ -11,11 +11,13 @@ def test_exact_slot_match_passes():
     core = "continuity remains externally verifiable"
     gate = FrozenIDXGate(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", digest(core)),),
     )
 
     result = gate.check(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", core),),
     )
 
@@ -30,11 +32,13 @@ def test_changed_slot_aborts_without_fusion():
 
     gate = FrozenIDXGate(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", digest(original)),),
     )
 
     result = gate.check(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", changed),),
     )
 
@@ -47,6 +51,7 @@ def test_changed_slot_aborts_without_fusion():
 def test_missing_slot_aborts():
     gate = FrozenIDXGate(
         version=1,
+        active_hash="frozen-head",
         slots=(
             ("CORE", digest("core")),
             ("PROTO", digest("protocol")),
@@ -55,6 +60,7 @@ def test_missing_slot_aborts():
 
     result = gate.check(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", "core"),),
     )
 
@@ -67,11 +73,13 @@ def test_missing_slot_aborts():
 def test_unexpected_slot_aborts():
     gate = FrozenIDXGate(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", digest("core")),),
     )
 
     result = gate.check(
         version=1,
+        active_hash="frozen-head",
         slots=(
             ("CORE", "core"),
             ("PERSONA", "unexpected"),
@@ -87,6 +95,7 @@ def test_unexpected_slot_aborts():
 def test_slot_order_mismatch_aborts():
     gate = FrozenIDXGate(
         version=1,
+        active_hash="frozen-head",
         slots=(
             ("CORE", digest("core")),
             ("PROTO", digest("protocol")),
@@ -95,6 +104,7 @@ def test_slot_order_mismatch_aborts():
 
     result = gate.check(
         version=1,
+        active_hash="frozen-head",
         slots=(
             ("PROTO", "protocol"),
             ("CORE", "core"),
@@ -109,11 +119,13 @@ def test_slot_order_mismatch_aborts():
 def test_version_mismatch_aborts():
     gate = FrozenIDXGate(
         version=1,
+        active_hash="frozen-head",
         slots=(("CORE", digest("core")),),
     )
 
     result = gate.check(
         version=2,
+        active_hash="frozen-head",
         slots=(("CORE", "core"),),
     )
 

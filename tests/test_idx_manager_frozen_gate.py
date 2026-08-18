@@ -46,6 +46,7 @@ def test_mismatch_aborts_before_rebirth_or_chain_append(monkeypatch):
 
     result = manager.apply_to_engine(
         spine_version=1,
+        spine_active_hash="frozen-head",
         slots=(("CORE", "changed"),),
     )
 
@@ -76,6 +77,7 @@ def test_exact_match_allows_rebirth_and_chain_append(monkeypatch):
 
     result = manager.apply_to_engine(
         spine_version=1,
+        spine_active_hash="frozen-head",
         slots=(("CORE", "original"),),
     )
 
