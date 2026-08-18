@@ -44,7 +44,7 @@ class IDXManager:
         self.active_hash = ACTIVE_HASH
 
     def parse_spine(self, content: str) -> Dict[str, Any]:
-        """Parse simple IDX/key-value Spine text into a dictionary."""
+        """Parse simple IDX/key-value Spine text without ambiguity."""
         data: Dict[str, Any] = {}
 
         for raw_line in content.strip().splitlines():
@@ -53,15 +53,26 @@ class IDXManager:
             if not line or line.startswith("#"):
                 continue
 
+            parsed: tuple[str, str] | None = None
+
             if ":" in line and "@" in line:
                 key, value = line.split(":", 1)
-                data[key.strip()] = value.strip()
+                parsed = (key.strip(), value.strip())
+            elif "=" in line:
+                key, value = line.split("=", 1)
+                parsed = (key.strip(), value.strip())
+
+            if parsed is None:
                 continue
 
-            if "=" in line:
-                key, value = line.split("=", 1)
-                data[key.strip()] = value.strip()
-                continue
+            key, value = parsed
+
+            if key in data:
+                raise ValueError(
+                    f"Frozen IDX contains duplicate key {key}."
+                )
+
+            data[key] = value
 
         self.idx_data = data
         return data
