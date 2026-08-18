@@ -195,11 +195,11 @@ class IDXManager:
     def apply_to_engine(
         self,
         *,
-        gate: FrozenIDXGate,
         spine_version: int,
         slots: Sequence[tuple[str, str]],
     ) -> Dict[str, Any]:
         """Apply state only after the moving Spine matches the frozen IDX."""
+        gate = self.build_frozen_gate()
         admission = gate.check(
             version=spine_version,
             slots=slots,
