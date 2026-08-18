@@ -64,6 +64,7 @@ def test_exact_match_allows_rebirth_and_chain_append(monkeypatch):
         return {
             "status": "ok",
             "action": "rebirth_executed",
+            "hash": "frozen-head",
             "fused": True,
         }
 

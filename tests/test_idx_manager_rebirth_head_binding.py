@@ -1,5 +1,7 @@
 from hashlib import sha256
 
+import pytest
+
 import holosim.idx_manager as idx_manager_module
 from holosim.idx_manager import IDXManager
 
@@ -27,53 +29,66 @@ def build_manager() -> tuple[IDXManager, RecordingChain]:
     return manager, chain
 
 
-def test_wrong_loaded_idx_head_aborts_before_rebirth_or_append(
+@pytest.mark.parametrize(
+    ("rebirth_result", "expected_code"),
+    [
+        (
+            {
+                "status": "ok",
+                "action": "rebirth_executed",
+                "hash": "different-head",
+                "fused": True,
+            },
+            "REBIRTH_HASH_MISMATCH",
+        ),
+        (
+            {
+                "status": "ok",
+                "action": "rebirth_executed",
+                "fused": True,
+            },
+            "REBIRTH_HASH_MISSING",
+        ),
+    ],
+)
+def test_unbound_rebirth_head_aborts_before_chain_append(
     monkeypatch,
+    rebirth_result,
+    expected_code,
 ):
-    rebirth_calls = []
-
-    def fake_rebirth(event):
-        rebirth_calls.append(event)
-        return {"status": "ok"}
-
     monkeypatch.setattr(
         idx_manager_module,
         "run_rebirth",
-        fake_rebirth,
+        lambda event: rebirth_result,
     )
 
     manager, chain = build_manager()
 
     result = manager.apply_to_engine(
         spine_version=1,
-        spine_active_hash="moving-head",
+        spine_active_hash="frozen-head",
         slots=(("CORE", "original"),),
     )
 
     assert result["status"] == "abort"
-    assert result["code"] == "ACTIVE_HASH_MISMATCH"
-    assert result["admission"]["expected"] == "frozen-head"
-    assert result["admission"]["observed"] == "moving-head"
-    assert rebirth_calls == []
+    assert result["code"] == expected_code
+    assert result["fused"] is False
+    assert result["admission"]["code"] == "IDX_MATCH"
+    assert result["rebirth_result"] == rebirth_result
     assert chain.entries == []
 
 
-def test_exact_loaded_idx_head_allows_rebirth_and_append(monkeypatch):
-    rebirth_calls = []
-
-    def fake_rebirth(event):
-        rebirth_calls.append(event)
-        return {
-            "status": "ok",
-            "action": "rebirth_executed",
-            "hash": "frozen-head",
-            "fused": True,
-        }
-
+def test_matching_rebirth_head_allows_chain_append(monkeypatch):
+    rebirth_result = {
+        "status": "ok",
+        "action": "rebirth_executed",
+        "hash": "frozen-head",
+        "fused": True,
+    }
     monkeypatch.setattr(
         idx_manager_module,
         "run_rebirth",
-        fake_rebirth,
+        lambda event: rebirth_result,
     )
 
     manager, chain = build_manager()
@@ -86,6 +101,5 @@ def test_exact_loaded_idx_head_allows_rebirth_and_append(monkeypatch):
 
     assert result["status"] == "ok"
     assert result["admission"]["code"] == "IDX_MATCH"
-    assert result["config"]["active_hash"] == "frozen-head"
-    assert rebirth_calls == ["MANUAL_OVERRIDE"]
+    assert result["rebirth_result"]["hash"] == "frozen-head"
     assert len(chain.entries) == 1

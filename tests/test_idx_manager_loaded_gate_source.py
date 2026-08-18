@@ -62,6 +62,7 @@ def test_apply_uses_loaded_idx_and_allows_exact_match(monkeypatch):
         return {
             "status": "ok",
             "action": "rebirth_executed",
+            "hash": "frozen-head",
             "fused": True,
         }
 
