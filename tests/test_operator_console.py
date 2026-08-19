@@ -61,6 +61,7 @@ def test_console_serves_page_snapshot_and_health_from_loopback(tmp_path):
     assert page_status == 200
     assert page_type.startswith("text/html")
     assert b"HOLO / OPERATOR CONSOLE" in page
+    assert b'href="/playground"' in page
     assert api_status == 200
     assert api_type.startswith("application/json")
     assert snapshot["service"]["verify"]["entries"] == 1

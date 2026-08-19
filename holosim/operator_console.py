@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from holosim.config import DEFAULT_CHAIN_FILE
+from holosim.idx_public_check import check_idx_packet
 from holosim.service import get_service
 
 
@@ -76,6 +77,9 @@ INDEX_HTML = r'''<!doctype html>
       letter-spacing: .08em;
     }
     button:hover { background: rgba(88,231,255,.16); }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .header-link { color: var(--cyan); text-decoration: none; border: 1px solid rgba(88,231,255,.35); border-radius: 999px; padding: 10px 14px; font: 800 10px/1 ui-monospace, monospace; letter-spacing: .12em; }
+    .header-link:hover { background: rgba(88,231,255,.12); }
     .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
     .panel {
       position: relative;
@@ -137,7 +141,10 @@ INDEX_HTML = r'''<!doctype html>
         <h1>Local continuity.</h1>
         <p class="subtitle">Verified chain state from the selected local evidence file. Read-only by design.</p>
       </div>
-      <button id="refresh">REFRESH STATE</button>
+      <div class="header-actions">
+        <a class="header-link" href="/playground">PLAYGROUND</a>
+        <button id="refresh">REFRESH STATE</button>
+      </div>
     </header>
     <div id="error" class="error"></div>
     <section class="grid">
@@ -217,6 +224,65 @@ INDEX_HTML = r'''<!doctype html>
 </html>'''
 
 
+PLAYGROUND_HTML = r'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HOLO — Continuity Playground</title>
+  <style>
+    :root{color-scheme:dark;--bg:#030408;--panel:rgba(11,15,24,.84);--line:rgba(129,164,255,.2);--text:#f4f7ff;--muted:#8290aa;--cyan:#4ce8ff;--violet:#9d79ff;--green:#4ef0a5;--red:#ff647d;--amber:#ffc45c}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,system-ui,sans-serif;background:radial-gradient(circle at 50% 30%,rgba(85,45,170,.18),transparent 30rem),radial-gradient(circle at 15% 8%,rgba(76,232,255,.12),transparent 24rem),linear-gradient(145deg,#020307,#090c16 55%,#030408)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at center,black,transparent 78%)}
+    main{width:min(1260px,calc(100% - 28px));margin:auto;padding:26px 0 60px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:18px}.eyebrow,.label{font:700 10px ui-monospace,monospace;letter-spacing:.18em;color:var(--cyan)}h1{margin:7px 0 4px;font-size:clamp(36px,6vw,76px);line-height:.9;letter-spacing:-.06em}.sub{margin:0;color:var(--muted)}a{color:var(--cyan);text-decoration:none;font:700 11px ui-monospace,monospace}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.7fr);gap:14px}.panel{border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(18px);box-shadow:0 22px 80px rgba(0,0,0,.32);overflow:hidden}.head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.head h2{font-size:13px;margin:0}.inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}textarea{width:100%;min-height:230px;resize:vertical;border:1px solid var(--line);border-radius:13px;background:rgba(2,4,9,.72);color:#dfe8ff;padding:13px;font:11px/1.55 ui-monospace,monospace;outline:none}textarea:focus{border-color:rgba(76,232,255,.55)}button{border:1px solid rgba(76,232,255,.42);border-radius:999px;padding:11px 17px;color:var(--text);background:rgba(76,232,255,.1);cursor:pointer;font:800 11px ui-monospace,monospace;letter-spacing:.1em}button:hover{background:rgba(76,232,255,.19)}.actions{padding:0 14px 15px;display:flex;justify-content:flex-end;gap:8px}.graph{min-height:430px;display:grid;place-items:center;padding:10px;background:radial-gradient(circle,rgba(157,121,255,.08),transparent 60%)}svg{width:100%;height:auto;max-height:430px}.edge{stroke:rgba(134,152,210,.32);stroke-width:2;stroke-dasharray:7 8}.edge.pass{stroke:var(--green);filter:drop-shadow(0 0 7px var(--green))}.edge.abort{stroke:var(--red);filter:drop-shadow(0 0 7px var(--red))}.core{fill:#050711;stroke:var(--violet);stroke-width:2;filter:drop-shadow(0 0 18px rgba(157,121,255,.65))}.moving{fill:#050711;stroke:var(--cyan);stroke-width:2;filter:drop-shadow(0 0 16px rgba(76,232,255,.5))}.nodeText{fill:#eff3ff;font:700 13px ui-monospace,monospace;text-anchor:middle}.nodeSub{fill:#8290aa;font:10px ui-monospace,monospace;text-anchor:middle}.receipt{padding:14px 18px 18px}.state{font-size:clamp(32px,5vw,58px);font-weight:850;letter-spacing:-.05em;margin:7px 0}.state.pass{color:var(--green)}.state.abort,.state.error{color:var(--red)}pre{margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:12px;background:rgba(1,3,7,.7);padding:12px;color:#cfd9f2;font:10px/1.5 ui-monospace,monospace}.notice{margin-top:12px;padding:12px;border:1px solid rgba(157,121,255,.25);border-radius:12px;color:var(--muted);font-size:11px;line-height:1.5}.notice strong{color:var(--violet)}@media(max-width:900px){.layout{grid-template-columns:1fr}.inputs{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body><main>
+  <div class="top"><div><div class="eyebrow">HOLO / CONTINUITY PLAYGROUND</div><h1>See the gate decide.</h1><p class="sub">Frozen authority compared with a moving Spine. Nothing is retained.</p></div><a href="/">← OPERATOR CONSOLE</a></div>
+  <div class="layout">
+    <section class="panel"><div class="head"><h2>RELATIONAL INPUT</h2><span class="label">INLINE / READ ONLY</span></div><div class="inputs">
+      <label><span class="label">FROZEN IDX</span><textarea id="frozenInput">IDX:v=1;n=1
+S1=CORE@0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5
+ACTIVE_HASH=frozen-head</textarea></label>
+      <label><span class="label">MOVING SPINE</span><textarea id="packetInput">{
+  "version": 1,
+  "active_hash": "frozen-head",
+  "slots": [{"name": "CORE", "payload": "original"}]
+}</textarea></label>
+    </div><div class="actions"><button id="mismatch">LOAD MISMATCH</button><button id="check">CHECK RELATION</button></div></section>
+    <aside class="panel"><div class="head"><h2>VISIBLE RELATION</h2><span class="label">MISMATCH → ABORT</span></div><div class="graph">
+      <svg id="continuityGraph" viewBox="0 0 520 390" role="img" aria-label="Frozen IDX and moving Spine relation">
+        <defs><radialGradient id="well"><stop offset="0" stop-color="#24134e"/><stop offset="1" stop-color="#030408"/></radialGradient></defs>
+        <circle cx="260" cy="195" r="150" fill="url(#well)" opacity=".72"/><line id="relationEdge" class="edge" x1="170" y1="195" x2="350" y2="195"/>
+        <circle class="core" cx="145" cy="195" r="68"/><text class="nodeText" x="145" y="190">FROZEN IDX</text><text class="nodeSub" x="145" y="210">admission authority</text>
+        <circle class="moving" cx="375" cy="195" r="68"/><text class="nodeText" x="375" y="190">MOVING SPINE</text><text class="nodeSub" x="375" y="210">candidate state</text>
+        <circle cx="260" cy="195" r="15" fill="#080b13" stroke="#8290aa"/><text id="gateMark" class="nodeText" x="260" y="201">?</text>
+      </svg>
+    </div><div class="receipt"><div class="label">DECISION RECEIPT</div><div id="decision" class="state">WAITING</div><div id="reason" class="sub">No comparison has run.</div><pre id="receipt">{}</pre><div class="notice"><strong>OBSERVATIONAL ONLY.</strong> This page compares supplied values. It grants no truth, acceptance, write, or execution authority.</div></div></aside>
+  </div>
+</main><script>
+  const $=id=>document.getElementById(id); const edge=$('relationEdge');
+  function show(data){const state=String(data.status||'ERROR').toLowerCase();$('decision').textContent=data.status||'ERROR';$('decision').className='state '+state;$('reason').textContent=data.code||data.error||'No code';$('receipt').textContent=JSON.stringify(data,null,2);edge.className='edge '+(state==='pass'?'pass':'abort');$('gateMark').textContent=state==='pass'?'✓':'×';}
+  async function check(){try{const response=await fetch('/api/idx-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frozen_idx:$('frozenInput').value,packet:JSON.parse($('packetInput').value)})});show(await response.json());}catch(error){show({status:'ERROR',code:'LOCAL_INPUT_INVALID',error:String(error),write_authority:'NONE',execution_authority:'NONE'});}}
+  $('check').addEventListener('click',check);$('mismatch').addEventListener('click',()=>{const value=JSON.parse($('packetInput').value);value.slots[0].payload=value.slots[0].payload==='original'?'changed':'original';$('packetInput').value=JSON.stringify(value,null,2);check();});
+</script></body></html>'''
+
+
+def build_idx_playground_receipt(
+    frozen_idx: str,
+    packet: dict[str, Any],
+) -> dict[str, Any]:
+    '''Build one non-authoritative, non-retained admission receipt.'''
+    result = check_idx_packet(frozen_idx, packet)
+    return {
+        **result,
+        "accepted": False,
+        "truth_claimed": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+
+
 def build_operator_snapshot(
     chain_path: str | Path = DEFAULT_CHAIN_FILE,
     *,
@@ -280,6 +346,13 @@ class _OperatorHandler(BaseHTTPRequestHandler):
         if path == "/":
             self._send(200, "text/html; charset=utf-8", INDEX_HTML.encode("utf-8"))
             return
+        if path == "/playground":
+            self._send(
+                200,
+                "text/html; charset=utf-8",
+                PLAYGROUND_HTML.encode("utf-8"),
+            )
+            return
         if path == "/healthz":
             self._json(200, {"status": "ok", "write_authority": "NONE"})
             return
@@ -299,6 +372,51 @@ class _OperatorHandler(BaseHTTPRequestHandler):
                 )
             return
         self._json(404, {"status": "not_found", "path": path})
+
+    def do_POST(self) -> None:  # noqa: N802 - stdlib handler API
+        path = urlsplit(self.path).path
+        if path != "/api/idx-check":
+            self._json(404, {"status": "not_found", "path": path})
+            return
+
+        error_receipt = {
+            "status": "ERROR",
+            "code": "IDX_REQUEST_INVALID",
+            "accepted": False,
+            "truth_claimed": False,
+            "write_authority": "NONE",
+            "execution_authority": "NONE",
+        }
+
+        try:
+            content_type = self.headers.get("Content-Type", "").split(";", 1)[0]
+            if content_type.strip().lower() != "application/json":
+                raise ValueError("Content-Type must be application/json")
+
+            raw_length = self.headers.get("Content-Length")
+            if raw_length is None:
+                raise ValueError("Content-Length is required")
+            length = int(raw_length)
+            if not 1 <= length <= 1_000_000:
+                raise ValueError("request body must be between 1 and 1000000 bytes")
+
+            request = json.loads(self.rfile.read(length).decode("utf-8"))
+            if type(request) is not dict or set(request) != {"frozen_idx", "packet"}:
+                raise ValueError(
+                    "IDX request must contain only frozen_idx and packet"
+                )
+            if type(request["frozen_idx"]) is not str:
+                raise TypeError("frozen_idx must be a string")
+            if type(request["packet"]) is not dict:
+                raise TypeError("packet must be an object")
+
+            result = build_idx_playground_receipt(
+                request["frozen_idx"],
+                request["packet"],
+            )
+            self._json(400 if result["status"] == "ERROR" else 200, result)
+        except (TypeError, ValueError, UnicodeError, json.JSONDecodeError) as error:
+            self._json(400, {**error_receipt, "error": str(error)})
 
     def log_message(self, format: str, *args: Any) -> None:
         return
