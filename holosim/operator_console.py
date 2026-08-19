@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from holosim.config import DEFAULT_CHAIN_FILE
+from holosim.continuity_topology import build_continuity_topology
 from holosim.idx_public_check import check_idx_packet
 from holosim.service import get_service
 
@@ -143,6 +144,7 @@ INDEX_HTML = r'''<!doctype html>
       </div>
       <div class="header-actions">
         <a class="header-link" href="/playground">PLAYGROUND</a>
+        <a class="header-link" href="/topology">TOPOLOGY</a>
         <button id="refresh">REFRESH STATE</button>
       </div>
     </header>
@@ -268,6 +270,15 @@ ACTIVE_HASH=frozen-head</textarea></label>
 </script></body></html>'''
 
 
+TOPOLOGY_HTML = r'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HOLO - Continuity Topology</title><style>
+:root{color-scheme:dark;--bg:#050711;--panel:rgba(10,14,24,.88);--line:rgba(130,153,220,.2);--text:#eef3ff;--muted:#8490aa;--cyan:#4ce8ff;--violet:#9d79ff;--green:#4ff0aa;--red:#ff647d}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 5%,rgba(76,232,255,.1),transparent 28rem),radial-gradient(circle at 85% 10%,rgba(157,121,255,.12),transparent 30rem),#050711;color:var(--text);font-family:Inter,system-ui,sans-serif}main{width:min(1380px,calc(100% - 30px));margin:auto;padding:28px 0 60px}.top{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px}.eyebrow,.label{color:var(--cyan);font:700 10px ui-monospace,monospace;letter-spacing:.2em}h1{margin:7px 0 4px;font-size:clamp(38px,6vw,76px);line-height:.92;letter-spacing:-.055em}.sub{margin:0;color:var(--muted)}nav{display:flex;gap:14px}a{color:var(--cyan);text-decoration:none;font:700 11px ui-monospace,monospace}.layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:14px}.panel{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;box-shadow:0 22px 80px rgba(0,0,0,.3)}.head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.head h2{font-size:13px;margin:0}.legend{display:flex;gap:14px;color:var(--muted);font:10px ui-monospace,monospace}.legend i{display:inline-block;width:18px;border-top:2px solid;margin-right:5px}.continuity{color:#71809d}.correction{color:var(--violet)}.revalidation{color:var(--cyan)}#topologyGraph{width:100%;height:650px;display:block;background:radial-gradient(circle,rgba(157,121,255,.08),transparent 58%)}.edge{fill:none;stroke-width:1.7}.edge.continuity{stroke:#536078}.edge.correction{stroke:var(--violet);stroke-dasharray:7 5}.edge.revalidation{stroke:var(--cyan);stroke-dasharray:2 6}.node{cursor:pointer}.node circle{fill:#070a12;stroke-width:2}.node.record circle{stroke:#71809d}.node.correction circle{stroke:var(--violet)}.node.revalidation circle{stroke:var(--cyan)}.node:hover circle,.node.selected circle{stroke:var(--green);filter:drop-shadow(0 0 10px var(--green))}.node text{fill:var(--text);font:700 11px ui-monospace,monospace;text-anchor:middle;pointer-events:none}.receipt{padding:18px}.state{font-size:34px;font-weight:850;color:var(--green);margin:8px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:12px;background:#03050a;padding:13px;min-height:350px;color:#cfd9f2;font:10px/1.55 ui-monospace,monospace}.notice{color:var(--muted);font-size:11px;line-height:1.5;border:1px solid rgba(157,121,255,.25);padding:12px;border-radius:12px}.notice strong{color:var(--violet)}@media(max-width:900px){.layout{grid-template-columns:1fr}.top{align-items:start;flex-direction:column}#topologyGraph{height:520px}}
+</style></head><body><main><div class="top"><div><div class="eyebrow">HOLO / CONTINUITY TOPOLOGY</div><h1>Relations, not replacements.</h1><p class="sub">A verified projection of retained records and their explicit links.</p></div><nav><a href="/">OPERATOR CONSOLE</a><a href="/playground">PLAYGROUND</a></nav></div><div class="layout"><section class="panel"><div class="head"><h2>VERIFIED RECORD GRAPH</h2><div class="legend"><span class="continuity"><i></i>CONTINUITY</span><span class="correction"><i></i>CORRECTION</span><span class="revalidation"><i></i>REVALIDATION</span></div></div><svg id="topologyGraph" role="img" aria-label="Verified continuity topology"></svg></section><aside class="panel receipt"><div class="label">NODE RECEIPT</div><div class="state" id="graphState">VERIFYING</div><pre id="nodeReceipt">Select a node to inspect its exact retained record.</pre><div class="notice"><strong>OBSERVATIONAL ONLY.</strong> This graph projects verified stored relations. It grants no truth, acceptance, write, or execution authority.</div></aside></div></main><script>
+const svg=document.getElementById('topologyGraph'),receipt=document.getElementById('nodeReceipt'),state=document.getElementById('graphState');const NS='http://www.w3.org/2000/svg';function el(tag,attrs={}){const x=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v));return x}function render(data){const nodes=data.nodes||[],edges=data.edges||[];svg.replaceChildren();state.textContent=data.verified?'VERIFIED':'UNVERIFIED';if(!nodes.length){receipt.textContent='Verified empty chain. No retained relations.';return}const size=Math.max(920,520+Math.sqrt(nodes.length)*105),c=size/2;svg.setAttribute('viewBox',`0 0 ${size} ${size}`);const pos=new Map();nodes.forEach((n,i)=>{const a=i*2.3999632297-Math.PI/2,r=nodes.length===1?0:95+Math.sqrt(i)*54;pos.set(n.idx,[c+Math.cos(a)*r,c+Math.sin(a)*r])});edges.forEach(e=>{const a=pos.get(e.source),b=pos.get(e.target);if(a&&b)svg.append(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],class:`edge ${e.kind}`}))});nodes.forEach(n=>{const [x,y]=pos.get(n.idx),g=el('g',{class:`node ${n.kind}`,tabindex:'0',role:'button','aria-label':`${n.kind} ${n.idx}`});g.append(el('circle',{cx:x,cy:y,r:29}));const t=el('text',{x,y:y+4});t.textContent=`#${n.idx}`;g.append(t);const select=()=>{svg.querySelectorAll('.node').forEach(q=>q.classList.remove('selected'));g.classList.add('selected');receipt.textContent=JSON.stringify(n,null,2)};g.addEventListener('click',select);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}});svg.append(g)});receipt.textContent=JSON.stringify(nodes[nodes.length-1],null,2)}fetch('/api/topology',{cache:'no-store'}).then(r=>r.json().then(j=>{if(!r.ok)throw Error(j.error||`HTTP ${r.status}`);return j})).then(render).catch(e=>{state.textContent='UNAVAILABLE';state.style.color='var(--red)';receipt.textContent=e.message});
+</script></body></html>'''
+
+
 def build_idx_playground_receipt(
     frozen_idx: str,
     packet: dict[str, Any],
@@ -346,6 +357,10 @@ class _OperatorHandler(BaseHTTPRequestHandler):
         if path == "/":
             self._send(200, "text/html; charset=utf-8", INDEX_HTML.encode("utf-8"))
             return
+        if path == "/topology":
+            self._send(200, "text/html; charset=utf-8", TOPOLOGY_HTML.encode("utf-8"))
+            return
+
         if path == "/playground":
             self._send(
                 200,
@@ -356,6 +371,22 @@ class _OperatorHandler(BaseHTTPRequestHandler):
         if path == "/healthz":
             self._json(200, {"status": "ok", "write_authority": "NONE"})
             return
+        if path == "/api/topology":
+            try:
+                topology = build_continuity_topology(self.server.chain_path)
+            except (OSError, UnicodeError, ValueError, TypeError) as exc:
+                self._json(500, {
+                    "status": "error",
+                    "error": str(exc),
+                    "accepted": False,
+                    "truth_claimed": False,
+                    "write_authority": "NONE",
+                    "execution_authority": "NONE",
+                })
+                return
+            self._json(200, topology)
+            return
+
         if path == "/api/snapshot":
             try:
                 self._json(200, build_operator_snapshot(self.server.chain_path))
