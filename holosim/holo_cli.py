@@ -38,6 +38,9 @@ try:
     )
     from holosim.operator import get_operator
     from holosim.operator_console import serve_operator_console
+    from holosim.public_continuity_benchmark import (
+        run_public_continuity_benchmark,
+    )
     from holosim.service import get_service
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -66,6 +69,9 @@ except ImportError:
     )
     from holosim.operator import get_operator
     from holosim.operator_console import serve_operator_console
+    from holosim.public_continuity_benchmark import (
+        run_public_continuity_benchmark,
+    )
     from holosim.service import get_service
 
 
@@ -1023,6 +1029,33 @@ def main() -> None:
         help="External approval record reference",
     )
 
+    benchmark_parser = subparsers.add_parser(
+        "benchmark",
+        help="Score a public benchmark condition",
+    )
+
+    benchmark_parser.add_argument(
+        "benchmark_kind",
+        choices=["continuity"],
+        help="Public benchmark to score",
+    )
+
+    benchmark_parser.add_argument(
+        "--condition",
+        required=True,
+        help="System-neutral condition JSON file",
+    )
+
+    benchmark_parser.add_argument(
+        "--fixture",
+        default=str(
+            REPO_ROOT
+            / "benchmarks"
+            / "continuity-v1.fixture.json"
+        ),
+        help="Exact continuity fixture JSON file",
+    )
+
     demo_parser = subparsers.add_parser(
         "demo",
         help="Open a disposable verified continuity demonstration",
@@ -1242,6 +1275,11 @@ def main() -> None:
     elif args.command == "append":
         sys.exit(
             run_service_append(args)
+        )
+
+    elif args.command == "benchmark":
+        sys.exit(
+            run_public_continuity_benchmark(args)
         )
 
     elif args.command == "demo":

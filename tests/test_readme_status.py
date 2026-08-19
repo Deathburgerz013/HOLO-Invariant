@@ -21,6 +21,7 @@ def test_repository_status_comes_from_public_surfaces():
 
     assert status["cli_commands"] == [
         "append",
+        "benchmark",
         "check-spines",
         "demo",
         "doctor",
@@ -39,6 +40,7 @@ def test_repository_status_comes_from_public_surfaces():
     ]
 
     assert status["schemas"] == [
+        "continuity-condition.schema.json",
         "idx-check-receipt.schema.json",
         "idx-spine-packet.schema.json",
     ]
@@ -64,8 +66,8 @@ def test_rendered_status_is_bounded_and_deterministic():
     assert first.endswith(END_MARKER)
 
     assert "Package version | `0.4.9`" in first
-    assert "CLI commands | 16" in first
-    assert "Public schemas | 2" in first
+    assert "CLI commands | 17" in first
+    assert "Public schemas | 3" in first
     assert "MCP tools | 1" in first
     assert "MCP resources | 2" in first
 
@@ -147,6 +149,9 @@ def test_readme_leads_with_visual_continuity_demo():
     assert "AI continuity that preserves corrections instead of hiding them." in readme
     assert "pip install -e ." in readme
     assert "holo demo" in readme
+    assert "holo benchmark continuity" in readme
+    assert "benchmarks/continuity-v1.fixture.json" in readme
+    assert "schemas/continuity-condition.schema.json" in readme
     assert chr(124) + " Ordinary stored state " + chr(124) + " HOLO continuity " + chr(124) in readme
     assert "Correction replaces history" in readme
     assert "Correction becomes a verified relation" in readme
