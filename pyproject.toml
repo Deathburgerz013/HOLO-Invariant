@@ -34,6 +34,9 @@ where = ["."]
 include = ["holosim*"]
 
 [project.optional-dependencies]
+mcp = [
+    "mcp>=2,<3",
+]
 collect = [
     "arxiv>=2.0",
     "sentence-transformers",
@@ -41,6 +44,7 @@ collect = [
 ]
 dev = [
     "hypothesis>=6.100",
+    "mcp>=2,<3",
     "jsonschema>=4.23",
     "pytest>=8.0",
 ]
