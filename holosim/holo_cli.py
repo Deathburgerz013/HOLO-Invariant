@@ -24,6 +24,7 @@ try:
         REPO_ROOT,
     )
     from holosim.core import HoloChain
+    from holosim.idx_manager import IDXManager
     from holosim.auditable_residue_verifier import (
         AuditableResidueVerifier,
     )
@@ -50,6 +51,7 @@ except ImportError:
         REPO_ROOT,
     )
     from holosim.core import HoloChain
+    from holosim.idx_manager import IDXManager
     from holosim.auditable_residue_verifier import (
         AuditableResidueVerifier,
     )
@@ -599,6 +601,134 @@ def run_service_append(
         return 1
 
 
+
+def run_idx_check_command(
+    args: argparse.Namespace,
+) -> int:
+    """Compare a moving Spine packet with a frozen IDX without mutation."""
+    try:
+        manager = IDXManager()
+        manager.load_idx_file(args.idx)
+        gate = manager.build_frozen_gate()
+
+        packet = json.loads(
+            Path(args.packet).read_text(
+                encoding="utf-8",
+            )
+        )
+
+        if type(packet) is not dict:
+            raise ValueError(
+                "IDX packet must contain an object."
+            )
+
+        version = packet.get("version")
+        active_hash = packet.get("active_hash")
+        packet_slots = packet.get("slots")
+
+        if type(version) is not int or version < 1:
+            raise ValueError(
+                "IDX packet version must be a positive integer."
+            )
+
+        if (
+            type(active_hash) is not str
+            or not active_hash
+        ):
+            raise ValueError(
+                "IDX packet active_hash must be a non-empty string."
+            )
+
+        if (
+            type(packet_slots) is not list
+            or not packet_slots
+        ):
+            raise ValueError(
+                "IDX packet slots must be a non-empty list."
+            )
+
+        slots: list[tuple[str, str]] = []
+
+        for index, slot in enumerate(
+            packet_slots,
+            start=1,
+        ):
+            if type(slot) is not dict:
+                raise ValueError(
+                    f"IDX packet slot {index} must be an object."
+                )
+
+            if set(slot) != {"name", "payload"}:
+                raise ValueError(
+                    "IDX packet slot "
+                    f"{index} must contain only name and payload."
+                )
+
+            name = slot["name"]
+            payload = slot["payload"]
+
+            if type(name) is not str or not name:
+                raise ValueError(
+                    "IDX packet slot "
+                    f"{index} name must be a non-empty string."
+                )
+
+            if type(payload) is not str:
+                raise ValueError(
+                    "IDX packet slot "
+                    f"{index} payload must be a string."
+                )
+
+            slots.append((name, payload))
+
+        result = gate.check(
+            version=version,
+            active_hash=active_hash,
+            slots=tuple(slots),
+        )
+
+        receipt = {
+            "status": result.status,
+            "code": result.code,
+            "fused": result.fused,
+            "slot": result.slot,
+            "expected": result.expected,
+            "observed": result.observed,
+        }
+
+        print(
+            json.dumps(
+                receipt,
+                indent=2,
+            )
+        )
+
+        return 0 if result.status == "PASS" else 1
+
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        TypeError,
+        ValueError,
+    ) as error:
+        receipt = {
+            "status": "ERROR",
+            "code": "IDX_PACKET_INVALID",
+            "fused": False,
+            "error": str(error),
+        }
+
+        print(
+            json.dumps(
+                receipt,
+                indent=2,
+            )
+        )
+
+        return 2
+
+
 def run_local_converge_command(
     args: argparse.Namespace,
 ) -> int:
@@ -737,6 +867,26 @@ def main() -> None:
     subparsers = parser.add_subparsers(
         dest="command",
         required=True,
+    )
+
+    idx_check_parser = subparsers.add_parser(
+        "idx-check",
+        help=(
+            "Compare a moving Spine packet "
+            "with a frozen IDX"
+        ),
+    )
+
+    idx_check_parser.add_argument(
+        "--idx",
+        required=True,
+        help="Frozen IDX text file",
+    )
+
+    idx_check_parser.add_argument(
+        "--packet",
+        required=True,
+        help="Moving Spine packet JSON file",
     )
 
     resume_parser = subparsers.add_parser(
@@ -969,7 +1119,12 @@ def main() -> None:
         file_path=args.file
     )
 
-    if args.command == "resume":
+    if args.command == "idx-check":
+        sys.exit(
+            run_idx_check_command(args)
+        )
+
+    elif args.command == "resume":
         sys.exit(
             run_resume_command(args)
         )
