@@ -1,0 +1,33 @@
+{
+  "type": "continuity_baseline_result",
+  "version": 1,
+  "benchmark_id": "holo-public-continuity-v1",
+  "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad",
+  "condition_id": "example-bounded-continuity",
+  "latest_justified_recovered": [
+    "claim-current"
+  ],
+  "superseded_resurrected_as_current": [],
+  "uncertainty_preserved": [
+    "gap-source-unavailable"
+  ],
+  "lineage_edges_recovered": [
+    [
+      "claim-original",
+      "claim-current"
+    ]
+  ],
+  "stale_continuation_decision": "BLOCK",
+  "metrics": {
+    "latest_justified_recall": 1.0,
+    "superseded_resurrection_count": 0,
+    "uncertainty_recall": 1.0,
+    "lineage_recall": 1.0,
+    "stale_continuation_blocked": true,
+    "passes_bounded_continuity_fixture": true
+  },
+  "truth_claimed": false,
+  "accepted": false,
+  "write_authority": "NONE",
+  "result_hash": "b6517f1f35523f17f52a18fa78e5fa5fb28f6c3624bdb37a6e8ab67c41f171f0"
+}

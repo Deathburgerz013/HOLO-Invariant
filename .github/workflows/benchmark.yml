@@ -1,0 +1,38 @@
+name: Continuity Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install package
+        run: python -m pip install -e .
+
+      - name: Reproduce continuity benchmark
+        run: |
+          python -m holosim.holo_cli benchmark continuity             --condition benchmarks/examples/passing-condition.json             > benchmark-result.json
+          diff -u             benchmarks/results/holo-reference.result.json             benchmark-result.json
+
+      - name: Upload reproduced evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: continuity-benchmark-result
+          path: benchmark-result.json
+          if-no-files-found: error

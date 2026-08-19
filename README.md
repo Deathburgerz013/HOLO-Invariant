@@ -8,6 +8,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-111111?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://github.com/Deathburgerz013/HOLO-Invariant/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Deathburgerz013/HOLO-Invariant/actions/workflows/test.yml)
+[![Continuity benchmark](https://github.com/Deathburgerz013/HOLO-Invariant/actions/workflows/benchmark.yml/badge.svg?branch=main)](https://github.com/Deathburgerz013/HOLO-Invariant/actions/workflows/benchmark.yml)
 [![Runtime dependencies](https://img.shields.io/badge/runtime%20dependencies-0-111111?style=flat-square)](#installation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](holosim/LICENSE)
 
@@ -35,6 +36,18 @@ holo benchmark continuity --condition candidate.json
 The [public fixture](benchmarks/continuity-v1.fixture.json) fixes the target
 before results are observed. The [condition schema](schemas/continuity-condition.schema.json)
 is closed so undeclared fields cannot alter the scoring contract.
+
+
+The [CI-verified reference result](benchmarks/results/holo-reference.result.json)
+is regenerated from the same committed fixture and condition on every change.
+
+| Bounded metric | Reference result |
+|---|---:|
+| Latest justified recall | `1.0` |
+| Superseded resurrection count | `0` |
+| Uncertainty recall | `1.0` |
+| Lineage recall | `1.0` |
+| Stale continuation blocked | `true` |
 
 | Ordinary stored state | HOLO continuity |
 |---|---|
