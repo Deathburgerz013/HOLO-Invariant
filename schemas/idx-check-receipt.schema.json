@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Deathburgerz013/HOLO-Invariant/main/schemas/idx-check-receipt.schema.json",
+  "title": "HOLO Frozen IDX Check Receipt",
+  "description": "The deterministic read-only result emitted by the HOLO frozen IDX admission checker.",
+  "type": "object",
+  "oneOf": [
+    {
+      "title": "IDX admission result",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "code",
+        "fused",
+        "slot",
+        "expected",
+        "observed"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "PASS",
+            "ABORT"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fused": {
+          "const": false
+        },
+        "slot": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expected": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    {
+      "title": "IDX input error",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "code",
+        "fused",
+        "error"
+      ],
+      "properties": {
+        "status": {
+          "const": "ERROR"
+        },
+        "code": {
+          "const": "IDX_PACKET_INVALID"
+        },
+        "fused": {
+          "const": false
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  ]
+}

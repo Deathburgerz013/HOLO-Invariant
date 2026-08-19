@@ -41,5 +41,6 @@ collect = [
 ]
 dev = [
     "hypothesis>=6.100",
+    "jsonschema>=4.23",
     "pytest>=8.0",
 ]
