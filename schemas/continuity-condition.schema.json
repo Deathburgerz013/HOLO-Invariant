@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Deathburgerz013/HOLO-Invariant/schemas/continuity-condition.schema.json",
+  "title": "HOLO Public Continuity Condition",
+  "description": "System-neutral output submitted to an exact HOLO continuity benchmark fixture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "version",
+    "fixture_hash",
+    "condition_id",
+    "recovered_claim_ids",
+    "claimed_current_claim_ids",
+    "preserved_uncertainty_claim_ids",
+    "reconstructed_lineage_edges",
+    "stale_continuation_decision"
+  ],
+  "properties": {
+    "type": {
+      "const": "holo_continuity_condition"
+    },
+    "version": {
+      "const": 1
+    },
+    "fixture_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "condition_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recovered_claim_ids": {
+      "$ref": "#/$defs/claimIds"
+    },
+    "claimed_current_claim_ids": {
+      "$ref": "#/$defs/claimIds"
+    },
+    "preserved_uncertainty_claim_ids": {
+      "$ref": "#/$defs/claimIds"
+    },
+    "reconstructed_lineage_edges": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "string",
+            "minLength": 1
+          }
+        ],
+        "items": false,
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "stale_continuation_decision": {
+      "enum": [
+        "ALLOW",
+        "BLOCK",
+        "UNKNOWN"
+      ]
+    }
+  },
+  "$defs": {
+    "claimIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

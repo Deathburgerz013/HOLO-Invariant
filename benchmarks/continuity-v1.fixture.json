@@ -1,0 +1,25 @@
+{
+  "type": "continuity_baseline_benchmark",
+  "version": 1,
+  "benchmark_id": "holo-public-continuity-v1",
+  "latest_justified_claim_ids": [
+    "claim-current"
+  ],
+  "superseded_claim_ids": [
+    "claim-original"
+  ],
+  "uncertainty_claim_ids": [
+    "gap-source-unavailable"
+  ],
+  "required_lineage_edges": [
+    [
+      "claim-original",
+      "claim-current"
+    ]
+  ],
+  "stale_continuation_must_block": true,
+  "truth_claimed": false,
+  "accepted": false,
+  "write_authority": "NONE",
+  "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad"
+}

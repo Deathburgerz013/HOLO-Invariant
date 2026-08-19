@@ -23,6 +23,19 @@ links a correction and revalidation, and opens the verified topology. It does
 not modify an existing chain or grant truth, acceptance, write, or execution
 authority.
 
+### Benchmark any continuity system
+
+Export a system-neutral condition document, then score it against the exact
+committed fixture:
+
+```bash
+holo benchmark continuity --condition candidate.json
+```
+
+The [public fixture](benchmarks/continuity-v1.fixture.json) fixes the target
+before results are observed. The [condition schema](schemas/continuity-condition.schema.json)
+is closed so undeclared fields cannot alter the scoring contract.
+
 | Ordinary stored state | HOLO continuity |
 |---|---|
 | Correction replaces history | Correction becomes a verified relation |
@@ -50,14 +63,14 @@ branching, validation, authorization, and bounded software work.
 | Surface | Current repository state |
 |---|---:|
 | Package version | `0.4.9` |
-| CLI commands | 16 |
-| Public schemas | 2 |
+| CLI commands | 17 |
+| Public schemas | 3 |
 | MCP tools | 1 |
 | MCP resources | 2 |
 
-**CLI:** `append`, `check-spines`, `demo`, `doctor`, `health`, `idx-check`, `index`, `local-converge`, `operator-summary`, `replay`, `resume`, `review`, `serve`, `service-status`, `test`, `verify`
+**CLI:** `append`, `benchmark`, `check-spines`, `demo`, `doctor`, `health`, `idx-check`, `index`, `local-converge`, `operator-summary`, `replay`, `resume`, `review`, `serve`, `service-status`, `test`, `verify`
 
-**Schemas:** `idx-check-receipt.schema.json`, `idx-spine-packet.schema.json`
+**Schemas:** `continuity-condition.schema.json`, `idx-check-receipt.schema.json`, `idx-spine-packet.schema.json`
 
 **MCP tools:** `idx_check`
 

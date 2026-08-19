@@ -1,0 +1,23 @@
+{
+  "type": "holo_continuity_condition",
+  "version": 1,
+  "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad",
+  "condition_id": "example-bounded-continuity",
+  "recovered_claim_ids": [
+    "claim-current",
+    "gap-source-unavailable"
+  ],
+  "claimed_current_claim_ids": [
+    "claim-current"
+  ],
+  "preserved_uncertainty_claim_ids": [
+    "gap-source-unavailable"
+  ],
+  "reconstructed_lineage_edges": [
+    [
+      "claim-original",
+      "claim-current"
+    ]
+  ],
+  "stale_continuation_decision": "BLOCK"
+}
