@@ -35,12 +35,12 @@ branching, validation, authorization, and bounded software work.
 | Surface | Current repository state |
 |---|---:|
 | Package version | `0.4.9` |
-| CLI commands | 15 |
+| CLI commands | 16 |
 | Public schemas | 2 |
 | MCP tools | 1 |
 | MCP resources | 2 |
 
-**CLI:** `append`, `check-spines`, `doctor`, `health`, `idx-check`, `index`, `local-converge`, `operator-summary`, `replay`, `resume`, `review`, `serve`, `service-status`, `test`, `verify`
+**CLI:** `append`, `check-spines`, `demo`, `doctor`, `health`, `idx-check`, `index`, `local-converge`, `operator-summary`, `replay`, `resume`, `review`, `serve`, `service-status`, `test`, `verify`
 
 **Schemas:** `idx-check-receipt.schema.json`, `idx-spine-packet.schema.json`
 

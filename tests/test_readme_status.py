@@ -22,6 +22,7 @@ def test_repository_status_comes_from_public_surfaces():
     assert status["cli_commands"] == [
         "append",
         "check-spines",
+        "demo",
         "doctor",
         "health",
         "idx-check",
@@ -63,7 +64,7 @@ def test_rendered_status_is_bounded_and_deterministic():
     assert first.endswith(END_MARKER)
 
     assert "Package version | `0.4.9`" in first
-    assert "CLI commands | 15" in first
+    assert "CLI commands | 16" in first
     assert "Public schemas | 2" in first
     assert "MCP tools | 1" in first
     assert "MCP resources | 2" in first
