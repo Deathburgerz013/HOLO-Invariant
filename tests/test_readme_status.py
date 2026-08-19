@@ -137,3 +137,16 @@ def test_replace_fails_closed_on_invalid_boundary(
                 f"{END_MARKER}"
             ),
         )
+
+def test_readme_leads_with_visual_continuity_demo():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    hero = "![HOLO-Invariant continuity topology](docs/assets/holo-invariant-hero.jpg)"
+    assert hero in readme
+    assert readme.index(hero) < readme.index(START_MARKER)
+    assert "AI continuity that preserves corrections instead of hiding them." in readme
+    assert "pip install -e ." in readme
+    assert "holo demo" in readme
+    assert chr(124) + " Ordinary stored state " + chr(124) + " HOLO continuity " + chr(124) in readme
+    assert "Correction replaces history" in readme
+    assert "Correction becomes a verified relation" in readme
