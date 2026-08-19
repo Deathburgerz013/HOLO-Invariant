@@ -1,10 +1,10 @@
 <div align="center">
 
-![Holo/Sim](docs/assets/holosim-banner.png)
+![HOLO-Invariant continuity topology](docs/assets/holo-invariant-hero.jpg)
 
 # HOLO-Invariant
 
-**Verified continuity for systems that cannot safely treat stored state as truth.**
+**AI continuity that preserves corrections instead of hiding them.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-111111?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://github.com/Deathburgerz013/HOLO-Invariant/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Deathburgerz013/HOLO-Invariant/actions/workflows/test.yml)
@@ -13,12 +13,27 @@
 
 </div>
 
+```bash
+pip install -e .
+holo demo
+```
+
+One command creates disposable evidence, retains an original observation,
+links a correction and revalidation, and opens the verified topology. It does
+not modify an existing chain or grant truth, acceptance, write, or execution
+authority.
+
+| Ordinary stored state | HOLO continuity |
+|---|---|
+| Correction replaces history | Correction becomes a verified relation |
+| Latest value hides its lineage | Original, correction, and target remain inspectable |
+| Resume trusts supplied context | Resume checks externally retained evidence |
+| Memory authority is implicit | Authority remains explicit and bounded |
+
 HOLO-Invariant is a Python framework for preserving, reconstructing, and
 checking state across sessions, models, tools, and execution environments.
 It externalizes continuity into inspectable artifacts instead of assuming
 that a model's context, memory, output, or confidence is authoritative.
-
-The project is built around one practical rule:
 
 > Store what happened. Preserve where it came from. Recheck what still
 > applies. Grant no authority merely because a record exists.
