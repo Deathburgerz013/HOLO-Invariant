@@ -459,23 +459,27 @@ def serve_operator_console(
     host: str = "127.0.0.1",
     port: int = 8765,
     open_browser: bool = True,
+    initial_path: str = "/",
 ) -> int:
     """Serve the local read-only console until interrupted."""
     if host not in LOOPBACK_HOSTS:
         raise ValueError("operator console host must be loopback-only")
     if type(port) is not int or isinstance(port, bool) or not 0 <= port <= 65535:
         raise ValueError("port must be an integer between 0 and 65535")
+    if initial_path not in {"/", "/playground", "/topology"}:
+        raise ValueError("initial path must be a local console route")
 
     server = _OperatorServer((host, port), chain_path)
     actual_port = server.server_address[1]
     url_host = "127.0.0.1" if host in {"localhost", "::1"} else host
     url = f"http://{url_host}:{actual_port}"
-    print(f"HOLO operator console: {url}")
+    launch_url = url if initial_path == "/" else f"{url}{initial_path}"
+    print(f"HOLO operator console: {launch_url}")
     print(f"Verified chain: {Path(chain_path)}")
     print("Read-only local surface. Press Ctrl+C to stop.")
 
     if open_browser:
-        threading.Timer(0.15, webbrowser.open, args=(url,)).start()
+        threading.Timer(0.15, webbrowser.open, args=(launch_url,)).start()
 
     try:
         server.serve_forever(poll_interval=0.25)

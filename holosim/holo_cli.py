@@ -24,6 +24,7 @@ try:
         REPO_ROOT,
     )
     from holosim.core import HoloChain
+    from holosim.continuity_demo import run_continuity_demo
     from holosim.idx_manager import IDXManager
     from holosim.auditable_residue_verifier import (
         AuditableResidueVerifier,
@@ -51,6 +52,7 @@ except ImportError:
         REPO_ROOT,
     )
     from holosim.core import HoloChain
+    from holosim.continuity_demo import run_continuity_demo
     from holosim.idx_manager import IDXManager
     from holosim.auditable_residue_verifier import (
         AuditableResidueVerifier,
@@ -1021,6 +1023,36 @@ def main() -> None:
         help="External approval record reference",
     )
 
+    demo_parser = subparsers.add_parser(
+        "demo",
+        help="Open a disposable verified continuity demonstration",
+    )
+
+    demo_parser.add_argument(
+        "--demo-dir",
+        default=None,
+        help="Directory for disposable demonstration evidence",
+    )
+
+    demo_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Loopback host",
+    )
+
+    demo_parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        help="Local console port",
+    )
+
+    demo_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not open the demonstration in a browser",
+    )
+
     serve_parser = subparsers.add_parser(
         "serve",
         help="Start the local read-only operator console",
@@ -1210,6 +1242,16 @@ def main() -> None:
     elif args.command == "append":
         sys.exit(
             run_service_append(args)
+        )
+
+    elif args.command == "demo":
+        sys.exit(
+            run_continuity_demo(
+                args.demo_dir,
+                host=args.host,
+                port=args.port,
+                open_browser=not args.no_browser,
+            )
         )
 
     elif args.command == "serve":
