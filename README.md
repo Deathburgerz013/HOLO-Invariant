@@ -178,6 +178,25 @@ This rule is enforced across transformation receipts, validator receipts,
 transition receipts, completion certificates, reopen receipts, framework
 adapters, memory proposals, and provenance attestations.
 
+## Situated reconstruction boundary
+
+`situated_reconstruction_packet.py` builds a deterministic,
+model-independent reconstruction artifact from an active invariant projection
+and verified environment bindings. It carries the current objective, usable
+claims, excluded claims, unresolved questions, and required rechecks without
+requiring a full transcript replay or naming a model provider.
+
+The packet does not automatically inject itself into a model; provider-neutral transport remains an integration boundary, and a consumer must still supply
+the packet to a model or tool before reconstruction can occur. Packet identity
+and upstream bindings are verified; successful consumption does not establish
+that every capable model will interpret or apply the packet equivalently.
+
+Cross-model continuity remains an empirical target. Repeated reconstruction by
+independent models and operators, using retained fixtures and checks, is needed
+to measure whether different systems recover and preserve the same bounded
+state. Public fixtures and CI make that evaluation reproducible; they do not
+replace external review.
+
 ## Current integration boundaries
 
 The adapters are dependency-free protocol boundaries. They accept ordinary
@@ -306,23 +325,6 @@ python -m holosim.cli replay --last 10
 python -m holosim.cli test
 ```
 
-Available subcommands:
-
-```text
-health
-review
-index
-check-spines
-test
-doctor
-operator-summary
-service-status
-verify
-replay
-append
-local-converge
-```
-
 Appending through `HoloService` requires an external reviewer identity and
 approval reference:
 
@@ -343,8 +345,8 @@ python -m holosim.Holo_Sim evaluate "Example delta"
 ```
 
 The symbolic relation `(C + I + E)^2` remains a project design mnemonic used
-by this evaluator. It is not presented as a derived scientific law or as proof
-of the repository's engineering guarantees.
+by this evaluator. It is not presented as a derived scientific law. It is
+not proof of the repository's engineering guarantees.
 
 ### Local Ollama convergence
 
@@ -394,7 +396,7 @@ Run the complete test suite:
 python -m pytest -q
 ```
 
-Latest retained post-merge observation:
+Retained historical post-merge observation:
 
 ```text
 1065 passed, 3 skipped
