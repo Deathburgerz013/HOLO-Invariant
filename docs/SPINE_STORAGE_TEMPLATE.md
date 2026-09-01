@@ -83,7 +83,7 @@ only by declaring the omission in `OMITTED_FIELDS`.
 | | }=============================================================|
 | | IDX_ADMISSION |
 | | IDX_VERSION: [VERSION]
-| | SPINE_SHA256: [EXACT_CANDIDATE_BYTES_SHA256]
+| | SPINE_SHA256: CANDIDATE_BYTES_HASH_IN_RECEIPT
 | | TEMPLATE_RESULT: [PASS, FAIL, UNKNOWN]
 | | RAIL_RESULT: [PASS, FAIL, UNKNOWN]
 | | FRAME_RESULT: [PASS, FAIL, UNKNOWN]
@@ -120,6 +120,12 @@ original entry unchanged.
 Do not manually fill an artifact as `ADMITTED`. Admission status and receipt
 fields are outputs of a separate admitted validator. Until then, retain
 `STATE: CANDIDATE` and `ADMISSION_STATUS: CANDIDATE`.
+
+The candidate cannot contain its own exact whole-file hash: that would make the
+hash input depend on the hash output. The admission receipt therefore stores
+`candidate_source_sha256` over the exact immutable candidate bytes. The
+candidate retains `SPINE_SHA256: CANDIDATE_BYTES_HASH_IN_RECEIPT`; it is never
+rewritten after validation.
 
 ## Compression rule
 
