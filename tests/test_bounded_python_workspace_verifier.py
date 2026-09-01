@@ -79,6 +79,50 @@ def test_pytest_runs_when_test_files_exist(tmp_path):
     ]
     assert result["checks"][1]["passed"] is True
     assert result["reason"] == "ENTRYPOINT_COMMAND_MISSING"
+    assert result["runtime_integrity"]["status"] == "PASS"
+    assert [item["phase"] for item in result["runtime_integrity"]["observations"]] == [
+        "after_compileall",
+        "after_pytest",
+    ]
+
+
+def test_successful_test_that_mutates_source_aborts_with_receipt(tmp_path):
+    source = tmp_path / "module.py"
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+    (tmp_path / "test_mutation.py").write_text(
+        "from pathlib import Path\n\n"
+        "def test_mutate_source():\n"
+        "    Path(__file__).with_name('module.py').write_text(" 
+        "'VALUE = 2\\n', encoding='utf-8')\n",
+        encoding="utf-8",
+    )
+
+    result = build_bounded_python_workspace_verifier()(tmp_path)
+
+    assert result["checks"][-1]["name"] == "pytest"
+    assert result["checks"][-1]["passed"] is True
+    assert result["passed"] is False
+    assert result["verified"] is False
+    assert result["runnable"] is False
+    assert result["reason"] == "RUNTIME_ARTIFACT_MISMATCH"
+    assert result["runtime_integrity"]["status"] == "ABORT"
+    assert result["runtime_integrity"]["observations"][-1]["differences"] == [
+        "changed:module.py"
+    ]
+    assert result["runtime_integrity"]["mutation_applied"] is False
+    assert result["runtime_integrity"]["automatic_repair"] is False
+
+
+def test_runtime_integrity_baseline_binds_interpreter_and_sources(tmp_path):
+    (tmp_path / "main.py").write_text("print('ready')\n", encoding="utf-8")
+
+    result = build_bounded_python_workspace_verifier()(tmp_path)
+
+    baseline = result["runtime_integrity"]["baseline"]
+    assert baseline["sources"]["main.py"]["sha256"]
+    assert baseline["executable"]["path"]
+    assert baseline["executable"]["sha256"]
+    assert baseline["snapshot_hash"]
 
 
 def test_failed_tests_return_feedback(tmp_path):
