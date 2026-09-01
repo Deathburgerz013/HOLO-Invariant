@@ -8,6 +8,7 @@ or execute an inferred application entrypoint.
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 from pathlib import Path
 import subprocess
 import sys
@@ -28,6 +29,79 @@ _IGNORED_PARTS = {
 
 class BoundedPythonWorkspaceVerifierError(ValueError):
     """Raised when verifier configuration or workspace input is invalid."""
+
+
+def _file_identity(path: Path) -> dict[str, Any]:
+    """Measure one regular file without interpreting or modifying it."""
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise BoundedPythonWorkspaceVerifierError(
+            f"unable to measure runtime artifact: {path}"
+        ) from exc
+    return {
+        "size_bytes": len(data),
+        "sha256": hashlib.sha256(data).hexdigest(),
+    }
+
+
+def _runtime_artifact_snapshot(
+    workspace: Path,
+    python_files: Sequence[Path] | None = None,
+) -> dict[str, Any]:
+    """Bind Python sources and the interpreter used for bounded execution."""
+    measured_files = list(python_files) if python_files is not None else _python_files(workspace)
+    sources = {
+        path.relative_to(workspace).as_posix(): _file_identity(path)
+        for path in measured_files
+    }
+    executable = Path(sys.executable).resolve()
+    if not executable.is_file():
+        raise BoundedPythonWorkspaceVerifierError(
+            "runtime executable must resolve to a regular file"
+        )
+    body = {
+        "sources": sources,
+        "executable": {
+            "path": executable.as_posix(),
+            **_file_identity(executable),
+        },
+    }
+    return {**body, "snapshot_hash": stable_hash(body)}
+
+
+def _artifact_differences(
+    baseline: Mapping[str, Any],
+    observed: Mapping[str, Any],
+) -> list[str]:
+    differences: list[str] = []
+    before = baseline["sources"]
+    after = observed["sources"]
+    for path in sorted(set(before) | set(after)):
+        if path not in after:
+            differences.append(f"missing:{path}")
+        elif path not in before:
+            differences.append(f"added:{path}")
+        elif before[path] != after[path]:
+            differences.append(f"changed:{path}")
+    if baseline["executable"] != observed["executable"]:
+        differences.append("changed:runtime_executable")
+    return differences
+
+
+def _integrity_observation(
+    phase: str,
+    baseline: Mapping[str, Any],
+    workspace: Path,
+) -> dict[str, Any]:
+    observed = _runtime_artifact_snapshot(workspace)
+    differences = _artifact_differences(baseline, observed)
+    return {
+        "phase": phase,
+        "snapshot": observed,
+        "matches_baseline": not differences,
+        "differences": differences,
+    }
 
 
 def _positive_number(value: Any, field: str) -> float:
@@ -217,6 +291,9 @@ class BoundedPythonWorkspaceVerifier:
             self.last_receipt = deepcopy(receipt)
             return receipt
 
+        baseline = _runtime_artifact_snapshot(workspace_path, python_files)
+        integrity_observations: list[dict[str, Any]] = []
+
         checks: list[dict[str, Any]] = []
 
         compile_result = _run_command(
@@ -234,7 +311,16 @@ class BoundedPythonWorkspaceVerifier:
         compile_result["name"] = "compileall"
         checks.append(compile_result)
 
-        if not compile_result["passed"]:
+        after_compile = _integrity_observation(
+            "after_compileall", baseline, workspace_path
+        )
+        integrity_observations.append(after_compile)
+
+        if not after_compile["matches_baseline"]:
+            reason = "RUNTIME_ARTIFACT_MISMATCH"
+            feedback = ", ".join(after_compile["differences"])
+            passed = False
+        elif not compile_result["passed"]:
             reason = (
                 "COMPILE_TIMEOUT"
                 if compile_result["timed_out"]
@@ -270,7 +356,16 @@ class BoundedPythonWorkspaceVerifier:
             test_result["name"] = "pytest"
             checks.append(test_result)
 
-            if not test_result["passed"]:
+            after_pytest = _integrity_observation(
+                "after_pytest", baseline, workspace_path
+            )
+            integrity_observations.append(after_pytest)
+
+            if not after_pytest["matches_baseline"]:
+                passed = False
+                reason = "RUNTIME_ARTIFACT_MISMATCH"
+                feedback = ", ".join(after_pytest["differences"])
+            elif not test_result["passed"]:
                 passed = False
                 reason = (
                     "TEST_TIMEOUT"
@@ -307,6 +402,22 @@ class BoundedPythonWorkspaceVerifier:
                 path.relative_to(workspace_path).as_posix()
                 for path in python_files
             ],
+            "runtime_integrity": {
+                "baseline": baseline,
+                "observations": integrity_observations,
+                "status": (
+                    "PASS"
+                    if all(item["matches_baseline"] for item in integrity_observations)
+                    else "ABORT"
+                ),
+                "mutation_applied": False,
+                "automatic_repair": False,
+                "interpretation_notice": (
+                    "Measurements compare source and interpreter artifacts at bounded "
+                    "command boundaries. They do not eliminate time-of-check/time-of-use "
+                    "races, continuously inspect instruction memory, or authorize repair."
+                ),
+            },
             "verified": passed,
             "accepted": False,
             "write_authority": "NONE",
