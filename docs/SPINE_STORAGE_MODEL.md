@@ -131,7 +131,10 @@ source material
 
 Before admission, the artifact is a `CANDIDATE`. A passing IDX receipt binds the
 exact Spine bytes, template version, required sections, checker procedures, and
-results. Only then may that exact checkpoint be marked `ADMITTED`.
+results. The immutable receipt marks that exact checkpoint `ADMITTED`; the
+submitted candidate bytes remain unchanged. An embedded whole-file hash would
+be self-referential, so the exact `candidate_source_sha256` exists in the
+receipt rather than being written back into the candidate.
 
 The IDX does not make the Spine true. It proves that the declared admission
 checks produced the recorded results. Rejection preserves the candidate and its
