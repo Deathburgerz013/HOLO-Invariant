@@ -7,7 +7,7 @@ import zlib
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     from holosim.config import DEFAULT_CHAIN_FILE, HOLOSIM_VERSION
@@ -122,10 +122,19 @@ class HoloChain:
         logger.info(f"✅ Verified {len(entries)} entries. Chain intact. [HoloChain v{self.VERSION}]")
         return entries
 
-    def append(self, content: Any, compress: bool = False, min_compress_size: int = 128) -> Dict:
-        """Atomically verify the current head and append one new entry."""
+    def append(
+        self,
+        content: Any,
+        compress: bool = False,
+        min_compress_size: int = 128,
+        *,
+        precondition: Callable[[List[Dict]], None] | None = None,
+    ) -> Dict:
+        """Atomically verify the head, check a read-only condition, and append."""
         with self._append_transaction():
             entries = self.load_and_verify()
+            if precondition is not None:
+                precondition(entries)
             idx = len(entries) + 1
             timestamp = datetime.now(timezone.utc).isoformat() + "Z"
             prev_hash = self.genesis_hash if not entries else entries[-1]["hash"]

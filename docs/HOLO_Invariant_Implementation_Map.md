@@ -99,12 +99,17 @@
 | | • CLI, Collector, API, and ingest adapt external reviewer  |
 | |   input into that typed authorization at the service edge.  |
 | | • Blocked service appends perform no chain or slot mutation.|
+| | • A committed operational authorization is consumed once;  |
+| |   replay is reconstructed from verified chain history and   |
+| |   rejected inside the serialized append transaction.        |
 | |                                                              |
 | | GAP:                                                         |
 | | • HoloChain.append() remains a direct low-level primitive.  |
 | | • Other direct HoloChain callers require a separate audit.  |
 | | • Typed authorization declares bounded permission; it does  |
 | |   not cryptographically prove the external actor's identity.|
+| | • Single-use enforcement covers HoloService authorization;  |
+| |   other direct HoloChain callers remain outside this gate.   |
 | |                                                              |
 | | Service evaluation, external acceptance, and mutation are   |
 | | separated. Repository-wide enforcement remains incomplete.  |
