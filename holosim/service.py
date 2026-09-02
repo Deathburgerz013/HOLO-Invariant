@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import zlib
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional
 
@@ -153,7 +154,60 @@ class HoloService:
             "operational_authorization": dict(authorization),
         }
 
-        entry = self.chain.append(payload, compress=compress)
+        authorization_hash = authorization["authorization_hash"]
+        authorization_id = authorization["authorization_id"]
+
+        def require_unconsumed(entries: list[Dict]) -> None:
+            for existing in entries:
+                stored = existing.get("content")
+                if not isinstance(stored, str):
+                    continue
+                if existing.get("type") == "compressed":
+                    try:
+                        stored = zlib.decompress(bytes.fromhex(stored)).decode("utf-8")
+                    except (ValueError, zlib.error, UnicodeDecodeError) as exc:
+                        raise OperationalAuthorizationError(
+                            "authorization history cannot be reconstructed"
+                        ) from exc
+                try:
+                    existing_payload = json.loads(stored)
+                except (TypeError, json.JSONDecodeError):
+                    continue
+                if not isinstance(existing_payload, dict):
+                    continue
+                prior = existing_payload.get("operational_authorization")
+                if (
+                    isinstance(prior, dict)
+                    and (
+                        prior.get("authorization_hash") == authorization_hash
+                        or prior.get("authorization_id") == authorization_id
+                    )
+                ):
+                    raise OperationalAuthorizationError(
+                        "authorization has already been consumed"
+                    )
+
+        try:
+            entry = self.chain.append(
+                payload,
+                compress=compress,
+                precondition=require_unconsumed,
+            )
+        except OperationalAuthorizationError as exc:
+            return {
+                "status": "BLOCKED",
+                "commit_performed": False,
+                "mutation": None,
+                "entry": None,
+                "slot": None,
+                "authority": {
+                    "accepted": False,
+                    "source": "single_use_authorization_required",
+                    "authorization_hash": authorization_hash,
+                },
+                "write_authority": "NONE",
+                "reason": str(exc),
+            }
 
         result: Dict[str, Any] = {
             "status": "COMMITTED",
