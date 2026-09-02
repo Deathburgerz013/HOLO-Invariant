@@ -3,6 +3,23 @@ import json
 
 from holosim.collector import Collector
 from holosim.service import HoloService
+from holosim.typed_operational_authorization import (
+    ACTION_SERVICE_APPEND,
+    build_operational_authorization,
+)
+
+
+def _authorization(content, reference="review:service-1"):
+    canonical = json.dumps(
+        content, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+    )
+    return build_operational_authorization(
+        authorization_id=reference,
+        actor_id="Canyon Haney",
+        action=ACTION_SERVICE_APPEND,
+        target_sha256=hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+        approval_reference=reference,
+    )
 
 
 def test_service_append_is_blocked_without_external_approval(tmp_path):
@@ -27,18 +44,16 @@ def test_service_append_is_blocked_without_external_approval(tmp_path):
     assert not slot_path.exists()
 
 
-def test_service_append_requires_both_authority_fields(tmp_path):
+def test_service_append_rejects_untyped_authority_fields(tmp_path):
     chain_path = tmp_path / "chain.jsonl"
     service = HoloService(chain_path)
 
     result = service.append(
         "candidate content",
-        reviewer="Canyon Haney",
     )
 
     assert result["status"] == "BLOCKED"
-    assert result["authority"]["reviewer"] == "Canyon Haney"
-    assert result["authority"]["approval_reference"] is None
+    assert result["authority"]["authorization_hash"] is None
     assert not chain_path.exists()
 
 
@@ -50,8 +65,7 @@ def test_service_append_records_external_authority_and_content_hash(tmp_path):
     result = service.append(
         content,
         compress=False,
-        reviewer="Canyon Haney",
-        approval_reference="review:service-1",
+        authorization=_authorization(content),
     )
 
     assert result["status"] == "COMMITTED"
@@ -63,6 +77,7 @@ def test_service_append_records_external_authority_and_content_hash(tmp_path):
         "reviewer": "Canyon Haney",
         "approval_reference": "review:service-1",
     }
+    assert result["operational_authorization"] == _authorization(content)
 
     entry = json.loads(chain_path.read_text(encoding="utf-8").splitlines()[0])
     payload = json.loads(entry["content"])
@@ -76,6 +91,7 @@ def test_service_append_records_external_authority_and_content_hash(tmp_path):
         canonical.encode("utf-8")
     ).hexdigest()
     assert payload["authority"] == result["authority"]
+    assert payload["operational_authorization"] == _authorization(content)
 
 
 def test_collector_does_not_report_blocked_append_as_collected(tmp_path):

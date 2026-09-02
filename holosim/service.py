@@ -11,7 +11,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 try:
     from holosim.artifact_parser import ArtifactParser
@@ -22,6 +22,11 @@ try:
     from holosim.rebirth_engine import run_rebirth
     from holosim.replay import ReplayEngine
     from holosim.slot_merkle_sqlite import SlotMerkleDB
+    from holosim.typed_operational_authorization import (
+        ACTION_SERVICE_APPEND,
+        OperationalAuthorizationError,
+        validate_operational_authorization,
+    )
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.artifact_parser import ArtifactParser
@@ -32,6 +37,11 @@ except ImportError:
     from holosim.rebirth_engine import run_rebirth
     from holosim.replay import ReplayEngine
     from holosim.slot_merkle_sqlite import SlotMerkleDB
+    from holosim.typed_operational_authorization import (
+        ACTION_SERVICE_APPEND,
+        OperationalAuthorizationError,
+        validate_operational_authorization,
+    )
 
 
 class HoloService:
@@ -92,18 +102,23 @@ class HoloService:
         compress: bool = True,
         mirror_to_slots: bool = False,
         tier: str = "standard",
-        reviewer: str | None = None,
-        approval_reference: str | None = None,
+        authorization: Mapping[str, Any] | None = None,
     ) -> Dict[str, Any]:
         """Append only after explicit external acceptance is supplied."""
-        reviewer_value = reviewer.strip() if isinstance(reviewer, str) else ""
-        approval_value = (
-            approval_reference.strip()
-            if isinstance(approval_reference, str)
-            else ""
+        canonical_content = json.dumps(
+            content, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            default=str,
         )
-
-        if not reviewer_value or not approval_value:
+        content_sha256 = hashlib.sha256(canonical_content.encode("utf-8")).hexdigest()
+        try:
+            if authorization is None:
+                raise OperationalAuthorizationError("authorization is required")
+            validate_operational_authorization(
+                authorization,
+                expected_action=ACTION_SERVICE_APPEND,
+                expected_target_sha256=content_sha256,
+            )
+        except OperationalAuthorizationError as exc:
             return {
                 "status": "BLOCKED",
                 "commit_performed": False,
@@ -112,39 +127,30 @@ class HoloService:
                 "slot": None,
                 "authority": {
                     "accepted": False,
-                    "source": "external_human_required",
-                    "reviewer": reviewer_value or None,
-                    "approval_reference": approval_value or None,
+                    "source": "typed_external_authorization_required",
+                    "authorization_hash": (
+                        authorization.get("authorization_hash")
+                        if isinstance(authorization, Mapping) else None
+                    ),
                 },
                 "write_authority": "NONE",
-                "reason": (
-                    "Service append requires an external reviewer and "
-                    "approval reference."
-                ),
+                "reason": str(exc),
             }
 
         authority = {
             "accepted": True,
             "source": "external_human",
-            "reviewer": reviewer_value,
-            "approval_reference": approval_value,
+            "reviewer": authorization["actor_id"],
+            "approval_reference": authorization["approval_reference"],
         }
-        canonical_content = json.dumps(
-            content,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            default=str,
-        )
         payload = {
             "type": "service_append",
             "source": "HoloService",
             "active_hash": ACTIVE_HASH,
-            "content_sha256": hashlib.sha256(
-                canonical_content.encode("utf-8")
-            ).hexdigest(),
+            "content_sha256": content_sha256,
             "content": content,
             "authority": authority,
+            "operational_authorization": dict(authorization),
         }
 
         entry = self.chain.append(payload, compress=compress)
@@ -156,6 +162,7 @@ class HoloService:
             "entry": entry,
             "slot": None,
             "authority": authority,
+            "operational_authorization": dict(authorization),
             "write_authority": "EXTERNAL_HUMAN",
         }
 

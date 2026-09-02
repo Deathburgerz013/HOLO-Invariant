@@ -10,16 +10,26 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable
+import hashlib
+import json
 
 try:
     from holosim.config import ACTIVE_HASH, ANCHOR, DEFAULT_CHAIN_FILE
     from holosim.embeddings import should_ingest
     from holosim.service import get_service
+    from holosim.typed_operational_authorization import (
+        ACTION_SERVICE_APPEND, OperationalAuthorizationError,
+        build_operational_authorization,
+    )
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.config import ACTIVE_HASH, ANCHOR, DEFAULT_CHAIN_FILE
     from holosim.embeddings import should_ingest
     from holosim.service import get_service
+    from holosim.typed_operational_authorization import (
+        ACTION_SERVICE_APPEND, OperationalAuthorizationError,
+        build_operational_authorization,
+    )
 
 
 class Collector:
@@ -69,11 +79,25 @@ class Collector:
             "content": clean_text,
         }
 
+        authorization = None
+        if reviewer and approval_reference:
+            canonical = json.dumps(
+                payload, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, default=str,
+            )
+            target_sha256 = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+            try:
+                authorization = build_operational_authorization(
+                    authorization_id=approval_reference,
+                    actor_id=reviewer,
+                    action=ACTION_SERVICE_APPEND,
+                    target_sha256=target_sha256,
+                    approval_reference=approval_reference,
+                )
+            except OperationalAuthorizationError:
+                authorization = None
         append_result = self.service.append(
-            payload,
-            compress=True,
-            reviewer=reviewer,
-            approval_reference=approval_reference,
+            payload, compress=True, authorization=authorization,
         )
 
         if not append_result.get("commit_performed"):

@@ -93,13 +93,18 @@
 | | • Transition receipts can record reviewer and approval data.|
 | | • HoloSim evaluation remains non-accepting and read-only.   |
 | | • HoloSim commits require reviewer and approval references. |
-| | • HoloService append requires the same external authority.  |
-| | • CLI, Collector, API, and ingest thread that authority.    |
+| | • HoloService append requires a closed, target-bound typed  |
+| |   operational authorization; proof objects and bare digests|
+| |   cannot substitute for it.                                |
+| | • CLI, Collector, API, and ingest adapt external reviewer  |
+| |   input into that typed authorization at the service edge.  |
 | | • Blocked service appends perform no chain or slot mutation.|
 | |                                                              |
 | | GAP:                                                         |
 | | • HoloChain.append() remains a direct low-level primitive.  |
 | | • Other direct HoloChain callers require a separate audit.  |
+| | • Typed authorization declares bounded permission; it does  |
+| |   not cryptographically prove the external actor's identity.|
 | |                                                              |
 | | Service evaluation, external acceptance, and mutation are   |
 | | separated. Repository-wide enforcement remains incomplete.  |
