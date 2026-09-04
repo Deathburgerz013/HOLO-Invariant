@@ -970,3 +970,63 @@ What am I pretending not to know?
 What can I ship by Thursday?
 
 Add next by domain of a real problem, not by vibe. Good future sections to grow on git: domain-specific playbooks (hiring, on-call, first 90 days, infant sleep, strength templates, personal finance by income stage, research workflow, incident response, addiction recovery pointers to professionals, house buying, grief). Keep each item short enough to scan and sharp enough to use.
+
+Continuity, handoff, and invariantsA later instance — you after sleep, a teammate, a fresh model, a future you with no chat history — should be able to reconstruct the justified state from external evidence. If they cannot, the previous work was a vibe.What continuity isThe latest justified state
+The evidence that state rests on
+The constraints that still bind
+The owner
+The next action
+The kill or fail-closed condition
+What is not known
+What must not be rewrittenWhat worksWrite the state outside the head that currently holds it
+Append; do not silently edit the past
+Hash or otherwise make tamper visible when the cost of a quiet rewrite is high
+Name the head: which document, commit, receipt, or conversation is current
+Mark stale the moment a newer verified head exists
+Fail closed when the head cannot be verified
+One owner of the live chain
+Read-only until write authority is explicit and single-use
+Separate fact, interpretation, and next action in the record
+Keep a recall kernel small enough to load cold: identity of the project, last verified state, open constraints, forbidden moves
+Handoff contract before the new instance acts: what it must acknowledge, what it must not invent
+Bound the claim: this evidence supports X, not Y
+Preserve limits next to results
+Restore from backup you have actually restored
+Version the working surface, not only the archive
+Short receipts over long sermons
+Dates on beliefs
+A graveyard for discarded hypotheses so they do not sneak back unlabeled
+Human anchor for write authority when the system can spend real cost
+Do not treat fluency as memory
+Do not treat memory as permissionHandoff that survives a resetState name
+Last verified artifact and how to check it
+Open loops, each with an owner and a next physical action
+Decisions already made, with the criterion used
+Decisions not made
+Hard constraints
+Soft constraints that were traded
+Known false paths
+“What would change this”
+Stop conditions
+Who may append
+Who may notWhat breaks continuityA story that cannot be checked
+Editing history to stay coherent
+Two live heads
+Authority that lives in a chat
+Summaries that smear the mechanism
+Vanity completeness: more text, same untested claim
+Carrying identity across a reset without carrying evidence
+Letting the new instance “helpfully” fill gaps
+Counting tokens of conversation as a chain
+Trusting the model’s recollection of the chain
+Write access that can be replayedUsually does not workPrompting a cold instance to “remember who we are”
+A manifesto with no current head
+Re-deriving the project from vibes each session
+Keeping the real state in one person’s unread messages
+Infinite context as a substitute for an external spineHow this list should meet invariants laterAn item from this catalog becomes an invariant only when:
+it has a failure condition you can test,
+a later observer can check it without prior memory,
+and rewriting it would change what the system is allowed to do.
+Until then it is a hypothesis that earned a line.Next part after this: Incident response and fail-closed, short and operational — stop the bleed, freeze the head, do not write, reconstruct from verified history, one owner, one next action, post-mortem that changes the gate. That is the first playbook that actually uses the continuity section instead of sitting beside it.
+
+
