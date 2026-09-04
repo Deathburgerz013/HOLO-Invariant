@@ -1066,5 +1066,145 @@ Fail closed over fail open when the tail is fat
 
 Handoff out of the incidentState name. Last verified artifact. How to check it. Open loops with owners. Decisions already made. Decisions not made. Hard constraints. Known false paths. Stop conditions. Who may append. Who may not.Next suggestion after that: Research workflow — question, binding constraint, smallest falsifying test, primary source, dated belief, graveyard for discarded hypotheses. Same machinery, quieter room. After that, on-call if the system spends real cost while you sleep.
 
+Incident response and fail-closed
+
+A playbook, not a mood.
+Use this when the live head is wrong, missing, forked, or untrusted.
+Continuity is the record. This is what you do when the record or the operator is under load.
+
+Trigger
+
+Any of these is enough:
+Hash mismatch or verify fail
+Two live heads
+Write without named authority
+State that cannot be reconstructed from artifacts
+Human says stop
+Bleed: money, access, reputation, safety, time that cannot be recovered
+Silence where a heartbeat was required
+
+Fail-closed means: stop acting on the disputed state. Do not keep shipping on a maybe.
+
+Order of operations
+
+1. Stop the bleed
+Cut spend, cut deploy, cut send, cut write.
+Unplug the actuator before you narrate.
+If the system can still spend cost, it is not stopped.
+
+2. Freeze the head
+Name the last verified artifact.
+Write nothing to the live chain yet.
+Do not “fix” history to make the story neat.
+Mark the current working copy as disputed.
+
+3. Do not write
+No append until the owner names write authority again.
+No silent edit.
+No helpful fill-in by a cold instance.
+Read-only is the default under incident.
+
+4. Reconstruct from verified history
+Load the last passing verify.
+Replay forward only what hashes or otherwise checks.
+Bound every claim: this evidence supports X, not Y.
+Separate fact, interpretation, and next action.
+If a gap exists, leave the gap labeled. Do not invent the missing block.
+
+5. One owner
+One human or one named role.
+Not a chat. Not “the team.” Not the model.
+The owner may assign hands. The owner does not split the pen.
+
+6. One next action
+Physical, small, observable.
+Not a plan. Not a manifesto.
+Examples: revert this deploy, revoke this key, restore this backup you have restored before, publish “disputed from T=…”, page this person.
+
+7. Post-mortem that changes the gate
+Mechanism, not theater.
+What sensor missed.
+What write path was open.
+What constraint was fake.
+Change the gate so the same class cannot pass again.
+If the gate does not change, the post-mortem was literature.
+
+Fail-closed checklist
+
+Bleed stopped? yes / no
+Head frozen and named? yes / no
+Write locked? yes / no
+Last verified artifact identified? yes / no
+Verify replayed? pass / fail
+Gaps labeled, not filled? yes / no
+Owner named? yes / no
+Next action visible to a stranger? yes / no
+Gate change queued or shipped? yes / no
+
+What to record while it is still hot
+
+Time the incident was noticed
+Who noticed
+What was still moving
+What was cut
+Last good head and how it was checked
+Suspected fork or smear
+Cost already spent
+Who is allowed to speak externally
+What must not be said because it is not known
+
+Handoff during incident
+
+State name: INCIDENT / DISPUTED
+Last verified artifact + check method
+Open bleed, if any remains
+Forbidden writes
+Owner
+Next physical action
+Stop condition for reopening writes
+What a new instance must not invent
+
+Reopen writes only when
+
+Verify passes on the chosen head
+Owner says write is single-use and scoped
+The next append is a receipt of the incident, not a rewrite of the past
+The gate change is at least queued in the same record
+
+Usually does not work
+
+Keep going so the day is not wasted
+Let the fluent model reconstruct “what we meant”
+Merge two heads by vibe
+Edit the bad block until it hashes in your imagination
+Blame theater before the bleed is stopped
+Five owners
+A long doc instead of a cut
+Calling the incident closed because the mood improved
+Restoring a backup you have never restored
+Trusting chat memory as the chain
+
+Binding questions for the first ten minutes
+
+What is still spending?
+What is the last thing we can prove?
+Who holds the pen?
+What must not happen next?
+What is the smallest cut that stops the cost?
+
+Seed receipts to append after lock lifts
+
+INCIDENT_OPEN: trigger, time, owner
+BLEED_CUT: what stopped
+HEAD_FROZEN: artifact id, verify result
+RECONSTRUCT: last good, gaps
+NEXT_ACTION: one line
+GATE_CHANGE: the rule that failed and the rule that replaces it
+INCIDENT_CLOSE: why writes may resume, what remains disputed
+
+If you cannot fill those receipts from artifacts, you are not closed. You are hoping.
+
+Next part after this: on-call and heartbeat — what must pulse, who wakes, stale vs dead, how a missed beat becomes this playbook instead of a story.
+
 
 
