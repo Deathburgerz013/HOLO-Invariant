@@ -1028,5 +1028,43 @@ it has a failure condition you can test,
 a later observer can check it without prior memory,
 and rewriting it would change what the system is allowed to do.
 Until then it is a hypothesis that earned a line.Next part after this: Incident response and fail-closed, short and operational — stop the bleed, freeze the head, do not write, reconstruct from verified history, one owner, one next action, post-mortem that changes the gate. That is the first playbook that actually uses the continuity section instead of sitting beside it.
+Hard constraints: what is still changing, who can write, what must not be rewritten, time until the next irreversible action, legal and safety floor.What worksStop the bleed before the story
+Freeze the head: one current artifact, one way to check it
+Do not write until write authority is explicit
+Reconstruct from verified history, not from fluency
+One owner of the live response
+One next physical action
+Bound the claim: this evidence supports X, not Y
+Preserve limits next to results
+Fail closed when the head cannot be verified
+Read-only for everyone else
+Short receipt: what broke, what is known, what is not, what is forbidden
+Kill criteria already written beat courage in the moment
+Restore from a backup you have actually restored
+Change the gate in the post-mortem, not only the mood
+
+LoopsBleed loop: is the damage still growing
+Head loop: can a cold observer name the current state
+Write loop: who appended, with what authority
+Safety loop: did we almost fail again while talking
+Learning loop: what mechanism produced the miss
+
+Usually does not workPrompting a cold instance to remember who we are
+Two live heads
+Editing history so the narrative stays pretty
+Filling gaps because silence feels rude
+Status as a substitute for a checksum
+A long recap with no current artifact
+Heroics as the operating system
+Post-mortem as blame theater
+
+Constraint movesScope cut: contain, don’t complete
+Quality cut: receipt over sermon
+Authority cut: one writer
+Timebox: next check in N minutes
+Fail closed over fail open when the tail is fat
+
+Handoff out of the incidentState name. Last verified artifact. How to check it. Open loops with owners. Decisions already made. Decisions not made. Hard constraints. Known false paths. Stop conditions. Who may append. Who may not.Next suggestion after that: Research workflow — question, binding constraint, smallest falsifying test, primary source, dated belief, graveyard for discarded hypotheses. Same machinery, quieter room. After that, on-call if the system spends real cost while you sleep.
+
 
 
