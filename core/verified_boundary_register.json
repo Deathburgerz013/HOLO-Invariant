@@ -1,0 +1,118 @@
+{
+  "type": "holo_verified_boundary_register",
+  "version": 1,
+  "boundaries": [
+    {
+      "boundary_id": "bounded-architect",
+      "module": "holosim.bounded_architect",
+      "implementation_path": "holosim/bounded_architect.py",
+      "implementation_sha256": "133bdd46bc3dced33b467d8996a2b4895ec31e995fda846231b94811d8a2b98f",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "bounded_architecture_proposal_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_architecture_proposal_receipt"
+        }
+      ],
+      "test_path": "tests/test_bounded_architect.py",
+      "test_sha256": "5d88708ac8271cb6e091499ca66bbf24b6199901de5e6a810dff8b39634886c8"
+    },
+    {
+      "boundary_id": "bounded-evidence-analyst",
+      "module": "holosim.bounded_evidence_analyst",
+      "implementation_path": "holosim/bounded_evidence_analyst.py",
+      "implementation_sha256": "ce645cccf864a81f73f6ec005be26aac695420819d220c8eeeb67d633d42a217",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "bounded_evidence_analysis_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_evidence_analysis_receipt"
+        }
+      ],
+      "test_path": "tests/test_bounded_evidence_analyst.py",
+      "test_sha256": "8f7656e1247cc6108fa225fdfea83e9c93e4565dd1ef8e128983a650cb023731"
+    },
+    {
+      "boundary_id": "choice-consequence-oracle",
+      "module": "holosim.choice_consequence_oracle",
+      "implementation_path": "holosim/choice_consequence_oracle.py",
+      "implementation_sha256": "6b5185da98315cf4174c379f31dd8d718435b6ed4639af21cffa0dfa1d10f6f2",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "bounded_choice_consequence_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_choice_consequence_receipt"
+        }
+      ],
+      "test_path": "tests/test_choice_consequence_oracle.py",
+      "test_sha256": "5af9f6594271e7a2c4a21722742f1eb057164bc8517f85f14008cffb5f8209fb"
+    },
+    {
+      "boundary_id": "functional-awareness-loop",
+      "module": "holosim.functional_awareness_loop",
+      "implementation_path": "holosim/functional_awareness_loop.py",
+      "implementation_sha256": "7aa113ef06ca5e315c5ad36c513cc1a45c66a793cef10c062846118e5c8af37a",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "functional_awareness_loop_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_functional_awareness_receipt"
+        }
+      ],
+      "test_path": "tests/test_functional_awareness_loop.py",
+      "test_sha256": "a69eebba8cd553d1785670ce71a02b92234280a24845f599d3f36771566e05dd"
+    },
+    {
+      "boundary_id": "time-scoped-truth",
+      "module": "holosim.time_scoped_truth",
+      "implementation_path": "holosim/time_scoped_truth.py",
+      "implementation_sha256": "e8b6f6df7b2e3738c09c4d9654d071821711d0d9ffb2160d6521875fba53a6f5",
+      "receipts": [
+        {
+          "type_constant": "TRUTH_RECEIPT_TYPE",
+          "type": "time_scoped_truth_state_receipt",
+          "version_constant": "TRUTH_RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_time_scoped_truth_receipt"
+        },
+        {
+          "type_constant": "COMPARISON_RECEIPT_TYPE",
+          "type": "time_scoped_truth_comparison_receipt",
+          "version_constant": "COMPARISON_RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_time_scoped_truth_comparison"
+        }
+      ],
+      "test_path": "tests/test_time_scoped_truth.py",
+      "test_sha256": "73275ca32b521cc38855fa49695b5d34d3d60f4b8a213e4a56a407270ef7bf0d"
+    },
+    {
+      "boundary_id": "verified-recall",
+      "module": "holosim.recall_verification",
+      "implementation_path": "holosim/recall_verification.py",
+      "implementation_sha256": "423ea3c044e5ef467885bf8fe86da233fb6116c36e83a3326ed8c519886ddb07",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "verified_recall_claim_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_recall_verification_receipt"
+        }
+      ],
+      "test_path": "tests/test_recall_verification.py",
+      "test_sha256": "cc0640992f4110bbc3ecd40b93d22ab45709f9a3b3720ee992416bf1cd731982"
+    }
+  ],
+  "accepted": false,
+  "write_authority": "NONE",
+  "register_hash": "492386e90a5c9f4eba65c002b26353332ec41b78a7fabd30ae7c1dc160f9a5a6"
+}

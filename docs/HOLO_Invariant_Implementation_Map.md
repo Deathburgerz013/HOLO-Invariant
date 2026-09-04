@@ -2687,3 +2687,80 @@
 | | The map now records repository evidence through main@1c77443.|
 | | Stop. Test receipt composition separately before adding it.  |
 | |}==============================================================|
+| |}==============================================================|
+| | VERIFIED_BOUNDARY_REGISTER_035_OVERLAY                       |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-04                                             |
+| | BRANCH: feat/verified-boundary-register                      |
+| | BASE: main@dedc30d                                           |
+| | IMPLEMENTATION: holosim/guarantee_registry.py                |
+| | IMPLEMENTATION_SHA256:                                       |
+| | 4aa4d6235ed1d590d4637f058b9047cb0ee853503f257fa336c03840d497be85
+| | COMMITTED_REGISTER: core/verified_boundary_register.json     |
+| | COMMITTED_REGISTER_SHA256:                                   |
+| | 3bf64553e60e207f5f833f6ef3f3e5637b661418a8c012497e0365aae9a7e96f
+| | FOCUSED_TEST: tests/test_verified_boundary_register.py       |
+| | FOCUSED_TEST_SHA256:                                         |
+| | e3122345616ccb8061ea3315a81546f3cae994f4316e46413ea6136ece09055e
+| |                                                              |
+| | CONCRETE_MISSING_FUNCTION                                   |
+| | The function, guarantee, and IDX registries could describe   |
+| | functions, guarantees, and frozen slots, but no committed    |
+| | keyed register bound the six recent boundaries to their      |
+| | modules, receipt contracts, verifier symbols, and tests.     |
+| | Audits therefore had to rediscover those addresses manually.|
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - validate_boundary_register(register)                       |
+| | - load_boundary_register(path)                               |
+| | - lookup_boundary(register, boundary_id)                     |
+| | - verify_boundary_register(register, root)                   |
+| |                                                              |
+| | REGISTER_BOUNDARY                                           |
+| | - Six sorted boundary IDs bind six implementation files, six|
+| |   focused test files, and seven receipt verifier contracts.  |
+| | - Time-scoped truth retains both its state and comparison    |
+| |   receipt contracts under one stable boundary key.           |
+| | - The committed register and every registered text artifact |
+| |   are SHA-256 bound.                                         |
+| | - LF and CRLF normalize to one text-source identity; every   |
+| |   other decoded character remains part of the hash.          |
+| | - Source AST inspection checks declared receipt type/version|
+| |   constants and verifier function names without importing or|
+| |   executing registered modules.                              |
+| | - Duplicate, missing, stale, malformed, unsorted, unknown,   |
+| |   out-of-root, and authority-bearing records fail closed.    |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused guarantee and boundary-register tests: 16 passed  |
+| |   in 0.68 s.                                                 |
+| | - Full repository suite: 1549 passed, 4 skipped             |
+| |   in 27.17 s.                                                |
+| | - Initial Windows run exposed all twelve registered files as|
+| |   mismatched because Git LF bytes became CRLF in checkout.   |
+| | - The corrected verifier normalizes text line endings. A     |
+| |   second Windows run exposed one negative fixture still      |
+| |   hashing raw CRLF; correcting the fixture produced 16 PASS.|
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Registration establishes a stable address and current     |
+| |   source relationship, not truth, authorship, sufficiency,   |
+| |   execution, acceptance, or subjective understanding.       |
+| | - The first committed register covers only the six recent   |
+| |   boundaries recorded in overlay 034. It does not claim     |
+| |   repository-wide completeness.                             |
+| | - Text line-ending normalization intentionally does not     |
+| |   detect LF-to-CRLF-only checkout changes.                   |
+| | - A passing register check does not call the listed receipt |
+| |   verifiers or compose their outputs.                        |
+| | - accepted=false and write_authority=NONE remain fixed.      |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | The smallest committed register now fixes six recent boundary|
+| | addresses. Stop at the recorded scope until review completes.|
+| |}==============================================================|
