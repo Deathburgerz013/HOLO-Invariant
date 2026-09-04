@@ -1,3 +1,32 @@
+REPRINT LAW
+Apply this block on every rewrite. If the file does not match, reprint.
+If a new format rule is noticed, add one numbered line here, then reprint.
+
+R1  Title is one line: What works
+R2  After the title: exactly four framing sentences, then a blank line.
+R3  Then this constitution, then "How to use this list".
+R4  Section headers are plain text lines, Title case, no markdown hashes,
+    no trailing punctuation, one blank line before, one blank line after.
+R5  Body items are one line each. No wrapping. No bullets. No numbers.
+R6  An item is: Name. Optional short clause after a colon or em dash.
+    No slogans without a mechanism or a test.
+R7  Order inside a section: definition (if needed), what works, what
+    breaks / usually does not work, then moves.
+R8  "Usually does not work" is a subsection header, same style as R4,
+    and it only exists if there are at least three anti-items.
+R9  No item appears in two sections. If it is machinery, it lives in Meta
+    or Loops or Constraints. Domain sections only hold domain instances.
+R10 Do not add a section unless it has a distinct failure mode.
+R11 Do not keep an item that cannot name a metric or a constraint.
+R12 Conflict rule: tighter constraint wins. Write the tighter one first.
+R13 New content is a hypothesis. Add it at the bottom of the right
+    section, never in the middle, until a reprint pass sorts it.
+R14 New format rule: notice → write R-next in this block in one line →
+    reprint the whole file in the same commit. Do not leave mixed formats.
+R15 Reprint trigger: any of R1–R14 broken, or more than 12 unsorted
+    additions, or a section that grew a second voice.
+R16 Next-file pointer stays at the end, one paragraph, no new doctrine.
+
 What works
 
 A working catalog. Not a religion. 
