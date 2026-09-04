@@ -1,38 +1,35 @@
+What works
+
+A working catalog. Not a religion.
+Items earn their place if they reliably move outcomes under real constraints.
+Context still beats slogans.
+Treat every line as a hypothesis that can be cut when reality disagrees.
+
 REPRINT LAW
 Apply this block on every rewrite. If the file does not match, reprint.
 If a new format rule is noticed, add one numbered line here, then reprint.
 
 R1  Title is one line: What works
-R2  After the title: exactly four framing sentences, then a blank line.
-R3  Then this constitution, then "How to use this list".
-R4  Section headers are plain text lines, Title case, no markdown hashes,
-    no trailing punctuation, one blank line before, one blank line after.
-R5  Body items are one line each. No wrapping. No bullets. No numbers.
-R6  An item is: Name. Optional short clause after a colon or em dash.
-    No slogans without a mechanism or a test.
-R7  Order inside a section: definition (if needed), what works, what
-    breaks / usually does not work, then moves.
-R8  "Usually does not work" is a subsection header, same style as R4,
-    and it only exists if there are at least three anti-items.
-R9  No item appears in two sections. If it is machinery, it lives in Meta
-    or Loops or Constraints. Domain sections only hold domain instances.
-R10 Do not add a section unless it has a distinct failure mode.
-R11 Do not keep an item that cannot name a metric or a constraint.
-R12 Conflict rule: tighter constraint wins. Write the tighter one first.
-R13 New content is a hypothesis. Add it at the bottom of the right
-    section, never in the middle, until a reprint pass sorts it.
-R14 New format rule: notice → write R-next in this block in one line →
-    reprint the whole file in the same commit. Do not leave mixed formats.
-R15 Reprint trigger: any of R1–R14 broken, or more than 12 unsorted
-    additions, or a section that grew a second voice.
-R16 Next-file pointer stays at the end, one paragraph, no new doctrine.
-
-What works
-
-A working catalog. Not a religion. 
-Items earn their place if they reliably move outcomes under real constraints. 
-Context still beats slogans. 
-
+R2  After the title: exactly four framing sentences, then a blank line
+R3  Then this constitution, then How to use this list
+R4  Section headers are plain text, Title case, no hashes, no trailing punctuation, blank line before and after
+R5  Body items are one line each. No wrapping. No bullets. No numbers
+R6  An item is Name, optional short clause after a colon or em dash. No slogan without a mechanism or a test
+R7  Order inside a section: definition if needed, what works, what breaks or usually does not work, then moves
+R8  Usually does not work is a subsection header in the same style as R4, and only if there are at least three anti-items
+R9  No item in two sections. Machinery lives in Meta, Loops, or Constraints. Domain sections hold domain instances
+R10 Do not add a section unless it has a distinct failure mode
+R11 Do not keep an item that cannot name a metric or a constraint
+R12 Tighter constraint wins. Write the tighter one first
+R13 New content is a hypothesis. Add it at the bottom of the right section until a reprint sorts it
+R14 New format rule: write R-next here in one line, then reprint the whole file in the same commit
+R15 Reprint trigger: any of R1–R14 broken, more than 12 unsorted additions, or a section that grew a second voice
+R16 Next-file pointer stays at the end, one paragraph, no new doctrine
+R17 Headers never glue to the next sentence. If two words smash together, split and keep both texts
+R18 No numbered procedures. Sequence is section order plus one-line items
+R19 Before reprint, unique items from the previous committed file must still exist after reprint
+R20 Duplicate sections are merged by union, not by picking the prettier copy
+R21 Chat text is not the head. The committed file is the head
 
 How to use this list
 
@@ -100,7 +97,7 @@ Feedback loops, named
 
 A feedback loop is: action → result → comparison to a standard → adjustment → next action.
 
-What makes a loop work:
+What makes a loop work
 
 Short delay between action and result
 A specific standard, not a vibe
@@ -111,7 +108,7 @@ Honesty about the reading
 Cadence: daily, weekly, per-rep, per-release
 A place the loop is written down
 
-Useful loop types:
+Useful loop types
 
 Outcome loop: did the metric move?
 Process loop: did the behavior happen?
@@ -124,7 +121,7 @@ Body loop: sleep, pain, energy, performance
 Code loop: write, run, test, deploy, observe
 Writing loop: draft, read cold, cut, publish, see if it lands
 
-What breaks loops:
+What breaks loops
 
 No metric
 Vanity metric
@@ -140,7 +137,7 @@ Constraint satisfaction, named
 
 Most real problems are not “maximize X.” They are “find a state that satisfies constraints.”
 
-Name the constraints:
+Name the constraints
 
 Hard constraints: law, physics, budget floor, injury, deadline, other people’s non-negotiables
 Soft constraints: taste, comfort, status, extra quality
@@ -151,7 +148,7 @@ Coordination constraints: who must agree
 Path constraints: order of operations
 Irreversibility constraints: what you cannot undo
 
-How constraint satisfaction works:
+How constraint satisfaction works
 
 Write the constraints before the plan
 Mark which ones are real vs imagined
@@ -164,7 +161,7 @@ If no feasible point exists, change the problem
 Trade two constraints explicitly instead of pretending you can have both
 Keep a constraint budget: every new “must” costs an option
 
-Useful constraint moves:
+Useful constraint moves
 
 Timebox
 Scope cut
@@ -222,7 +219,7 @@ Learning the vocabulary of the field
 Learning the failure modes of the field
 Tools after the concept, not instead of it
 
-Usually does not work:
+Usually does not work
 
 Rereading as the main method
 Highlighting as memory
@@ -266,7 +263,7 @@ Meetings with an agenda, an owner, and an end
 Writing instead of a meeting when writing would do
 A meeting instead of writing when conflict or ambiguity is high
 
-Usually does not work:
+Usually does not work
 
 Giant plans with no shipping
 Consensus as a substitute for ownership
@@ -427,7 +424,7 @@ Generosity on purpose, not leakage by accident
 Prenup / contracts when the downside is life-altering
 Separate “fun money” so the system does not rely on sainthood
 
-Usually does not work:
+Usually does not work
 
 Stock tips as a plan
 Timing the market as a personality
@@ -603,7 +600,7 @@ Grief as work that takes time
 Not arguing with a panic wave; riding the interval
 Reality testing with a friend who will not flatter you
 
-Usually does not work:
+Usually does not work
 
 Thought-stopping as the only tool
 Venting that rehearses the wound without a next action
@@ -1000,14 +997,24 @@ What can I ship by Thursday?
 
 Add next by domain of a real problem, not by vibe. Good future sections to grow on git: domain-specific playbooks (hiring, on-call, first 90 days, infant sleep, strength templates, personal finance by income stage, research workflow, incident response, addiction recovery pointers to professionals, house buying, grief). Keep each item short enough to scan and sharp enough to use.
 
-Continuity, handoff, and invariantsA later instance — you after sleep, a teammate, a fresh model, a future you with no chat history — should be able to reconstruct the justified state from external evidence. If they cannot, the previous work was a vibe.What continuity isThe latest justified state
+Continuity, handoff, and invariants
+
+A later instance — you after sleep, a teammate, a fresh model, a future you with no chat history — should be able to reconstruct the justified state from external evidence. If they cannot, the previous work was a vibe.
+
+What continuity is
+
+The latest justified state
 The evidence that state rests on
 The constraints that still bind
 The owner
 The next action
 The kill or fail-closed condition
 What is not known
-What must not be rewrittenWhat worksWrite the state outside the head that currently holds it
+What must not be rewritten
+
+What works
+
+Write the state outside the head that currently holds it
 Append; do not silently edit the past
 Hash or otherwise make tamper visible when the cost of a quiet rewrite is high
 Name the head: which document, commit, receipt, or conversation is current
@@ -1027,7 +1034,11 @@ Dates on beliefs
 A graveyard for discarded hypotheses so they do not sneak back unlabeled
 Human anchor for write authority when the system can spend real cost
 Do not treat fluency as memory
-Do not treat memory as permissionHandoff that survives a resetState name
+Do not treat memory as permission
+
+Handoff that survives a reset
+
+State name
 Last verified artifact and how to check it
 Open loops, each with an owner and a next physical action
 Decisions already made, with the criterion used
@@ -1035,128 +1046,156 @@ Decisions not made
 Hard constraints
 Soft constraints that were traded
 Known false paths
-“What would change this”
+What would change this
 Stop conditions
 Who may append
-Who may notWhat breaks continuityA story that cannot be checked
+Who may not
+
+What breaks continuity
+
+A story that cannot be checked
 Editing history to stay coherent
 Two live heads
 Authority that lives in a chat
 Summaries that smear the mechanism
 Vanity completeness: more text, same untested claim
 Carrying identity across a reset without carrying evidence
-Letting the new instance “helpfully” fill gaps
+Letting the new instance helpfully fill gaps
 Counting tokens of conversation as a chain
-Trusting the model’s recollection of the chain
-Write access that can be replayedUsually does not workPrompting a cold instance to “remember who we are”
+Trusting the model recollection of the chain
+Write access that can be replayed
+
+Usually does not work
+
+Prompting a cold instance to remember who we are
 A manifesto with no current head
 Re-deriving the project from vibes each session
 Keeping the real state in one person’s unread messages
-Infinite context as a substitute for an external spineHow this list should meet invariants laterAn item from this catalog becomes an invariant only when:
-it has a failure condition you can test,
-a later observer can check it without prior memory,
-and rewriting it would change what the system is allowed to do.
-Until then it is a hypothesis that earned a line.Next part after this: Incident response and fail-closed, short and operational — stop the bleed, freeze the head, do not write, reconstruct from verified history, one owner, one next action, post-mortem that changes the gate. That is the first playbook that actually uses the continuity section instead of sitting beside it.
-Hard constraints: what is still changing, who can write, what must not be rewritten, time until the next irreversible action, legal and safety floor.What worksStop the bleed before the story
-Freeze the head: one current artifact, one way to check it
-Do not write until write authority is explicit
-Reconstruct from verified history, not from fluency
-One owner of the live response
-One next physical action
-Bound the claim: this evidence supports X, not Y
-Preserve limits next to results
-Fail closed when the head cannot be verified
-Read-only for everyone else
-Short receipt: what broke, what is known, what is not, what is forbidden
-Kill criteria already written beat courage in the moment
-Restore from a backup you have actually restored
-Change the gate in the post-mortem, not only the mood
+Infinite context as a substitute for an external spine
 
-LoopsBleed loop: is the damage still growing
-Head loop: can a cold observer name the current state
-Write loop: who appended, with what authority
-Safety loop: did we almost fail again while talking
-Learning loop: what mechanism produced the miss
+How this list should meet invariants later
 
-Usually does not workPrompting a cold instance to remember who we are
-Two live heads
-Editing history so the narrative stays pretty
-Filling gaps because silence feels rude
-Status as a substitute for a checksum
-A long recap with no current artifact
-Heroics as the operating system
-Post-mortem as blame theater
-
-Constraint movesScope cut: contain, don’t complete
-Quality cut: receipt over sermon
-Authority cut: one writer
-Timebox: next check in N minutes
-Fail closed over fail open when the tail is fat
-
-Handoff out of the incidentState name. Last verified artifact. How to check it. Open loops with owners. Decisions already made. Decisions not made. Hard constraints. Known false paths. Stop conditions. Who may append. Who may not.Next suggestion after that: Research workflow — question, binding constraint, smallest falsifying test, primary source, dated belief, graveyard for discarded hypotheses. Same machinery, quieter room. After that, on-call if the system spends real cost while you sleep.
+An item from this catalog becomes an invariant only when it has a failure condition you can test
+A later observer can check it without prior memory
+Rewriting it would change what the system is allowed to do
+Until then it is a hypothesis that earned a line
 
 Incident response and fail-closed
 
 A playbook, not a mood.
-Use this when the live head is wrong, missing, forked, or untrusted.
+Use this when the live head is wrong, missing, forked, untrusted, or spending cost it should not spend.
 Continuity is the record. This is what you do when the record or the operator is under load.
+Works means: stop further damage, reconstruct from evidence, change the gate that let it through.
 
 Trigger
 
-Any of these is enough:
 Hash mismatch or verify fail
 Two live heads
 Write without named authority
 State that cannot be reconstructed from artifacts
+A later instance cannot reconstruct the justified state
+A metric, receipt, or chain disagrees with the story
 Human says stop
 Bleed: money, access, reputation, safety, time that cannot be recovered
 Silence where a heartbeat was required
+A human or system is about to spend money, access, reputation, or time on an unverified state
+Fluency filling a gap
 
 Fail-closed means: stop acting on the disputed state. Do not keep shipping on a maybe.
 
 Order of operations
 
-1. Stop the bleed
-Cut spend, cut deploy, cut send, cut write.
-Unplug the actuator before you narrate.
-If the system can still spend cost, it is not stopped.
+Stop the bleed
+Freeze the head
+Do not write
+Name one owner
+Reconstruct from verified history
+One next action
+Only then: post-mortem that changes the gate
 
-2. Freeze the head
-Name the last verified artifact.
-Write nothing to the live chain yet.
-Do not “fix” history to make the story neat.
-Mark the current working copy as disputed.
+Stop the bleed
 
-3. Do not write
-No append until the owner names write authority again.
-No silent edit.
-No helpful fill-in by a cold instance.
-Read-only is the default under incident.
+Take the actuator offline
+Revoke or pause write paths
+Halt deploys, sends, spends, merges, publishes
+Cut spend, cut deploy, cut send, cut write
+Unplug the actuator before you narrate
+If the system can still spend cost, it is not stopped
+Do not quickly fix it in place
+Do not add a second live head just for now
+If people are in the loop, one sentence: what stopped, who owns the freeze, when the next update is
 
-4. Reconstruct from verified history
-Load the last passing verify.
-Replay forward only what hashes or otherwise checks.
-Bound every claim: this evidence supports X, not Y.
-Separate fact, interpretation, and next action.
-If a gap exists, leave the gap labeled. Do not invent the missing block.
+Freeze the head
 
-5. One owner
-One human or one named role.
-Not a chat. Not “the team.” Not the model.
-The owner may assign hands. The owner does not split the pen.
+Name the last verified artifact
+Write down the suspected current artifact: file, commit, receipt, conversation, dashboard
+Write nothing to the live chain yet
+Mark the current working copy as disputed
+Mark it SUSPECT or STALE
+Do not delete it
+Do not tidy it
+Do not normalize line endings, headers, or wording
+Do not fix history to make the story neat
+Hash or snapshot it as found
+If two heads exist, freeze both. Do not pick a winner from memory
 
-6. One next action
-Physical, small, observable.
-Not a plan. Not a manifesto.
-Examples: revert this deploy, revoke this key, restore this backup you have restored before, publish “disputed from T=…”, page this person.
+Do not write
 
-7. Post-mortem that changes the gate
-Mechanism, not theater.
-What sensor missed.
-What write path was open.
-What constraint was fake.
-Change the gate so the same class cannot pass again.
-If the gate does not change, the post-mortem was literature.
+Read-only until write authority is explicit, single-use, and named
+No append until the owner names write authority again
+No silent edit
+No helpful fill-in by a cold instance
+No helpful reconstruction inside the live chain
+Interpretation goes in a companion note that names and hashes its source
+A new instance does not append until it can point at a verified head
+Read-only is the default under incident
+
+Reconstruct from verified history
+
+Load the last passing verify
+Start from the last artifact a later observer can check without prior memory
+Replay forward only what hashes or otherwise checks
+Fail closed on the first mismatch
+Bound every claim: this evidence supports X, not Y
+Separate fact, interpretation, and next action
+Keep what is known, what is not known, and what must not be rewritten
+Preserve limits next to results
+If a gap exists, leave the gap labeled. Do not invent the missing block
+If the last verified head is older than you want, that is the state. Wanting a newer story is not evidence
+
+One owner
+
+One human or one named role
+Not a chat. Not the team. Not the model
+One person owns the freeze and the next write
+Everyone else reports
+The owner may assign hands. The owner does not split the pen
+If the owner caused the bleed, they still freeze first; they do not unfreeze alone
+Name who may append and who may not
+A committee can review. A committee cannot be the live head
+
+One next action
+
+Physical, small, observable
+Not a plan. Not a manifesto
+Example: revert this deploy
+Example: revoke this key
+Example: restore from the last verified backup you have actually restored
+Example: revert to the last verified commit and keep the bad head as evidence
+Example: publish a one-page status that names the frozen head and the stop condition
+Example: page this person
+Do not start three remediations
+Do not optimize while the head is unverified
+
+Fail-closed conditions
+
+Cannot verify the head
+Cannot name the owner
+Cannot point at the evidence the next instance must load
+The proposed write would rewrite history
+The only available fix is fluency
+Two people think they are current
+The cost of being wrong is irreversible and the check has not passed
 
 Fail-closed checklist
 
@@ -1184,14 +1223,22 @@ What must not be said because it is not known
 
 Handoff during incident
 
-State name: INCIDENT / DISPUTED
-Last verified artifact + check method
+State name: INCIDENT / FROZEN
+Last verified artifact and how to check it
+What was frozen and why
 Open bleed, if any remains
 Forbidden writes
 Owner
 Next physical action
+Decisions already made, with the criterion
+Decisions not made
+Hard constraints still binding
+Known false paths
 Stop condition for reopening writes
+What would change this freeze
 What a new instance must not invent
+Who may append
+Who may not
 
 Reopen writes only when
 
@@ -1200,26 +1247,72 @@ Owner says write is single-use and scoped
 The next append is a receipt of the incident, not a rewrite of the past
 The gate change is at least queued in the same record
 
+Post-mortem that changes the gate
+
+No blame theater
+Name the missed sensor, missing owner, two-head condition, or write path that fired
+Change one gate: a check, a permission, a freeze rule, a receipt, a review
+If the same incident can happen with the same gate still open, the post-mortem was a story
+Record the discarded hypothesis so it cannot sneak back unlabeled
+Update the working surface, not only the archive
+Dates on the new belief
+If the gate does not change, the post-mortem was literature
+
+Incident loops
+
+Bleed loop: is the damage still growing
+Head loop: can a cold observer name the current state
+Write loop: who appended, with what authority
+Safety loop: did we almost fail again while talking
+Learning loop: what mechanism produced the miss
+
+Incident constraint moves
+
+Scope cut: contain, don’t complete
+Quality cut: receipt over sermon
+Authority cut: one writer
+Timebox: next check in N minutes
+Fail closed over fail open when the tail is fat
+
 Usually does not work
 
 Keep going so the day is not wasted
-Let the fluent model reconstruct “what we meant”
+Prompting a cold instance to remember who we are
+Let the fluent model reconstruct what we meant
 Merge two heads by vibe
 Edit the bad block until it hashes in your imagination
-Blame theater before the bleed is stopped
+Editing the log so the timeline looks clean
+Letting the freshest model session become the head
+Writing first, verifying later
+Two owners to be safe
 Five owners
+A long incident doc with no frozen artifact
+A long recap with no current artifact
 A long doc instead of a cut
+Heroics as the operating system
+Blame theater before the bleed is stopped
 Calling the incident closed because the mood improved
 Restoring a backup you have never restored
 Trusting chat memory as the chain
+Counting conversation tokens as a chain
+Re-deriving the project from vibes while prod is still live
+We’ll remember
+Status as a substitute for a checksum
+Filling gaps because silence feels rude
+Post-mortem as blame theater
 
 Binding questions for the first ten minutes
 
 What is still spending?
 What is the last thing we can prove?
+What is the last artifact a stranger can verify?
+What actuator is still live?
 Who holds the pen?
+What write is forbidden until that check passes?
 What must not happen next?
 What is the smallest cut that stops the cost?
+What single gate change would have stopped this?
+Until those answers exist, do not unfreeze
 
 Seed receipts to append after lock lifts
 
@@ -1230,102 +1323,6 @@ RECONSTRUCT: last good, gaps
 NEXT_ACTION: one line
 GATE_CHANGE: the rule that failed and the rule that replaces it
 INCIDENT_CLOSE: why writes may resume, what remains disputed
-
 If you cannot fill those receipts from artifacts, you are not closed. You are hoping.
 
 Next part after this: on-call and heartbeat — what must pulse, who wakes, stale vs dead, how a missed beat becomes this playbook instead of a story.
-
-Incident response and fail-closedA working playbook. Not a sermon.
-Use when the live head is wrong, unverifiable, forked, or spending cost it should not spend.
-“Works” means: stop further damage, reconstruct from evidence, change the gate that let it through.Trigger
-The current head cannot be verified
-Two live heads
-Write happened without named authority
-A later instance cannot reconstruct the justified state
-A metric, receipt, or chain disagrees with the story
-A human or system is about to spend money, access, reputation, or time on an unverified state
-You notice fluency filling a gapFirst moves, in order
-Stop the bleed
-Freeze the head
-Do not write
-Name one owner
-Reconstruct from verified history
-One next action
-Only then: post-mortem that changes the gateStop the bleed
-Take the actuator offline
-Revoke or pause write paths
-Halt deploys, sends, spends, merges, publishes
-Do not “quickly fix it in place”
-Do not add a second live head “just for now”
-If people are in the loop, one sentence: what stopped, who owns the freeze, when the next update isFreeze the head
-Write down the suspected current artifact: file, commit, receipt, conversation, dashboard
-Mark it SUSPECT or STALE
-Do not delete it
-Do not tidy it
-Do not normalize line endings, headers, or wording
-Hash or snapshot it as found
-If two heads exist, freeze both. Do not pick a winner from memoryDo not write
-Read-only until write authority is explicit, single-use, and named
-No “helpful” reconstruction inside the live chain
-No silent edit to make the story coherent
-Interpretation goes in a companion note that names and hashes its source
-A new instance does not append until it can point at a verified headReconstruct from verified history
-Start from the last artifact a later observer can check without prior memory
-Replay the chain; fail closed on the first mismatch
-Separate fact, interpretation, and next action
-Keep what is known, what is not known, and what must not be rewritten
-Bound the claim: this evidence supports X, not Y
-Preserve limits next to results
-If the last verified head is older than you want, that is the state. Wanting a newer story is not evidenceOne owner
-One person owns the freeze and the next write
-Everyone else reports
-If the owner is the person who caused the bleed, they still freeze first; they do not get to unfreeze alone
-Name who may append and who may not
-A committee can review. A committee cannot be the live headOne next action
-Physical and small
-Example: restore from the last verified backup you have actually restored
-Example: revert to the last verified commit and keep the bad head as evidence
-Example: publish a one-page status that names the frozen head and the stop condition
-Do not start three remediations
-Do not optimize while the head is unverifiedFail-closed conditions
-Cannot verify the head
-Cannot name the owner
-Cannot point at the evidence the next instance must load
-The proposed write would rewrite history
-The only available “fix” is fluency
-Two people think they are current
-The cost of being wrong is irreversible and the check has not passedHandoff during an incident
-State name: INCIDENT / FROZEN
-Last verified artifact and how to check it
-What was frozen and why
-Open bleed, if any remains
-Decisions already made, with the criterion
-Decisions not made
-Hard constraints still binding
-Known false paths
-Who may append
-Stop conditions
-What would change this freezePost-mortem that changes the gate
-No blame theater
-Name the missed sensor, missing owner, two-head condition, or write path that fired
-Change one gate: a check, a permission, a freeze rule, a receipt, a review
-If the same incident can happen with the same gate still open, the post-mortem was a story
-Record the discarded hypothesis so it cannot sneak back unlabeled
-Update the working surface, not only the archive
-Dates on the new beliefUsually does not work
-“We’ll remember”
-Re-deriving the project from vibes while prod is still live
-Editing the log so the timeline looks clean
-Letting the freshest model session become the head
-A long incident doc with no frozen artifact
-Heroics as the operating system
-Writing first, verifying later
-Two owners “to be safe”
-Counting conversation tokens as a chainBinding questions
-What is the last artifact a stranger can verify?
-What actuator is still live?
-Who is the one owner?
-What write is forbidden until that check passes?
-What single gate change would have stopped this?Until those answers exist, do not unfreeze.That is the first playbook that actually uses the continuity section: freeze the head, reconstruct from verified history, one owner, one next action, then change the gate.If you want the next increment after this, the tightest one is a one-page incident receipt template: frozen head, hash, owner, stop condition, next physical action, write_authority: NONE.
-
-
