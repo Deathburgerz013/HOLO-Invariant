@@ -1206,5 +1206,97 @@ If you cannot fill those receipts from artifacts, you are not closed. You are ho
 
 Next part after this: on-call and heartbeat — what must pulse, who wakes, stale vs dead, how a missed beat becomes this playbook instead of a story.
 
+Incident response and fail-closedA working playbook. Not a sermon.
+Use when the live head is wrong, unverifiable, forked, or spending cost it should not spend.
+“Works” means: stop further damage, reconstruct from evidence, change the gate that let it through.Trigger
+The current head cannot be verified
+Two live heads
+Write happened without named authority
+A later instance cannot reconstruct the justified state
+A metric, receipt, or chain disagrees with the story
+A human or system is about to spend money, access, reputation, or time on an unverified state
+You notice fluency filling a gapFirst moves, in order
+Stop the bleed
+Freeze the head
+Do not write
+Name one owner
+Reconstruct from verified history
+One next action
+Only then: post-mortem that changes the gateStop the bleed
+Take the actuator offline
+Revoke or pause write paths
+Halt deploys, sends, spends, merges, publishes
+Do not “quickly fix it in place”
+Do not add a second live head “just for now”
+If people are in the loop, one sentence: what stopped, who owns the freeze, when the next update isFreeze the head
+Write down the suspected current artifact: file, commit, receipt, conversation, dashboard
+Mark it SUSPECT or STALE
+Do not delete it
+Do not tidy it
+Do not normalize line endings, headers, or wording
+Hash or snapshot it as found
+If two heads exist, freeze both. Do not pick a winner from memoryDo not write
+Read-only until write authority is explicit, single-use, and named
+No “helpful” reconstruction inside the live chain
+No silent edit to make the story coherent
+Interpretation goes in a companion note that names and hashes its source
+A new instance does not append until it can point at a verified headReconstruct from verified history
+Start from the last artifact a later observer can check without prior memory
+Replay the chain; fail closed on the first mismatch
+Separate fact, interpretation, and next action
+Keep what is known, what is not known, and what must not be rewritten
+Bound the claim: this evidence supports X, not Y
+Preserve limits next to results
+If the last verified head is older than you want, that is the state. Wanting a newer story is not evidenceOne owner
+One person owns the freeze and the next write
+Everyone else reports
+If the owner is the person who caused the bleed, they still freeze first; they do not get to unfreeze alone
+Name who may append and who may not
+A committee can review. A committee cannot be the live headOne next action
+Physical and small
+Example: restore from the last verified backup you have actually restored
+Example: revert to the last verified commit and keep the bad head as evidence
+Example: publish a one-page status that names the frozen head and the stop condition
+Do not start three remediations
+Do not optimize while the head is unverifiedFail-closed conditions
+Cannot verify the head
+Cannot name the owner
+Cannot point at the evidence the next instance must load
+The proposed write would rewrite history
+The only available “fix” is fluency
+Two people think they are current
+The cost of being wrong is irreversible and the check has not passedHandoff during an incident
+State name: INCIDENT / FROZEN
+Last verified artifact and how to check it
+What was frozen and why
+Open bleed, if any remains
+Decisions already made, with the criterion
+Decisions not made
+Hard constraints still binding
+Known false paths
+Who may append
+Stop conditions
+What would change this freezePost-mortem that changes the gate
+No blame theater
+Name the missed sensor, missing owner, two-head condition, or write path that fired
+Change one gate: a check, a permission, a freeze rule, a receipt, a review
+If the same incident can happen with the same gate still open, the post-mortem was a story
+Record the discarded hypothesis so it cannot sneak back unlabeled
+Update the working surface, not only the archive
+Dates on the new beliefUsually does not work
+“We’ll remember”
+Re-deriving the project from vibes while prod is still live
+Editing the log so the timeline looks clean
+Letting the freshest model session become the head
+A long incident doc with no frozen artifact
+Heroics as the operating system
+Writing first, verifying later
+Two owners “to be safe”
+Counting conversation tokens as a chainBinding questions
+What is the last artifact a stranger can verify?
+What actuator is still live?
+Who is the one owner?
+What write is forbidden until that check passes?
+What single gate change would have stopped this?Until those answers exist, do not unfreeze.That is the first playbook that actually uses the continuity section: freeze the head, reconstruct from verified history, one owner, one next action, then change the gate.If you want the next increment after this, the tightest one is a one-page incident receipt template: frozen head, hash, owner, stop condition, next physical action, write_authority: NONE.
 
 
