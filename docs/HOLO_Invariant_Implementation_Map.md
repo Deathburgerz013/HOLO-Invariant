@@ -2573,3 +2573,117 @@
 | | External Review 033 passed the exact AI-calculator candidate with no
 | | blocking findings. Evidence stops at the bound hashes and preserved limits.
 | |}==============================================================|
+| |}==============================================================|
+| | RECENT_VERIFIED_BOUNDARIES_034_OVERLAY                       |
+| |}==============================================================|
+| | STATUS: VERIFIED_FROM_MERGED_SOURCE                          |
+| | DATE: 2026-09-04                                             |
+| | REPOSITORY_CHECKPOINT: main@1c77443                          |
+| | PURPOSE:                                                     |
+| | Restore the implementation map after six independently merged|
+| | bounded receipt contracts changed repository evidence.       |
+| | This overlay records existing code; it adds no runtime path.  |
+| |                                                              |
+| | CHOICE_CONSEQUENCE_ORACLE                                    |
+| | MERGE: 38ab8e1 • PR: 197                                    |
+| | IMPLEMENTATION: holosim/choice_consequence_oracle.py         |
+| | IMPLEMENTATION_SHA256:                                       |
+| | 6b5185da98315cf4174c379f31dd8d718435b6ed4639af21cffa0dfa1d10f6f2
+| | FOCUSED_TEST: tests/test_choice_consequence_oracle.py         |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 5af9f6594271e7a2c4a21722742f1eb057164bc8517f85f14008cffb5f8209fb
+| | VERIFIED_TEST_STATE: 14 focused; 1435 passed, 4 skipped full |
+| | BOUNDARY: Compares declared choices and bounded consequence  |
+| | estimates without prediction certainty, execution, or choice.|
+| |                                                              |
+| | BOUNDED_ARCHITECT                                            |
+| | MERGE: 0a8cc78 • PR: 198                                    |
+| | IMPLEMENTATION: holosim/bounded_architect.py                 |
+| | IMPLEMENTATION_SHA256:                                       |
+| | 133bdd46bc3dced33b467d8996a2b4895ec31e995fda846231b94811d8a2b98f
+| | FOCUSED_TEST: tests/test_bounded_architect.py                 |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 5d88708ac8271cb6e091499ca66bbf24b6199901de5e6a810dff8b39634886c8
+| | VERIFIED_TEST_STATE: 17 focused; 1452 passed, 4 skipped full |
+| | BOUNDARY: Emits inspectable architecture alternatives without|
+| | selecting, accepting, writing, or executing an alternative.  |
+| |                                                              |
+| | VERIFIED_RECALL_CLAIMS                                       |
+| | MERGE: d9ba878 • PR: 199                                    |
+| | IMPLEMENTATION: holosim/recall_verification.py               |
+| | IMPLEMENTATION_SHA256:                                       |
+| | 423ea3c044e5ef467885bf8fe86da233fb6116c36e83a3326ed8c519886ddb07
+| | FOCUSED_TEST: tests/test_recall_verification.py               |
+| | FOCUSED_TEST_SHA256:                                         |
+| | cc0640992f4110bbc3ecd40b93d22ab45709f9a3b3720ee992416bf1cd731982
+| | VERIFIED_TEST_STATE: 20 focused; 1472 passed, 4 skipped full |
+| | BOUNDARY: Verifies a recall claim against external record    |
+| | identity; generative similarity is not treated as retrieval. |
+| |                                                              |
+| | BOUNDED_EVIDENCE_ANALYST                                     |
+| | MERGE: a695b86 • PR: 200                                    |
+| | IMPLEMENTATION: holosim/bounded_evidence_analyst.py          |
+| | IMPLEMENTATION_SHA256:                                       |
+| | ce645cccf864a81f73f6ec005be26aac695420819d220c8eeeb67d633d42a217
+| | FOCUSED_TEST: tests/test_bounded_evidence_analyst.py          |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 8f7656e1247cc6108fa225fdfea83e9c93e4565dd1ef8e128983a650cb023731
+| | VERIFIED_TEST_STATE: 20 focused; 1492 passed, 4 skipped full |
+| | BOUNDARY: Produces source-bound findings while preserving    |
+| | uncertainty and withholding acceptance and write authority. |
+| |                                                              |
+| | TIME_SCOPED_TRUTH_STATE                                      |
+| | MERGE: 698fe65 • PR: 201                                    |
+| | IMPLEMENTATION: holosim/time_scoped_truth.py                 |
+| | IMPLEMENTATION_SHA256:                                       |
+| | e8b6f6df7b2e3738c09c4d9654d071821711d0d9ffb2160d6521875fba53a6f5
+| | FOCUSED_TEST: tests/test_time_scoped_truth.py                 |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 73275ca32b521cc38855fa49695b5d34d3d60f4b8a213e4a56a407270ef7bf0d
+| | VERIFIED_TEST_STATE: 21 focused; 1513 passed, 4 skipped full |
+| | BOUNDARY: Establishes TRUE or FALSE only inside an observed  |
+| | time, claim, environment, state, and evidence boundary;      |
+| | unobserved future state remains UNKNOWN.                     |
+| |                                                              |
+| | FUNCTIONAL_AWARENESS_LOOP                                    |
+| | MERGE: 1c77443 • PR: 202                                    |
+| | IMPLEMENTATION: holosim/functional_awareness_loop.py         |
+| | IMPLEMENTATION_SHA256:                                       |
+| | 7aa113ef06ca5e315c5ad36c513cc1a45c66a793cef10c062846118e5c8af37a
+| | FOCUSED_TEST: tests/test_functional_awareness_loop.py         |
+| | FOCUSED_TEST_SHA256:                                         |
+| | a69eebba8cd553d1785670ce71a02b92234280a24845f599d3f36771566e05dd
+| | VERIFIED_TEST_STATE: 23 focused; 1536 passed, 4 skipped full |
+| | BOUNDARY: Represents verified goal mismatch, measures whether|
+| | observed mismatch changed, and may propose adaptation. It    |
+| | does not establish subjective consciousness, execute, train, |
+| | accept, write, or grant authority.                           |
+| |                                                              |
+| | CROSS_MODULE_STATE                                           |
+| | CLASSIFICATION: PARTIAL                                      |
+| | • Each boundary is independently importable and directly     |
+| |   covered by focused tests.                                  |
+| | • No CLI, MCP, or orchestrator composes these six receipts.  |
+| | • The functional-awareness loop accepts caller-supplied      |
+| |   evidence statuses and receipt hashes; it does not verify a |
+| |   referenced Oracle, Analyst, Truth, or execution receipt.   |
+| | • Separation is preserved until a reproducible failure shows|
+| |   that composition is required. No integration is inferred. |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | • Receipt hashes establish canonical integrity, not truth,   |
+| |   authorship, external occurrence, relevance, or sufficiency.|
+| | • Caller-supplied evidence remains caller-supplied unless a  |
+| |   named verifier checks the referenced artifact.             |
+| | • Passing tests establish only the exercised contracts.      |
+| | • These modules do not create a foundation model, subjective |
+| |   consciousness, autonomous purpose, or future knowledge.    |
+| |                                                              |
+| | EXTERNAL_REVIEW: MERGED_PULL_REQUESTS_197_THROUGH_202        |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | The map now records repository evidence through main@1c77443.|
+| | Stop. Test receipt composition separately before adding it.  |
+| |}==============================================================|
