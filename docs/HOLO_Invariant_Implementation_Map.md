@@ -2839,3 +2839,71 @@
 | | The register now notices structural boundaries outside itself.|
 | | Stop at INCOMPLETE until each older boundary is reviewed.    |
 | |}==============================================================|
+| |}==============================================================|
+| | DETERMINISTIC_BOUNDARY_KEY_MAKER_037_OVERLAY                 |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-05                                             |
+| | BRANCH: feat/deterministic-boundary-key-maker               |
+| | BASE: main@c8f991f                                           |
+| | IMPLEMENTATION: holosim/deterministic_boundary_key.py        |
+| | IMPLEMENTATION_SHA256:                                       |
+| | d8047b16c4b330bdea25f5cf30e0d0e7aa535b2eae9d6c2f19fd4bdeef3db1d4
+| | FOCUSED_TEST: tests/test_deterministic_boundary_key.py        |
+| | FOCUSED_TEST_SHA256:                                         |
+| | a27012004d2d4de41043261e2fd7be48e214ea02ef7b00a41b72fde71997cc47
+| | REGISTER_TEST_SHA256:                                        |
+| | c33ef8d31c3708d48832464bb43408ad2843b269de2a4e70b4955dad0837c4f5
+| | COMMITTED_REGISTER_SHA256:                                   |
+| | bd7468acbc0cb8e4f9d519823f4671cd9dddbd72f4a8ac0eb9e7cc7c09bbbdc5
+| |                                                              |
+| | CONCRETE_MISSING_BOUNDARY                                   |
+| | Registered slots had human-readable boundary IDs, but no     |
+| | executable contract derived the same address from the same   |
+| | explicit identity dimensions. Callers could therefore invent|
+| | incompatible keys for one boundary or collapse distinct      |
+| | scopes under one informal label.                             |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - make_boundary_key_receipt(descriptor)                      |
+| | - verify_boundary_key_receipt(receipt)                       |
+| |                                                              |
+| | KEY_BOUNDARY                                                |
+| | - A closed descriptor binds namespace, subject type, subject|
+| |   ID, scope, contract type, and positive contract version.   |
+| | - Canonical JSON plus the holo.boundary-key.v1 domain derives|
+| |   a deterministic SHA-256 address. Mapping field order does  |
+| |   not change it; any declared identity change does.          |
+| | - Missing, extra, blank, whitespace-ambiguous, or invalid    |
+| |   identity fields fail closed rather than being guessed.     |
+| | - Verification recomputes the descriptor hash, boundary key,|
+| |   receipt hash, contract, algorithm, domain, and authority   |
+| |   boundary.                                                  |
+| | - The new receipt boundary is registered immediately, moving|
+| |   the observed baseline to 17 discoverable, 7 registered,   |
+| |   10 unregistered, and 0 stale modules.                      |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused key-maker and registry tests: 40 passed in 1.40 s.|
+| | - Full Windows repository suite: 1573 passed, 4 skipped in  |
+| |   28.89 s.                                                   |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - A key establishes deterministic address equivalence for an|
+| |   exact descriptor. It does not establish truth, authorship,|
+| |   semantic identity, external uniqueness, or sufficiency.   |
+| | - Collision resistance is inherited from SHA-256; tests do  |
+| |   not prove mathematical collision impossibility.           |
+| | - The maker does not choose descriptor values, infer missing|
+| |   meaning, mutate the register, execute code, or accept work.|
+| | - Known unregistered receipt modules remain explicit debt.  |
+| | - accepted=false and write_authority=NONE remain fixed.      |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Exact declared identity now yields one reproducible address.|
+| | Stop before inferring that matching keys prove matching truth.|
+| |}==============================================================|

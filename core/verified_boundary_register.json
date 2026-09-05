@@ -54,6 +54,23 @@
       "test_sha256": "5af9f6594271e7a2c4a21722742f1eb057164bc8517f85f14008cffb5f8209fb"
     },
     {
+      "boundary_id": "deterministic-boundary-key-maker",
+      "module": "holosim.deterministic_boundary_key",
+      "implementation_path": "holosim/deterministic_boundary_key.py",
+      "implementation_sha256": "d8047b16c4b330bdea25f5cf30e0d0e7aa535b2eae9d6c2f19fd4bdeef3db1d4",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "deterministic_boundary_key_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_boundary_key_receipt"
+        }
+      ],
+      "test_path": "tests/test_deterministic_boundary_key.py",
+      "test_sha256": "a27012004d2d4de41043261e2fd7be48e214ea02ef7b00a41b72fde71997cc47"
+    },
+    {
       "boundary_id": "functional-awareness-loop",
       "module": "holosim.functional_awareness_loop",
       "implementation_path": "holosim/functional_awareness_loop.py",
@@ -114,5 +131,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "492386e90a5c9f4eba65c002b26353332ec41b78a7fabd30ae7c1dc160f9a5a6"
+  "register_hash": "2d673f9b1077291f86cd20a7a9753aa49e94b63d69e19ce9d04d45a14d6ee428"
 }
