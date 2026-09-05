@@ -1,0 +1,50 @@
+name: Edge Conditions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-edges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install package with dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Verify fail-closed edge conditions
+        run: |
+          python -m pytest -q \
+            tests/test_check_identity.py::test_check_identity_rejects_missing_subject \
+            tests/test_check_identity.py::test_check_identity_rejects_missing_scope \
+            tests/test_check_identity.py::test_check_identity_rejects_duplicate_references \
+            tests/test_check_identity.py::test_bind_check_result_rejects_tampered_identity \
+            tests/test_check_identity.py::test_bind_check_result_requires_result \
+            tests/test_state_transfer.py::test_envelope_cannot_promote_claims_after_rehash \
+            tests/test_state_transfer.py::test_base_snapshot_tampering_is_rejected \
+            tests/test_state_transfer.py::test_payload_tampering_is_rejected \
+            tests/test_state_transfer.py::test_outer_tampering_is_rejected \
+            tests/test_state_transfer.py::test_observation_status_tampering_fails_after_rehash \
+            tests/test_state_transfer.py::test_observation_cannot_claim_application_or_authority \
+            tests/test_state_transfer.py::test_observation_must_bind_exact_envelope \
+            tests/test_state_transfer.py::test_invalid_invariant_identifiers_fail_closed \
+            tests/test_state_transfer.py::test_evidence_commands_and_results_must_align \
+            tests/test_state_transfer.py::test_not_run_evidence_cannot_claim_commands \
+            tests/test_state_transfer.py::test_caller_reported_evidence_requires_a_result_pair \
+            tests/test_state_transfer.py::test_invalid_artifact_hash_is_rejected \
+            tests/test_state_transfer.py::test_nonfinite_and_cyclic_values_are_rejected \
+            tests/test_state_transfer.py::test_oversized_text_and_history_fail_closed
