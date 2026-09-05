@@ -6,7 +6,7 @@
       "boundary_id": "agent-verified-convergence",
       "module": "holosim.agent",
       "implementation_path": "holosim/agent.py",
-      "implementation_sha256": "adc358e7e028b7958fe02b0af2b597dec46c7657bd0c607d1b5d6a2835b7e41e",
+      "implementation_sha256": "6bd31ac8e94ef7e49bd05b716a2256d043bb7b138842554c3b38dc425949f059",
       "receipts": [
         {
           "type_constant": "RECEIPT_TYPE",
@@ -189,5 +189,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "e39a76350fa8b11866309e1a232352a4f6b6e43907053b01f45cffe3f6b035c6"
+  "register_hash": "c64e28059cd56269a550c93a7706bf301f2e981636dc255b6505c049bf78087b"
 }
