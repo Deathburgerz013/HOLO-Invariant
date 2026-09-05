@@ -14,7 +14,6 @@ import argparse
 import collections
 import datetime
 import difflib
-import hashlib
 import json
 import math
 import sys
@@ -23,11 +22,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 try:
+    from holosim.canonical import stable_hash
     from holosim.config import DEFAULT_CHAIN_FILE
     from holosim.replay import ReplayEngine
     from holosim.service import get_service
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from holosim.canonical import stable_hash
     from holosim.config import DEFAULT_CHAIN_FILE
     from holosim.replay import ReplayEngine
     from holosim.service import get_service
@@ -44,11 +45,6 @@ THRESHOLDS = {
 
 def utc_now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
-
-
-def stable_hash(data: Any) -> str:
-    encoded = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
-    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
 class VerifiableAuditLog:
