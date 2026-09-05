@@ -3117,3 +3117,77 @@
 | | Declared dependency change now withholds stale convergence.  |
 | | Stop before treating eligibility as present validity.        |
 | |}==============================================================|
+| |}==============================================================|
+| | DETERMINISTIC_PYTHON_SURFACE_INVENTORY_041_OVERLAY          |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-05                                             |
+| | BRANCH: feat/deterministic-python-surface-inventory         |
+| | BASE: main@af1d823                                           |
+| | IMPLEMENTATION: holosim/python_surface_inventory.py          |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 46c141d74991098211c371a419af2fa2ebc5ff7ad1c35e257031ee9f3dd92bff
+| | FOCUSED_TEST: tests/test_python_surface_inventory.py          |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 4e8b58d41a988d11f4c7203296f523158a70b27076af768d6344ac670d096b7c
+| | REGISTER_TEST_SHA256_NORMALIZED:                             |
+| | fa9aa20a7b605a6c2d7d686633f16e81217bb679113d824aa27ff002751f7dfe
+| | COMMITTED_REGISTER_SHA256_NORMALIZED:                        |
+| | 4bb598eb743cf667ea48226997ed6ea383834c21ab28131e717991aefea577e4
+| |                                                              |
+| | CONCRETE_VISIBILITY_GAP                                     |
+| | The repository contained hundreds of Python files but had no |
+| | deterministic, non-executing surface inventory. File count or|
+| | role claims therefore depended on search wording and could   |
+| | silently include untracked paths or inflate files into agents.|
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - discover_python_paths(...)                                 |
+| | - build_python_surface_inventory(...)                        |
+| | - verify_python_surface_inventory(...)                       |
+| |                                                              |
+| | INVENTORY_BOUNDARY                                          |
+| | - Discovery is limited to explicit examples, holosim, and    |
+| |   tests roots; the current scoped inventory contains 338     |
+| |   Python files.                                              |
+| | - Portable paths and normalized UTF-8 source hashes preserve |
+| |   deterministic identity across LF and CRLF worktrees.       |
+| | - AST parsing records only syntax-visible imports, top-level |
+| |   functions, classes, receipt contracts, package initializers,|
+| |   main guards, and structural surface kinds.                 |
+| | - Inspected modules are never imported or executed.          |
+| | - Input and symbol order cannot alter the canonical receipt. |
+| | - Missing files, invalid syntax, unsafe paths, duplicate paths,|
+| |   link escapes, mutation, and authority claims fail closed.  |
+| | - The receipt boundary is registered, moving the observed    |
+| |   baseline to 19 discoverable, 9 registered, 10 unregistered,|
+| |   and 0 stale receipt modules.                               |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused inventory and registry tests:                     |
+| |   36 passed in 3.60 s.                                      |
+| | - Full Windows repository suite: 1630 passed, 4 skipped in  |
+| |   30.53 s.                                                   |
+| | - The initial combined registry run found one expected stale |
+| |   discovery count: the new boundary changed 18 to 19. The    |
+| |   baseline assertion was corrected and the same gate passed. |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Scoped discovery is not a claim about Python outside the   |
+| |   three declared roots or about untracked working-tree files.|
+| | - A source hash establishes identity, not behavior or truth. |
+| | - Syntax-visible structure does not establish usefulness,    |
+| |   runtime reachability, test coverage, or agent identity.    |
+| | - The inventory does not rename, execute, admit, persist, or |
+| |   grant authority to any observed module.                    |
+| | - observation_only=true, accepted=false, and               |
+| |   write_authority=NONE remain fixed.                         |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Every scoped Python surface now has a reproducible address.  |
+| | Stop before calling syntax a worker, agent, or valid behavior.|
+| |}==============================================================|
