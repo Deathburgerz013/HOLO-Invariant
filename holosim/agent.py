@@ -17,10 +17,17 @@ from holosim.bounded_evidence_analyst import (
     verify_evidence_analysis_receipt,
 )
 from holosim.canonical import CanonicalValueError, stable_hash
+from holosim.receipt_graph import (
+    build_receipt_graph,
+    plan_dependency_rechecks,
+    RECHECK_REQUIRED,
+)
 
 
 RECEIPT_TYPE = "verified_convergence_agent_receipt"
 RECEIPT_VERSION = 1
+DEPENDENCY_CHECKED_RECEIPT_TYPE = "dependency_checked_convergence_agent_receipt"
+DEPENDENCY_CHECKED_RECEIPT_VERSION = 1
 MAX_ITEMS = 10_000
 MAX_TEXT_UTF8_BYTES = 16_384
 
@@ -36,6 +43,19 @@ _RECEIPT_FIELDS = {
     "rejected_findings", "unresolved_findings", "run_status",
     "pending_stages", "stopped", "method_executed", "usefulness_inferred",
     "truth_claimed", "recommended_action", "accepted", "selection_authority",
+    "write_authority", "execution_authority", "interpretation_notice",
+    "receipt_hash",
+}
+_DEPENDENCY_BINDING_FIELDS = {
+    "analysis_receipt_hash", "dependency_receipt_hashes",
+}
+_DEPENDENCY_CHECKED_RECEIPT_FIELDS = {
+    "type", "version", "run_id", "base_agent_receipt",
+    "dependency_bindings", "dependency_receipts", "recheck_plan",
+    "eligible_converged_findings", "eligible_rejected_findings",
+    "eligible_unresolved_findings", "withheld_findings", "run_status",
+    "pending_stages", "stopped", "validity_claimed", "truth_claimed",
+    "recommended_action", "accepted", "selection_authority",
     "write_authority", "execution_authority", "interpretation_notice",
     "receipt_hash",
 }
@@ -275,4 +295,227 @@ def verify_agent_convergence_receipt(receipt: Mapping[str, Any]) -> bool:
         raise VerifiedConvergenceAgentError("receipt is malformed") from exc
     if dict(receipt) != expected:
         raise VerifiedConvergenceAgentError("receipt is internally inconsistent")
+    return True
+
+
+def _sha256(value: Any, label: str) -> str:
+    if type(value) is not str or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+        raise VerifiedConvergenceAgentError(f"{label} must be a SHA-256 hash")
+    return value
+
+
+def _normalize_dependency_bindings(
+    values: Any,
+    source_hashes: Sequence[str],
+) -> list[dict[str, Any]]:
+    bindings: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for raw in _sequence(values, "dependency_bindings"):
+        if type(raw) is not dict or set(raw) != _DEPENDENCY_BINDING_FIELDS:
+            raise VerifiedConvergenceAgentError("dependency binding fields mismatch")
+        analysis_hash = _sha256(
+            raw["analysis_receipt_hash"], "analysis_receipt_hash"
+        )
+        if analysis_hash in seen:
+            raise VerifiedConvergenceAgentError(
+                "analysis dependency bindings must be unique"
+            )
+        seen.add(analysis_hash)
+        dependencies = [
+            _sha256(value, "dependency_receipt_hash")
+            for value in _sequence(
+                raw["dependency_receipt_hashes"], "dependency_receipt_hashes"
+            )
+        ]
+        if len(dependencies) != len(set(dependencies)):
+            raise VerifiedConvergenceAgentError(
+                "dependency receipt hashes must be unique"
+            )
+        bindings.append({
+            "analysis_receipt_hash": analysis_hash,
+            "dependency_receipt_hashes": sorted(dependencies),
+        })
+    if seen != set(source_hashes):
+        raise VerifiedConvergenceAgentError(
+            "dependency bindings must cover every analysis receipt exactly once"
+        )
+    return sorted(bindings, key=lambda item: item["analysis_receipt_hash"])
+
+
+def _normalize_dependency_receipts(values: Any) -> list[dict[str, Any]]:
+    receipts: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for raw in _sequence(values, "dependency_receipts"):
+        if type(raw) is not dict:
+            raise VerifiedConvergenceAgentError(
+                "dependency receipt must be a plain object"
+            )
+        receipt_hash = _sha256(raw.get("receipt_hash"), "dependency receipt_hash")
+        if receipt_hash in seen:
+            raise VerifiedConvergenceAgentError(
+                "dependency receipt hashes must be unique"
+            )
+        seen.add(receipt_hash)
+        receipts.append(deepcopy(raw))
+    return sorted(receipts, key=lambda item: item["receipt_hash"])
+
+
+def _finding_source_hashes(finding: Mapping[str, Any]) -> set[str]:
+    return {
+        observation["analysis_receipt_hash"]
+        for scope in finding["scope_results"]
+        for observation in scope["observations"]
+    }
+
+
+def run_dependency_checked_convergence_agent(
+    *,
+    run_id: str,
+    base_agent_receipt: Mapping[str, Any],
+    dependency_bindings: Sequence[Mapping[str, Any]],
+    dependency_receipts: Sequence[Mapping[str, Any]],
+    changed_dependency_hashes: Sequence[str],
+) -> dict[str, Any]:
+    """Withhold findings reached from explicitly changed dependencies.
+
+    Dependency receipts and changed hashes are caller-declared graph inputs.
+    This stage verifies the base Agent receipt and computes reachability; it does
+    not execute the required rechecks or establish validity from graph silence.
+    """
+    if type(base_agent_receipt) is not dict:
+        raise VerifiedConvergenceAgentError("base_agent_receipt must be a plain object")
+    try:
+        verify_agent_convergence_receipt(base_agent_receipt)
+    except VerifiedConvergenceAgentError as exc:
+        raise VerifiedConvergenceAgentError(
+            "base Agent receipt verification failed"
+        ) from exc
+    base = deepcopy(base_agent_receipt)
+    bindings = _normalize_dependency_bindings(
+        dependency_bindings, base["source_receipt_hashes"]
+    )
+    declared_receipts = _normalize_dependency_receipts(dependency_receipts)
+    source_hashes = set(base["source_receipt_hashes"])
+    if source_hashes & {item["receipt_hash"] for item in declared_receipts}:
+        raise VerifiedConvergenceAgentError(
+            "dependency receipts must not replace analysis receipt nodes"
+        )
+
+    graph_receipts = [
+        {
+            "receipt_hash": binding["analysis_receipt_hash"],
+            "evidence_receipt_hashes": binding["dependency_receipt_hashes"],
+        }
+        for binding in bindings
+    ]
+    graph_receipts.extend(declared_receipts)
+    try:
+        graph = build_receipt_graph(graph_receipts)
+        plan = plan_dependency_rechecks(graph, changed_dependency_hashes)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise VerifiedConvergenceAgentError("dependency recheck planning failed") from exc
+
+    impacted = {
+        item["receipt_hash"]: item["trigger_paths"]
+        for item in plan["results"]
+        if item["status"] == RECHECK_REQUIRED
+        and item["receipt_hash"] in source_hashes
+    }
+    withheld: list[dict[str, Any]] = []
+    eligible_by_status: dict[str, list[dict[str, Any]]] = {
+        SUPPORTED: [],
+        CONTRADICTED: [],
+        UNRESOLVED: [],
+        CONDITIONALLY_DIVERGENT: [],
+    }
+    for finding in base["finding_groups"]:
+        affected_sources = sorted(_finding_source_hashes(finding) & set(impacted))
+        if affected_sources:
+            withheld.append({
+                "finding": deepcopy(finding),
+                "affected_analysis_receipt_hashes": affected_sources,
+                "trigger_paths": [
+                    path
+                    for source_hash in affected_sources
+                    for path in impacted[source_hash]
+                ],
+                "reason": "DECLARED_DEPENDENCY_RECHECK_REQUIRED",
+            })
+        else:
+            eligible_by_status[finding["status"]].append(deepcopy(finding))
+
+    eligible_unresolved = [
+        *eligible_by_status[UNRESOLVED],
+        *eligible_by_status[CONDITIONALLY_DIVERGENT],
+    ]
+    if withheld:
+        run_status = "RECHECK_REQUIRED"
+    elif eligible_unresolved:
+        run_status = "PARTIAL_NO_DECLARED_RECHECK_IMPACT"
+    else:
+        run_status = "NO_DECLARED_RECHECK_IMPACT"
+
+    body = {
+        "type": DEPENDENCY_CHECKED_RECEIPT_TYPE,
+        "version": DEPENDENCY_CHECKED_RECEIPT_VERSION,
+        "run_id": _identifier(run_id, "run_id"),
+        "base_agent_receipt": base,
+        "dependency_bindings": bindings,
+        "dependency_receipts": declared_receipts,
+        "recheck_plan": plan,
+        "eligible_converged_findings": eligible_by_status[SUPPORTED],
+        "eligible_rejected_findings": eligible_by_status[CONTRADICTED],
+        "eligible_unresolved_findings": eligible_unresolved,
+        "withheld_findings": withheld,
+        "run_status": run_status,
+        "pending_stages": ["DEPENDENCY_RECHECK_EXECUTION", "ADMISSION", "PERSISTENCE"],
+        "stopped": True,
+        "validity_claimed": False,
+        "truth_claimed": False,
+        "recommended_action": None,
+        "accepted": False,
+        "selection_authority": "NONE",
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+        "interpretation_notice": (
+            "Affected findings are withheld because declared graph paths require "
+            "recheck. Eligible means only that no supplied changed hash reaches the "
+            "finding; it does not establish present validity, usefulness, or truth."
+        ),
+    }
+    return {**body, "receipt_hash": _hash(body)}
+
+
+def verify_dependency_checked_agent_receipt(receipt: Mapping[str, Any]) -> bool:
+    """Rebuild a dependency-checked Agent receipt exactly."""
+    if type(receipt) is not dict or set(receipt) != _DEPENDENCY_CHECKED_RECEIPT_FIELDS:
+        raise VerifiedConvergenceAgentError("dependency-checked receipt fields mismatch")
+    if (
+        receipt["type"] != DEPENDENCY_CHECKED_RECEIPT_TYPE
+        or receipt["version"] != DEPENDENCY_CHECKED_RECEIPT_VERSION
+    ):
+        raise VerifiedConvergenceAgentError("dependency-checked receipt schema mismatch")
+    supplied_hash = receipt["receipt_hash"]
+    _sha256(supplied_hash, "receipt_hash")
+    body = {key: value for key, value in receipt.items() if key != "receipt_hash"}
+    if _hash(body) != supplied_hash:
+        raise VerifiedConvergenceAgentError("dependency-checked receipt hash mismatch")
+    try:
+        expected = run_dependency_checked_convergence_agent(
+            run_id=receipt["run_id"],
+            base_agent_receipt=receipt["base_agent_receipt"],
+            dependency_bindings=receipt["dependency_bindings"],
+            dependency_receipts=receipt["dependency_receipts"],
+            changed_dependency_hashes=receipt["recheck_plan"][
+                "changed_dependency_hashes"
+            ],
+        )
+    except (KeyError, TypeError) as exc:
+        raise VerifiedConvergenceAgentError(
+            "dependency-checked receipt is malformed"
+        ) from exc
+    if dict(receipt) != expected:
+        raise VerifiedConvergenceAgentError(
+            "dependency-checked receipt is internally inconsistent"
+        )
     return True

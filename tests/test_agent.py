@@ -6,9 +6,11 @@ import pytest
 
 from holosim.agent import (
     CONDITIONALLY_DIVERGENT,
+    run_dependency_checked_convergence_agent,
     VerifiedConvergenceAgentError,
     run_verified_convergence_agent,
     verify_agent_convergence_receipt,
+    verify_dependency_checked_agent_receipt,
 )
 from holosim.bounded_evidence_analyst import build_evidence_analysis_receipt
 from holosim.canonical import stable_hash
@@ -191,3 +193,164 @@ def test_extra_field_is_rejected() -> None:
     receipt["autonomous"] = True
     with pytest.raises(VerifiedConvergenceAgentError, match="fields mismatch"):
         verify_agent_convergence_receipt(receipt)
+
+
+def dependency_checked(base, bindings, changes, dependencies=()):
+    return run_dependency_checked_convergence_agent(
+        run_id="agent.recheck-1",
+        base_agent_receipt=base,
+        dependency_bindings=bindings,
+        dependency_receipts=list(dependencies),
+        changed_dependency_hashes=changes,
+    )
+
+
+def binding(receipt, *dependencies):
+    return {
+        "analysis_receipt_hash": receipt["receipt_hash"],
+        "dependency_receipt_hashes": list(dependencies),
+    }
+
+
+def test_changed_dependency_withholds_only_affected_finding() -> None:
+    first = analysis("a1", "scope-1", finding_id="f1")
+    second = analysis("a2", "scope-1", finding_id="f2", statement="Y holds")
+    changed = stable_hash({"dependency": "changed"})
+    result = dependency_checked(
+        run([first, second]),
+        [binding(first, changed), binding(second)],
+        [changed],
+    )
+    assert result["run_status"] == "RECHECK_REQUIRED"
+    assert result["withheld_findings"][0]["finding"]["finding_id"] == "f1"
+    assert result["withheld_findings"][0]["trigger_paths"] == [
+        [changed, first["receipt_hash"]]
+    ]
+    assert [item["finding_id"] for item in result["eligible_converged_findings"]] == ["f2"]
+    assert verify_dependency_checked_agent_receipt(result) is True
+
+
+def test_transitive_dependency_change_withholds_finding() -> None:
+    source = analysis("a1", "scope-1")
+    changed = stable_hash({"dependency": "root"})
+    middle = stable_hash({"dependency": "middle"})
+    result = dependency_checked(
+        run([source]),
+        [binding(source, middle)],
+        [changed],
+        [{"receipt_hash": middle, "previous_receipt_hash": changed}],
+    )
+    assert result["withheld_findings"][0]["trigger_paths"] == [
+        [changed, middle, source["receipt_hash"]]
+    ]
+
+
+def test_unobserved_change_does_not_invent_impact_or_validity() -> None:
+    source = analysis("a1", "scope-1")
+    unrelated = stable_hash({"dependency": "unrelated"})
+    result = dependency_checked(
+        run([source]), [binding(source)], [unrelated]
+    )
+    assert result["run_status"] == "NO_DECLARED_RECHECK_IMPACT"
+    assert result["withheld_findings"] == []
+    assert result["eligible_converged_findings"][0]["finding_id"] == "f1"
+    assert result["validity_claimed"] is False
+    assert result["recheck_plan"]["unobserved_changed_hashes"] == [unrelated]
+
+
+def test_every_analysis_receipt_requires_dependency_binding() -> None:
+    first = analysis("a1", "scope-1")
+    second = analysis("a2", "scope-1")
+    with pytest.raises(VerifiedConvergenceAgentError, match="cover every"):
+        dependency_checked(
+            run([first, second]),
+            [binding(first)],
+            [stable_hash({"changed": 1})],
+        )
+
+
+def test_dependency_binding_order_is_deterministic() -> None:
+    first = analysis("a1", "scope-1", finding_id="f1")
+    second = analysis("a2", "scope-1", finding_id="f2", statement="Y holds")
+    changed = stable_hash({"changed": 1})
+    base = run([first, second])
+    left = dependency_checked(
+        base, [binding(first, changed), binding(second)], [changed]
+    )
+    right = dependency_checked(
+        base, [binding(second), binding(first, changed)], [changed]
+    )
+    assert left == right
+
+
+def test_tampered_base_agent_receipt_fails_before_planning() -> None:
+    source = analysis("a1", "scope-1")
+    base = run([source])
+    base["run_status"] = "ACCEPTED"
+    with pytest.raises(VerifiedConvergenceAgentError, match="base Agent"):
+        dependency_checked(
+            base,
+            [binding(source)],
+            [stable_hash({"changed": 1})],
+        )
+
+
+def test_dependency_cycle_fails_closed() -> None:
+    source = analysis("a1", "scope-1")
+    first = stable_hash({"dependency": 1})
+    second = stable_hash({"dependency": 2})
+    with pytest.raises(VerifiedConvergenceAgentError, match="planning failed"):
+        dependency_checked(
+            run([source]),
+            [binding(source, first)],
+            [first],
+            [
+                {"receipt_hash": first, "previous_receipt_hash": second},
+                {"receipt_hash": second, "previous_receipt_hash": first},
+            ],
+        )
+
+
+def test_dependency_checked_agent_stops_without_authority() -> None:
+    source = analysis("a1", "scope-1")
+    result = dependency_checked(
+        run([source]),
+        [binding(source)],
+        [stable_hash({"changed": 1})],
+    )
+    assert result["pending_stages"] == [
+        "DEPENDENCY_RECHECK_EXECUTION", "ADMISSION", "PERSISTENCE",
+    ]
+    assert result["stopped"] is True
+    assert result["truth_claimed"] is False
+    assert result["recommended_action"] is None
+    assert result["accepted"] is False
+    assert result["selection_authority"] == "NONE"
+    assert result["write_authority"] == "NONE"
+    assert result["execution_authority"] == "NONE"
+
+
+def test_dependency_checked_receipt_tampering_is_rejected() -> None:
+    source = analysis("a1", "scope-1")
+    result = dependency_checked(
+        run([source]),
+        [binding(source)],
+        [stable_hash({"changed": 1})],
+    )
+    result["validity_claimed"] = True
+    with pytest.raises(VerifiedConvergenceAgentError, match="hash mismatch"):
+        verify_dependency_checked_agent_receipt(result)
+
+
+def test_rehashed_dependency_checked_authority_forgery_is_rejected() -> None:
+    source = analysis("a1", "scope-1")
+    result = dependency_checked(
+        run([source]),
+        [binding(source)],
+        [stable_hash({"changed": 1})],
+    )
+    result["accepted"] = True
+    body = {key: item for key, item in result.items() if key != "receipt_hash"}
+    result["receipt_hash"] = stable_hash(body)
+    with pytest.raises(VerifiedConvergenceAgentError, match="internally inconsistent"):
+        verify_dependency_checked_agent_receipt(result)
