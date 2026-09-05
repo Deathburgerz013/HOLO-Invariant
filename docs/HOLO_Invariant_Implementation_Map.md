@@ -2970,3 +2970,80 @@
 | | Declared change now maps to its exact downstream recheck set.|
 | | Stop before treating graph silence as proof of validity.     |
 | |}==============================================================|
+| |}==============================================================|
+| | VERIFIED_CONVERGENCE_AGENT_039_OVERLAY                       |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-05                                             |
+| | BRANCH: feat/verified-convergence-agent                     |
+| | BASE: main@9dcd56d                                           |
+| | IMPLEMENTATION: holosim/agent.py                             |
+| | IMPLEMENTATION_SHA256:                                       |
+| | ce5218954516f9a933c6fc00ffd1344ebd940c79e9bdb261d8eee42a060fdf37
+| | FOCUSED_TEST: tests/test_agent.py                             |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 79156f240e23d293ce5729f3be5d05b3f69a2f159b7314eca23d420e784f1e92
+| | REGISTER_TEST_SHA256:                                        |
+| | 8c8494bb9040c6e61764f63f473fdc7ef20133975f00859c6eb538b52dc8620e
+| | COMMITTED_REGISTER_SHA256:                                   |
+| | f36a302152e30a15ded253b3e4d9304d71185e337e4f1dfe3b87b0515986823f
+| |                                                              |
+| | CONCRETE_MISSING_COMPOSITION                                |
+| | The repository had a read-only proposal runtime and bounded  |
+| | Analyst receipts, but no coordinator verified multiple       |
+| | Analyst outputs and derived a shared candidate state while   |
+| | preserving scope-dependent disagreement.                     |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - run_verified_convergence_agent(...)                        |
+| | - verify_agent_convergence_receipt(receipt)                  |
+| |                                                              |
+| | AGENT_BOUNDARY                                              |
+| | - Every input Analyst receipt is independently rebuilt by its|
+| |   registered verifier before any finding is considered.      |
+| | - Repeated support for one statement converges only within   |
+| |   the exact finding ID and declared scope geometry.           |
+| | - Contradicted findings remain preserved as rejected; unknown|
+| |   evidence and statement-identity conflicts remain unresolved.|
+| | - Support under one scope and contradiction under another is |
+| |   CONDITIONALLY_DIVERGENT, never averaged or silently erased.|
+| | - Receipt and analysis ordering cannot alter the result.     |
+| | - The run emits CONVERGED_CANDIDATE, PARTIAL, or             |
+| |   NO_SUPPORTED_FINDINGS; it never emits acceptance.          |
+| | - DEPENDENCY_RECHECK, ADMISSION, and PERSISTENCE remain      |
+| |   explicit pending stages, and the agent stops before them.  |
+| | - The new receipt boundary is registered immediately, moving|
+| |   the observed baseline to 18 discoverable, 8 registered,   |
+| |   10 unregistered, and 0 stale modules.                      |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused Agent, Analyst, and registry tests:                |
+| |   63 passed in 5.43 s.                                      |
+| | - Full Windows repository suite: 1604 passed, 4 skipped in  |
+| |   30.86 s.                                                   |
+| | - One initial negative test changed SUPPORTED to the same    |
+| |   SUPPORTED value and therefore did not tamper with anything.|
+| |   The fixture was corrected to change it to CONTRADICTED;    |
+| |   the production verifier then rejected it as intended.      |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Converged means only repeated deterministic support derived|
+| |   from intact supplied Analyst receipts.                     |
+| | - The agent does not execute the declared analytical methods,|
+| |   authenticate external evidence, infer usefulness or truth, |
+| |   recommend action, or resolve conditional differences.      |
+| | - This vertical slice does not yet compose dependency recheck,|
+| |   contradiction resolution, admission, or persistence.      |
+| | - It does not replace holosim/agent_runtime.py.               |
+| | - method_executed=false, usefulness_inferred=false,          |
+| |   truth_claimed=false, accepted=false, and all selection,    |
+| |   write, and execution authority remain NONE.                |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | The Agent now verifies and converges one bounded finding layer.|
+| | Stop before pretending its remaining pipeline is composed.  |
+| |}==============================================================|
