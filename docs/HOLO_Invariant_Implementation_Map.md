@@ -3191,3 +3191,78 @@
 | | Every scoped Python surface now has a reproducible address.  |
 | | Stop before calling syntax a worker, agent, or valid behavior.|
 | |}==============================================================|
+| |}==============================================================|
+| | REPOSITORY_OBSERVED_GENESIS_ORIGINS_042_OVERLAY             |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-05                                             |
+| | BRANCH: feat/repository-observed-genesis-origins            |
+| | BASE: main@093e573                                           |
+| | IMPLEMENTATION: holosim/genesis_origins.py                   |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 5b4d14bbae1114054d0fb3cdce8bb4ce16d4705cf2251ee48c0b0e7fb7afc7f6
+| | FOCUSED_TEST: tests/test_genesis_origins.py                   |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 6d4c87d8e4575436e9020a8edc406f10f797c5323b83a748a9030e46e9d0a377
+| | REGISTER_TEST_SHA256_NORMALIZED:                             |
+| | ed5a48301357389cdf640c503638d3f6e27717fef82d5a7afb28a51ce1cfb1a0
+| | COMMITTED_REGISTER_SHA256_NORMALIZED:                        |
+| | adfb3e0cff5739db41bf3c35577dfc52fedccd1b589fd029fc50b80ee290b205
+| |                                                              |
+| | CONCRETE_ORIGIN_GAP                                         |
+| | The Python inventory established present source identity but |
+| | could not identify where an exact path first appeared in the |
+| | reachable repository history supporting that present state.  |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - observe_repository_path_genesis(...)                       |
+| | - verify_genesis_origin_receipt(...)                         |
+| |                                                              |
+| | GENESIS_BOUNDARY                                            |
+| | - One requested revision resolves to a pinned full commit ID.|
+| | - The exact path and its blob at that commit are recorded.    |
+| | - Every reachable exact-path addition event is retained with |
+| |   its commit, parents, and blob identity.                    |
+| | - An addition having no earlier addition ancestor becomes a  |
+| |   genesis candidate; multiple incomparable candidates remain |
+| |   AMBIGUOUS rather than being forced into one origin.        |
+| | - Delete and re-add events remain visible without replacing  |
+| |   the earlier ancestry candidate.                            |
+| | - Verification rebuilds from the pinned commit, so later HEAD|
+| |   movement and uncommitted worktree edits do not rewrite it. |
+| | - Unsafe paths, absent history, malformed object IDs, failed |
+| |   Git observations, tampering, and authority claims fail     |
+| |   closed.                                                    |
+| | - The receipt boundary is registered, moving the observed    |
+| |   baseline to 20 discoverable, 10 registered, 10 unregistered,|
+| |   and 0 stale receipt modules.                               |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused origin and registry tests:                        |
+| |   33 passed in 19.88 s.                                     |
+| | - Full Windows repository suite: 1643 passed, 4 skipped in  |
+| |   39.72 s.                                                   |
+| | - The first focused run found a test helper attempting Git   |
+| |   initialization before creating its nested directory. The   |
+| |   fixture was corrected; production origin logic was unchanged.|
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Genesis means earliest reachable addition of one exact path|
+| |   under one pinned revision, not absolute first creation.    |
+| | - Rename and copy lineage are not followed or inferred.      |
+| | - Refs not reachable from the pinned revision, deleted refs, |
+| |   rewritten history, shallow omissions, and external history |
+| |   remain outside the observation.                            |
+| | - Commit metadata and object identity do not prove human     |
+| |   authorship, intent, originality, truth, or ownership.      |
+| | - The observer does not mutate Git history or the worktree.  |
+| | - accepted=false and write_authority=NONE remain fixed.     |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Exact-path beginnings are now witnessed without mythology.  |
+| | Stop before turning reachable history into absolute origin.  |
+| |}==============================================================|
