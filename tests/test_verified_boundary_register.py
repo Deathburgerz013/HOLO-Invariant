@@ -8,6 +8,8 @@ from pathlib import Path
 import pytest
 
 from holosim.guarantee_registry import (
+    compare_boundary_register_completeness,
+    discover_receipt_boundaries,
     GuaranteeRegistryError,
     load_boundary_register,
     lookup_boundary,
@@ -181,3 +183,86 @@ def test_committed_json_is_canonical_data_not_generated_authority() -> None:
     raw = json.loads(REGISTER_PATH.read_text(encoding="utf-8"))
     assert raw["accepted"] is False
     assert raw["write_authority"] == "NONE"
+
+
+def test_discovery_finds_current_versioned_receipt_boundaries() -> None:
+    discovered = discover_receipt_boundaries(root=ROOT)
+    assert len(discovered) == 16
+    paths = {item["implementation_path"] for item in discovered}
+    assert "holosim/functional_awareness_loop.py" in paths
+    assert "holosim/time_scoped_truth.py" in paths
+
+
+def test_completeness_preserves_current_unregistered_baseline() -> None:
+    result = compare_boundary_register_completeness(register(), root=ROOT)
+    assert result["status"] == "INCOMPLETE"
+    assert result["counts"] == {
+        "REGISTERED": 6,
+        "UNREGISTERED": 10,
+        "STALE": 0,
+    }
+    assert [
+        item["implementation_path"]
+        for item in result["results"]
+        if item["status"] == "UNREGISTERED"
+    ] == [
+        "holosim/bounded_repository_compression_evaluator.py",
+        "holosim/bounded_transformation_engine.py",
+        "holosim/environment_episode_reopen_receipt.py",
+        "holosim/environment_invariant_receipts.py",
+        "holosim/functional_motion_equivalence.py",
+        "holosim/interpretation.py",
+        "holosim/perceptual_capability_boundary.py",
+        "holosim/semantic_signal_loss_receipts.py",
+        "holosim/spine_admission.py",
+        "holosim/transition_receipt.py",
+    ]
+    assert result["accepted"] is False
+    assert result["write_authority"] == "NONE"
+
+
+def test_discovery_reports_new_boundary_against_existing_register(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "holosim"
+    package.mkdir()
+    source = package / "new_boundary.py"
+    source.write_text(
+        'RECEIPT_TYPE = "new_receipt"\n'
+        "RECEIPT_VERSION = 1\n"
+        "def verify_new_receipt(receipt):\n"
+        "    return True\n",
+        encoding="utf-8",
+    )
+    value = register()
+    result = compare_boundary_register_completeness(value, root=tmp_path)
+    assert result["status"] == "INCOMPLETE"
+    assert result["counts"]["UNREGISTERED"] == 1
+    matching = [
+        item for item in result["results"]
+        if item["implementation_path"] == "holosim/new_boundary.py"
+    ]
+    assert matching[0]["status"] == "UNREGISTERED"
+
+
+def test_discovery_reports_changed_registered_contract_as_stale(
+    tmp_path: Path,
+) -> None:
+    value = register()
+    item = value["boundaries"][0]
+    source = tmp_path / item["implementation_path"]
+    source.parent.mkdir(parents=True)
+    receipt = item["receipts"][0]
+    source.write_text(
+        f'{receipt["type_constant"]} = "changed_type"\n'
+        f'{receipt["version_constant"]} = {receipt["version"]}\n'
+        f'def {receipt["verifier"]}(receipt):\n'
+        "    return True\n",
+        encoding="utf-8",
+    )
+    result = compare_boundary_register_completeness(value, root=tmp_path)
+    matching = [
+        entry for entry in result["results"]
+        if entry["implementation_path"] == item["implementation_path"]
+    ]
+    assert matching[0]["status"] == "STALE"
