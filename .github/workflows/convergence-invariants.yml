@@ -1,0 +1,37 @@
+name: Convergence Invariants
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  convergence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install package with dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Verify convergence contracts
+        run: |
+          python -m pytest -q \
+            tests/test_agent.py \
+            tests/test_fact_identity.py \
+            tests/test_fact_identity_receipt_rebuild.py \
+            tests/test_no_last_speaker_characterization.py \
+            tests/test_no_last_speaker_residual_characterization.py \
+            tests/test_residual_check_target_characterization.py
