@@ -6,7 +6,7 @@
       "boundary_id": "agent-verified-convergence",
       "module": "holosim.agent",
       "implementation_path": "holosim/agent.py",
-      "implementation_sha256": "ce5218954516f9a933c6fc00ffd1344ebd940c79e9bdb261d8eee42a060fdf37",
+      "implementation_sha256": "5e565a47d25b288183ad885925616087ede78360a55b5af9b2dc9f91e2899a78",
       "receipts": [
         {
           "type_constant": "RECEIPT_TYPE",
@@ -14,10 +14,17 @@
           "version_constant": "RECEIPT_VERSION",
           "version": 1,
           "verifier": "verify_agent_convergence_receipt"
+        },
+        {
+          "type_constant": "DEPENDENCY_CHECKED_RECEIPT_TYPE",
+          "type": "dependency_checked_convergence_agent_receipt",
+          "version_constant": "DEPENDENCY_CHECKED_RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_dependency_checked_agent_receipt"
         }
       ],
       "test_path": "tests/test_agent.py",
-      "test_sha256": "79156f240e23d293ce5729f3be5d05b3f69a2f159b7314eca23d420e784f1e92"
+      "test_sha256": "d814c04f8671011d86c00ea7e44138012ba2c70a504db1f7523449154df5b12e"
     },
     {
       "boundary_id": "bounded-architect",
@@ -148,5 +155,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "bfe9d52288ae4b11c952e5bc85ba12d8f8d9aef59faba1f1ad473260f49c995d"
+  "register_hash": "8af7a3495cd28a25f420bdf88da5823b0a8c86278c730e0ad10dbc6d638adac0"
 }

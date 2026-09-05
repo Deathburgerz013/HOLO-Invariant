@@ -129,6 +129,7 @@ def test_changed_registered_artifact_is_detected(
 def test_missing_registered_verifier_is_detected(tmp_path: Path) -> None:
     value = register()
     item = deepcopy(value["boundaries"][0])
+    item["receipts"] = [item["receipts"][0]]
     source_path = tmp_path / item["implementation_path"]
     test_path = tmp_path / item["test_path"]
     source_path.parent.mkdir(parents=True)

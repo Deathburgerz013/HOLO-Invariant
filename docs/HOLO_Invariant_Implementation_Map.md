@@ -3047,3 +3047,73 @@
 | | The Agent now verifies and converges one bounded finding layer.|
 | | Stop before pretending its remaining pipeline is composed.  |
 | |}==============================================================|
+| |}==============================================================|
+| | AGENT_DEPENDENCY_RECHECK_GATE_040_OVERLAY                    |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-05                                             |
+| | BRANCH: feat/agent-dependency-recheck-gate                  |
+| | BASE: main@9a4c722                                           |
+| | IMPLEMENTATION: holosim/agent.py                             |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 5e565a47d25b288183ad885925616087ede78360a55b5af9b2dc9f91e2899a78
+| | FOCUSED_TEST: tests/test_agent.py                             |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | d814c04f8671011d86c00ea7e44138012ba2c70a504db1f7523449154df5b12e
+| | REGISTER_TEST_SHA256_NORMALIZED:                             |
+| | a8822238bf4b965c66f24d8504b8ad6ce3b2c7bba6687b1e0f2484a8d649b0f1
+| | COMMITTED_REGISTER_SHA256_NORMALIZED:                        |
+| | 613bb3943d475d76a580bcdb8ded923b5abfaaf5450ed2b0d6d5f32b43492726
+| |                                                              |
+| | CONCRETE_STALE_EVIDENCE_GAP                                 |
+| | The convergence agent verified supplied Analyst receipts,    |
+| | but an intact historical receipt could remain converged after|
+| | an explicitly declared upstream dependency changed.          |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - run_dependency_checked_convergence_agent(...)              |
+| | - verify_dependency_checked_agent_receipt(receipt)           |
+| |                                                              |
+| | RECHECK_GATE                                                |
+| | - The version-1 convergence contract remains unchanged.      |
+| | - A second versioned receipt verifies the base Agent receipt,|
+| |   exact analysis-to-graph bindings, declared dependency      |
+| |   receipts, and caller-declared changed hashes.              |
+| | - The existing receipt graph and dependency-aware planner    |
+| |   determine which source Analyst receipts require recheck.   |
+| | - Findings sourced from affected receipts are withheld.      |
+| | - Unaffected findings are only eligible; they are not called |
+| |   valid merely because no declared path reached them.        |
+| | - Transitive trigger paths remain explicit and deterministic.|
+| | - Missing bindings, tampering, cycles, and authority claims  |
+| |   fail closed.                                               |
+| | - DEPENDENCY_RECHECK_EXECUTION, ADMISSION, and PERSISTENCE   |
+| |   remain pending stages.                                     |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused Agent, graph, and registry tests:                  |
+| |   67 passed in 1.33 s.                                      |
+| | - Full Windows repository suite: 1614 passed, 4 skipped in  |
+| |   28.70 s.                                                   |
+| | - Initial registry checks exposed platform-line-ending hash  |
+| |   mismatch and a one-receipt fixture assumption. Hashes were |
+| |   normalized and the fixture isolated its intended receipt.  |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Changed hashes and dependency edges remain caller-declared;|
+| |   this gate does not observe external change independently.  |
+| | - No observed path means only NO_RECHECK_INDICATED, not VALID.|
+| | - The gate plans and withholds; it does not execute rechecks,|
+| |   admit findings, persist state, or supersede history.       |
+| | - validity_claimed=false, truth_claimed=false,              |
+| |   accepted=false, recommendation=null, and all authorities   |
+| |   remain NONE.                                               |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Declared dependency change now withholds stale convergence.  |
+| | Stop before treating eligibility as present validity.        |
+| |}==============================================================|
