@@ -348,6 +348,11 @@ def run_verified_convergence_agent(
 ) -> dict[str, Any]:
     """Verify Analyst receipts and converge only bounded supported findings."""
     receipts = _verified_receipts(analysis_receipts)
+    if fact_identity_bindings and fact_identity_receipts:
+        raise VerifiedConvergenceAgentError(
+            "fact identity bindings and receipts cannot be combined"
+        )
+
     verified_identity_receipts = _verified_fact_identity_receipts(
         fact_identity_receipts,
         receipts,
@@ -430,7 +435,11 @@ def verify_agent_convergence_receipt(receipt: Mapping[str, Any]) -> bool:
             run_id=receipt["run_id"],
             objective=receipt["objective"],
             analysis_receipts=receipt["analysis_receipts"],
-            fact_identity_bindings=receipt["fact_identity_bindings"],
+            fact_identity_bindings=(
+                ()
+                if receipt["fact_identity_receipts"]
+                else receipt["fact_identity_bindings"]
+            ),
             fact_identity_receipts=receipt["fact_identity_receipts"],
         )
     except (KeyError, TypeError) as exc:
