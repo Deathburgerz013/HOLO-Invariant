@@ -2907,3 +2907,66 @@
 | | Exact declared identity now yields one reproducible address.|
 | | Stop before inferring that matching keys prove matching truth.|
 | |}==============================================================|
+| |}==============================================================|
+| | DEPENDENCY_AWARE_RECHECK_PLANNER_038_OVERLAY                 |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-05                                             |
+| | BRANCH: feat/dependency-aware-recheck-planner               |
+| | BASE: main@766652a                                           |
+| | IMPLEMENTATION: holosim/receipt_graph.py                     |
+| | IMPLEMENTATION_SHA256:                                       |
+| | a6fe648c483453c2cdbf9d5341d19ca74a3602e3c732b155487f975b28203394
+| | FOCUSED_TEST: tests/test_receipt_graph.py                     |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 5f78cf9a7097a25a2a34ad33933f0b4f04e14573919a63443bf406943f9dd59b
+| |                                                              |
+| | CONCRETE_MISSING_FUNCTION                                   |
+| | The receipt graph could walk backward from one target to its |
+| | evidence, and validation marks could recheck one known check,|
+| | but no function could trace a changed dependency forward to  |
+| | every downstream receipt requiring reconsideration.         |
+| |                                                              |
+| | IMPLEMENTED_FUNCTION                                        |
+| | - plan_dependency_rechecks(graph, changed_dependency_hashes) |
+| |                                                              |
+| | RECHECK_BOUNDARY                                            |
+| | - Caller-declared changed hashes are traced only across      |
+| |   explicit receipt dependency edges.                         |
+| | - Direct, transitive, and declared external dependencies mark|
+| |   every reachable receipt RECHECK_REQUIRED.                  |
+| | - Unrelated receipts remain NO_RECHECK_INDICATED. That status|
+| |   deliberately does not mean VALID.                          |
+| | - Each affected receipt retains one deterministic shortest  |
+| |   trigger path from each relevant changed hash.              |
+| | - Changed-input ordering cannot alter the canonical plan.    |
+| | - Empty, duplicate, malformed, structurally invalid, or      |
+| |   cyclic inputs fail closed.                                 |
+| | - Changed hashes absent from both nodes and declared edges   |
+| |   remain explicit as unobserved_changed_hashes.              |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused graph, revalidation, and check-audit tests:        |
+| |   25 passed in 0.51 s.                                      |
+| | - Full Windows repository suite: 1581 passed, 4 skipped in  |
+| |   28.08 s.                                                   |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - A changed hash is supplied by the caller; the planner does|
+| |   not independently observe environmental change.           |
+| | - Reachability establishes declared impact, not truth,       |
+| |   causation outside the graph, or present invalidity.        |
+| | - Missing dependency declarations cannot be inferred.       |
+| | - The plan does not perform rechecks, supersede history,     |
+| |   mutate receipts, accept results, or grant write authority. |
+| | - validity_claimed=false, accepted=false, and               |
+| |   write_authority=NONE remain fixed.                         |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Declared change now maps to its exact downstream recheck set.|
+| | Stop before treating graph silence as proof of validity.     |
+| |}==============================================================|

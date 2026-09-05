@@ -11,6 +11,14 @@ import re
 from copy import deepcopy
 from typing import Any, Iterable, Mapping
 
+from holosim.canonical import stable_hash
+
+
+RECHECK_PLAN_TYPE = "dependency_recheck_plan"
+RECHECK_PLAN_VERSION = 1
+RECHECK_REQUIRED = "RECHECK_REQUIRED"
+NO_RECHECK_INDICATED = "NO_RECHECK_INDICATED"
+
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _SINGLE_DEPENDENCY_FIELDS = (
     "previous_receipt_hash",
@@ -125,3 +133,121 @@ def minimal_evidence_chain(
 
     visit(target_hash)
     return ordered
+
+
+def plan_dependency_rechecks(
+    graph: Mapping[str, Mapping[str, Any]],
+    changed_dependency_hashes: Iterable[str],
+) -> dict[str, Any]:
+    """Trace declared changes forward to every affected receipt.
+
+    A changed hash is caller-supplied evidence, not a change detected by this
+    function. The plan follows only explicit graph edges. Receipts outside the
+    affected closure are classified ``NO_RECHECK_INDICATED`` rather than valid.
+    One deterministic shortest path is retained from each relevant changed hash
+    to each affected receipt.
+    """
+    if not isinstance(graph, Mapping):
+        raise ValueError("graph must be a mapping")
+    if isinstance(changed_dependency_hashes, (str, bytes, Mapping)):
+        raise ValueError("changed_dependency_hashes must be an iterable of hashes")
+
+    changed: list[str] = []
+    seen_changes: set[str] = set()
+    for value in changed_dependency_hashes:
+        item = _require_receipt_hash(value, "changed_dependency_hash")
+        if item in seen_changes:
+            raise ValueError("changed dependency hashes must be unique")
+        seen_changes.add(item)
+        changed.append(item)
+    if not changed:
+        raise ValueError("at least one changed dependency hash is required")
+    changed.sort()
+
+    dependencies_by_receipt: dict[str, tuple[str, ...]] = {}
+    reverse: dict[str, set[str]] = {}
+    for raw_hash, node in graph.items():
+        receipt_hash = _require_receipt_hash(raw_hash, "graph receipt hash")
+        if not isinstance(node, Mapping):
+            raise ValueError("graph nodes must be mappings")
+        dependencies = node.get("dependencies")
+        if not isinstance(dependencies, (list, tuple)):
+            raise ValueError("graph dependencies must be a list or tuple")
+        checked_dependencies = tuple(
+            _require_receipt_hash(value, "graph dependency")
+            for value in dependencies
+        )
+        if len(checked_dependencies) != len(set(checked_dependencies)):
+            raise ValueError("graph dependencies must be unique")
+        dependencies_by_receipt[receipt_hash] = checked_dependencies
+        for dependency in checked_dependencies:
+            reverse.setdefault(dependency, set()).add(receipt_hash)
+
+    # Reject cycles across the whole supplied graph, including disconnected parts.
+    visited: set[str] = set()
+    active: set[str] = set()
+
+    def check_cycle(receipt_hash: str) -> None:
+        if receipt_hash in visited:
+            return
+        if receipt_hash in active:
+            raise ValueError("receipt dependency cycle detected")
+        active.add(receipt_hash)
+        for dependency in dependencies_by_receipt[receipt_hash]:
+            if dependency in dependencies_by_receipt:
+                check_cycle(dependency)
+        active.remove(receipt_hash)
+        visited.add(receipt_hash)
+
+    for receipt_hash in sorted(dependencies_by_receipt):
+        check_cycle(receipt_hash)
+
+    paths_by_receipt: dict[str, dict[str, list[str]]] = {}
+    for origin in changed:
+        frontier: list[tuple[str, list[str]]] = [(origin, [origin])]
+        reached = {origin}
+        while frontier:
+            current, path = frontier.pop(0)
+            if current in dependencies_by_receipt:
+                paths_by_receipt.setdefault(current, {})[origin] = path
+            for dependent in sorted(reverse.get(current, ())):
+                if dependent in reached:
+                    continue
+                reached.add(dependent)
+                frontier.append((dependent, [*path, dependent]))
+
+    results = []
+    for receipt_hash in sorted(dependencies_by_receipt):
+        origin_paths = paths_by_receipt.get(receipt_hash, {})
+        results.append({
+            "receipt_hash": receipt_hash,
+            "status": (
+                RECHECK_REQUIRED if origin_paths else NO_RECHECK_INDICATED
+            ),
+            "trigger_paths": [
+                origin_paths[origin] for origin in sorted(origin_paths)
+            ],
+        })
+
+    referenced_hashes = set(dependencies_by_receipt)
+    referenced_hashes.update(reverse)
+    body = {
+        "type": RECHECK_PLAN_TYPE,
+        "version": RECHECK_PLAN_VERSION,
+        "changed_dependency_hashes": changed,
+        "unobserved_changed_hashes": [
+            value for value in changed if value not in referenced_hashes
+        ],
+        "results": results,
+        "recheck_required_count": sum(
+            item["status"] == RECHECK_REQUIRED for item in results
+        ),
+        "validity_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "interpretation_notice": (
+            "The plan reports reachability through declared dependencies only. "
+            "NO_RECHECK_INDICATED does not establish present validity."
+        ),
+    }
+    return {**body, "plan_hash": stable_hash(body)}
