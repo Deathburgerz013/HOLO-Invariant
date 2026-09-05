@@ -39,13 +39,16 @@ CONDITIONALLY_DIVERGENT = "CONDITIONALLY_DIVERGENT"
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}")
 _RECEIPT_FIELDS = {
     "type", "version", "run_id", "objective", "analysis_receipts",
-    "source_receipt_hashes", "finding_groups", "converged_findings",
+    "fact_identity_bindings", "source_receipt_hashes", "finding_groups",
+    "converged_findings",
     "rejected_findings", "unresolved_findings", "run_status",
     "pending_stages", "stopped", "method_executed", "usefulness_inferred",
     "truth_claimed", "recommended_action", "accepted", "selection_authority",
     "write_authority", "execution_authority", "interpretation_notice",
     "receipt_hash",
 }
+_FACT_IDENTITY_MEMBER_FIELDS = {"analysis_id", "finding_id"}
+_FACT_IDENTITY_BINDING_FIELDS = {"fact_id", "members"}
 _DEPENDENCY_BINDING_FIELDS = {
     "analysis_receipt_hash", "dependency_receipt_hashes",
 }
@@ -151,6 +154,60 @@ def _observations(receipts: Sequence[Mapping[str, Any]]) -> list[dict[str, str]]
     return observations
 
 
+def _normalize_fact_identity_bindings(
+    values: Any,
+    receipts: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    known_members = {
+        (receipt["analysis_id"], finding["finding_id"])
+        for receipt in receipts
+        for finding in receipt["findings"]
+    }
+    bindings: list[dict[str, Any]] = []
+    fact_ids: set[str] = set()
+    claimed_members: set[tuple[str, str]] = set()
+
+    for raw in _sequence(values, "fact_identity_bindings"):
+        if type(raw) is not dict or set(raw) != _FACT_IDENTITY_BINDING_FIELDS:
+            raise VerifiedConvergenceAgentError("fact identity binding fields mismatch")
+        fact_id = _identifier(raw["fact_id"], "fact_id")
+        if fact_id in fact_ids:
+            raise VerifiedConvergenceAgentError("fact_id values must be unique")
+        fact_ids.add(fact_id)
+
+        members: list[dict[str, str]] = []
+        local_members: set[tuple[str, str]] = set()
+        for member in _sequence(raw["members"], "fact identity members"):
+            if type(member) is not dict or set(member) != _FACT_IDENTITY_MEMBER_FIELDS:
+                raise VerifiedConvergenceAgentError("fact identity member fields mismatch")
+            analysis_id = _identifier(member["analysis_id"], "analysis_id")
+            finding_id = _identifier(member["finding_id"], "finding_id")
+            key = (analysis_id, finding_id)
+            if key not in known_members:
+                raise VerifiedConvergenceAgentError(
+                    "fact identity member does not reference a supplied finding"
+                )
+            if key in local_members or key in claimed_members:
+                raise VerifiedConvergenceAgentError(
+                    "fact identity member cannot belong to more than one binding"
+                )
+            local_members.add(key)
+            claimed_members.add(key)
+            members.append({"analysis_id": analysis_id, "finding_id": finding_id})
+        if not members:
+            raise VerifiedConvergenceAgentError(
+                "fact identity binding requires at least one member"
+            )
+        bindings.append({
+            "fact_id": fact_id,
+            "members": sorted(
+                members, key=lambda item: (item["analysis_id"], item["finding_id"])
+            ),
+        })
+
+    return sorted(bindings, key=lambda item: item["fact_id"])
+
+
 def _scope_result(observations: list[dict[str, str]]) -> dict[str, Any]:
     statements = sorted({item["statement"] for item in observations})
     statuses = sorted({item["status"] for item in observations})
@@ -178,15 +235,27 @@ def _scope_result(observations: list[dict[str, str]]) -> dict[str, Any]:
     }
 
 
-def _finding_groups(receipts: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
-    by_finding: dict[str, list[dict[str, str]]] = {}
+def _finding_groups(
+    receipts: Sequence[Mapping[str, Any]],
+    fact_identity_bindings: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    member_fact = {
+        (member["analysis_id"], member["finding_id"]): binding["fact_id"]
+        for binding in fact_identity_bindings
+        for member in binding["members"]
+    }
+    grouped: dict[tuple[str, str], list[dict[str, str]]] = {}
     for observation in _observations(receipts):
-        by_finding.setdefault(observation["finding_id"], []).append(observation)
+        member = (observation["analysis_id"], observation["finding_id"])
+        fact_id = member_fact.get(member)
+        key = ("fact", fact_id) if fact_id is not None else ("finding", observation["finding_id"])
+        grouped.setdefault(key, []).append(observation)
 
     groups = []
-    for finding_id in sorted(by_finding):
+    for key in sorted(grouped):
+        observations = grouped[key]
         by_scope: dict[str, list[dict[str, str]]] = {}
-        for observation in by_finding[finding_id]:
+        for observation in observations:
             by_scope.setdefault(observation["scope"], []).append(observation)
         scopes = [_scope_result(by_scope[scope]) for scope in sorted(by_scope)]
         scope_statuses = {item["status"] for item in scopes}
@@ -208,8 +277,17 @@ def _finding_groups(receipts: Sequence[Mapping[str, Any]]) -> list[dict[str, Any
         else:
             status = CONDITIONALLY_DIVERGENT
             reason = "STATUS_DIFFERS_BY_DECLARED_SCOPE"
+
+        identity = (
+            {
+                "fact_id": key[1],
+                "finding_ids": sorted({item["finding_id"] for item in observations}),
+            }
+            if key[0] == "fact"
+            else {"finding_id": key[1]}
+        )
         groups.append({
-            "finding_id": finding_id,
+            **identity,
             "status": status,
             "reason": reason,
             "statements": statements,
@@ -223,10 +301,12 @@ def run_verified_convergence_agent(
     run_id: str,
     objective: str,
     analysis_receipts: Sequence[Mapping[str, Any]],
+    fact_identity_bindings: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
     """Verify Analyst receipts and converge only bounded supported findings."""
     receipts = _verified_receipts(analysis_receipts)
-    groups = _finding_groups(receipts)
+    identities = _normalize_fact_identity_bindings(fact_identity_bindings, receipts)
+    groups = _finding_groups(receipts, identities)
     converged = [deepcopy(item) for item in groups if item["status"] == SUPPORTED]
     rejected = [deepcopy(item) for item in groups if item["status"] == CONTRADICTED]
     unresolved = [
@@ -247,6 +327,7 @@ def run_verified_convergence_agent(
         "run_id": _identifier(run_id, "run_id"),
         "objective": _text(objective, "objective"),
         "analysis_receipts": receipts,
+        "fact_identity_bindings": identities,
         "source_receipt_hashes": [item["receipt_hash"] for item in receipts],
         "finding_groups": groups,
         "converged_findings": converged,
@@ -265,8 +346,9 @@ def run_verified_convergence_agent(
         "execution_authority": "NONE",
         "interpretation_notice": (
             "Convergence means only that intact Analyst receipts repeatedly derive "
-            "support for the same finding statement across their declared scopes. "
-            "The agent does not execute methods, infer usefulness or truth, resolve "
+            "support within a finding identity or an explicitly declared fact identity "
+            "across their declared scopes. The agent does not infer fact identity from "
+            "wording, execute methods, infer usefulness or truth, resolve "
             "conditional differences, perform pending stages, or grant authority."
         ),
     }
@@ -290,6 +372,7 @@ def verify_agent_convergence_receipt(receipt: Mapping[str, Any]) -> bool:
             run_id=receipt["run_id"],
             objective=receipt["objective"],
             analysis_receipts=receipt["analysis_receipts"],
+            fact_identity_bindings=receipt["fact_identity_bindings"],
         )
     except (KeyError, TypeError) as exc:
         raise VerifiedConvergenceAgentError("receipt is malformed") from exc

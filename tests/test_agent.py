@@ -354,3 +354,81 @@ def test_rehashed_dependency_checked_authority_forgery_is_rejected() -> None:
     result["receipt_hash"] = stable_hash(body)
     with pytest.raises(VerifiedConvergenceAgentError, match="internally inconsistent"):
         verify_dependency_checked_agent_receipt(result)
+
+
+def test_declared_cross_model_fact_identity_groups_different_local_ids() -> None:
+    first = analysis(
+        "model-a",
+        "scope-1",
+        finding_id="model-a.fact-17",
+        statement="X holds",
+    )
+    second = analysis(
+        "model-b",
+        "scope-1",
+        finding_id="model-b.output-3",
+        statement="X holds",
+    )
+
+    receipt = run_verified_convergence_agent(
+        run_id="agent.run-1",
+        objective="Converge explicitly identity-bound findings.",
+        analysis_receipts=[first, second],
+        fact_identity_bindings=[
+            {
+                "fact_id": "fact:x",
+                "members": [
+                    {
+                        "analysis_id": "model-a",
+                        "finding_id": "model-a.fact-17",
+                    },
+                    {
+                        "analysis_id": "model-b",
+                        "finding_id": "model-b.output-3",
+                    },
+                ],
+            },
+        ],
+    )
+
+    assert len(receipt["converged_findings"]) == 1
+    assert receipt["converged_findings"][0]["fact_id"] == "fact:x"
+
+
+def test_cross_model_fact_identity_member_cannot_belong_to_two_facts() -> None:
+    first = analysis(
+        "model-a",
+        "scope-1",
+        finding_id="model-a.fact-17",
+        statement="X holds",
+    )
+
+    with pytest.raises(
+        VerifiedConvergenceAgentError,
+        match="fact identity member",
+    ):
+        run_verified_convergence_agent(
+            run_id="agent.run-1",
+            objective="Reject ambiguous declared fact identity.",
+            analysis_receipts=[first],
+            fact_identity_bindings=[
+                {
+                    "fact_id": "fact:x",
+                    "members": [
+                        {
+                            "analysis_id": "model-a",
+                            "finding_id": "model-a.fact-17",
+                        },
+                    ],
+                },
+                {
+                    "fact_id": "fact:y",
+                    "members": [
+                        {
+                            "analysis_id": "model-a",
+                            "finding_id": "model-a.fact-17",
+                        },
+                    ],
+                },
+            ],
+        )
