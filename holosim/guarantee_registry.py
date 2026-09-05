@@ -393,3 +393,147 @@ def verify_boundary_register(
         "write_authority": "NONE",
     }
     return {**body, "check_hash": _canonical_hash(body)}
+
+
+def discover_receipt_boundaries(*, root: str | Path) -> list[dict[str, Any]]:
+    """Discover explicit versioned receipt contracts without importing code."""
+    root_path = Path(root).resolve()
+    package_path = root_path / "holosim"
+    if not package_path.is_dir():
+        raise GuaranteeRegistryError("holosim package directory is missing")
+
+    discovered: list[dict[str, Any]] = []
+    for path in sorted(package_path.rglob("*.py")):
+        relative = path.relative_to(root_path).as_posix()
+        try:
+            source = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            raise GuaranteeRegistryError(
+                f"receipt discovery could not read: {relative}"
+            ) from exc
+        constants, functions = _source_symbols(source, relative)
+        receipt_constants: list[dict[str, Any]] = []
+        for name, value in sorted(constants.items()):
+            if not (
+                name == "RECEIPT_TYPE"
+                or name.endswith("_RECEIPT_TYPE")
+            ):
+                continue
+            version_name = name.removesuffix("TYPE") + "VERSION"
+            version = constants.get(version_name)
+            if (
+                not isinstance(value, str)
+                or not value
+                or not isinstance(version, int)
+                or isinstance(version, bool)
+                or version < 1
+            ):
+                continue
+            receipt_constants.append({
+                "type_constant": name,
+                "type": value,
+                "version_constant": version_name,
+                "version": version,
+            })
+
+        verifiers = sorted(
+            name
+            for name in functions
+            if name.startswith(("verify_", "validate_"))
+        )
+        if not receipt_constants or not verifiers:
+            continue
+        discovered.append({
+            "module": relative[:-3].replace("/", "."),
+            "implementation_path": relative,
+            "receipts": receipt_constants,
+            "verifiers": verifiers,
+        })
+    return discovered
+
+
+def compare_boundary_register_completeness(
+    register: Mapping[str, Any], *, root: str | Path
+) -> dict[str, Any]:
+    """Compare a committed register with discoverable receipt boundaries."""
+    checked = validate_boundary_register(register)
+    discovered = discover_receipt_boundaries(root=root)
+    registered_by_path = {
+        item["implementation_path"]: item
+        for item in checked["boundaries"]
+    }
+    results: list[dict[str, Any]] = []
+
+    for candidate in discovered:
+        registered = registered_by_path.get(candidate["implementation_path"])
+        if registered is None:
+            status = "UNREGISTERED"
+        else:
+            registered_contracts = {
+                (
+                    receipt["type_constant"],
+                    receipt["type"],
+                    receipt["version_constant"],
+                    receipt["version"],
+                )
+                for receipt in registered["receipts"]
+            }
+            discovered_contracts = {
+                (
+                    receipt["type_constant"],
+                    receipt["type"],
+                    receipt["version_constant"],
+                    receipt["version"],
+                )
+                for receipt in candidate["receipts"]
+            }
+            registered_verifiers = {
+                receipt["verifier"]
+                for receipt in registered["receipts"]
+            }
+            status = (
+                "REGISTERED"
+                if registered_contracts == discovered_contracts
+                and registered_verifiers <= set(candidate["verifiers"])
+                else "STALE"
+            )
+        results.append({
+            "implementation_path": candidate["implementation_path"],
+            "status": status,
+            "receipt_types": [
+                receipt["type"] for receipt in candidate["receipts"]
+            ],
+            "verifiers": candidate["verifiers"],
+        })
+
+    discovered_paths = {
+        item["implementation_path"] for item in discovered
+    }
+    for path in sorted(set(registered_by_path) - discovered_paths):
+        results.append({
+            "implementation_path": path,
+            "status": "STALE",
+            "receipt_types": [],
+            "verifiers": [],
+        })
+    results.sort(key=lambda item: item["implementation_path"])
+
+    counts = {
+        status: sum(item["status"] == status for item in results)
+        for status in ("REGISTERED", "UNREGISTERED", "STALE")
+    }
+    body = {
+        "type": "holo_boundary_register_completeness_check",
+        "version": 1,
+        "register_hash": checked["register_hash"],
+        "status": (
+            "COMPLETE"
+            if counts["UNREGISTERED"] == 0 and counts["STALE"] == 0
+            else "INCOMPLETE"
+        ),
+        "counts": counts,
+        "results": results,
+        "accepted": False,
+        "write_authority": "NONE",
+    }
+    return {**body, "check_hash": _canonical_hash(body)}

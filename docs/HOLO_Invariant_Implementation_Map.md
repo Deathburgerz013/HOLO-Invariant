@@ -2764,3 +2764,78 @@
 | | The smallest committed register now fixes six recent boundary|
 | | addresses. Stop at the recorded scope until review completes.|
 | |}==============================================================|
+| |}==============================================================|
+| | BOUNDARY_REGISTER_DISCOVERY_036_OVERLAY                      |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-04                                             |
+| | BRANCH: fix/detect-unregistered-boundaries                  |
+| | BASE: main@0cc77cf                                           |
+| | IMPLEMENTATION: holosim/guarantee_registry.py                |
+| | IMPLEMENTATION_SHA256:                                       |
+| | ff7c4788116063d7547e435b2887d5aa488eeeef669a25d72d30592975191289
+| | FOCUSED_TEST: tests/test_verified_boundary_register.py       |
+| | FOCUSED_TEST_SHA256:                                         |
+| | 2b86cae874b1c815fc26b9afa49c4ccca5ac3161e8289d61a2795e90df6d3892
+| |                                                              |
+| | CONCRETE_FAILURE                                            |
+| | Register validation checked only the six declared entries.  |
+| | A new versioned receipt module could remain absent from the |
+| | register without changing any register validation result.   |
+| | Ten older receipt modules were already absent, contradicting|
+| | the earlier claim that an unregistered boundary had not yet |
+| | appeared.                                                    |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - discover_receipt_boundaries(root)                         |
+| | - compare_boundary_register_completeness(register, root)    |
+| |                                                              |
+| | DISCOVERY_RULE                                              |
+| | - Read Python source through AST without importing modules. |
+| | - A discoverable boundary has at least one explicit string  |
+| |   receipt-type constant, its positive integer version       |
+| |   constant, and a top-level verify_ or validate_ function.  |
+| | - Compare discovered receipt contracts and verifier names   |
+| |   with committed entries by implementation path.            |
+| | - Classify each path REGISTERED, UNREGISTERED, or STALE.     |
+| | - Preserve the current unregistered list explicitly so a new|
+| |   silent boundary changes the focused test expectation.      |
+| |                                                              |
+| | OBSERVED_REPOSITORY_STATE                                   |
+| | - Discoverable receipt modules: 16                          |
+| | - REGISTERED: 6                                             |
+| | - UNREGISTERED: 10                                          |
+| | - STALE: 0                                                  |
+| | - Overall completeness: INCOMPLETE                          |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused guarantee and boundary-register tests: 20 passed  |
+| |   in 1.47 s.                                                 |
+| | - Full repository suite: 1553 passed, 4 skipped             |
+| |   in 29.09 s.                                                |
+| | - Initial local discovery classified time-scoped truth as   |
+| |   STALE because its comparison verifier name does not contain|
+| |   the word receipt.                                         |
+| | - Discovery was corrected to let versioned constants establish|
+| |   candidacy and then enumerate all top-level verify_/validate_|
+| |   functions. Registered verifier names must be present; extra|
+| |   validation helpers do not create false staleness.          |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Discovery is structural and naming-convention-bound. It   |
+| |   does not prove that a discovered function validates well. |
+| | - Modules without paired receipt type/version constants or  |
+| |   a top-level validator remain outside this discovery rule. |
+| | - Known unregistered boundaries remain debt, not failures   |
+| |   hidden by a claim of completeness.                         |
+| | - No entry is automatically registered, accepted, imported, |
+| |   executed, or granted write authority.                      |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | The register now notices structural boundaries outside itself.|
+| | Stop at INCOMPLETE until each older boundary is reviewed.    |
+| |}==============================================================|
