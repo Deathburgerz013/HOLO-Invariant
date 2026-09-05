@@ -16,6 +16,10 @@ from holosim.bounded_evidence_analyst import (
     BoundedEvidenceAnalystError,
     verify_evidence_analysis_receipt,
 )
+from holosim.fact_identity import (
+    VerifiedFactIdentityError,
+    verify_fact_identity_receipt,
+)
 from holosim.canonical import CanonicalValueError, stable_hash
 from holosim.receipt_graph import (
     build_receipt_graph,
@@ -39,7 +43,8 @@ CONDITIONALLY_DIVERGENT = "CONDITIONALLY_DIVERGENT"
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}")
 _RECEIPT_FIELDS = {
     "type", "version", "run_id", "objective", "analysis_receipts",
-    "fact_identity_bindings", "source_receipt_hashes", "finding_groups",
+    "fact_identity_bindings", "fact_identity_receipts",
+    "source_receipt_hashes", "finding_groups",
     "converged_findings",
     "rejected_findings", "unresolved_findings", "run_status",
     "pending_stages", "stopped", "method_executed", "usefulness_inferred",
@@ -208,6 +213,43 @@ def _normalize_fact_identity_bindings(
     return sorted(bindings, key=lambda item: item["fact_id"])
 
 
+def _verified_fact_identity_receipts(
+    values: Any,
+    receipts: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    verified: list[dict[str, Any]] = []
+
+    for raw in _sequence(values, "fact_identity_receipts"):
+        if type(raw) is not dict:
+            raise VerifiedConvergenceAgentError(
+                "fact identity receipt must be a plain object"
+            )
+
+        try:
+            verify_fact_identity_receipt(raw)
+        except VerifiedFactIdentityError as exc:
+            raise VerifiedConvergenceAgentError(
+                "fact identity receipt verification failed"
+            ) from exc
+
+        verified.append(deepcopy(raw))
+
+    bindings = [
+        {
+            "fact_id": item["fact_id"],
+            "members": deepcopy(item["members"]),
+        }
+        for item in verified
+    ]
+
+    _normalize_fact_identity_bindings(bindings, receipts)
+
+    return sorted(
+        verified,
+        key=lambda item: (item["fact_id"], item["receipt_hash"]),
+    )
+
+
 def _scope_result(observations: list[dict[str, str]]) -> dict[str, Any]:
     statements = sorted({item["statement"] for item in observations})
     statuses = sorted({item["status"] for item in observations})
@@ -302,10 +344,25 @@ def run_verified_convergence_agent(
     objective: str,
     analysis_receipts: Sequence[Mapping[str, Any]],
     fact_identity_bindings: Sequence[Mapping[str, Any]] = (),
+    fact_identity_receipts: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
     """Verify Analyst receipts and converge only bounded supported findings."""
     receipts = _verified_receipts(analysis_receipts)
-    identities = _normalize_fact_identity_bindings(fact_identity_bindings, receipts)
+    verified_identity_receipts = _verified_fact_identity_receipts(
+        fact_identity_receipts,
+        receipts,
+    )
+    receipt_bindings = [
+        {
+            "fact_id": item["fact_id"],
+            "members": deepcopy(item["members"]),
+        }
+        for item in verified_identity_receipts
+    ]
+    identities = _normalize_fact_identity_bindings(
+        list(fact_identity_bindings) + receipt_bindings,
+        receipts,
+    )
     groups = _finding_groups(receipts, identities)
     converged = [deepcopy(item) for item in groups if item["status"] == SUPPORTED]
     rejected = [deepcopy(item) for item in groups if item["status"] == CONTRADICTED]
@@ -328,6 +385,7 @@ def run_verified_convergence_agent(
         "objective": _text(objective, "objective"),
         "analysis_receipts": receipts,
         "fact_identity_bindings": identities,
+        "fact_identity_receipts": verified_identity_receipts,
         "source_receipt_hashes": [item["receipt_hash"] for item in receipts],
         "finding_groups": groups,
         "converged_findings": converged,
@@ -373,6 +431,7 @@ def verify_agent_convergence_receipt(receipt: Mapping[str, Any]) -> bool:
             objective=receipt["objective"],
             analysis_receipts=receipt["analysis_receipts"],
             fact_identity_bindings=receipt["fact_identity_bindings"],
+            fact_identity_receipts=receipt["fact_identity_receipts"],
         )
     except (KeyError, TypeError) as exc:
         raise VerifiedConvergenceAgentError("receipt is malformed") from exc

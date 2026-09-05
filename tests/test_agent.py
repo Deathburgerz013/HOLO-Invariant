@@ -432,3 +432,84 @@ def test_cross_model_fact_identity_member_cannot_belong_to_two_facts() -> None:
                 },
             ],
         )
+def test_agent_rejects_unverified_fact_identity_binding_receipt() -> None:
+    first = analysis(
+        "model-a",
+        "scope-1",
+        finding_id="model-a.fact-17",
+        statement="X holds",
+    )
+    second = analysis(
+        "model-b",
+        "scope-1",
+        finding_id="model-b.output-3",
+        statement="X holds",
+    )
+
+    fake_identity_receipt = {
+        "type": "verified_fact_identity_receipt",
+        "version": 1,
+        "fact_id": "fact:x",
+        "members": [
+            {
+                "analysis_id": "model-a",
+                "finding_id": "model-a.fact-17",
+            },
+            {
+                "analysis_id": "model-b",
+                "finding_id": "model-b.output-3",
+            },
+        ],
+        "receipt_hash": "0" * 64,
+    }
+
+    with pytest.raises(
+        VerifiedConvergenceAgentError,
+        match="fact identity",
+    ):
+        run_verified_convergence_agent(
+            run_id="agent.run-1",
+            objective="Require verified fact identity evidence.",
+            analysis_receipts=[first, second],
+            fact_identity_receipts=[fake_identity_receipt],
+        )
+from holosim.fact_identity import build_verified_fact_identity_receipt
+def test_verified_fact_identity_receipt_groups_cross_model_findings() -> None:
+    first = analysis(
+        "model-a",
+        "scope-1",
+        finding_id="model-a.fact-17",
+        statement="X holds",
+    )
+    second = analysis(
+        "model-b",
+        "scope-1",
+        finding_id="model-b.output-3",
+        statement="X holds",
+    )
+
+    identity = build_verified_fact_identity_receipt(
+        fact_id="fact:x",
+        members=[
+            {
+                "analysis_id": "model-a",
+                "finding_id": "model-a.fact-17",
+            },
+            {
+                "analysis_id": "model-b",
+                "finding_id": "model-b.output-3",
+            },
+        ],
+    )
+
+    receipt = run_verified_convergence_agent(
+        run_id="agent.run-1",
+        objective="Converge findings using a verified identity declaration.",
+        analysis_receipts=[first, second],
+        fact_identity_receipts=[identity],
+    )
+
+    assert len(receipt["converged_findings"]) == 1
+    assert receipt["converged_findings"][0]["fact_id"] == "fact:x"
+    assert receipt["truth_claimed"] is False
+    assert receipt["accepted"] is False
