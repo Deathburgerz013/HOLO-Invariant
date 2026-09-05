@@ -112,6 +112,23 @@
       "test_sha256": "a69eebba8cd553d1785670ce71a02b92234280a24845f599d3f36771566e05dd"
     },
     {
+      "boundary_id": "python-surface-inventory",
+      "module": "holosim.python_surface_inventory",
+      "implementation_path": "holosim/python_surface_inventory.py",
+      "implementation_sha256": "46c141d74991098211c371a419af2fa2ebc5ff7ad1c35e257031ee9f3dd92bff",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "python_surface_inventory_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_python_surface_inventory"
+        }
+      ],
+      "test_path": "tests/test_python_surface_inventory.py",
+      "test_sha256": "4e8b58d41a988d11f4c7203296f523158a70b27076af768d6344ac670d096b7c"
+    },
+    {
       "boundary_id": "time-scoped-truth",
       "module": "holosim.time_scoped_truth",
       "implementation_path": "holosim/time_scoped_truth.py",
@@ -155,5 +172,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "8af7a3495cd28a25f420bdf88da5823b0a8c86278c730e0ad10dbc6d638adac0"
+  "register_hash": "92c80a650e8a1c0ccb78c9b864eea8a0455542717360b35be6d8e515c059ef0f"
 }
