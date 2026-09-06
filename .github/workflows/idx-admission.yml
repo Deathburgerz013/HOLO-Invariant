@@ -1,0 +1,31 @@
+name: IDX Admission
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  idx-admission-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install package with dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Verify IDX admission contract
+        run: |
+          python -m pytest -q             tests/test_idx_manager_frozen_gate.py             tests/test_idx_manager_head_binding.py             tests/test_idx_manager_missing_file.py             tests/test_idx_manager_gate_binding.py             tests/test_idx_manager_loaded_gate_source.py             tests/test_idx_manager_duplicate_key_abort.py             tests/test_idx_manager_append_failure_state.py             tests/test_idx_manager_rebirth_head_binding.py             tests/test_idx_manager_header_metadata_abort.py             tests/test_idx_manager_abort_state_preservation.py
