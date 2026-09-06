@@ -1,7 +1,7 @@
 """Closed, target-bound declarations of operational authorization.
 
 This record separates permission to perform one effect from evidence that a
-claim is correct.  It is deliberately not proof of the issuer's identity; an
+claim is correct. It is deliberately not proof of the issuer's identity; an
 adapter that creates one is responsible for obtaining the external approval.
 """
 
@@ -16,6 +16,7 @@ from .canonical import stable_hash
 AUTHORIZATION_TYPE = "holo_operational_authorization"
 VERSION = 1
 ACTION_SERVICE_APPEND = "SERVICE_APPEND"
+ACTION_BASELINE_PROMOTION = "BASELINE_PROMOTION"
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
 AUTHORIZATION_FIELDS = {
@@ -58,8 +59,16 @@ def build_operational_authorization(
         raise OperationalAuthorizationError(
             "approval_reference cannot be a bare proof or artifact digest"
         )
-    if action != ACTION_SERVICE_APPEND:
+    if action not in {ACTION_SERVICE_APPEND, ACTION_BASELINE_PROMOTION}:
         raise OperationalAuthorizationError("action is not supported")
+
+    if action == ACTION_SERVICE_APPEND:
+        write_authority = "EXACT_TARGET_ONLY"
+        promotion_authority = "NONE"
+    else:
+        write_authority = "NONE"
+        promotion_authority = "EXACT_TARGET_ONLY"
+
     body = {
         "type": AUTHORIZATION_TYPE,
         "version": VERSION,
@@ -70,9 +79,9 @@ def build_operational_authorization(
         "target_sha256": _digest(target_sha256, "target_sha256"),
         "approval_reference": reference,
         "decision": "AUTHORIZED",
-        "write_authority": "EXACT_TARGET_ONLY",
+        "write_authority": write_authority,
         "execution_authority": "NONE",
-        "promotion_authority": "NONE",
+        "promotion_authority": promotion_authority,
         "trust_root_authority": "NONE",
         "truth_claimed": False,
         "interpretation_notice": (
