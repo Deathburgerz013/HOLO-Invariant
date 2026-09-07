@@ -192,10 +192,11 @@ def test_committed_json_is_canonical_data_not_generated_authority() -> None:
 
 def test_discovery_finds_current_versioned_receipt_boundaries() -> None:
     discovered = discover_receipt_boundaries(root=ROOT)
-    assert len(discovered) == 22
+    assert len(discovered) == 23
     paths = {item["implementation_path"] for item in discovered}
     assert "holosim/functional_awareness_loop.py" in paths
     assert "holosim/invariant_reflection.py" in paths
+    assert "holosim/iteration_meaning_preservation.py" in paths
     assert "holosim/time_scoped_truth.py" in paths
 
 
@@ -204,7 +205,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
     assert result["status"] == "INCOMPLETE"
     assert result["counts"] == {
         "REGISTERED": 10,
-        "UNREGISTERED": 12,
+        "UNREGISTERED": 13,
         "STALE": 0,
     }
     assert [
@@ -220,6 +221,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
         "holosim/functional_motion_equivalence.py",
         "holosim/interpretation.py",
         "holosim/invariant_reflection.py",
+        "holosim/iteration_meaning_preservation.py",
         "holosim/perceptual_capability_boundary.py",
         "holosim/semantic_signal_loss_receipts.py",
         "holosim/spine_admission.py",
