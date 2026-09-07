@@ -365,6 +365,68 @@ def analyze_rail_structure(text: str) -> dict[str, Any]:
     }
 
 
+
+def extract_compartment_frames(text: str) -> list[dict[str, Any]]:
+    """Extract divider-bounded rail compartments without mutating source.
+
+    Frame identity is derived from the exact source lines and source span.
+    Borders delimit the document; dividers delimit internal compartments.
+    Empty compartments are not emitted.
+    """
+    analysis = analyze_rail_structure(text)
+    raw_lines = text.splitlines()
+
+    frames: list[dict[str, Any]] = []
+    current: list[dict[str, Any]] = []
+
+    def emit() -> None:
+        if not current:
+            return
+
+        start = current[0]["line_number"]
+        end = current[-1]["line_number"]
+        source_lines = raw_lines[start - 1:end]
+        identity_body = {
+            "source_start_line": start,
+            "source_end_line": end,
+            "source_lines": source_lines,
+        }
+        canonical = json.dumps(
+            identity_body,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+
+        frames.append({
+            "type": "holo_spine_compartment_frame",
+            "version": PROTOCOL_VERSION,
+            "frame_id": hashlib.sha256(canonical).hexdigest(),
+            "source_start_line": start,
+            "source_end_line": end,
+            "source_lines": source_lines,
+            "rail_lines": [dict(item) for item in current],
+            "interpretation_notice": (
+                "Compartment frames are derived metadata. "
+                "The raw Spine source remains canonical."
+            ),
+        })
+        current.clear()
+
+    for item in analysis["lines"]:
+        kind = item["kind"]
+
+        if kind in {"divider", "border"}:
+            emit()
+            continue
+
+        if kind in {"content", "empty"}:
+            current.append(item)
+
+    emit()
+    return frames
+
+
 def summarize_rail_analysis(analysis: Mapping[str, Any]) -> dict[str, Any]:
     """Return a compact terminal-safe view of a full rail analysis."""
     divider_lines = list(analysis.get("divider_lines", []))
