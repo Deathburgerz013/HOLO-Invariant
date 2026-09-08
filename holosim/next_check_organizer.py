@@ -68,7 +68,8 @@ def organize_next_checks(
 
     Record order is preserved. Within each record, declared condition order is
     preserved. Resolved records do not emit candidates. Active records without
-    declared resolution conditions are reported, not repaired or guessed.
+    declared resolution conditions are explicitly classified as requiring a
+    resolution condition, but no condition is invented.
     """
     if isinstance(records, (str, bytes)) or not isinstance(records, Sequence):
         raise NextCheckOrganizerError("records must be a sequence of mappings")
@@ -111,7 +112,17 @@ def organize_next_checks(
             )
 
         if not conditions:
-            unresolved_without_declared_check.append(source)
+            unresolved_without_declared_check.append(
+                {
+                    **source,
+                    "routing_status": "RESOLUTION_CONDITION_REQUIRED",
+                    "condition_invented": False,
+                    "execution_authorized": False,
+                    "truth_claimed": False,
+                    "accepted": False,
+                    "write_authority": "NONE",
+                }
+            )
             continue
 
         for condition_index, condition in enumerate(conditions):
@@ -119,6 +130,7 @@ def organize_next_checks(
                 "condition": condition,
                 "condition_index": condition_index,
                 "source": source,
+                "routing_status": "DECLARED_CHECK_AVAILABLE",
                 "invented": False,
                 "execution_authorized": False,
                 "truth_claimed": False,
