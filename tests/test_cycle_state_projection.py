@@ -44,3 +44,68 @@ def test_snapshot_coherence_fixture_is_self_consistent():
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_permutation_invariance_fixture_preserves_projection_result():
+    fixture = json.loads(
+        (
+            Path(__file__).parent
+            / "fixtures"
+            / "cycle_state_projection"
+            / "permutation_invariance.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert fixture["projection_version"] == "0.1"
+    assert fixture["ordering_rule"]["receipt_order_semantic"] is False
+
+    snapshot = fixture["snapshot"]
+    receipts = fixture["receipts"]
+    permutations = fixture["permutations"]
+    expected = fixture["expected"]
+
+    known_hashes = {
+        receipt["receipt_hash"]
+        for receipt in receipts.values()
+    }
+
+    assert known_hashes == set(snapshot["receipt_hashes"])
+    assert len(permutations) == 2
+
+    for permutation in permutations:
+        assert set(permutation) == known_hashes
+
+    assert permutations[0] == list(reversed(permutations[1]))
+
+    plan = receipts["dependency_recheck_plan"]
+    certificate = receipts["completion_certificate"]
+
+    assert plan["type"] == "dependency_recheck_plan"
+    assert plan["plan_hash"] == plan["receipt_hash"]
+    assert plan["recheck_required_count"] == 1
+    assert any(
+        result["status"] == "RECHECK_REQUIRED"
+        for result in plan["results"]
+    )
+
+    assert certificate["type"] == "environment_completion_certificate"
+    assert certificate["certificate_id"] == certificate["receipt_hash"]
+    assert certificate["status"] == "COMPLETE_ELIGIBLE"
+
+    assert expected["state"] == "RECHECK_REQUIRED"
+    assert "DEPENDENCY_RECHECK_REQUIRED" in expected["reason_codes"]
+
+    assert expected["source_receipt_identities"] == [
+        {
+            "type": "dependency_recheck_plan",
+            "hash": plan["receipt_hash"],
+        }
+    ]
+
+    assert expected["scope"]["frame_identity"] == certificate["frame_identity"]
+    assert expected["scope"]["episode_identity"] == certificate["episode_id"]
+    assert expected["scope"]["environment_id"] == certificate["environment_id"]
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"

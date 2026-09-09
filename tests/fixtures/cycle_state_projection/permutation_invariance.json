@@ -1,0 +1,96 @@
+{
+  "fixture_id": "cycle-state-projection@permutation-invariance-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection whose result depends on non-semantic input receipt order instead of declared precedence.",
+  "ordering_rule": {
+    "receipt_order_semantic": false
+  },
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "3333333333333333333333333333333333333333333333333333333333333333",
+      "4444444444444444444444444444444444444444444444444444444444444444"
+    ],
+    "frame_identities": [
+      "frame:environment-stability:v1"
+    ],
+    "episode_identities": [
+      "episode:environment-stability:current"
+    ],
+    "dependency_plan_identities": [
+      "3333333333333333333333333333333333333333333333333333333333333333"
+    ]
+  },
+  "receipts": {
+    "dependency_recheck_plan": {
+      "receipt_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "type": "dependency_recheck_plan",
+      "plan_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "results": [
+        {
+          "receipt_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+          "status": "RECHECK_REQUIRED",
+          "trigger_paths": [
+            [
+              "dependency:changed",
+              "4444444444444444444444444444444444444444444444444444444444444444"
+            ]
+          ]
+        }
+      ],
+      "recheck_required_count": 1,
+      "validity_claimed": false,
+      "accepted": false,
+      "write_authority": "NONE"
+    },
+    "completion_certificate": {
+      "receipt_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "type": "environment_completion_certificate",
+      "certificate_id": "4444444444444444444444444444444444444444444444444444444444444444",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:environment-stability:current",
+      "environment_id": "environment:fixture",
+      "status": "COMPLETE_ELIGIBLE",
+      "evaluation_eligible": true,
+      "correction_evaluated": false,
+      "accepted": false,
+      "write_authority": "NONE"
+    }
+  },
+  "permutations": [
+    [
+      "3333333333333333333333333333333333333333333333333333333333333333",
+      "4444444444444444444444444444444444444444444444444444444444444444"
+    ],
+    [
+      "4444444444444444444444444444444444444444444444444444444444444444",
+      "3333333333333333333333333333333333333333333333333333333333333333"
+    ]
+  ],
+  "expected": {
+    "state": "RECHECK_REQUIRED",
+    "reason_codes": [
+      "DEPENDENCY_RECHECK_REQUIRED"
+    ],
+    "source_receipt_identities": [
+      {
+        "type": "dependency_recheck_plan",
+        "hash": "3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ],
+    "scope": {
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_identity": "episode:environment-stability:current",
+      "environment_id": "environment:fixture"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
