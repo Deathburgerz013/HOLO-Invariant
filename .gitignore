@@ -90,3 +90,5 @@ test_*.jsonl
 # ===========================================
 Holo/logs/
 holosim/holo_logs/
+.gemini/
+gha-creds-*.json
