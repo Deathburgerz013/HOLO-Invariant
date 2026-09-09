@@ -1,0 +1,74 @@
+{
+  "fixture_id": "cycle-state-projection@missing-criterion-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that treats a frame-relative evaluation with a missing required criterion as PASS, complete, or otherwise resolved.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "6666666666666666666666666666666666666666666666666666666666666666"
+    ],
+    "frame_identities": [
+      "frame:missing:v1"
+    ],
+    "episode_identities": [
+      "episode:missing-criterion-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "frame_relative_evaluation": {
+    "receipt_hash": "6666666666666666666666666666666666666666666666666666666666666666",
+    "type": "frame_relative_criterion_evaluation",
+    "version": 1,
+    "frame_identity": "frame:missing:v1",
+    "frame_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+    "required_criteria": [
+      "criterion:required"
+    ],
+    "success_rule": "ALL_REQUIRED_PASS",
+    "criterion_results": [],
+    "bound_criterion_results": [],
+    "unbound_criterion_results": [],
+    "missing_required_criteria": [
+      "criterion:required"
+    ],
+    "result": "INDETERMINATE",
+    "accepted": false,
+    "truth_claimed": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  "expected": {
+    "state": "UNCERTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_CRITERION"
+    ],
+    "frame_relative_result": "INDETERMINATE",
+    "missing_required_criteria": [
+      "criterion:required"
+    ],
+    "must_not_return": [
+      "PASS",
+      "COMPLETE_ELIGIBLE",
+      "CURRENTLY_RESTRAINED"
+    ],
+    "must_not_invent_criterion_result": true,
+    "source_receipt_identities": [
+      {
+        "type": "frame_relative_criterion_evaluation",
+        "hash": "6666666666666666666666666666666666666666666666666666666666666666",
+        "frame_identity": "frame:missing:v1"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:missing:v1",
+      "episode_id": "episode:missing-criterion-1"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}

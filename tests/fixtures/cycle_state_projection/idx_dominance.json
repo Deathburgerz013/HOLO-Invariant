@@ -1,0 +1,93 @@
+{
+  "fixture_id": "cycle-state-projection@idx-dominance-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that returns an otherwise available or complete state when the required frozen IDX gate has already aborted on an active-hash mismatch.",
+  "snapshot": {
+    "idx_identity": "idx:v1:observed-head",
+    "receipt_hashes": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    "frame_identities": [
+      "frame:environment-stability:v1"
+    ],
+    "episode_identities": [
+      "episode:idx-dominance-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "idx_gate": {
+    "required": true,
+    "status": "ABORT",
+    "code": "ACTIVE_HASH_MISMATCH",
+    "expected": "frozen-head",
+    "observed": "observed-head",
+    "fused": false
+  },
+  "receipts": {
+    "completion": {
+      "receipt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "type": "environment_completion_certificate",
+      "certificate_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "valid": true,
+      "idx_identity": "idx:v1:observed-head",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:idx-dominance-1",
+      "environment_id": "environment:lab",
+      "status": "COMPLETE_ELIGIBLE",
+      "evaluation_eligible": true,
+      "accepted": false,
+      "write_authority": "NONE"
+    },
+    "bound_check": {
+      "receipt_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "type": "declared_check_verifier_binding",
+      "valid": true,
+      "idx_identity": "idx:v1:observed-head",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:idx-dominance-1",
+      "status": "DECLARED_VERIFIER_BOUND",
+      "verifier_id": "verifier:environment-stability:v1",
+      "verifier_available": true,
+      "accepted": false,
+      "write_authority": "NONE"
+    }
+  },
+  "expected": {
+    "state": "BLOCKED_INVARIANT",
+    "reason_codes": [
+      "IDX_ACTIVE_HASH_MISMATCH"
+    ],
+    "source_gate_result": {
+      "status": "ABORT",
+      "code": "ACTIVE_HASH_MISMATCH",
+      "expected": "frozen-head",
+      "observed": "observed-head"
+    },
+    "must_not_return": [
+      "BOUND_CHECK_AVAILABLE",
+      "COMPLETE_ELIGIBLE"
+    ],
+    "source_receipt_identities": [
+      {
+        "type": "environment_completion_certificate",
+        "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "type": "declared_check_verifier_binding",
+        "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:observed-head",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:idx-dominance-1",
+      "environment_id": "environment:lab"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
