@@ -243,3 +243,60 @@ def test_stale_dependency_fixture_requires_recheck_without_erasing_history() -> 
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_idx_dominance_blocks_lower_priority_projection_states() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "idx_dominance.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    gate = fixture["idx_gate"]
+    receipts = fixture["receipts"]
+    expected = fixture["expected"]
+
+    completion = receipts["completion"]
+    bound_check = receipts["bound_check"]
+
+    assert gate["required"] is True
+    assert gate["status"] == "ABORT"
+    assert gate["code"] == "ACTIVE_HASH_MISMATCH"
+    assert gate["expected"] != gate["observed"]
+    assert gate["fused"] is False
+
+    assert completion["status"] == "COMPLETE_ELIGIBLE"
+    assert completion["evaluation_eligible"] is True
+
+    assert bound_check["status"] == "DECLARED_VERIFIER_BOUND"
+    assert bound_check["verifier_available"] is True
+
+    assert expected["state"] == "BLOCKED_INVARIANT"
+    assert expected["reason_codes"] == [
+        "IDX_ACTIVE_HASH_MISMATCH"
+    ]
+
+    assert expected["source_gate_result"] == {
+        "status": "ABORT",
+        "code": "ACTIVE_HASH_MISMATCH",
+        "expected": gate["expected"],
+        "observed": gate["observed"],
+    }
+
+    assert "BOUND_CHECK_AVAILABLE" in expected["must_not_return"]
+    assert "COMPLETE_ELIGIBLE" in expected["must_not_return"]
+    assert expected["state"] not in expected["must_not_return"]
+
+    snapshot_hashes = set(fixture["snapshot"]["receipt_hashes"])
+    assert snapshot_hashes == {
+        completion["receipt_hash"],
+        bound_check["receipt_hash"],
+    }
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"
