@@ -1,0 +1,76 @@
+{
+  "fixture_id": "cycle-state-projection@authority-monotonicity-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that derives truth, acceptance, execution authority, state-change authority, or write authority from a combination of non-authoritative receipts.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "8888888888888888888888888888888888888888888888888888888888888888",
+      "9999999999999999999999999999999999999999999999999999999999999999"
+    ],
+    "frame_identities": [
+      "frame:authority-monotonicity:v1"
+    ],
+    "episode_identities": [
+      "episode:authority-monotonicity-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "source_receipts": [
+    {
+      "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+      "type": "frame_relative_criterion_evaluation",
+      "result": "PASS",
+      "truth_claimed": false,
+      "accepted": false,
+      "execution_authorized": false,
+      "state_change_authorized": false,
+      "write_authority": "NONE"
+    },
+    {
+      "receipt_hash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "type": "declared_check_verifier_binding",
+      "binding_status": "DECLARED_VERIFIER_BOUND",
+      "bound": true,
+      "verifier_available": true,
+      "truth_claimed": false,
+      "accepted": false,
+      "execution_authorized": false,
+      "state_change_authorized": false,
+      "write_authority": "NONE"
+    }
+  ],
+  "expected": {
+    "state": "BOUND_CHECK_AVAILABLE",
+    "reason_codes": [
+      "DECLARED_VERIFIER_BOUND"
+    ],
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE",
+    "must_not_derive": {
+      "truth_claimed": true,
+      "accepted": true,
+      "execution_authorized": true,
+      "state_change_authorized": true,
+      "write_authority_not": "NONE"
+    },
+    "source_receipt_identities": [
+      {
+        "type": "frame_relative_criterion_evaluation",
+        "hash": "8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      {
+        "type": "declared_check_verifier_binding",
+        "hash": "9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:authority-monotonicity:v1",
+      "episode_id": "episode:authority-monotonicity-1"
+    }
+  }
+}

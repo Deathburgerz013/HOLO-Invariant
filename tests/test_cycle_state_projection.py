@@ -593,3 +593,64 @@ def test_missing_required_criterion_remains_indeterminate() -> None:
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_authority_remains_non_increasing_across_projection() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "authority_monotonicity.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    sources = fixture["source_receipts"]
+    expected = fixture["expected"]
+    forbidden = expected["must_not_derive"]
+
+    assert len(sources) == 2
+
+    for source in sources:
+        assert source["truth_claimed"] is False
+        assert source["accepted"] is False
+        assert source["execution_authorized"] is False
+        assert source["state_change_authorized"] is False
+        assert source["write_authority"] == "NONE"
+
+    assert expected["state"] == "BOUND_CHECK_AVAILABLE"
+    assert expected["reason_codes"] == [
+        "DECLARED_VERIFIER_BOUND"
+    ]
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"
+
+    assert forbidden == {
+        "truth_claimed": True,
+        "accepted": True,
+        "execution_authorized": True,
+        "state_change_authorized": True,
+        "write_authority_not": "NONE",
+    }
+
+    assert expected["truth_claimed"] != forbidden["truth_claimed"]
+    assert expected["accepted"] != forbidden["accepted"]
+    assert (
+        expected["execution_authorized"]
+        != forbidden["execution_authorized"]
+    )
+    assert (
+        expected["state_change_authorized"]
+        != forbidden["state_change_authorized"]
+    )
+    assert expected["write_authority"] == forbidden["write_authority_not"]
+
+    snapshot_hashes = set(fixture["snapshot"]["receipt_hashes"])
+    source_hashes = {
+        source["receipt_hash"]
+        for source in sources
+    }
+    assert snapshot_hashes == source_hashes
