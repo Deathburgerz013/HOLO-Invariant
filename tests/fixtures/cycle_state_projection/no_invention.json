@@ -1,0 +1,93 @@
+{
+  "fixture_id": "cycle-state-projection@no-invention-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that synthesizes a check from unresolved claim text when no resolution condition was explicitly declared.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    ],
+    "frame_identities": [
+      "frame:unresolved-claim:v1"
+    ],
+    "episode_identities": [
+      "episode:no-invention-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "unresolved_record": {
+    "idx": 1,
+    "entry_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "claim": "The environment appears stable and should probably be checked with a stability verifier.",
+    "status": "open",
+    "resolution_conditions": [],
+    "residual_uncertainty": [
+      "Need a declared method"
+    ],
+    "source_refs": [
+      "source:no-invention-1"
+    ]
+  },
+  "organizer_result": {
+    "type": "holo_next_check_organizer",
+    "version": 1,
+    "candidate_checks": [],
+    "unresolved_without_declared_check": [
+      {
+        "position": 0,
+        "idx": 1,
+        "entry_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "claim": "The environment appears stable and should probably be checked with a stability verifier.",
+        "status": "open",
+        "source_refs": [
+          "source:no-invention-1"
+        ],
+        "residual_uncertainty": [
+          "Need a declared method"
+        ],
+        "routing_status": "RESOLUTION_CONDITION_REQUIRED",
+        "condition_invented": false,
+        "execution_authorized": false,
+        "truth_claimed": false,
+        "accepted": false,
+        "write_authority": "NONE"
+      }
+    ],
+    "ignored_terminal_records": [],
+    "ordering": "source_record_then_declared_condition",
+    "conditions_invented": false,
+    "execution_authorized": false,
+    "truth_claimed": false,
+    "accepted": false,
+    "write_authority": "NONE"
+  },
+  "expected": {
+    "state": "RESOLUTION_CONDITION_REQUIRED",
+    "reason_codes": [
+      "RESOLUTION_CONDITION_REQUIRED"
+    ],
+    "candidate_checks": [],
+    "conditions_invented": false,
+    "must_not_return": [
+      "DECLARED_CHECK_UNBOUND",
+      "BOUND_CHECK_AVAILABLE",
+      "COMPLETE_ELIGIBLE"
+    ],
+    "source_receipt_identities": [
+      {
+        "type": "uncertainty_record",
+        "hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:unresolved-claim:v1",
+      "episode_id": "episode:no-invention-1"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}

@@ -300,3 +300,53 @@ def test_idx_dominance_blocks_lower_priority_projection_states() -> None:
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_no_invention_requires_declared_resolution_condition() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "no_invention.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    record = fixture["unresolved_record"]
+    organizer = fixture["organizer_result"]
+    expected = fixture["expected"]
+
+    assert record["status"] == "open"
+    assert record["resolution_conditions"] == []
+    assert record["residual_uncertainty"] == [
+        "Need a declared method"
+    ]
+
+    assert organizer["type"] == "holo_next_check_organizer"
+    assert organizer["version"] == 1
+    assert organizer["candidate_checks"] == []
+    assert organizer["conditions_invented"] is False
+
+    unresolved = organizer["unresolved_without_declared_check"]
+    assert len(unresolved) == 1
+    assert unresolved[0]["entry_hash"] == record["entry_hash"]
+    assert unresolved[0]["routing_status"] == (
+        "RESOLUTION_CONDITION_REQUIRED"
+    )
+    assert unresolved[0]["condition_invented"] is False
+
+    assert expected["state"] == "RESOLUTION_CONDITION_REQUIRED"
+    assert expected["reason_codes"] == [
+        "RESOLUTION_CONDITION_REQUIRED"
+    ]
+    assert expected["candidate_checks"] == []
+    assert expected["conditions_invented"] is False
+
+    assert "DECLARED_CHECK_UNBOUND" in expected["must_not_return"]
+    assert "BOUND_CHECK_AVAILABLE" in expected["must_not_return"]
+    assert "COMPLETE_ELIGIBLE" in expected["must_not_return"]
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"
