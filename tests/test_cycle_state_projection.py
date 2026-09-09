@@ -533,3 +533,63 @@ def test_frame_conflict_fails_closed_without_collapsing_results() -> None:
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_missing_required_criterion_remains_indeterminate() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "missing_criterion.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    evaluation = fixture["frame_relative_evaluation"]
+    expected = fixture["expected"]
+
+    assert evaluation["type"] == "frame_relative_criterion_evaluation"
+    assert evaluation["version"] == 1
+    assert evaluation["required_criteria"] == [
+        "criterion:required"
+    ]
+    assert evaluation["criterion_results"] == []
+    assert evaluation["bound_criterion_results"] == []
+    assert evaluation["missing_required_criteria"] == [
+        "criterion:required"
+    ]
+    assert evaluation["result"] == "INDETERMINATE"
+
+    assert expected["state"] == "UNCERTAIN"
+    assert expected["reason_codes"] == [
+        "MISSING_REQUIRED_CRITERION"
+    ]
+    assert expected["frame_relative_result"] == "INDETERMINATE"
+    assert expected["missing_required_criteria"] == [
+        "criterion:required"
+    ]
+    assert expected["must_not_invent_criterion_result"] is True
+
+    forbidden_states = {
+        "PASS",
+        "COMPLETE_ELIGIBLE",
+        "CURRENTLY_RESTRAINED",
+    }
+    assert set(expected["must_not_return"]) == forbidden_states
+    assert expected["state"] not in forbidden_states
+
+    snapshot_hashes = set(fixture["snapshot"]["receipt_hashes"])
+    assert snapshot_hashes == {
+        evaluation["receipt_hash"],
+    }
+
+    assert evaluation["truth_claimed"] is False
+    assert evaluation["accepted"] is False
+    assert evaluation["state_change_authorized"] is False
+    assert evaluation["write_authority"] == "NONE"
+    assert evaluation["execution_authority"] == "NONE"
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"
