@@ -1,0 +1,65 @@
+{
+  "fixture_id": "cycle-state-projection@snapshot-coherence-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that silently combines individually valid receipts from incompatible snapshot identities.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "1111111111111111111111111111111111111111111111111111111111111111",
+      "2222222222222222222222222222222222222222222222222222222222222222"
+    ],
+    "frame_identities": [
+      "frame:environment-stability:v1"
+    ],
+    "episode_identities": [
+      "episode:environment-stability:current"
+    ],
+    "dependency_plan_identities": []
+  },
+  "receipts": [
+    {
+      "receipt_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "receipt_type": "FRAME_RELATIVE_CRITERION_EVALUATION",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_identity": "episode:environment-stability:current",
+      "status": "PASS",
+      "truth_claimed": false,
+      "accepted": false,
+      "execution_authorized": false,
+      "state_change_authorized": false,
+      "write_authority": "NONE"
+    },
+    {
+      "receipt_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "receipt_type": "ENVIRONMENT_COMPLETION_CERTIFICATE",
+      "valid": true,
+      "idx_identity": "idx:v1:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_identity": "episode:environment-stability:current",
+      "status": "COMPLETE_ELIGIBLE",
+      "truth_claimed": false,
+      "accepted": false,
+      "execution_authorized": false,
+      "state_change_authorized": false,
+      "write_authority": "NONE"
+    }
+  ],
+  "expected": {
+    "state": "BLOCKED_INVARIANT",
+    "reason_codes": [
+      "IDX_IDENTITY_MISMATCH"
+    ],
+    "must_not_return": [
+      "COMPLETE_ELIGIBLE",
+      "BOUND_CHECK_AVAILABLE",
+      "CURRENTLY_RESTRAINED"
+    ],
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
