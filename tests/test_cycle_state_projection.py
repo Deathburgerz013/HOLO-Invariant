@@ -464,3 +464,72 @@ def test_binding_is_not_verification_or_authority() -> None:
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_frame_conflict_fails_closed_without_collapsing_results() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "frame_conflict.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    evaluations = fixture["frame_relative_evaluations"]
+    expected = fixture["expected"]
+
+    assert len(evaluations) == 2
+
+    results_by_frame = {
+        evaluation["frame_identity"]: evaluation["result"]
+        for evaluation in evaluations
+    }
+
+    assert results_by_frame == {
+        "frame:accuracy:v1": "PASS",
+        "frame:latency:v1": "FAIL",
+    }
+
+    assert len({
+        evaluation["frame_hash"]
+        for evaluation in evaluations
+    }) == 2
+
+    assert expected["state"] == "BLOCKED_INVARIANT"
+    assert expected["reason_codes"] == [
+        "FRAME_IDENTITY_CONFLICT"
+    ]
+    assert expected["must_preserve_frame_relative_results"] == results_by_frame
+    assert expected["must_not_collapse_frames"] is True
+
+    forbidden_states = {
+        "PASS",
+        "FAIL",
+        "BOUND_CHECK_AVAILABLE",
+        "COMPLETE_ELIGIBLE",
+        "CURRENTLY_RESTRAINED",
+    }
+    assert set(expected["must_not_return"]) == forbidden_states
+    assert expected["state"] not in forbidden_states
+
+    snapshot_hashes = set(fixture["snapshot"]["receipt_hashes"])
+    evaluation_hashes = {
+        evaluation["receipt_hash"]
+        for evaluation in evaluations
+    }
+    assert snapshot_hashes == evaluation_hashes
+
+    assert set(fixture["snapshot"]["frame_identities"]) == set(results_by_frame)
+
+    for evaluation in evaluations:
+        assert evaluation["truth_claimed"] is False
+        assert evaluation["accepted"] is False
+        assert evaluation["state_change_authorized"] is False
+        assert evaluation["write_authority"] == "NONE"
+        assert evaluation["execution_authority"] == "NONE"
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"

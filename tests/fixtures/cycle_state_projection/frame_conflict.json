@@ -1,0 +1,97 @@
+{
+  "fixture_id": "cycle-state-projection@frame-conflict-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that combines individually valid frame-relative results from incompatible declared frames into one current conclusion.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "2222222222222222222222222222222222222222222222222222222222222222",
+      "3333333333333333333333333333333333333333333333333333333333333333"
+    ],
+    "frame_identities": [
+      "frame:accuracy:v1",
+      "frame:latency:v1"
+    ],
+    "episode_identities": [
+      "episode:frame-conflict-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "frame_relative_evaluations": [
+    {
+      "receipt_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "type": "frame_relative_criterion_evaluation",
+      "version": 1,
+      "frame_identity": "frame:accuracy:v1",
+      "frame_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "required_criteria": [
+        "accuracy"
+      ],
+      "success_rule": "ALL_REQUIRED_PASS",
+      "missing_required_criteria": [],
+      "result": "PASS",
+      "accepted": false,
+      "truth_claimed": false,
+      "state_change_authorized": false,
+      "write_authority": "NONE",
+      "execution_authority": "NONE"
+    },
+    {
+      "receipt_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "type": "frame_relative_criterion_evaluation",
+      "version": 1,
+      "frame_identity": "frame:latency:v1",
+      "frame_hash": "5555555555555555555555555555555555555555555555555555555555555555",
+      "required_criteria": [
+        "latency"
+      ],
+      "success_rule": "ALL_REQUIRED_PASS",
+      "missing_required_criteria": [],
+      "result": "FAIL",
+      "accepted": false,
+      "truth_claimed": false,
+      "state_change_authorized": false,
+      "write_authority": "NONE",
+      "execution_authority": "NONE"
+    }
+  ],
+  "expected": {
+    "state": "BLOCKED_INVARIANT",
+    "reason_codes": [
+      "FRAME_IDENTITY_CONFLICT"
+    ],
+    "must_preserve_frame_relative_results": {
+      "frame:accuracy:v1": "PASS",
+      "frame:latency:v1": "FAIL"
+    },
+    "must_not_return": [
+      "PASS",
+      "FAIL",
+      "BOUND_CHECK_AVAILABLE",
+      "COMPLETE_ELIGIBLE",
+      "CURRENTLY_RESTRAINED"
+    ],
+    "must_not_collapse_frames": true,
+    "source_receipt_identities": [
+      {
+        "type": "frame_relative_criterion_evaluation",
+        "hash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "frame_identity": "frame:accuracy:v1"
+      },
+      {
+        "type": "frame_relative_criterion_evaluation",
+        "hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "frame_identity": "frame:latency:v1"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "episode_id": "episode:frame-conflict-1"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
