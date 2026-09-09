@@ -654,3 +654,73 @@ def test_authority_remains_non_increasing_across_projection() -> None:
         for source in sources
     }
     assert snapshot_hashes == source_hashes
+def test_byte_and_repeat_determinism_preserves_projection_identity() -> None:
+    from holosim.canonical import (
+        CANONICAL_TYPE,
+        CANONICAL_VERSION,
+        HASH_ALGORITHM,
+        canonical_bytes,
+        stable_hash,
+    )
+
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "byte_repeat_determinism.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    snapshot = fixture["canonical_snapshot"]
+    projection = fixture["projection"]
+    expected = fixture["expected"]
+
+    assert snapshot["projection_version"] == fixture["projection_version"]
+    assert expected["repeat_count"] == 3
+
+    identity_input = {
+        "projection_version": fixture["projection_version"],
+        "canonical_snapshot": snapshot,
+        "projection": projection,
+    }
+
+    repeated_bytes = [
+        canonical_bytes(identity_input)
+        for _ in range(expected["repeat_count"])
+    ]
+    repeated_hashes = [
+        stable_hash(identity_input)
+        for _ in range(expected["repeat_count"])
+    ]
+
+    assert expected["canonical_bytes_identical"] is True
+    assert len(set(repeated_bytes)) == 1
+
+    assert expected["projection_identity_identical"] is True
+    assert len(set(repeated_hashes)) == 1
+
+    assert repeated_hashes[0] == stable_hash(identity_input)
+    assert repeated_bytes[0] == canonical_bytes(identity_input)
+
+    contract = expected["canonical_contract"]
+    assert contract == {
+        "type": CANONICAL_TYPE,
+        "version": CANONICAL_VERSION,
+        "algorithm": HASH_ALGORITHM,
+    }
+
+    assert expected["same_projection_version_required"] is True
+    assert expected["same_canonical_snapshot_required"] is True
+    assert expected["must_not_add_runtime_reducer"] is True
+
+    assert projection["truth_claimed"] is False
+    assert projection["accepted"] is False
+    assert projection["execution_authorized"] is False
+    assert projection["state_change_authorized"] is False
+    assert projection["write_authority"] == "NONE"
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"

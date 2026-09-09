@@ -1,0 +1,64 @@
+{
+  "fixture_id": "cycle-state-projection@byte-repeat-determinism-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection identity contract that produces different canonical bytes or identities from the same projection version and same canonical snapshot.",
+  "canonical_snapshot": {
+    "projection_version": "0.1",
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    "frame_identities": [
+      "frame:determinism:v1"
+    ],
+    "episode_identities": [
+      "episode:determinism-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "projection": {
+    "state": "CURRENTLY_RESTRAINED",
+    "reason_codes": [
+      "NO_CURRENT_TRANSITION_WARRANTED"
+    ],
+    "source_receipt_identities": [
+      {
+        "type": "determinism_source",
+        "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "type": "determinism_source",
+        "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:determinism:v1",
+      "episode_id": "episode:determinism-1"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  },
+  "expected": {
+    "repeat_count": 3,
+    "canonical_bytes_identical": true,
+    "projection_identity_identical": true,
+    "same_projection_version_required": true,
+    "same_canonical_snapshot_required": true,
+    "canonical_contract": {
+      "type": "holo_canonical_json",
+      "version": 1,
+      "algorithm": "sha256"
+    },
+    "must_not_add_runtime_reducer": true,
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
