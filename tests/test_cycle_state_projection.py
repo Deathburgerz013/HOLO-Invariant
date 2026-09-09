@@ -404,3 +404,63 @@ def test_verifier_non_inference_requires_explicit_verifier_identity() -> None:
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_binding_is_not_verification_or_authority() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "binding_not_verification.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    declared = fixture["declared_check"]
+    binding = fixture["binding_result"]
+    expected = fixture["expected"]
+
+    assert declared["routing_status"] == "DECLARED_CHECK_AVAILABLE"
+    assert declared["invented"] is False
+
+    assert binding["type"] == "declared_check_verifier_binding"
+    assert binding["version"] == 1
+    assert binding["verifier_id"] == "verifier:replay:v1"
+    assert binding["bound"] is True
+    assert binding["binding_status"] == "DECLARED_VERIFIER_BOUND"
+    assert binding["verifier_available"] is True
+    assert binding["verifier_inferred"] is False
+
+    assert expected["state"] == "BOUND_CHECK_AVAILABLE"
+    assert expected["reason_codes"] == [
+        "DECLARED_VERIFIER_BOUND"
+    ]
+    assert expected["bound"] is True
+    assert expected["verifier_available"] is True
+    assert expected["verifier_inferred"] is False
+
+    forbidden_states = {
+        "PASS",
+        "VERIFIED",
+        "TRUE",
+        "ACCEPTED",
+        "COMPLETE_ELIGIBLE",
+    }
+    assert set(expected["must_not_return"]) == forbidden_states
+    assert expected["state"] not in forbidden_states
+
+    snapshot_hashes = set(fixture["snapshot"]["receipt_hashes"])
+    assert snapshot_hashes == {
+        declared["receipt_hash"],
+        binding["receipt_hash"],
+    }
+
+    assert binding["truth_claimed"] is False
+    assert binding["accepted"] is False
+    assert binding["execution_authorized"] is False
+    assert binding["write_authority"] == "NONE"
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"
