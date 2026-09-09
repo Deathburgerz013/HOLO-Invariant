@@ -109,3 +109,71 @@ def test_permutation_invariance_fixture_preserves_projection_result():
     assert expected["execution_authorized"] is False
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
+def test_historical_completion_reopen_fixture_preserves_history_and_changes_currentness():
+    fixture = json.loads(
+        (
+            Path(__file__).parent
+            / "fixtures"
+            / "cycle_state_projection"
+            / "historical_completion_reopen.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert fixture["projection_version"] == "0.1"
+
+    snapshot = fixture["snapshot"]
+    receipts = fixture["receipts"]
+    expected = fixture["expected"]
+
+    completion = receipts["historical_completion"]
+    reopen = receipts["later_reopen"]
+
+    assert completion["type"] == "environment_completion_certificate"
+    assert completion["certificate_id"] == completion["receipt_hash"]
+    assert completion["status"] == "COMPLETE_ELIGIBLE"
+
+    assert reopen["type"] == "environment_episode_reopen_receipt"
+    assert reopen["receipt_id"] == reopen["receipt_hash"]
+    assert reopen["relation"] == "reopens"
+
+    assert reopen["parent_certificate_id"] == completion["certificate_id"]
+    assert reopen["prior_episode_id"] == completion["episode_id"]
+    assert reopen["reopened_episode_id"] != completion["episode_id"]
+    assert reopen["environment_id"] == completion["environment_id"]
+
+    assert set(snapshot["receipt_hashes"]) == {
+        completion["receipt_hash"],
+        reopen["receipt_hash"],
+    }
+
+    assert set(snapshot["episode_identities"]) == {
+        completion["episode_id"],
+        reopen["reopened_episode_id"],
+    }
+
+    historical = expected["historical_status"]
+
+    assert historical["episode_id"] == completion["episode_id"]
+    assert historical["state"] == "COMPLETE_ELIGIBLE"
+    assert historical["preserved"] is True
+
+    assert expected["current_episode_id"] == reopen["reopened_episode_id"]
+    assert "LATER_EPISODE_REOPENED" in expected["reason_codes"]
+    assert "COMPLETE_ELIGIBLE" in expected["must_not_return_current_state"]
+
+    assert expected["source_receipt_identities"] == [
+        {
+            "type": "environment_completion_certificate",
+            "hash": completion["receipt_hash"],
+        },
+        {
+            "type": "environment_episode_reopen_receipt",
+            "hash": reopen["receipt_hash"],
+        },
+    ]
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"

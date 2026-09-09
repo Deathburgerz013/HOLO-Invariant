@@ -1,0 +1,83 @@
+{
+  "fixture_id": "cycle-state-projection@historical-completion-reopen-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that treats a historically valid completion certificate as currently COMPLETE_ELIGIBLE after a later valid reopen supersedes its currentness.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "5555555555555555555555555555555555555555555555555555555555555555",
+      "6666666666666666666666666666666666666666666666666666666666666666"
+    ],
+    "frame_identities": [
+      "frame:environment-stability:v1"
+    ],
+    "episode_identities": [
+      "episode:camera-1",
+      "episode:camera-1:reopen-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "receipts": {
+    "historical_completion": {
+      "receipt_hash": "5555555555555555555555555555555555555555555555555555555555555555",
+      "type": "environment_completion_certificate",
+      "certificate_id": "5555555555555555555555555555555555555555555555555555555555555555",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:camera-1",
+      "environment_id": "environment:lab",
+      "status": "COMPLETE_ELIGIBLE",
+      "evaluation_eligible": true,
+      "accepted": false,
+      "write_authority": "NONE"
+    },
+    "later_reopen": {
+      "receipt_hash": "6666666666666666666666666666666666666666666666666666666666666666",
+      "type": "environment_episode_reopen_receipt",
+      "receipt_id": "6666666666666666666666666666666666666666666666666666666666666666",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "relation": "reopens",
+      "parent_certificate_id": "5555555555555555555555555555555555555555555555555555555555555555",
+      "prior_episode_id": "episode:camera-1",
+      "reopened_episode_id": "episode:camera-1:reopen-1",
+      "environment_id": "environment:lab",
+      "trigger_snapshot_id": "snapshot:camera-1:reopen-1",
+      "reasons": [
+        "new relevant evidence"
+      ],
+      "accepted": false,
+      "write_authority": "NONE"
+    }
+  },
+  "expected": {
+    "historical_status": {
+      "episode_id": "episode:camera-1",
+      "state": "COMPLETE_ELIGIBLE",
+      "preserved": true
+    },
+    "current_episode_id": "episode:camera-1:reopen-1",
+    "reason_codes": [
+      "LATER_EPISODE_REOPENED"
+    ],
+    "must_not_return_current_state": [
+      "COMPLETE_ELIGIBLE"
+    ],
+    "source_receipt_identities": [
+      {
+        "type": "environment_completion_certificate",
+        "hash": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      {
+        "type": "environment_episode_reopen_receipt",
+        "hash": "6666666666666666666666666666666666666666666666666666666666666666"
+      }
+    ],
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
