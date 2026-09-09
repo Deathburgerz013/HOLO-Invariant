@@ -1,0 +1,122 @@
+{
+  "fixture_id": "cycle-state-projection@stale-dependency-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that treats a historically COMPLETE_ELIGIBLE result as currently sufficient after one of its declared supporting dependencies changes and a dependency plan marks the result RECHECK_REQUIRED.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "7777777777777777777777777777777777777777777777777777777777777777",
+      "8888888888888888888888888888888888888888888888888888888888888888",
+      "9999999999999999999999999999999999999999999999999999999999999999"
+    ],
+    "frame_identities": [
+      "frame:environment-stability:v1"
+    ],
+    "episode_identities": [
+      "episode:dependency-stale-1"
+    ],
+    "dependency_plan_identities": [
+      "9999999999999999999999999999999999999999999999999999999999999999"
+    ]
+  },
+  "receipts": {
+    "changed_support": {
+      "receipt_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+      "type": "test_receipt",
+      "version": 1,
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:dependency-stale-1"
+    },
+    "historical_result": {
+      "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+      "type": "environment_completion_certificate",
+      "certificate_id": "8888888888888888888888888888888888888888888888888888888888888888",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:dependency-stale-1",
+      "environment_id": "environment:lab",
+      "evidence_receipt_hashes": [
+        "7777777777777777777777777777777777777777777777777777777777777777"
+      ],
+      "status": "COMPLETE_ELIGIBLE",
+      "evaluation_eligible": true,
+      "accepted": false,
+      "write_authority": "NONE"
+    },
+    "dependency_plan": {
+      "receipt_hash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "type": "dependency_recheck_plan",
+      "plan_hash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "valid": true,
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "changed_dependency_hashes": [
+        "7777777777777777777777777777777777777777777777777777777777777777"
+      ],
+      "unobserved_changed_hashes": [],
+      "results": [
+        {
+          "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+          "status": "RECHECK_REQUIRED",
+          "trigger_paths": [
+            [
+              "7777777777777777777777777777777777777777777777777777777777777777",
+              "8888888888888888888888888888888888888888888888888888888888888888"
+            ]
+          ]
+        }
+      ],
+      "recheck_required_count": 1,
+      "validity_claimed": false,
+      "accepted": false,
+      "write_authority": "NONE"
+    }
+  },
+  "expected": {
+    "state": "RECHECK_REQUIRED",
+    "reason_codes": [
+      "DEPENDENCY_RECHECK_REQUIRED"
+    ],
+    "historical_status": {
+      "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+      "state": "COMPLETE_ELIGIBLE",
+      "preserved": true
+    },
+    "changed_dependency_hashes": [
+      "7777777777777777777777777777777777777777777777777777777777777777"
+    ],
+    "trigger_paths": [
+      [
+        "7777777777777777777777777777777777777777777777777777777777777777",
+        "8888888888888888888888888888888888888888888888888888888888888888"
+      ]
+    ],
+    "source_receipt_identities": [
+      {
+        "type": "test_receipt",
+        "hash": "7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      {
+        "type": "environment_completion_certificate",
+        "hash": "8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      {
+        "type": "dependency_recheck_plan",
+        "hash": "9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:environment-stability:v1",
+      "episode_id": "episode:dependency-stale-1",
+      "environment_id": "environment:lab"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}

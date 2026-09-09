@@ -110,15 +110,13 @@ def test_permutation_invariance_fixture_preserves_projection_result():
     assert expected["state_change_authorized"] is False
     assert expected["write_authority"] == "NONE"
 def test_historical_completion_reopen_fixture_preserves_history_and_changes_currentness():
-    fixture = json.loads(
-        (
-            Path(__file__).parent
-            / "fixtures"
-            / "cycle_state_projection"
-            / "historical_completion_reopen.json"
-        ).read_text(encoding="utf-8")
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "historical_completion_reopen.json"
     )
-
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
     assert fixture["projection_version"] == "0.1"
 
     snapshot = fixture["snapshot"]
@@ -171,6 +169,74 @@ def test_historical_completion_reopen_fixture_preserves_history_and_changes_curr
             "hash": reopen["receipt_hash"],
         },
     ]
+
+    assert expected["truth_claimed"] is False
+    assert expected["accepted"] is False
+    assert expected["execution_authorized"] is False
+    assert expected["state_change_authorized"] is False
+    assert expected["write_authority"] == "NONE"
+def test_stale_dependency_fixture_requires_recheck_without_erasing_history() -> None:
+    fixture_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "cycle_state_projection"
+        / "stale_dependency.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    assert fixture["projection_version"] == "0.1"
+
+    changed = fixture["receipts"]["changed_support"]
+    historical = fixture["receipts"]["historical_result"]
+    plan = fixture["receipts"]["dependency_plan"]
+    expected = fixture["expected"]
+
+    assert changed["receipt_hash"] in historical["evidence_receipt_hashes"]
+    assert historical["status"] == "COMPLETE_ELIGIBLE"
+
+    assert plan["type"] == "dependency_recheck_plan"
+    assert plan["changed_dependency_hashes"] == [changed["receipt_hash"]]
+    assert plan["unobserved_changed_hashes"] == []
+
+    assert plan["results"] == [
+        {
+            "receipt_hash": historical["receipt_hash"],
+            "status": "RECHECK_REQUIRED",
+            "trigger_paths": [
+                [
+                    changed["receipt_hash"],
+                    historical["receipt_hash"],
+                ]
+            ],
+        }
+    ]
+    assert plan["recheck_required_count"] == 1
+
+    assert expected["state"] == "RECHECK_REQUIRED"
+    assert "DEPENDENCY_RECHECK_REQUIRED" in expected["reason_codes"]
+
+    assert expected["historical_status"] == {
+        "receipt_hash": historical["receipt_hash"],
+        "state": "COMPLETE_ELIGIBLE",
+        "preserved": True,
+    }
+
+    assert expected["changed_dependency_hashes"] == [
+        changed["receipt_hash"]
+    ]
+    assert expected["trigger_paths"] == [
+        [
+            changed["receipt_hash"],
+            historical["receipt_hash"],
+        ]
+    ]
+
+    snapshot_hashes = set(fixture["snapshot"]["receipt_hashes"])
+    assert snapshot_hashes == {
+        changed["receipt_hash"],
+        historical["receipt_hash"],
+        plan["receipt_hash"],
+    }
 
     assert expected["truth_claimed"] is False
     assert expected["accepted"] is False
