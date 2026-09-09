@@ -1,0 +1,80 @@
+{
+  "fixture_id": "cycle-state-projection@verifier-non-inference-001",
+  "projection_version": "0.1",
+  "purpose": "Falsify any projection that infers a verifier identity from the wording of an explicitly declared resolution condition.",
+  "snapshot": {
+    "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt_hashes": [
+      "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    ],
+    "frame_identities": [
+      "frame:verifier-binding:v1"
+    ],
+    "episode_identities": [
+      "episode:verifier-non-inference-1"
+    ],
+    "dependency_plan_identities": []
+  },
+  "declared_check": {
+    "receipt_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "type": "declared_check_candidate",
+    "condition": "Run replay verifier",
+    "routing_status": "DECLARED_CHECK_AVAILABLE",
+    "invented": false,
+    "execution_authorized": false,
+    "truth_claimed": false,
+    "accepted": false,
+    "write_authority": "NONE"
+  },
+  "binding_result": {
+    "receipt_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "type": "declared_check_verifier_binding",
+    "bound": false,
+    "binding_status": "VERIFIER_ID_REQUIRED",
+    "verifier_id": null,
+    "verifier_inferred": false,
+    "execution_authorized": false,
+    "truth_claimed": false,
+    "accepted": false,
+    "write_authority": "NONE"
+  },
+  "known_verifier_that_must_not_be_inferred": {
+    "verifier_id": "verifier:replay:v1",
+    "available": true,
+    "reason_not_selected": "No explicit verifier identity was supplied."
+  },
+  "expected": {
+    "state": "DECLARED_CHECK_UNBOUND",
+    "reason_codes": [
+      "VERIFIER_ID_REQUIRED"
+    ],
+    "bound": false,
+    "verifier_inferred": false,
+    "must_not_return": [
+      "BOUND_CHECK_AVAILABLE",
+      "COMPLETE_ELIGIBLE"
+    ],
+    "must_not_infer_verifier_id": "verifier:replay:v1",
+    "source_receipt_identities": [
+      {
+        "type": "declared_check_candidate",
+        "hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      {
+        "type": "declared_check_verifier_binding",
+        "hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    ],
+    "scope": {
+      "idx_identity": "idx:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frame_identity": "frame:verifier-binding:v1",
+      "episode_id": "episode:verifier-non-inference-1"
+    },
+    "truth_claimed": false,
+    "accepted": false,
+    "execution_authorized": false,
+    "state_change_authorized": false,
+    "write_authority": "NONE"
+  }
+}
