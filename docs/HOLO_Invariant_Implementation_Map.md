@@ -3266,3 +3266,84 @@
 | | Exact-path beginnings are now witnessed without mythology.  |
 | | Stop before turning reachable history into absolute origin.  |
 | |}==============================================================|
+| |}==============================================================|
+| | VERIFIED_NEED_TO_RESULT_043_OVERLAY                          |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-10                                             |
+| | BRANCH: feat/verified-need-to-result-path                   |
+| | BASE: main@b20c5ef                                           |
+| | IMPLEMENTATION: holosim/verified_need_to_result.py           |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 455264e63cde21d86d8edb6b0b434ddbacd8c49a93c4099c1eadaf1d701e2a23
+| | FOCUSED_TEST: tests/test_verified_need_to_result.py          |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | fb578d59ae7d71e1c3ffb43c3d762a89db815e433b40fd2eb0ec1ca91c00706e
+| | COMMITTED_REGISTER_SHA256:                                   |
+| | 712b7dc44d662c37aa969f801c22eea46845be6db5b3e1cb9e116260eb002abc
+| |                                                              |
+| | CONCRETE_MISSING_COMPOSITION                                |
+| | The repository could preserve a declared purpose and could   |
+| | separately converge a software request into a verified       |
+| | runnable project, but the production receipt did not carry   |
+| | the purpose identity that existed before production. A later |
+| | rationale could therefore be attached without contradicting  |
+| | the production receipt itself.                               |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - run_verified_need_to_result(...)                           |
+| | - verify_need_to_result_receipt(receipt)                     |
+| |                                                              |
+| | COMPOSITION_BOUNDARY                                        |
+| | - The justification notice is rebuilt before decomposition, |
+| |   proposal, or workspace mutation can occur.                 |
+| | - Its exact target hash must identify the canonical software |
+| |   request and its target type must be software_request.      |
+| | - The purpose hash is injected into production constraints   |
+| |   before the existing software convergence entrypoint runs.  |
+| | - The production receipt must carry that exact purpose hash; |
+| |   a post-hoc purpose substitution therefore fails closed.    |
+| | - Only the structured PROJECT_VERIFIED_RUNNABLE stop token,  |
+| |   together with converged and runnable production fields and |
+| |   a passing runnable project verification, yields COMPLETE.  |
+| | - Every other intact production terminal yields BLOCKED and  |
+| |   preserves its exact terminal reason.                       |
+| | - The path receipt and nested production receipt remain      |
+| |   deterministic, tamper-evident, non-authoritative records.  |
+| | - The new receipt boundary is registered immediately, moving|
+| |   the observed baseline to 24 discoverable, 11 registered,  |
+| |   13 unregistered, and 0 stale modules.                      |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused path and registry tests: 24 passed in 0.69 s.     |
+| | - Full local repository suite: 1802 passed in 10.23 s.      |
+| | - The first focused run falsified an outer-wrapper-only      |
+| |   design: replacing the purpose and recomputing the outer    |
+| |   hash still passed. Binding the purpose hash inside the     |
+| |   pre-production constraints closed that exact failure.     |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - The path composes one software request only. It does not   |
+| |   generalize the result contract to research, policy, games, |
+| |   physical action, or other production domains.              |
+| | - Supplied decomposers, comparators, proposers, and verifiers|
+| |   remain supplied dependencies; this path does not prove     |
+| |   their external claims merely by recording their outputs.   |
+| | - COMPLETE establishes only the bounded software contract and|
+| |   declared stop-token match. It does not establish usefulness|
+| |   external truth, acceptance, or permission.                 |
+| | - The receipt does not persist its result. A later append     |
+| |   remains subject to exact-target external authorization.    |
+| | - persistence_performed=false, truth_claimed=false,         |
+| |   accepted=false, write_authority=NONE, and                 |
+| |   execution_authority=NONE remain fixed.                    |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One declared software need now remains bound through its     |
+| | verified runnable result. Stop before persistence or domain  |
+| | generalization.                                              |
+| |}==============================================================|
