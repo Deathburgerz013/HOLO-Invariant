@@ -388,6 +388,33 @@ Source frame and receiving frame MUST remain distinguishable.
 
 The Spine MUST preserve the structure required to correct itself.
 
+## 9.13 Evidentiary authority invariant
+
+The validity of a claim, correction, proposed transition, or generated artifact MUST
+NOT be determined by the identity, beliefs, preferences, philosophy, ideology,
+religion, personality, authorship, or model identity of its source.
+
+Source identity MAY be retained as provenance.
+
+Provenance MUST NOT be treated as evidence that a claim is true.
+
+A proposed transition MUST be evaluated using the evidence, reproducible
+verification, declared invariants, scope, lineage, uncertainty, and explicitly
+granted authority relevant to that transition.
+
+Information about an operator, contributor, model, or source that is not
+operationally relevant to the evaluated transition MUST NOT affect its result.
+
+No person, model, organization, worldview, or prior version wins by identity alone.
+
+A later observer MUST remain free to challenge an earlier result with stronger
+evidence.
+
+The purpose of preserved continuity is therefore not preservation of prior
+conclusions for their own sake. It is to provide a verified starting state from
+which later observers can correct errors and construct progressively more capable
+software without unnecessarily rediscovering already verified work.
+
 ---
 
 # 10. Failure Modes
@@ -568,6 +595,22 @@ Required response:
 - require challenge review,
 - track rejected corrections,
 - periodically audit whether rules prevent valid updates.
+
+---
+
+## 10.19 Source-authority contamination
+
+An evaluator allows irrelevant information about the operator, contributor, model,
+organization, worldview, beliefs, or authorship to influence the technical validity
+of a claim or proposed transition.
+
+Required response:
+
+- separate provenance from evidentiary support,
+- remove irrelevant source attributes from the evaluation,
+- reevaluate the claim using only operationally relevant evidence and authority,
+- preserve any genuinely relevant provenance,
+- record the contamination as an evaluation error when it changed the result.
 
 ---
 
