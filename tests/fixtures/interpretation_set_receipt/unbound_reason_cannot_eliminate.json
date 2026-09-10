@@ -1,0 +1,16 @@
+{
+  "fixture": "unbound_reason_cannot_eliminate",
+  "observation_id": "obs-001",
+  "prior_set": ["A", "B"],
+  "ranks": {
+    "A": 0.9,
+    "B": 0.1
+  },
+  "subtract_receipts": [
+    {
+      "member": "B",
+      "reason": "because A seems more likely"
+    }
+  ],
+  "expected_set": ["A", "B"]
+}

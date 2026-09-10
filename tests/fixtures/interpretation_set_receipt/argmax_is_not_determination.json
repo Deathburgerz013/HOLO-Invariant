@@ -1,0 +1,11 @@
+{
+  "fixture": "argmax_is_not_determination",
+  "observation_id": "obs-001",
+  "prior_set": ["A", "B"],
+  "ranks": {
+    "A": 0.9,
+    "B": 0.1
+  },
+  "subtract_receipts": [],
+  "expected_set": ["A", "B"]
+}
