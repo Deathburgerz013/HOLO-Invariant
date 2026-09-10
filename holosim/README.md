@@ -45,7 +45,7 @@ print(chain.get_state())
 
 CLI Usage
 Bash# Append
-python -m holosim.cli append "Test invariant: HSSCE external continuity verified 2026-06-13"
+python -m holosim.cli append "Test invariant: HSSCE external continuity verified 2026-06-13" --reviewer "reviewer-id" --approval-reference "approval-record-id"
 
 # Replay full chain
 python -m holosim.cli replay
