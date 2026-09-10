@@ -20,6 +20,7 @@ try:
     from holosim.core import HoloChain
     from holosim.idx_manager import get_idx_manager
     from holosim.operator import get_operator
+    from holosim.provenance import get_provenance
     from holosim.rebirth_engine import run_rebirth
     from holosim.replay import ReplayEngine
     from holosim.slot_merkle_sqlite import SlotMerkleDB
@@ -35,6 +36,7 @@ except ImportError:
     from holosim.core import HoloChain
     from holosim.idx_manager import get_idx_manager
     from holosim.operator import get_operator
+    from holosim.provenance import get_provenance
     from holosim.rebirth_engine import run_rebirth
     from holosim.replay import ReplayEngine
     from holosim.slot_merkle_sqlite import SlotMerkleDB
@@ -144,6 +146,10 @@ class HoloService:
             "reviewer": authorization["actor_id"],
             "approval_reference": authorization["approval_reference"],
         }
+        provenance = get_provenance(
+            source="HoloService",
+        ).packet()
+
         payload = {
             "type": "service_append",
             "source": "HoloService",
@@ -152,6 +158,7 @@ class HoloService:
             "content": content,
             "authority": authority,
             "operational_authorization": dict(authorization),
+            "provenance": provenance,
         }
 
         authorization_hash = authorization["authorization_hash"]

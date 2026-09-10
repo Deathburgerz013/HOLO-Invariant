@@ -94,6 +94,37 @@ def test_service_append_records_external_authority_and_content_hash(tmp_path):
     assert payload["operational_authorization"] == _authorization(content)
 
 
+def test_service_append_records_standardized_provenance(tmp_path):
+    chain_path = tmp_path / "chain.jsonl"
+    service = HoloService(chain_path)
+    content = {"claim": "camera records motion"}
+
+    result = service.append(
+        content,
+        compress=False,
+        authorization=_authorization(content),
+    )
+
+    assert result["status"] == "COMMITTED"
+
+    entry = json.loads(chain_path.read_text(encoding="utf-8").splitlines()[0])
+    payload = json.loads(entry["content"])
+
+    assert payload["provenance"] == {
+        "thread_id": None,
+        "anchor": payload["provenance"]["anchor"],
+        "active_hash": payload["provenance"]["active_hash"],
+        "version": payload["provenance"]["version"],
+        "source": "HoloService",
+        "git": payload["provenance"]["git"],
+    }
+
+    assert payload["provenance"]["anchor"]
+    assert payload["provenance"]["active_hash"]
+    assert payload["provenance"]["version"]
+    assert set(payload["provenance"]["git"]) == {"branch", "commit"}
+
+
 def test_collector_does_not_report_blocked_append_as_collected(tmp_path):
     chain_path = tmp_path / "chain.jsonl"
     collector = Collector(chain_path)
