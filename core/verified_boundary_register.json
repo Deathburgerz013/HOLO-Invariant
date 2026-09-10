@@ -170,6 +170,23 @@
       "test_sha256": "73275ca32b521cc38855fa49695b5d34d3d60f4b8a213e4a56a407270ef7bf0d"
     },
     {
+      "boundary_id": "verified-need-to-result",
+      "module": "holosim.verified_need_to_result",
+      "implementation_path": "holosim/verified_need_to_result.py",
+      "implementation_sha256": "455264e63cde21d86d8edb6b0b434ddbacd8c49a93c4099c1eadaf1d701e2a23",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "verified_need_to_result_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_need_to_result_receipt"
+        }
+      ],
+      "test_path": "tests/test_verified_need_to_result.py",
+      "test_sha256": "fb578d59ae7d71e1c3ffb43c3d762a89db815e433b40fd2eb0ec1ca91c00706e"
+    },
+    {
       "boundary_id": "verified-recall",
       "module": "holosim.recall_verification",
       "implementation_path": "holosim/recall_verification.py",
@@ -189,5 +206,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "c64e28059cd56269a550c93a7706bf301f2e981636dc255b6505c049bf78087b"
+  "register_hash": "712b7dc44d662c37aa969f801c22eea46845be6db5b3e1cb9e116260eb002abc"
 }
