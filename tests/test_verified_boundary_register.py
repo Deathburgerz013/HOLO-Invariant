@@ -36,7 +36,7 @@ def rehash(value: dict[str, object]) -> None:
 def test_committed_register_verifies_current_boundaries() -> None:
     result = verify_boundary_register(register(), root=ROOT)
     assert result["status"] == "PASS"
-    assert len(result["results"]) == 11
+    assert len(result["results"]) == 12
     assert all(item["status"] == "PASS" for item in result["results"])
     assert result["accepted"] is False
     assert result["write_authority"] == "NONE"
@@ -51,6 +51,7 @@ def test_each_recent_boundary_has_one_keyed_slot() -> None:
         "deterministic-boundary-key-maker",
         "functional-awareness-loop",
         "genesis-origins",
+        "provider-neutral-observer-transport",
         "python-surface-inventory",
         "time-scoped-truth",
         "verified-need-to-result",
@@ -193,7 +194,7 @@ def test_committed_json_is_canonical_data_not_generated_authority() -> None:
 
 def test_discovery_finds_current_versioned_receipt_boundaries() -> None:
     discovered = discover_receipt_boundaries(root=ROOT)
-    assert len(discovered) == 24
+    assert len(discovered) == 25
     paths = {item["implementation_path"] for item in discovered}
     assert "holosim/functional_awareness_loop.py" in paths
     assert "holosim/invariant_reflection.py" in paths
@@ -205,7 +206,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
     result = compare_boundary_register_completeness(register(), root=ROOT)
     assert result["status"] == "INCOMPLETE"
     assert result["counts"] == {
-        "REGISTERED": 11,
+        "REGISTERED": 12,
         "UNREGISTERED": 13,
         "STALE": 0,
     }

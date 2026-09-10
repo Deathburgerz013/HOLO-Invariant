@@ -186,10 +186,14 @@ and verified environment bindings. It carries the current objective, usable
 claims, excluded claims, unresolved questions, and required rechecks without
 requiring a full transcript replay or naming a model provider.
 
-The packet does not automatically inject itself into a model; provider-neutral transport remains an integration boundary, and a consumer must still supply
-the packet to a model or tool before reconstruction can occur. Packet identity
-and upstream bindings are verified; successful consumption does not establish
-that every capable model will interpret or apply the packet equivalently.
+The packet does not automatically inject itself into a model. The
+dependency-injected `provider_neutral_observer_transport.py` presents one canonical packet byte string
+to caller-supplied observers and binds each JSON
+response to that unchanged packet in a separate non-authoritative receipt.
+Live vendor clients, credentials, network delivery, and provider identity
+attestation remain integration boundaries. Packet identity and upstream
+bindings are verified; successful transport does not establish that every
+capable model will interpret or apply the packet equivalently.
 
 Cross-model continuity remains an empirical target. Repeated reconstruction by
 independent models and operators, using retained fixtures and checks, is needed

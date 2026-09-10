@@ -129,6 +129,23 @@
       "test_sha256": "6d4c87d8e4575436e9020a8edc406f10f797c5323b83a748a9030e46e9d0a377"
     },
     {
+      "boundary_id": "provider-neutral-observer-transport",
+      "module": "holosim.provider_neutral_observer_transport",
+      "implementation_path": "holosim/provider_neutral_observer_transport.py",
+      "implementation_sha256": "e559e3e70916404efdf8d8ce69bdea074ee08476f937febb1008bc5969bccff7",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "provider_neutral_observer_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_provider_neutral_observer_receipt"
+        }
+      ],
+      "test_path": "tests/test_provider_neutral_observer_transport.py",
+      "test_sha256": "85198dfb6a8466ff932197dca6ae1c1184794507da93288c7cce0c0275954b1b"
+    },
+    {
       "boundary_id": "python-surface-inventory",
       "module": "holosim.python_surface_inventory",
       "implementation_path": "holosim/python_surface_inventory.py",
@@ -206,5 +223,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "712b7dc44d662c37aa969f801c22eea46845be6db5b3e1cb9e116260eb002abc"
+  "register_hash": "4c648e99ff9f8d18f8445f5003550d356990b14bdf1d041932e384dd7cf44633"
 }
