@@ -28,13 +28,15 @@ def test_symbolic_relation_is_not_presented_as_mathematical_proof():
     assert "not proof of the repository's engineering guarantees" in readme
 
 
-def test_situated_packet_claim_names_implemented_and_missing_layers():
+def test_situated_packet_claim_names_implemented_transport_boundary():
     readme = readme_text()
 
     assert "situated_reconstruction_packet.py" in readme
     assert "model-independent reconstruction artifact" in readme
     assert "does not automatically inject itself into a model" in readme
-    assert "provider-neutral transport remains an integration boundary" in readme
+    assert "provider_neutral_observer_transport.py" in readme
+    assert "one canonical packet byte string" in readme
+    assert "Live vendor clients, credentials, network delivery" in readme
 
 
 def test_cross_model_continuity_remains_an_empirical_target():

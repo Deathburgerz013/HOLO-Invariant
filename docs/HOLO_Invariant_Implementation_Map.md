@@ -3347,3 +3347,82 @@
 | | verified runnable result. Stop before persistence or domain  |
 | | generalization.                                              |
 | |}==============================================================|
+| |}==============================================================|
+| | PROVIDER_NEUTRAL_OBSERVER_TRANSPORT_044_OVERLAY              |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-10                                             |
+| | BRANCH: feat/provider-neutral-observer-transport            |
+| | BASE: main@421fbc5                                           |
+| | IMPLEMENTATION:                                             |
+| | holosim/provider_neutral_observer_transport.py               |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | e559e3e70916404efdf8d8ce69bdea074ee08476f937febb1008bc5969bccff7
+| | FOCUSED_TEST:                                               |
+| | tests/test_provider_neutral_observer_transport.py            |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 85198dfb6a8466ff932197dca6ae1c1184794507da93288c7cce0c0275954b1b
+| | COMMITTED_REGISTER_SHA256:                                   |
+| | 4c648e99ff9f8d18f8445f5003550d356990b14bdf1d041932e384dd7cf44633
+| |                                                              |
+| | CONCRETE_TRANSPORT_GAP                                      |
+| | The situated reconstruction packet was deterministic and    |
+| | model-independent, but no implementation presented its exact |
+| | canonical bytes to multiple caller-supplied observers or     |
+| | bound their separate responses back to that packet identity. |
+| |                                                              |
+| | IMPLEMENTED_FUNCTIONS                                       |
+| | - transport_situated_reconstruction_packet(...)             |
+| | - verify_provider_neutral_observer_receipt(...)              |
+| |                                                              |
+| | TRANSPORT_BOUNDARY                                          |
+| | - The existing situated packet is verified before transport.|
+| | - One canonical UTF-8 packet byte string is built once and   |
+| |   supplied unchanged to every declared observer adapter.     |
+| | - Observer identifiers must be explicit and unique.          |
+| | - Each JSON response receives a distinct receipt bound to    |
+| |   both packet_hash and the transmitted-byte SHA-256.         |
+| | - Response and receipt identities are independently checked.|
+| | - Packet mutation, receipt replay against another packet,    |
+| |   malformed output, duplicate observers, tampering, and      |
+| |   authority claims fail closed.                              |
+| | - No vendor client, credential handling, network call, chain |
+| |   append, response merge, or automatic selection is added.   |
+| | - The receipt boundary is registered immediately, moving the|
+| |   observed baseline to 25 discoverable, 12 registered,       |
+| |   13 unregistered, and 0 stale receipt modules.              |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused transport, packet, public-claim, and register     |
+| |   tests: 37 passed in 1.69 s.                               |
+| | - Full Windows repository suite: 1805 passed, 4 skipped in  |
+| |   40.71 s.                                                   |
+| | - Rail validation before delivery: valid, 0 violations.     |
+| | - Boundary register verification: PASS.                     |
+| | - Receipt discovery: 25.                                    |
+| | - Completeness: 12 registered, 13 unregistered, 0 stale.    |
+| | - The first focused run found a public-claim assertion split|
+| |   across a README line wrap: 36 passed, 1 failed. Joining   |
+| |   the exact searchable phrase corrected documentation only; |
+| |   transport behavior was unchanged.                         |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - A supplied adapter response is an observation, not proof   |
+| |   of provider identity, independent origin, truth, or quality.|
+| | - Identical responses do not establish factual correctness.  |
+| | - Transport receipt verification does not interpret free    |
+| |   text or promote any response into the source packet.       |
+| | - Live provider compatibility and cross-model equivalence    |
+| |   remain empirical integration targets.                     |
+| | - accepted=false, truth_claimed=false, write_authority=NONE,|
+| |   execution_authority=NONE, and canonical_mutation=false    |
+| |   remain fixed.                                             |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One unchanged situated packet can now produce separately     |
+| | bound observer receipts. Stop before live APIs or persistence.|
+| |}==============================================================|
