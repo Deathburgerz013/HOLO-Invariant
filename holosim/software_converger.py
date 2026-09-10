@@ -62,11 +62,12 @@ def run_software_converger(
 
         comparison_record = deepcopy(dict(comparison))
 
-        if (
-            comparison_record.get("model_generated") is True
-            and comparison_record.get("verified") is not True
-        ):
-            terminal_reason = "UNVERIFIED_MODEL_COMPARISON"
+        if comparison_record.get("verified") is False:
+            terminal_reason = (
+                "UNVERIFIED_MODEL_COMPARISON"
+                if comparison_record.get("model_generated") is True
+                else "UNVERIFIED_COMPARISON"
+            )
             cycles.append(
                 {
                     "cycle": cycle_number,
