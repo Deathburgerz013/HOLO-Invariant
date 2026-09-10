@@ -1,0 +1,20 @@
+{
+  "fixture": "subtract_receipt_eliminates_member",
+  "observation_id": "obs-001",
+  "prior_set": ["A", "B"],
+  "ranks": {
+    "A": 0.9,
+    "B": 0.1
+  },
+  "subtract_receipts": [
+    {
+      "member": "B",
+      "reason": "discriminating evidence eliminated B",
+      "evidence_receipt_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evidence_receipt_hashes": [
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  ],
+  "expected_set": ["A"]
+}

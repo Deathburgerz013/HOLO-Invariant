@@ -1,0 +1,20 @@
+{
+  "fixture": "unknown_evidence_cannot_eliminate",
+  "observation_id": "obs-001",
+  "prior_set": ["A", "B"],
+  "ranks": {
+    "A": 0.9,
+    "B": 0.1
+  },
+  "evidence_receipt_hashes": [
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  ],
+  "subtract_receipts": [
+    {
+      "member": "B",
+      "reason": "claimed discriminating evidence",
+      "evidence_receipt_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ],
+  "expected_set": ["A", "B"]
+}
