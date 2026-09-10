@@ -573,20 +573,41 @@ def run_replay_command(
 def run_service_append(
     args: argparse.Namespace,
 ) -> int:
-    """Append content through HoloService."""
+    """Append content through HoloService using typed authorization."""
+
+    from holosim.typed_operational_authorization import (
+        ACTION_SERVICE_APPEND,
+        build_operational_authorization,
+    )
 
     try:
         service = get_service(args.file)
+
+        canonical_content = json.dumps(
+            args.text,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=str,
+        )
+        target_sha256 = hashlib.sha256(
+            canonical_content.encode("utf-8")
+        ).hexdigest()
+
+        authorization = build_operational_authorization(
+            authorization_id=args.approval_reference,
+            actor_id=args.reviewer,
+            action=ACTION_SERVICE_APPEND,
+            target_sha256=target_sha256,
+            approval_reference=args.approval_reference,
+        )
 
         result = service.append(
             args.text,
             compress=not args.no_compress,
             mirror_to_slots=args.mirror_slots,
             tier=args.tier,
-            reviewer=args.reviewer,
-            approval_reference=(
-                args.approval_reference
-            ),
+            authorization=authorization,
         )
 
         print(
