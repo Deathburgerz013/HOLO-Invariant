@@ -22,11 +22,12 @@ from holosim.signed_occurrence import (
 
 
 GUARANTEE_EVIDENCE_BINDING_TYPE = "bounded_guarantee_evidence_binding"
-GUARANTEE_EVIDENCE_BINDING_VERSION = 1
+GUARANTEE_EVIDENCE_BINDING_VERSION = 2
 EVIDENCE_PAYLOAD_FIELDS = {
     "guarantee_id",
     "session_id",
     "evidence_reference",
+    "evidence_origin_id",
     "stance",
 }
 VALID_STANCES = {"SUPPORT", "CONTRADICT"}
@@ -110,6 +111,10 @@ def _payload(
             payload["evidence_reference"],
             f"occurrences[{index}].payload.evidence_reference",
         ),
+        "evidence_origin_id": _required_text(
+            payload["evidence_origin_id"],
+            f"occurrences[{index}].payload.evidence_origin_id",
+        ),
         "stance": stance,
     }
 
@@ -134,6 +139,7 @@ def evaluate_bound_guarantee_evidence(
     seen_occurrence_ids: set[str] = set()
     seen_sessions: set[str] = set()
     seen_evidence_refs: set[str] = set()
+    seen_evidence_origins: set[str] = set()
     payloads: list[dict[str, str]] = []
     verification_hashes: list[str] = []
     occurrence_hashes: list[str] = []
@@ -165,6 +171,7 @@ def evaluate_bound_guarantee_evidence(
         occurrence_id = occurrence["occurrence_id"]
         session_id = payload["session_id"]
         evidence_reference = payload["evidence_reference"]
+        evidence_origin_id = payload["evidence_origin_id"]
 
         if session_id in seen_sessions:
             raise GuaranteeEvidenceBindingError(
@@ -174,10 +181,15 @@ def evaluate_bound_guarantee_evidence(
             raise GuaranteeEvidenceBindingError(
                 "verified occurrences must have unique evidence_reference values"
             )
+        if evidence_origin_id in seen_evidence_origins:
+            raise GuaranteeEvidenceBindingError(
+                "verified occurrences must have unique evidence_origin_id values"
+            )
 
         seen_occurrence_ids.add(occurrence_id)
         seen_sessions.add(session_id)
         seen_evidence_refs.add(evidence_reference)
+        seen_evidence_origins.add(evidence_origin_id)
         payloads.append(payload)
         verification_hashes.append(verification["verification_hash"])
         occurrence_hashes.append(verification["occurrence_sha256"])
@@ -218,14 +230,19 @@ def evaluate_bound_guarantee_evidence(
         "source_ids": source_ids,
         "occurrence_hashes": occurrence_hashes,
         "verification_hashes": verification_hashes,
+        "evidence_origin_ids": [
+            payload["evidence_origin_id"] for payload in payloads
+        ],
         "derived_candidate": deepcopy(candidate),
         "review": review,
         "accepted": False,
         "write_authority": "NONE",
         "execution_authority": "NONE",
         "interpretation_notice": (
-            "Verified signatures establish origin and integrity only. "
-            "They do not establish truth, acceptance, or authority."
+            "Verified signatures establish signer origin and integrity only. "
+            "Distinct declared evidence origins prevent known shared-origin "
+            "amplification; they do not prove full independence, truth, "
+            "acceptance, or authority."
         ),
     }
     return {**body, "binding_hash": _hash(body)}
