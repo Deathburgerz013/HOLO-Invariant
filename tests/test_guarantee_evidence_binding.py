@@ -27,6 +27,7 @@ def _occurrence(
     session_id: str,
     evidence_reference: str,
     stance: str = "SUPPORT",
+    evidence_origin_id: str | None = None,
     guarantee_id: str = "attention-cycle-value",
 ) -> dict[str, object]:
     return build_signed_occurrence(
@@ -36,6 +37,11 @@ def _occurrence(
             "guarantee_id": guarantee_id,
             "session_id": session_id,
             "evidence_reference": evidence_reference,
+            "evidence_origin_id": (
+                evidence_origin_id
+                if evidence_origin_id is not None
+                else f"origin:{number}"
+            ),
             "stance": stance,
         },
         observed_at=f"2026-08-04T12:00:{number:02d}Z",
@@ -232,3 +238,48 @@ def test_inputs_are_not_mutated_and_binding_is_deterministic() -> None:
     assert occurrences == original
     assert first == second
     assert len(first["binding_hash"]) == 64
+
+def test_shared_evidence_origin_cannot_inflate_reinforcement() -> None:
+    occurrences = [
+        build_signed_occurrence(
+            source_id="source:a",
+            occurrence_id="occurrence:1",
+            payload={
+                "guarantee_id": "attention-cycle-value",
+                "session_id": "session:a",
+                "evidence_reference": "receipt:a",
+                "evidence_origin_id": "origin:shared",
+                "stance": "SUPPORT",
+            },
+            observed_at="2026-08-04T12:00:01Z",
+            sequence=1,
+            nonce="nonce:0000000000000001",
+            secret=SECRET_A,
+        ),
+        build_signed_occurrence(
+            source_id="source:b",
+            occurrence_id="occurrence:2",
+            payload={
+                "guarantee_id": "attention-cycle-value",
+                "session_id": "session:b",
+                "evidence_reference": "receipt:b",
+                "evidence_origin_id": "origin:shared",
+                "stance": "SUPPORT",
+            },
+            observed_at="2026-08-04T12:00:02Z",
+            sequence=2,
+            nonce="nonce:0000000000000002",
+            secret=SECRET_B,
+        ),
+    ]
+
+    with pytest.raises(
+        GuaranteeEvidenceBindingError,
+        match="unique evidence_origin_id values",
+    ):
+        evaluate_bound_guarantee_evidence(
+            guarantee_id="attention-cycle-value",
+            occurrences=occurrences,
+            source_secrets=SECRETS,
+        )
+
