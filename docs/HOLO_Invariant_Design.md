@@ -57,6 +57,13 @@
 | | Later correction must not rewrite earlier uncertainty as     |
 | | though the corrected result had always been known.           |
 | |                                                              |
+| | OBSERVATIONAL_CONTINUITY                                    |
+| | Continuity does not require the same observer to persist.   |
+| | A bounded prior observation must remain retrievable with    |
+| | enough identity and provenance for a later observer to      |
+| | audit or recheck it. Retrieval alone does not establish     |
+| | present truth.                                               |
+| |                                                              |
 | | TERMINATION                                                  |
 | | A finite evaluation cycle must stop when no new supported    |
 | | delta survives comparison.                                   |
