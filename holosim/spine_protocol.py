@@ -1059,6 +1059,68 @@ def _validate_destination_finding_integrity(
         raise SpineStructureError("valid profile cannot report INVALID_PROFILE")
 
 
+def compare_destination_findings(
+    left: Mapping[str, Any],
+    left_source: Mapping[str, Any],
+    right: Mapping[str, Any],
+    right_source: Mapping[str, Any],
+    destination_profile: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Compare requirement partition state for two current findings of one profile."""
+    left_current = check_destination_finding_current(
+        left, left_source, destination_profile
+    )
+    right_current = check_destination_finding_current(
+        right, right_source, destination_profile
+    )
+
+    if not left_current["finding_current"]:
+        raise SpineStructureError(
+            "left destination finding is not current for supplied source/profile"
+        )
+    if not right_current["finding_current"]:
+        raise SpineStructureError(
+            "right destination finding is not current for supplied source/profile"
+        )
+
+    partition_keys = (
+        "verified_requirements",
+        "missing_requirements",
+        "conflicts",
+        "uncertain",
+        "invalid_requirements",
+    )
+
+    def requirement_states(finding: Mapping[str, Any]) -> dict[str, str]:
+        states: dict[str, str] = {}
+        for partition in partition_keys:
+            for requirement_id in finding[partition]:
+                states[requirement_id] = partition
+        return states
+
+    left_states = requirement_states(left)
+    right_states = requirement_states(right)
+    requirement_ids = sorted(set(left_states) | set(right_states))
+
+    same_requirements = [
+        requirement_id
+        for requirement_id in requirement_ids
+        if left_states.get(requirement_id) == right_states.get(requirement_id)
+    ]
+    different_requirements = [
+        requirement_id
+        for requirement_id in requirement_ids
+        if left_states.get(requirement_id) != right_states.get(requirement_id)
+    ]
+
+    return {
+        "same_requirements": same_requirements,
+        "different_requirements": different_requirements,
+        "same_partition_state": not different_requirements,
+        "accepted": False,
+        "write_authority": "NONE",
+    }
+
 def evaluate_destination_compatibility(
     source: Mapping[str, Any],
     destination_profile: Mapping[str, Any],
