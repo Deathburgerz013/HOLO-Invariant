@@ -6,12 +6,24 @@ from collections.abc import Mapping
 from typing import Any
 
 
+def _validate_condition_ids(
+    *,
+    before: Mapping[str, bool],
+    after: Mapping[str, bool],
+) -> None:
+    for condition_id in (*before, *after):
+        if type(condition_id) is not str or not condition_id.strip():
+            raise ValueError("condition ids must be nonempty strings")
+
+
 def compare_solution_coverage(
     *,
     before: Mapping[str, bool],
     after: Mapping[str, bool],
 ) -> dict[str, Any]:
     """Compare per-condition solution outcomes without hiding regressions."""
+
+    _validate_condition_ids(before=before, after=after)
 
     if set(before) != set(after):
         raise ValueError("before and after must contain the same condition ids")
