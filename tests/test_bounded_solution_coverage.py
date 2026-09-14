@@ -143,3 +143,19 @@ def test_condition_outcomes_must_be_booleans() -> None:
         assert str(exc) == "condition outcomes must be booleans"
     else:
         raise AssertionError("non-boolean condition outcome was accepted")
+
+
+def test_condition_ids_must_be_nonempty_strings() -> None:
+    invalid_pairs = [
+        ({"": False}, {"": True}),
+        ({"   ": False}, {"   ": True}),
+        ({1: False}, {1: True}),
+    ]
+
+    for before, after in invalid_pairs:
+        try:
+            compare_solution_coverage(before=before, after=after)
+        except ValueError as exc:
+            assert str(exc) == "condition ids must be nonempty strings"
+        else:
+            raise AssertionError("invalid condition identity was accepted")
