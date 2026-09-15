@@ -3699,3 +3699,85 @@
 | | bounded successor claim candidate. Stop before acceptance,     |
 | | application, persistence, supersession, or authority.         |
 | |}==============================================================|
+| |}==============================================================|
+| | EVIDENCE_BOUND_CLAIM_CORRECTION_VERIFICATION_049_OVERLAY    |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-15                                             |
+| | BRANCH: feat/evidence-bound-claim-correction-verification    |
+| | BASE: main@72b20ac                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/evidence_bound_claim_correction_verification.py      |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 8579389c1683022870f804c3a0829374aeb02f726325a8f5337dcb0ec96e68f1
+| | FOCUSED_TEST:                                                |
+| | tests/test_evidence_bound_claim_correction_verification.py   |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 59787347d60572eef546d221042c0ce41e08efc45ef43c7371b94e861f63b9d1
+| |                                                              |
+| | CONCRETE_VERIFICATION_GAP                                   |
+| | A bounded claim-correction proposal could preserve an exact  |
+| | successor claim set agreed through two evidence envelopes,   |
+| | but no executable boundary re-observed the original and      |
+| | candidate against the same declared conditions. Structural   |
+| | replacement agreement could not establish bounded improvement|
+| | or expose unavailable evidence and regressions before        |
+| | authorization.                                               |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - The complete claim-correction proposal is regenerated and  |
+| |   validated before any condition comparison.                 |
+| | - Each corrected claim declares one or more unique target     |
+| |   conditions; additional declared conditions remain guards.  |
+| | - BEFORE requests bind exact conditions to the original      |
+| |   baseline_state_hash.                                       |
+| | - AFTER requests bind the same conditions to the exact       |
+| |   candidate_baseline_hash.                                   |
+| | - Hook requests and results are validated before outcomes are|
+| |   read; only OBSERVED boolean condition_satisfied values are  |
+| |   eligible for coverage comparison.                          |
+| | - FAILED and UNAVAILABLE observations remain explicit        |
+| |   blockers and cannot invent satisfied outcomes.             |
+| | - Mutually observed conditions reuse bounded_solution_coverage|
+| |   for newly solved, preserved, regressed, and unresolved     |
+| |   classification.                                            |
+| | - Every corrected claim must own at least one newly solved    |
+| |   target condition.                                          |
+| | - Any unavailable result, unresolved condition, regression,  |
+| |   or unverified corrected claim blocks completion.           |
+| | - Only complete, regression-free improvement produces        |
+| |   VERIFIED_TO_REQUEST_AUTHORIZATION.                          |
+| | - Exact regeneration detects proposal, evidence, outcome,    |
+| |   status, hash, mutation, or authority tampering.             |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused evidence-bound verification tests: 45 passed in    |
+| |   1.00 s.                                                     |
+| | - Full Windows repository suite: 1978 passed, 4 skipped in   |
+| |   47.71 s.                                                    |
+| | - git diff --check: clean before map append.                  |
+| |                                                              |
+| | PRESERVED_LIMITS                                           |
+| | - Conditions, mappings, hook observations, and their quality  |
+| |   remain caller-supplied declarations.                        |
+| | - Observed improvement does not prove claim truth, semantic  |
+| |   equivalence, causal attribution, or observer independence. |
+| | - VERIFIED_TO_REQUEST_AUTHORIZATION is not authorization.    |
+| | - No transition candidate is created and no operational      |
+| |   authorization is requested or consumed.                    |
+| | - The original baseline and correction proposal remain intact.|
+| | - authorization_requested=false, transition_created=false,   |
+| |   correction_applied=false, supersession_performed=false,   |
+| |   accepted=false, truth_claimed=false, write_authority=NONE, |
+| |   execution_authority=NONE, and canonical_mutation=false     |
+| |   remain fixed.                                              |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                               |
+| | WRITE_AUTHORITY: NONE                                         |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One exact correction candidate can now be re-observed against|
+| | its original bounded conditions. Stop before authorization,  |
+| | transition, persistence, supersession, or authority.         |
+| |}==============================================================|
