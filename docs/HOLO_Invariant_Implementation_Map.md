@@ -3554,3 +3554,75 @@
 | | evidenced to travel. Stop before inference, mutation, or     |
 | | authority.                                                   |
 | |}==============================================================|
+| |}==============================================================|
+| | BOUNDED_CORRECTION_OSCILLATION_DAMPENER_047_OVERLAY          |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-15                                             |
+| | BRANCH: feat/bounded-correction-oscillation-dampener         |
+| | BASE: main@1f60f2e                                           |
+| | IMPLEMENTATION:                                             |
+| | holosim/bounded_correction_dampener.py                       |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | e895575ee645d1101e021fe046773471af423c049607f5ef3ec9314f24fa494e
+| | FOCUSED_TEST:                                               |
+| | tests/test_bounded_correction_dampener.py                    |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 2523661cdba0cc8a7cf0801c8fd1110bf19a68e99b4db3ab06d273862767c545
+| |                                                              |
+| | CONCRETE_DAMPING_GAP                                        |
+| | Holo_Sim.py preserved G(x + 1) = stabilize(G(x), delta) as  |
+| | a symbolic contract, and RebirthEngine bounded continuity    |
+| | recovery. Neither executable boundary preserved reversals or |
+| | distinguished active correction oscillation from historical |
+| | recurrence without applying a transition.                    |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                          |
+| | - Callers declare one target identity and one to 256 ordered|
+| |   state identities.                                          |
+| | - A -> B -> A is preserved as REVERSAL_OBSERVED, not promoted|
+| |   into repeated oscillation.                                 |
+| | - At least A -> B -> A -> B is required for                 |
+| |   OSCILLATION_OBSERVED and damping_candidate=true.           |
+| | - An active oscillation must occupy the trailing four-state |
+| |   window. Historical windows remain visible without keeping |
+| |   damping_candidate true after the sequence moves on.        |
+| | - Unchanged histories and distinct progressions do not become|
+| |   invented oscillation.                                      |
+| | - Period-three recurrence is outside this two-state boundary |
+| |   and is not relabeled as two-state oscillation.             |
+| | - Receipts preserve ordered states, distinct identities,     |
+| |   change and reversal indexes, oscillation windows, current  |
+| |   activity, and deterministic SHA-256 identity.              |
+| | - damping_applied remains false.                             |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused correction-dampener tests: 26 passed in 0.39 s.    |
+| | - Full Windows repository suite: 1896 passed, 4 skipped in  |
+| |   41.48 s.                                                   |
+| | - git diff --check: clean before map append.                 |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - State identity recurrence is structural evidence only. It |
+| |   does not prove a correction was wrong, two states are      |
+| |   semantically equivalent, or evidence should be suppressed. |
+| | - This boundary detects only exact two-state alternation; it |
+| |   does not infer longer periods, magnitude, velocity, causal |
+| |   feedback, timestamps, or evidence quality.                 |
+| | - No damping coefficient or negative-feedback formula is    |
+| |   invented. No delta is scaled, rejected, delayed, or applied.|
+| | - The observer does not replace Holo_Sim fixed-point checks, |
+| |   correction-scope classification, or RebirthEngine recovery.|
+| | - accepted=false, truth_claimed=false, write_authority=NONE,|
+| |   execution_authority=NONE, and canonical_mutation=false     |
+| |   remain fixed.                                              |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Exact repeated two-state transition can now be preserved as |
+| | an active damping candidate. Stop before scaling deltas,     |
+| | suppressing evidence, mutation, or authority.                |
+| |}==============================================================|
