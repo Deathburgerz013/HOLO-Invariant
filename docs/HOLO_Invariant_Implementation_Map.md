@@ -3781,3 +3781,76 @@
 | | its original bounded conditions. Stop before authorization,  |
 | | transition, persistence, supersession, or authority.         |
 | |}==============================================================|
+| |}==============================================================|
+| | VERIFIED_CLAIM_CORRECTION_TRANSITION_050_OVERLAY           |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW              |
+| | DATE: 2026-09-15                                            |
+| | BRANCH: feat/verified-claim-correction-transition           |
+| | BASE: main@153ee18                                          |
+| | IMPLEMENTATION:                                             |
+| | holosim/verified_claim_correction_transition.py             |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                           |
+| | bc7e3f4a90cf84c2c4d2acb62e5534396d68e2303505112979d4231dfb6f647f
+| | FOCUSED_TEST:                                               |
+| | tests/test_verified_claim_correction_transition.py          |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                             |
+| | 5f980ca871eb759ae713ae2a60e92674bb14203df2acdefbaeaec9e69e8cc3fb
+| |                                                              |
+| | CONCRETE_TRANSITION_GAP                                     |
+| | Evidence-bound verification could establish complete,       |
+| | regression-free improvement and readiness to request         |
+| | authorization, but no boundary constructed the exact existing|
+| | baseline-transition candidate and authorization target bound |
+| | to that verified successor claim set.                        |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                          |
+| | - The complete evidence-bound verification is regenerated    |
+| |   and validated before transition construction.              |
+| | - Verification must be complete and carry the exact          |
+| |   VERIFIED_TO_REQUEST_AUTHORIZATION status.                  |
+| | - The verified candidate_baseline_hash is forced into the     |
+| |   existing baseline-transition constructor.                  |
+| | - Callers supply only the next baseline identity; they cannot |
+| |   substitute another successor state hash.                   |
+| | - The existing BASELINE_PROMOTION action and transition       |
+| |   candidate hash form one exact authorization target.         |
+| | - The existing baseline-transition constructor remains the    |
+| |   owning transition evaluator.                               |
+| | - Exact regeneration detects verification, transition, target,|
+| |   status, hash, mutation, or authority tampering.             |
+| | - The wrapper reports READY_FOR_EXACT_TARGET_AUTHORIZATION    |
+| |   without requesting or consuming authorization.             |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused verified-transition tests: 33 passed in 0.81 s.    |
+| | - Full Windows repository suite: 2011 passed, 4 skipped in   |
+| |   42.15 s.                                                   |
+| | - git diff --check: clean before map append.                 |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - Verified improvement does not prove truth, semantic         |
+| |   equivalence, causality, or observer independence.           |
+| | - Readiness to request exact-target authorization is not      |
+| |   authorization and does not consume authorization.           |
+| | - No transition is executed, persisted, accepted, or used to |
+| |   supersede the current baseline.                            |
+| | - The original proposal, verification, and baseline remain   |
+| |   intact.                                                    |
+| | - transition_candidate_created=true records construction only;|
+| |   authorization_requested=false, authorization_consumed=false,|
+| |   transition_created=false, correction_applied=false, and    |
+| |   supersession_performed=false remain fixed.                 |
+| | - accepted=false, truth_claimed=false, write_authority=NONE, |
+| |   execution_authority=NONE, and canonical_mutation=false     |
+| |   remain fixed.                                              |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One verified correction can now identify one exact existing  |
+| | baseline-transition candidate. Stop before authorization,    |
+| | execution, persistence, supersession, or authority.          |
+| |}==============================================================|
