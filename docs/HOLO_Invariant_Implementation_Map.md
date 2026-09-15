@@ -3626,3 +3626,76 @@
 | | an active damping candidate. Stop before scaling deltas,     |
 | | suppressing evidence, mutation, or authority.                |
 | |}==============================================================|
+| |}==============================================================|
+| | BOUNDED_CLAIM_CORRECTION_048_OVERLAY                        |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-15                                             |
+| | BRANCH: feat/bounded-claim-correction                        |
+| | BASE: main@f37e05d                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/bounded_claim_correction.py                          |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | a57a206c045d5680af4c131d98761202e4b8799f8a6bad4d4fc7a385ffd4dda9
+| | FOCUSED_TEST:                                                |
+| | tests/test_bounded_claim_correction.py                       |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | d0fc2d258690abad79d8048883d04df152d8944d825c54b5ca99de8e781e822e
+| |                                                              |
+| | CONCRETE_CLAIM_CORRECTION_GAP                                |
+| | Evidence-bound baseline comparison could establish that two  |
+| | declared observers both reported CORRECTION, and its gate     |
+| | could justify proposing a successor. No executable boundary   |
+| | bound that finding to exact replacement content or constructed|
+| | a successor claim set while preserving the observed baseline. |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - The exact evidence-bound comparison is regenerated from its |
+| |   two intact observation bindings.                            |
+| | - The evidence-bound promotion is regenerated and must be     |
+| |   JUSTIFIED_TO_PROPOSE.                                       |
+| | - The supplied current claim set must exactly match the       |
+| |   compared claim ids and baseline_state_hash.                 |
+| | - Both OBSERVED result envelopes must declare the same exact  |
+| |   proposed_claim_replacements mapping.                        |
+| | - Replacement ids must exactly equal the claims classified as |
+| |   CORRECTION, and every replacement must change its claim.    |
+| | - Unaffected claims are copied unchanged into one deterministic|
+| |   successor candidate with its own SHA-256 identity.          |
+| | - Extensions are rejected at this boundary rather than being  |
+| |   silently omitted from the candidate.                        |
+| | - The receipt embeds comparison, promotion, original claims,  |
+| |   replacements, candidate claims, and per-claim evidence ids. |
+| | - Exact regeneration detects receipt or source tampering.     |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused bounded claim-correction tests: 37 passed in 0.55 s.|
+| | - Full Windows repository suite: 1933 passed, 4 skipped in    |
+| |   41.54 s.                                                    |
+| | - git diff --check: clean before map append.                  |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - Structured agreement binds replacement identity only; it    |
+| |   does not prove truth, observer independence, or evidence     |
+| |   quality.                                                    |
+| | - No free-text claim meaning or semantic equivalence is       |
+| |   inferred.                                                   |
+| | - Extensions, conflicts, unknown findings, and non-justified  |
+| |   promotions cannot create a correction candidate here.       |
+| | - The original baseline and supplied receipts remain intact.  |
+| | - The candidate is not accepted, applied, persisted, or used  |
+| |   to supersede canonical state.                               |
+| | - correction_applied=false, supersession_performed=false,     |
+| |   accepted=false, truth_claimed=false, write_authority=NONE,  |
+| |   execution_authority=NONE, and canonical_mutation=false      |
+| |   remain fixed.                                               |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                               |
+| | WRITE_AUTHORITY: NONE                                         |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Exact structured replacement agreement can now produce one    |
+| | bounded successor claim candidate. Stop before acceptance,     |
+| | application, persistence, supersession, or authority.         |
+| |}==============================================================|
