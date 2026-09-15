@@ -3486,3 +3486,71 @@
 | | supplied checks. Stop before candidate generation, selection,|
 | | execution, persistence, or authority.                        |
 | |}==============================================================|
+| |}==============================================================|
+| | BOUNDED_CORRECTION_SCOPE_CLASSIFICATION_046_OVERLAY          |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-15                                             |
+| | BRANCH: feat/bounded-correction-scope-classification         |
+| | BASE: main@1a2d915                                           |
+| | IMPLEMENTATION:                                             |
+| | holosim/bounded_correction_scope.py                          |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 3a589805e749b719e709374be30f377ffee1eae424a8b0128aab112ea44ae1fa
+| | FOCUSED_TEST:                                               |
+| | tests/test_bounded_correction_scope.py                       |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 0abe84fc4c4fd2a7ee2232f647230af77c289404137be36180cde10c0e2502a7
+| |                                                              |
+| | CONCRETE_CORRECTION_SCOPE_GAP                               |
+| | Correction receipts preserved evidence-backed transitions,  |
+| | correction cycles exposed target identities, and invariant  |
+| | lifecycle events preserved validity history. No evaluator    |
+| | preserved how high an explicit contradiction was evidenced  |
+| | to travel across one declared hierarchy.                    |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                          |
+| | - Callers declare two to 256 unique hierarchy levels ordered|
+| |   from lowest/local to highest/shared.                       |
+| | - Every level requires exactly one explicit observation:    |
+| |   CONTRADICTED, PRESERVED, or UNAVAILABLE.                   |
+| | - All-preserved observations produce NO_CORRECTION.          |
+| | - A lowest-level contradiction with higher levels preserved |
+| |   produces LOCAL.                                            |
+| | - An intermediate highest contradiction with higher levels  |
+| |   preserved produces PROPAGATE.                              |
+| | - A contradiction at the highest declared level produces    |
+| |   ESCALATE.                                                  |
+| | - Unavailability above the highest confirmed contradiction, |
+| |   or without any contradiction, produces UNRESOLVED.         |
+| | - A higher confirmed contradiction is not erased by lower   |
+| |   unavailable observations.                                 |
+| | - Receipts preserve classified level identities, blockers,  |
+| |   completeness, and deterministic SHA-256 identity.          |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                          |
+| | - Focused correction-scope tests: 22 passed in 0.38 s.       |
+| | - Full Windows repository suite: 1870 passed, 4 skipped in  |
+| |   41.89 s.                                                   |
+| | - git diff --check: clean before map append.                 |
+| |                                                              |
+| | PRESERVED_LIMITS                                            |
+| | - Ordering and observations are supplied declarations; the  |
+| |   receipt does not prove that the hierarchy models reality. |
+| | - No dependency, causal relation, semantic contradiction, or|
+| |   missing observation is inferred from free text.            |
+| | - Scope classification does not choose or apply corrections,|
+| |   mutate canonical state, or authorize propagation.          |
+| | - accepted=false, truth_claimed=false, write_authority=NONE,|
+| |   execution_authority=NONE, and canonical_mutation=false     |
+| |   remain fixed.                                              |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                    |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Explicit observations can now bound how high a correction is|
+| | evidenced to travel. Stop before inference, mutation, or     |
+| | authority.                                                   |
+| |}==============================================================|
