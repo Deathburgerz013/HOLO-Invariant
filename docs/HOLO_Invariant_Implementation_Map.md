@@ -3426,3 +3426,63 @@
 | | One unchanged situated packet can now produce separately     |
 | | bound observer receipts. Stop before live APIs or persistence.|
 | |}==============================================================|
+| |}==============================================================|
+| | CUMULATIVE_CANDIDATE_DISTINGUISHABILITY_045_OVERLAY          |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW                |
+| | DATE: 2026-09-14                                             |
+| | BRANCH: feat/cumulative-candidate-distinguishability         |
+| | BASE: main@9f663e7                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/experimental_distinguishability.py                    |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | f514290be352213e7a334864c5fad221b1cd71e2b1be75bbcc3dc84e075f7138
+| | FOCUSED_TEST:                                                |
+| | tests/test_experimental_distinguishability.py                 |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | fb605b1fe0bf19a288ece60a881e97103a84beb3da1879175d2af8ada1bd317b
+| |                                                              |
+| | CONCRETE_DISTINGUISHABILITY_GAP                              |
+| | Per-check partitions and discrimination scores existed, but |
+| | the receipt did not preserve which declared candidate pairs  |
+| | remained indistinguishable or unresolved across all checks.  |
+| | A high check score could therefore hide a remaining pair.    |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - distinguished_pairs preserves pairs separated by at least  |
+| |   one mutually observed check result.                        |
+| | - indistinguishable_pairs preserves pairs with equal results |
+| |   across every declared and available check.                 |
+| | - unresolved_pairs preserves pairs affected by unavailable   |
+| |   observations when no available check separates them.       |
+| | - Zero declared checks leave every declared pair unresolved. |
+| | - distinguishability_complete requires at least one declared |
+| |   pair and observed separation of every declared pair.       |
+| | - Pair ordering and classification are deterministic.        |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused distinguishability tests: 18 passed in 0.39 s.     |
+| | - Full Windows repository suite: 1848 passed, 4 skipped in   |
+| |   40.03 s.                                                   |
+| | - Rail validation: valid, 0 violations.                      |
+| | - git diff --check: clean.                                   |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - Distinction is relative to supplied candidates and checks. |
+| | - Different outcomes do not establish truth or superiority.  |
+| | - Equal outcomes do not establish universal equivalence.     |
+| | - Unavailable observations do not become invented outcomes.  |
+| | - The receipt does not generate, select, apply, or diversify |
+| |   candidates.                                                |
+| | - accepted=false, truth_claimed=false, and                  |
+| |   write_authority=NONE remain fixed.                         |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Declared candidate pairs can now be classified across all    |
+| | supplied checks. Stop before candidate generation, selection,|
+| | execution, persistence, or authority.                        |
+| |}==============================================================|

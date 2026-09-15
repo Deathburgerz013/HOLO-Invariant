@@ -262,3 +262,110 @@ def test_programming_error_is_not_silently_marked_unavailable() -> None:
         raise AssertionError(
             "programming error was silently converted to UNAVAILABLE"
         )
+
+
+def test_preserves_cumulative_candidate_pair_classification() -> None:
+    from holosim.experimental_distinguishability import derive_distinguishability
+
+    receipt = derive_distinguishability(
+        candidates={"A": 0, "B": 2, "C": 1},
+        checks={"parity": lambda value: value % 2},
+    )
+
+    assert receipt["distinguished_pairs"] == [["A", "C"], ["B", "C"]]
+    assert receipt["indistinguishable_pairs"] == [["A", "B"]]
+    assert receipt["unresolved_pairs"] == []
+    assert receipt["distinguishability_complete"] is False
+
+
+def test_unavailable_observation_keeps_pair_unresolved() -> None:
+    from holosim.experimental_distinguishability import (
+        ObservationUnavailable,
+        derive_distinguishability,
+    )
+
+    def requires_value(candidate):
+        if "value" not in candidate:
+            raise ObservationUnavailable()
+        return candidate["value"]
+
+    receipt = derive_distinguishability(
+        candidates={"A": {"value": 0}, "B": {}},
+        checks={"requires_value": requires_value},
+    )
+
+    assert receipt["distinguished_pairs"] == []
+    assert receipt["indistinguishable_pairs"] == []
+    assert receipt["unresolved_pairs"] == [["A", "B"]]
+    assert receipt["distinguishability_complete"] is False
+
+
+def test_observed_difference_overrides_other_unavailability() -> None:
+    from holosim.experimental_distinguishability import (
+        ObservationUnavailable,
+        derive_distinguishability,
+    )
+
+    def partial(candidate):
+        if candidate["value"] == 1:
+            raise ObservationUnavailable()
+        return True
+
+    receipt = derive_distinguishability(
+        candidates={"A": {"value": 0}, "B": {"value": 1}},
+        checks={
+            "partial": partial,
+            "value": lambda candidate: candidate["value"],
+        },
+    )
+
+    assert receipt["distinguished_pairs"] == [["A", "B"]]
+    assert receipt["indistinguishable_pairs"] == []
+    assert receipt["unresolved_pairs"] == []
+    assert receipt["distinguishability_complete"] is True
+
+
+def test_all_declared_pairs_distinguished_is_complete() -> None:
+    from holosim.experimental_distinguishability import derive_distinguishability
+
+    receipt = derive_distinguishability(
+        candidates={"A": 0, "B": 1, "C": 2},
+        checks={"identity": lambda value: value},
+    )
+
+    assert receipt["distinguished_pairs"] == [
+        ["A", "B"],
+        ["A", "C"],
+        ["B", "C"],
+    ]
+    assert receipt["indistinguishable_pairs"] == []
+    assert receipt["unresolved_pairs"] == []
+    assert receipt["distinguishability_complete"] is True
+
+
+def test_single_candidate_cannot_claim_distinguishability_complete() -> None:
+    from holosim.experimental_distinguishability import derive_distinguishability
+
+    receipt = derive_distinguishability(
+        candidates={"A": 0},
+        checks={"identity": lambda value: value},
+    )
+
+    assert receipt["distinguished_pairs"] == []
+    assert receipt["indistinguishable_pairs"] == []
+    assert receipt["unresolved_pairs"] == []
+    assert receipt["distinguishability_complete"] is False
+
+
+def test_no_declared_checks_leaves_pair_unresolved() -> None:
+    from holosim.experimental_distinguishability import derive_distinguishability
+
+    receipt = derive_distinguishability(
+        candidates={"A": 0, "B": 1},
+        checks={},
+    )
+
+    assert receipt["distinguished_pairs"] == []
+    assert receipt["indistinguishable_pairs"] == []
+    assert receipt["unresolved_pairs"] == [["A", "B"]]
+    assert receipt["distinguishability_complete"] is False
