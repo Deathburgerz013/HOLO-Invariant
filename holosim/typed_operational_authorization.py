@@ -2,7 +2,7 @@
 
 This record separates permission to perform one effect from evidence that a
 claim is correct. It is deliberately not proof of the issuer's identity; an
-adapter that creates one is responsible for obtaining the external approval.
+adapter that creates one is responsible for obtaining external authorization.
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def build_operational_authorization(
     target_sha256: str,
     approval_reference: str,
 ) -> dict[str, Any]:
-    """Declare external-human permission for one action on one exact target."""
+    """Declare permission from one external authorizer for one exact target."""
     reference = _text(approval_reference, "approval_reference")
     if SHA256.fullmatch(reference) is not None:
         raise OperationalAuthorizationError(
@@ -73,7 +73,7 @@ def build_operational_authorization(
         "type": AUTHORIZATION_TYPE,
         "version": VERSION,
         "authorization_id": _text(authorization_id, "authorization_id"),
-        "authority_type": "EXTERNAL_HUMAN",
+        "authority_type": "EXTERNAL_AUTHORIZER",
         "actor_id": _text(actor_id, "actor_id"),
         "action": action,
         "target_sha256": _digest(target_sha256, "target_sha256"),

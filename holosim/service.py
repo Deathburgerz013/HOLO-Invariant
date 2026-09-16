@@ -142,7 +142,7 @@ class HoloService:
 
         authority = {
             "accepted": True,
-            "source": "external_human",
+            "source": "typed_external_authorization",
             "reviewer": authorization["actor_id"],
             "approval_reference": authorization["approval_reference"],
         }
@@ -224,7 +224,7 @@ class HoloService:
             "slot": None,
             "authority": authority,
             "operational_authorization": dict(authorization),
-            "write_authority": "EXTERNAL_HUMAN",
+            "write_authority": authorization["write_authority"],
         }
 
         if mirror_to_slots:

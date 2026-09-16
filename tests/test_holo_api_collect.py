@@ -25,7 +25,7 @@ def test_collect_forwards_external_approval_and_verifies_append(tmp_path):
     assert result["result"]["append"]["commit_performed"] is True
     assert result["result"]["append"]["authority"] == {
         "accepted": True,
-        "source": "external_human",
+        "source": "typed_external_authorization",
         "reviewer": "external-reviewer",
         "approval_reference": "approval-001",
     }

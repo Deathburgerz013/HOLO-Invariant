@@ -929,7 +929,7 @@ class HoloSim:
                 "mutation": None,
                 "authority": {
                     "accepted": False,
-                    "source": "external_human_required",
+                    "source": "external_approval_declaration_required",
                     "reviewer": reviewer_value or None,
                     "approval_reference": approval_value or None,
                 },
@@ -944,7 +944,7 @@ class HoloSim:
 
         authority = {
             "accepted": True,
-            "source": "external_human",
+            "source": "external_approval_declaration",
             "reviewer": reviewer_value,
             "approval_reference": approval_value,
         }

@@ -70,10 +70,10 @@ def test_service_append_records_external_authority_and_content_hash(tmp_path):
 
     assert result["status"] == "COMMITTED"
     assert result["commit_performed"] is True
-    assert result["write_authority"] == "EXTERNAL_HUMAN"
+    assert result["write_authority"] == "EXACT_TARGET_ONLY"
     assert result["authority"] == {
         "accepted": True,
-        "source": "external_human",
+        "source": "typed_external_authorization",
         "reviewer": "Canyon Haney",
         "approval_reference": "review:service-1",
     }
