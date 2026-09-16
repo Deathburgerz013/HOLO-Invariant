@@ -48,6 +48,7 @@ def test_authorization_is_typed_target_bound_and_non_epistemic():
         expected_action=ACTION_SERVICE_APPEND,
         expected_target_sha256=TARGET,
     )
+    assert authorization["authority_type"] == "EXTERNAL_AUTHORIZER"
     assert authorization["write_authority"] == "EXACT_TARGET_ONLY"
     assert authorization["truth_claimed"] is False
     assert authorization["execution_authority"] == "NONE"

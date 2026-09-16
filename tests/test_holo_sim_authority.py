@@ -51,7 +51,9 @@ def test_commit_is_blocked_without_external_approval(tmp_path):
     assert result["commit_performed"] is False
     assert result["mutation"] is None
     assert result["authority"]["accepted"] is False
-    assert result["authority"]["source"] == "external_human_required"
+    assert result["authority"]["source"] == (
+        "external_approval_declaration_required"
+    )
     assert not chain_path.exists()
 
 
@@ -71,7 +73,7 @@ def test_commit_records_separate_external_authority(tmp_path):
     assert result["commit_performed"] is True
     assert result["authority"] == {
         "accepted": True,
-        "source": "external_human",
+        "source": "external_approval_declaration",
         "reviewer": "Canyon Haney",
         "approval_reference": "review:test-approval-1",
     }
