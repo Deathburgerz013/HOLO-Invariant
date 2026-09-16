@@ -3925,3 +3925,77 @@
 | | verified correction receipt. Stop before persistence,       |
 | | application, supersession, re-observation, or generalization.|
 | |}==============================================================|
+| |}==============================================================|
+| | PERSISTENT_VERIFIED_CLAIM_CORRECTION_TRANSITION_052_OVERLAY|
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-16                                             |
+| | BRANCH: feat/persistent-verified-claim-correction-transition |
+| | BASE: main@d0a4d32                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/persistent_baseline_transition.py                    |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 48ee279ba392967179d947eedb89249ba704f8fb6b6c9cec04237d642977f199
+| | FOCUSED_TEST:                                                |
+| | tests/test_persistent_verified_claim_correction_transition.py|
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 1ac34a4a20980857ce799c123c7093ecb19f7ebf68ca00c3e88846a4cdd0f523
+| |                                                              |
+| | CONCRETE_ATOMIC_PERSISTENCE_GAP                              |
+| | Boundary 051 preserved the complete verified correction and |
+| | exact authorization through authorization, but the existing |
+| | persistent store accepted only the generic transition and   |
+| | authorization. Persistence would discard verification_hash, |
+| | proposal_hash, binding_hash, and authorization_binding_hash. |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - The existing PersistentBaselineTransitionStore remains the|
+| |   owning persistence boundary; no parallel store is added.   |
+| | - The complete boundary-051 receipt is regenerated before   |
+| |   persistence.                                               |
+| | - One HoloChain append atomically preserves that complete   |
+| |   receipt while advancing the exact current baseline head.   |
+| | - The append precondition replays generic and verified-claim |
+| |   records, checks current-head continuity, and consumes each |
+| |   authorization id and hash at most once.                    |
+| | - Restart reconstruction retains the successor identity and |
+| |   complete verified-correction provenance.                   |
+| | - Concurrent replay, stale-head use, receipt substitution,   |
+| |   wrong store identity, and nested tampering fail closed.    |
+| | - The commit receipt preserves verification, proposal,       |
+| |   transition-binding, authorization-binding, candidate,      |
+| |   authorization, transition, and persistent-record identity. |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused atomic-persistence tests: 20 passed in 2.41 s.     |
+| | - Full Windows repository suite: 2079 passed, 4 skipped in   |
+| |   47.32 s.                                                   |
+| | - git diff --check: clean; Windows line-ending notice only.  |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - Persistence consumes only the exact supplied operational  |
+| |   authorization and grants no general authority.             |
+| | - The append supersedes the store's current baseline head;   |
+| |   canonical_mutation=true reports that mutation explicitly. |
+| | - Persisting the successor does not establish claim truth,   |
+| |   semantic equivalence, causal attribution, or acceptance.   |
+| | - correction_applied=false: no external claim text or other |
+| |   materialized system is rewritten by this boundary.         |
+| | - Post-persistence claim re-observation remains outside this |
+| |   boundary and cannot be inferred from a successful commit.  |
+| | - authorization_consumed=true, transition_persisted=true,    |
+| |   supersession_performed=true, and canonical_mutation=true   |
+| |   describe the successful append-only baseline-head change. |
+| | - accepted=false, truth_claimed=false, write_authority=NONE, |
+| |   and execution_authority=NONE remain fixed.                 |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One complete verified correction and its exact authorization|
+| | can now survive the same atomic append that advances the     |
+| | baseline head. Stop before external claim application,       |
+| | post-persistence re-observation, truth, or general authority.|
+| |}==============================================================|

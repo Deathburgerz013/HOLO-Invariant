@@ -22,6 +22,10 @@ from pathlib import Path
 import zlib
 from typing import Any, Mapping
 
+from .authorized_verified_claim_correction_transition import (
+    AuthorizedVerifiedClaimCorrectionTransitionError,
+    validate_authorized_verified_claim_correction_transition,
+)
 from .canonical import CanonicalValueError, stable_hash
 from .core import HoloChain
 from .typed_operational_authorization import (
@@ -33,6 +37,10 @@ from .typed_operational_authorization import (
 
 RECORD_TYPE = "persistent_baseline_transition"
 RECORD_VERSION = 1
+VERIFIED_CORRECTION_RECORD_TYPE = (
+    "persistent_verified_claim_correction_transition"
+)
+VERIFIED_CORRECTION_RECORD_VERSION = 1
 
 TRANSITION_TYPE = "authorized_baseline_transition"
 TRANSITION_VERSION = 1
@@ -64,6 +72,15 @@ RECORD_FIELDS = {
     "store_initial_baseline_state_hash",
     "transition",
     "operational_authorization",
+    "record_id",
+}
+
+VERIFIED_CORRECTION_RECORD_FIELDS = {
+    "type",
+    "version",
+    "store_initial_baseline_id",
+    "store_initial_baseline_state_hash",
+    "authorized_correction",
     "record_id",
 }
 
@@ -246,15 +263,110 @@ def _verify_record(record: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _verify_authorized_correction(
+    authorized_correction: Mapping[str, Any],
+) -> dict[str, Any]:
+    if type(authorized_correction) is not dict:
+        raise PersistentBaselineTransitionError(
+            "authorized_correction must be a plain dictionary"
+        )
+
+    try:
+        validate_authorized_verified_claim_correction_transition(
+            authorized_correction
+        )
+    except AuthorizedVerifiedClaimCorrectionTransitionError as exc:
+        raise PersistentBaselineTransitionError(
+            f"authorized correction is invalid: {exc}"
+        ) from exc
+
+    return deepcopy(authorized_correction)
+
+
+def _build_verified_correction_record(
+    *,
+    initial_baseline_id: str,
+    initial_baseline_state_hash: str,
+    authorized_correction: Mapping[str, Any],
+) -> dict[str, Any]:
+    body = {
+        "type": VERIFIED_CORRECTION_RECORD_TYPE,
+        "version": VERIFIED_CORRECTION_RECORD_VERSION,
+        "store_initial_baseline_id": _text(
+            initial_baseline_id, "initial_baseline_id"
+        ),
+        "store_initial_baseline_state_hash": _text(
+            initial_baseline_state_hash,
+            "initial_baseline_state_hash",
+        ),
+        "authorized_correction": deepcopy(dict(authorized_correction)),
+    }
+    return {**body, "record_id": stable_hash(body)}
+
+
+def _verify_verified_correction_record(
+    record: Mapping[str, Any],
+) -> dict[str, Any]:
+    if (
+        type(record) is not dict
+        or set(record) != VERIFIED_CORRECTION_RECORD_FIELDS
+    ):
+        raise PersistentBaselineTransitionError(
+            "persisted verified correction fields do not match the "
+            "versioned schema"
+        )
+
+    body = {
+        key: deepcopy(value)
+        for key, value in record.items()
+        if key != "record_id"
+    }
+    try:
+        expected_id = stable_hash(body)
+    except CanonicalValueError as exc:
+        raise PersistentBaselineTransitionError(str(exc)) from exc
+
+    if record["record_id"] != expected_id:
+        raise PersistentBaselineTransitionError(
+            "persisted verified correction identity is invalid"
+        )
+    if (
+        record["type"] != VERIFIED_CORRECTION_RECORD_TYPE
+        or record["version"] != VERIFIED_CORRECTION_RECORD_VERSION
+    ):
+        raise PersistentBaselineTransitionError(
+            "persisted verified correction type or version is invalid"
+        )
+
+    checked_correction = _verify_authorized_correction(
+        record["authorized_correction"]
+    )
+    checked_transition = _verify_transition(
+        checked_correction["authorized_baseline_transition"]
+    )
+    checked_authorization = _verify_authorization_for_transition(
+        checked_correction["operational_authorization"],
+        transition=checked_transition,
+    )
+
+    return {
+        **deepcopy(record),
+        "authorized_correction": checked_correction,
+        "transition": checked_transition,
+        "operational_authorization": checked_authorization,
+    }
+
+
 def _records_from_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for entry in entries:
         payload = _decode_entry_payload(entry)
         if not isinstance(payload, dict):
             continue
-        if payload.get("type") != RECORD_TYPE:
-            continue
-        records.append(_verify_record(payload))
+        if payload.get("type") == RECORD_TYPE:
+            records.append(_verify_record(payload))
+        elif payload.get("type") == VERIFIED_CORRECTION_RECORD_TYPE:
+            records.append(_verify_verified_correction_record(payload))
     return records
 
 
@@ -409,4 +521,107 @@ class PersistentBaselineTransitionStore:
             "accepted": False,
             "write_authority": "NONE",
             "execution_authority": "NONE",
+        }
+
+    def commit_verified_claim_correction(
+        self,
+        *,
+        authorized_correction: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Atomically persist one fully bound verified-correction transition."""
+        checked_correction = _verify_authorized_correction(
+            authorized_correction
+        )
+        checked_transition = _verify_transition(
+            checked_correction["authorized_baseline_transition"]
+        )
+        checked_authorization = _verify_authorization_for_transition(
+            checked_correction["operational_authorization"],
+            transition=checked_transition,
+        )
+        record = _build_verified_correction_record(
+            initial_baseline_id=self.initial_baseline_id,
+            initial_baseline_state_hash=self.initial_baseline_state_hash,
+            authorized_correction=checked_correction,
+        )
+
+        authorization_id = checked_authorization["authorization_id"]
+        authorization_hash = checked_authorization["authorization_hash"]
+
+        def require_current_and_unconsumed(
+            entries: list[dict[str, Any]],
+        ) -> None:
+            records = _records_from_entries(entries)
+            current_id, current_hash, used_ids, used_hashes = _reconstruct_head(
+                records,
+                initial_baseline_id=self.initial_baseline_id,
+                initial_baseline_state_hash=self.initial_baseline_state_hash,
+            )
+
+            if authorization_id in used_ids or authorization_hash in used_hashes:
+                raise PersistentBaselineTransitionError(
+                    "authorization has already been consumed"
+                )
+
+            if (
+                checked_transition["previous_baseline_id"] != current_id
+                or checked_transition["previous_baseline_state_hash"]
+                != current_hash
+            ):
+                raise PersistentBaselineTransitionError(
+                    "transition previous baseline does not match current head"
+                )
+
+        entry = self.chain.append(
+            record,
+            compress=False,
+            precondition=require_current_and_unconsumed,
+        )
+
+        return {
+            "status": "COMMITTED_VERIFIED_CLAIM_CORRECTION",
+            "commit_performed": True,
+            "record_id": record["record_id"],
+            "verification_hash": checked_correction["verification_hash"],
+            "proposal_hash": checked_correction["proposal_hash"],
+            "binding_hash": checked_correction["binding_hash"],
+            "authorization_binding_hash": checked_correction[
+                "authorization_binding_hash"
+            ],
+            "candidate_hash": checked_correction["candidate_hash"],
+            "transition_id": checked_transition["transition_id"],
+            "authorization_hash": authorization_hash,
+            "previous_baseline_id": checked_transition[
+                "previous_baseline_id"
+            ],
+            "previous_baseline_state_hash": checked_transition[
+                "previous_baseline_state_hash"
+            ],
+            "current_baseline_id": checked_transition["next_baseline_id"],
+            "current_baseline_state_hash": checked_transition[
+                "next_baseline_state_hash"
+            ],
+            "chain_entry": entry,
+            "authorization_consumed": True,
+            "transition_persisted": True,
+            "correction_provenance_persisted": True,
+            "current_baseline_advanced": True,
+            "correction_applied": False,
+            "supersession_performed": True,
+            "truth_claimed": False,
+            "accepted": False,
+            "write_authority": "NONE",
+            "execution_authority": "NONE",
+            "promotion_authority": "EXACT_TARGET_ONLY",
+            "canonical_mutation": True,
+            "interpretation_notice": (
+                "This receipt records one append-only baseline-head mutation "
+                "whose complete verified-correction provenance and exact "
+                "authorization were persisted atomically. It consumes only "
+                "that authorization and supersedes only the store's current "
+                "baseline head. It does not apply claim text to an external "
+                "system, establish truth or acceptance, grant general write "
+                "or execution authority, or perform post-persistence "
+                "re-observation."
+            ),
         }
