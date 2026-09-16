@@ -3854,3 +3854,74 @@
 | | baseline-transition candidate. Stop before authorization,    |
 | | execution, persistence, supersession, or authority.          |
 | |}==============================================================|
+| |}==============================================================|
+| | AUTHORIZED_VERIFIED_CLAIM_CORRECTION_TRANSITION_051_OVERLAY|
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW              |
+| | DATE: 2026-09-16                                            |
+| | BRANCH: feat/authorized-verified-claim-correction-transition|
+| | BASE: main@6ec9906                                          |
+| | IMPLEMENTATION:                                             |
+| | holosim/authorized_verified_claim_correction_transition.py  |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                           |
+| | 424a41f1fed8093718b21d4fe717be4b35c9a301bce4e5495a73d5d0a36c30b7
+| | FOCUSED_TEST:                                               |
+| | tests/test_authorized_verified_claim_correction_transition.py|
+| | FOCUSED_TEST_SHA256_NORMALIZED:                             |
+| | 5e56bf5ef9c0151d0e3f5dc9d17ad09918f4969070d3afdcb2587229d8916091
+| |                                                              |
+| | CONCRETE_AUTHORIZATION_HANDOFF_GAP                          |
+| | Boundary 050 built one verified correction transition       |
+| | candidate and exact authorization target, but the generic   |
+| | authorizer accepted only the gate, candidate, and typed      |
+| | authorization. No production boundary required or preserved |
+| | the complete verification binding during authorization.     |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                          |
+| | - The complete boundary-050 receipt is regenerated before   |
+| |   authorization is evaluated.                               |
+| | - Typed operational authorization must exactly match the    |
+| |   binding's BASELINE_PROMOTION action and candidate hash.    |
+| | - The existing authorize_baseline_transition(...) function  |
+| |   remains the owning transition authorizer.                 |
+| | - verification_hash, proposal_hash, binding_hash,            |
+| |   authorization_hash, candidate_hash, and transition_id are |
+| |   preserved together in one deterministic receipt.          |
+| | - Candidate substitution, wrong action, wrong target, forged|
+| |   authorization, and nested or top-level tampering fail      |
+| |   closed.                                                    |
+| | - Exact regeneration validates the full receipt identity.   |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused authorization-binding tests: 48 passed in 1.26 s. |
+| | - Full Windows repository suite: 2059 passed, 4 skipped in  |
+| |   44.39 s.                                                   |
+| | - git diff --check: clean before map append.                 |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - External authorization remains caller supplied and does   |
+| |   not prove the actor's identity, truth, or evidence quality.|
+| | - authorization_validated=true means exact structural match;|
+| |   it does not create general write or execution authority.   |
+| | - The authorization is not consumed until an authorized     |
+| |   transition is committed by the existing persistent store. |
+| | - No transition is persisted and no correction is applied.  |
+| | - No canonical state is superseded or mutated here.         |
+| | - Post-persistence claim re-observation remains outside this |
+| |   boundary and must not be inferred from authorization.      |
+| | - authorization_requested=false, authorization_consumed=false,|
+| |   transition_persisted=false, correction_applied=false, and |
+| |   supersession_performed=false remain fixed.                |
+| | - accepted=false, truth_claimed=false, write_authority=NONE,|
+| |   execution_authority=NONE, and canonical_mutation=false    |
+| |   remain fixed.                                              |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One exact authorization now remains bound to the complete   |
+| | verified correction receipt. Stop before persistence,       |
+| | application, supersession, re-observation, or generalization.|
+| |}==============================================================|
