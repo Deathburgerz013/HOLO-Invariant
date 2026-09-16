@@ -185,6 +185,30 @@ def test_complete_verified_correction_commits_and_advances_head(tmp_path):
     }
 
 
+def test_generic_commit_cannot_strip_verified_correction_provenance(tmp_path):
+    proposal, authorized = _authorized_correction()
+    store = _store(tmp_path, proposal)
+
+    with pytest.raises(
+        PersistentBaselineTransitionError,
+        match="authorization action does not match",
+    ):
+        store.commit(
+            transition=authorized["authorized_baseline_transition"],
+            authorization=authorized["operational_authorization"],
+        )
+
+    assert store.current_head() == {
+        "baseline_id": "baseline-1",
+        "baseline_state_hash": proposal["baseline_state_hash"],
+        "transition_count": 0,
+    }
+    committed = store.commit_verified_claim_correction(
+        authorized_correction=authorized
+    )
+    assert committed["correction_provenance_persisted"] is True
+
+
 def test_one_chain_entry_preserves_complete_authorized_correction(tmp_path):
     proposal, authorized = _authorized_correction()
     store = _store(tmp_path, proposal)

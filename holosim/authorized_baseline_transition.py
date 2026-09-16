@@ -22,6 +22,7 @@ from .baseline_promotion_gate import (
 from .canonical import CanonicalValueError, stable_hash
 from .typed_operational_authorization import (
     ACTION_BASELINE_PROMOTION,
+    ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
     OperationalAuthorizationError,
     validate_operational_authorization,
 )
@@ -162,15 +163,23 @@ def authorize_baseline_transition(
     promotion_gate: Mapping[str, Any],
     candidate: Mapping[str, Any],
     authorization: Mapping[str, Any],
+    authorization_action: str = ACTION_BASELINE_PROMOTION,
 ) -> dict[str, Any]:
     """Create one authorized, exact, non-epistemic baseline transition."""
     gate = _verify_gate(promotion_gate)
     checked_candidate = _verify_candidate(candidate, gate=gate)
+    if authorization_action not in {
+        ACTION_BASELINE_PROMOTION,
+        ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
+    }:
+        raise AuthorizedBaselineTransitionError(
+            "authorization action is not a baseline promotion action"
+        )
 
     try:
         validate_operational_authorization(
             authorization,
-            expected_action=ACTION_BASELINE_PROMOTION,
+            expected_action=authorization_action,
             expected_target_sha256=checked_candidate["candidate_hash"],
         )
     except OperationalAuthorizationError as exc:

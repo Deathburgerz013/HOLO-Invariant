@@ -30,8 +30,8 @@ from holosim.evidence_bound_claim_correction_verification import (
 )
 from holosim.hook_contract import build_hook_request, build_hook_result
 from holosim.typed_operational_authorization import (
-    ACTION_BASELINE_PROMOTION,
     ACTION_SERVICE_APPEND,
+    ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
     build_operational_authorization,
 )
 from holosim.verified_claim_correction_transition import (
@@ -203,6 +203,7 @@ def test_reuses_existing_baseline_transition_authorizer() -> None:
         promotion_gate=gate,
         candidate=binding["baseline_transition_candidate"],
         authorization=authorization,
+        authorization_action=binding["authorization_action"],
     )
 
     assert receipt["authorized_baseline_transition"] == expected
@@ -484,9 +485,13 @@ def test_validator_rejects_nested_transition_tampering() -> None:
         validate_authorized_verified_claim_correction_transition(receipt)
 
 
-def test_action_remains_exact_baseline_promotion() -> None:
+def test_action_routes_exact_verified_correction_promotion() -> None:
     _, binding, authorization, receipt = _receipt()
 
-    assert binding["authorization_action"] == ACTION_BASELINE_PROMOTION
-    assert authorization["action"] == ACTION_BASELINE_PROMOTION
+    assert binding["authorization_action"] == (
+        ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION
+    )
+    assert authorization["action"] == (
+        ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION
+    )
     assert authorization["target_sha256"] == receipt["candidate_hash"]

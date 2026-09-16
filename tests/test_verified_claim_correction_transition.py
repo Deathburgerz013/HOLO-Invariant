@@ -25,7 +25,7 @@ from holosim.evidence_bound_claim_correction_verification import (
 )
 from holosim.hook_contract import build_hook_request, build_hook_result
 from holosim.typed_operational_authorization import (
-    ACTION_BASELINE_PROMOTION,
+    ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
     build_operational_authorization,
 )
 from holosim.verified_claim_correction_transition import (
@@ -218,7 +218,9 @@ def test_reuses_existing_baseline_transition_candidate_builder() -> None:
         binding["authorization_target_sha256"]
         == expected["candidate_hash"]
     )
-    assert binding["authorization_action"] == ACTION_BASELINE_PROMOTION
+    assert binding["authorization_action"] == (
+        ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION
+    )
 
 
 def test_exact_target_is_compatible_with_existing_authorizer() -> None:
@@ -236,6 +238,7 @@ def test_exact_target_is_compatible_with_existing_authorizer() -> None:
         promotion_gate=gate,
         candidate=binding["baseline_transition_candidate"],
         authorization=authorization,
+        authorization_action=binding["authorization_action"],
     )
 
     assert transition["status"] == "AUTHORIZED"
