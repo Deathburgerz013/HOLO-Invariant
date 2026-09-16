@@ -17,6 +17,9 @@ AUTHORIZATION_TYPE = "holo_operational_authorization"
 VERSION = 1
 ACTION_SERVICE_APPEND = "SERVICE_APPEND"
 ACTION_BASELINE_PROMOTION = "BASELINE_PROMOTION"
+ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION = (
+    "VERIFIED_CLAIM_CORRECTION_PROMOTION"
+)
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
 AUTHORIZATION_FIELDS = {
@@ -59,7 +62,11 @@ def build_operational_authorization(
         raise OperationalAuthorizationError(
             "approval_reference cannot be a bare proof or artifact digest"
         )
-    if action not in {ACTION_SERVICE_APPEND, ACTION_BASELINE_PROMOTION}:
+    if action not in {
+        ACTION_SERVICE_APPEND,
+        ACTION_BASELINE_PROMOTION,
+        ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
+    }:
         raise OperationalAuthorizationError("action is not supported")
 
     if action == ACTION_SERVICE_APPEND:

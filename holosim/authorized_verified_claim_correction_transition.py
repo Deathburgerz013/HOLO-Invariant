@@ -142,6 +142,7 @@ def authorize_verified_claim_correction_transition(
             promotion_gate=promotion_gate,
             candidate=checked_binding["baseline_transition_candidate"],
             authorization=checked_authorization,
+            authorization_action=checked_binding["authorization_action"],
         )
     except AuthorizedBaselineTransitionError as exc:
         raise AuthorizedVerifiedClaimCorrectionTransitionError(

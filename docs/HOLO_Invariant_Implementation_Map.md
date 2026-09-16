@@ -4078,3 +4078,89 @@
 | | Stop before external application, renewed authorization,    |
 | | another transition, truth, acceptance, or general authority.|
 | |}==============================================================|
+| |}==============================================================|
+| | PROVENANCE_BOUND_CORRECTION_PERSISTENCE_054_OVERLAY         |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-16                                             |
+| | BRANCH: feat/provenance-bound-correction-persistence         |
+| | BASE: main@86e7785                                           |
+| | IMPLEMENTATIONS:                                             |
+| | holosim/typed_operational_authorization.py                   |
+| | SHA256_NORMALIZED:                                           |
+| | d5514dd4fd05192567287a6938140c35432a95a35ba4ee05c2f6f97f11127de3
+| | holosim/authorized_baseline_transition.py                    |
+| | SHA256_NORMALIZED:                                           |
+| | b7d04e4d7ab0c5e78e1dba31275f17fffef219724ef4418a9bce0364a66ac6d1
+| | holosim/verified_claim_correction_transition.py              |
+| | SHA256_NORMALIZED:                                           |
+| | 5df5601c7ee2cd25f647f132545c91ea369ca129650c84153a88c940a57c07b2
+| | holosim/authorized_verified_claim_correction_transition.py   |
+| | SHA256_NORMALIZED:                                           |
+| | 8fd80e5c1cac5d7d89e10ff4d547986e00652870f7d0e8eb506725ca75742904
+| | holosim/persistent_baseline_transition.py                    |
+| | SHA256_NORMALIZED:                                           |
+| | b667826a6f6a35a7e981e8b4223410d7b97ac92f20010e16d02e3d89480fe163
+| | FOCUSED_TESTS:                                                |
+| | tests/test_verified_claim_correction_transition.py           |
+| | e7d900342a88de46d45082186c57602f4cac6aab03b0d652780852832be0bfa2
+| | tests/test_authorized_verified_claim_correction_transition.py|
+| | 9e9354acc8f79ab0a842f554afaddaba6c6ac8a1b668ec3203633cf4b8c1bcd2
+| | tests/test_persistent_verified_claim_correction_transition.py|
+| | 3564de77c81cb629dc3a1e611c292b2d8f5639cb72ed624caaf36b51f2b80caf
+| |                                                              |
+| | CONCRETE_PROVENANCE_ROUTING_GAP                              |
+| | Boundary 052 preserved the complete authorized correction   |
+| | only through commit_verified_claim_correction(...). The same |
+| | authorization could be supplied with its nested transition  |
+| | to generic commit(...), advancing the head and consuming the |
+| | authorization while discarding correction provenance.       |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - Verified corrections now request the distinct typed action|
+| |   VERIFIED_CLAIM_CORRECTION_PROMOTION.                       |
+| | - The existing baseline-transition authorizer remains the   |
+| |   sole transition authorizer and validates either declared  |
+| |   promotion action against the same exact candidate target. |
+| | - Generic commit(...) accepts only BASELINE_PROMOTION.       |
+| | - commit_verified_claim_correction(...) accepts only         |
+| |   VERIFIED_CLAIM_CORRECTION_PROMOTION.                       |
+| | - Supplying a provenance-bound correction authorization to  |
+| |   generic commit(...) fails before append or consumption.    |
+| | - The failed generic attempt leaves the baseline head and   |
+| |   authorization unconsumed, permitting the exact specialized|
+| |   commit to persist the complete correction provenance.     |
+| | - Existing transition and persisted-record schemas remain   |
+| |   version 1; routing uses the already typed action field.    |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused authorization/persistence/reobservation tests:     |
+| |   169 passed in 10.21 s.                                     |
+| | - Full Windows repository suite: 2117 passed, 4 skipped in  |
+| |   49.65 s.                                                   |
+| | - git diff --check: clean.                                   |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - The new action routes one authorization; it does not prove|
+| |   truth, issuer identity, evidence quality, or acceptance.   |
+| | - Authorization remains exact-candidate-targeted, non-      |
+| |   epistemic, externally supplied, and consumed only by one  |
+| |   successful atomic persistence append.                     |
+| | - A separately issued generic BASELINE_PROMOTION remains a  |
+| |   distinct permission and carries no correction provenance. |
+| | - No claim text is externally applied and no general write  |
+| |   or execution authority is created.                        |
+| | - Historical overlays remain unchanged; this overlay records|
+| |   the later routing correction without rewriting lineage.   |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One provenance-bound correction authorization can no longer |
+| | be consumed through the generic persistence route. Stop     |
+| | before external application, truth, acceptance, or general  |
+| | authority.                                                   |
+| |}==============================================================|

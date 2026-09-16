@@ -31,6 +31,7 @@ from .canonical import CanonicalValueError, stable_hash
 from .core import HoloChain
 from .typed_operational_authorization import (
     ACTION_BASELINE_PROMOTION,
+    ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
     OperationalAuthorizationError,
     validate_operational_authorization,
 )
@@ -185,11 +186,12 @@ def _verify_authorization_for_transition(
     authorization: Mapping[str, Any],
     *,
     transition: Mapping[str, Any],
+    expected_action: str = ACTION_BASELINE_PROMOTION,
 ) -> dict[str, Any]:
     try:
         validate_operational_authorization(
             authorization,
-            expected_action=ACTION_BASELINE_PROMOTION,
+            expected_action=expected_action,
             expected_target_sha256=transition["candidate_hash"],
         )
     except OperationalAuthorizationError as exc:
@@ -372,6 +374,7 @@ def _verify_verified_correction_record(
     checked_authorization = _verify_authorization_for_transition(
         checked_correction["operational_authorization"],
         transition=checked_transition,
+        expected_action=ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
     )
 
     return {
@@ -800,6 +803,7 @@ class PersistentBaselineTransitionStore:
         checked_authorization = _verify_authorization_for_transition(
             checked_correction["operational_authorization"],
             transition=checked_transition,
+            expected_action=ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
         )
         record = _build_verified_correction_record(
             initial_baseline_id=self.initial_baseline_id,

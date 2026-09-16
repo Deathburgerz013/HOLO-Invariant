@@ -16,7 +16,7 @@ from holosim.evidence_bound_claim_correction_verification import (
     validate_evidence_bound_claim_correction_verification,
 )
 from holosim.typed_operational_authorization import (
-    ACTION_BASELINE_PROMOTION,
+    ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
 )
 
 TRANSITION_BINDING_TYPE = "verified_claim_correction_transition_candidate"
@@ -166,7 +166,9 @@ def build_verified_claim_correction_transition_candidate(
         "newly_solved": list(checked_verification["newly_solved"]),
         "preserved": list(checked_verification["preserved"]),
         "baseline_transition_candidate": transition_candidate,
-        "authorization_action": ACTION_BASELINE_PROMOTION,
+        "authorization_action": (
+            ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION
+        ),
         "authorization_target_sha256": transition_candidate[
             "candidate_hash"
         ],
