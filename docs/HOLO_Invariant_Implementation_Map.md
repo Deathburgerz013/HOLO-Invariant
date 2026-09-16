@@ -3999,3 +3999,82 @@
 | | baseline head. Stop before external claim application,       |
 | | post-persistence re-observation, truth, or general authority.|
 | |}==============================================================|
+| |}==============================================================|
+| | POST_PERSISTENCE_VERIFIED_CLAIM_REOBSERVATION_053_OVERLAY   |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-16                                             |
+| | BRANCH: feat/post-persistence-verified-claim-reobservation  |
+| | BASE: main@c711f81                                           |
+| | IMPLEMENTATIONS:                                             |
+| | holosim/persistent_baseline_transition.py                    |
+| | PERSISTENCE_SHA256_NORMALIZED:                               |
+| | bf7e5e1936233e95d203350ab6c85905a8047c9c8e3c698af2aceba417083fec
+| | holosim/post_persistence_verified_claim_reobservation.py     |
+| | REOBSERVATION_SHA256_NORMALIZED:                             |
+| | 093bc58600cdcfd217499aa2abc43c5df68cf4b8f62234f8e11308bbe0c94063
+| | FOCUSED_TEST:                                                |
+| | tests/test_post_persistence_verified_claim_reobservation.py  |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 2561c716959c3304bafa6f4a49feb27285720cd7b35af024a9c8392643b53a87
+| |                                                              |
+| | CONCRETE_POST_PERSISTENCE_OBSERVATION_GAP                    |
+| | Boundary 052 atomically persisted one complete verified     |
+| | correction and advanced the baseline head, but no executable|
+| | boundary read that exact chain record and re-observed its    |
+| | original conditions after persistence.                      |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - The existing store reads one verified-correction record   |
+| |   from one fully verified HoloChain snapshot.                |
+| | - The read receipt binds the exact record, chain entry,      |
+| |   current head, transition position, and deterministic hash.|
+| | - Re-observation proceeds only while that record remains the |
+| |   current persisted baseline-head transition.               |
+| | - Boundary 049 is regenerated with the original proposal,   |
+| |   claim conditions, and BEFORE evidence plus fresh AFTER     |
+| |   evidence; no second condition evaluator is invented.      |
+| | - Fresh results cannot reuse the persisted AFTER results.   |
+| | - Exact outcome comparison reuses bounded solution coverage |
+| |   and reports REOBSERVATION_CONFIRMED, CHANGE_OBSERVED, or   |
+| |   REOBSERVATION_UNRESOLVED.                                 |
+| | - Missing, unavailable, wrongly bound, reused, or tampered   |
+| |   evidence fails closed or remains explicitly unresolved.   |
+| | - Exact regeneration validates the receipt against the live |
+| |   verified store snapshot and becomes stale after head move.|
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused post-persistence tests: 37 passed in 3.47 s.      |
+| | - Full Windows repository suite: 2116 passed, 4 skipped in   |
+| |   50.30 s.                                                   |
+| | - git diff --check: clean; Windows line-ending notice only.  |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - Fresh hook observations remain caller supplied and do not |
+| |   prove observer identity, independence, or evidence quality.|
+| | - Exact outcome match establishes structural recurrence, not|
+| |   truth, semantic equivalence, causality, or permanence.     |
+| | - The receipt is current-head relative and must fail closed  |
+| |   after a later persisted baseline transition.              |
+| | - The earlier authorization consumption, persistence,       |
+| |   supersession, and canonical mutation are observed history;|
+| |   they are not repeated by re-observation.                   |
+| | - No claim text is applied to an external system and no new |
+| |   transition, authorization, persistence, or supersession is|
+| |   performed.                                                 |
+| | - correction_applied=false, accepted=false,                 |
+| |   truth_claimed=false, write_authority=NONE,                |
+| |   execution_authority=NONE, and canonical_mutation=false    |
+| |   remain fixed for this receipt.                             |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One current persisted verified correction can now be checked|
+| | again against fresh evidence without repeating its mutation.|
+| | Stop before external application, renewed authorization,    |
+| | another transition, truth, acceptance, or general authority.|
+| |}==============================================================|
