@@ -114,6 +114,22 @@ present without being true. A valid receipt may be internally consistent
 without being current. A current observation may still lack permission to
 write or execute.
 
+## Verified correction lifecycle
+
+HOLO's distinction is not merely that it retains history—Git, event logs, and
+audit trails already do that. It keeps correction lineage, verification,
+currentness, authorization, persistence, and truth as separately checkable
+boundaries.
+
+```text
+propose -> verify evidence -> bind exact transition -> authorize exact target -> persist -> re-observe
+```
+
+Verification is not authorization. Persistence records an exact transition
+without establishing truth. Re-observation can confirm recurrence, detect
+change, or remain unresolved without rewriting the original or acquiring write
+or execution authority.
+
 ## What the code guarantees
 
 Within each module's declared boundary, HOLO can verify properties such as:
