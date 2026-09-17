@@ -4164,3 +4164,70 @@
 | | before external application, truth, acceptance, or general  |
 | | authority.                                                   |
 | |}==============================================================|
+| |}==============================================================|
+| | DURABLE_HOLOCHAIN_ENTRY_FLUSH_055_OVERLAY                   |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-17                                             |
+| | BRANCH: feat/durable-holochain-append                       |
+| | BASE: main@890e701                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/core.py                                              |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | ffd22f260580df22485405895cc91f29b90c992c6764b2f86c4b5afcf1633c97
+| | FOCUSED_TEST:                                                |
+| | tests/test_durable_holochain_append.py                       |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 12891884c7cfed031ba04fe107e05681886f37532e4cdfc25baec3e02fb7f7c6
+| |                                                              |
+| | CONCRETE_DURABILITY_ACKNOWLEDGMENT_GAP                       |
+| | HoloChain.append(...) wrote and flushed one complete JSONL   |
+| | entry before returning success, but flush moved bytes only   |
+| | through Python's buffer. The operating system could still    |
+| | retain them in volatile cache after success was reported.    |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - append(...) writes the complete entry and flushes Python's |
+| |   file buffer as before.                                     |
+| | - os.fsync(chain_file.fileno()) is then called while the file|
+| |   remains open and the append transaction lock remains held. |
+| | - Success is logged and returned only after fsync returns.   |
+| | - If fsync raises, append(...) propagates the failure instead|
+| |   of reporting a durable success.                            |
+| | - Transaction cleanup still releases the append lock after  |
+| |   an fsync failure.                                          |
+| | - The chain schema, entry identity, ordering, compression,   |
+| |   verification, and authorization behavior are unchanged.   |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused atomic/durability/core tests: 21 passed in 8.12 s.|
+| | - Full Windows repository suite: 2119 passed, 4 skipped in  |
+| |   52.05 s.                                                   |
+| | - git diff --check: clean.                                   |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - fsync requests platform storage synchronization; it cannot|
+| |   prove protection from every device, controller, filesystem,|
+| |   kernel, or physical-storage failure.                       |
+| | - A crash or write failure before fsync completes can leave  |
+| |   a missing, partial, or present-but-unacknowledged entry.    |
+| |   Existing replay verification must determine what remains. |
+| | - An fsync error can occur after bytes entered the file. The |
+| |   raised error means durability is unknown, not that rollback|
+| |   was performed.                                             |
+| | - Parent-directory metadata is not separately synchronized; |
+| |   first-file creation durability is not claimed on every OS.|
+| | - This boundary grants no truth, acceptance, write, execution|
+| |   promotion, or external operational authority.             |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | HoloChain no longer reports append success before requesting|
+| | synchronization of the written entry through the operating  |
+| | system. Stop before claiming absolute crash-proof storage or |
+| | rollback after an uncertain write.                           |
+| |}==============================================================|
