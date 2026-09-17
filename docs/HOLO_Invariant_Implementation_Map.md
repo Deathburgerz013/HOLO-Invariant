@@ -4231,3 +4231,76 @@
 | | system. Stop before claiming absolute crash-proof storage or |
 | | rollback after an uncertain write.                           |
 | |}==============================================================|
+| |}==============================================================|
+| | HOLOCHAIN_TERMINAL_TAIL_DIAGNOSIS_056_OVERLAY              |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-17                                             |
+| | BRANCH: feat/holochain-terminal-tail-diagnosis              |
+| | BASE: main@60c8fb4                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/holochain_terminal_tail_diagnosis.py                 |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 38a96fa1ce2eed0b461309a6291203ae9e68bebbc8a32b2a255379d00a4d5a73
+| | FOCUSED_TEST:                                                |
+| | tests/test_holochain_terminal_tail_diagnosis.py              |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 50248c8ea3bfb3947978c8e3179f348ee6cdbc7f5783e301c9bd1aff9c41d9a0
+| |                                                              |
+| | CONCRETE_TERMINAL_TAIL_DIAGNOSIS_GAP                         |
+| | A crash or failed write before durable append completion can|
+| | leave terminal bytes that are not one valid JSONL record.    |
+| | load_and_verify(...) correctly failed closed, but exposed no |
+| | bounded read-only distinction between an invalid terminal    |
+| | record and a failure before later nonempty records.          |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - Diagnosis reads the source bytes without repairing or      |
+| |   rewriting them and binds the observation to source SHA-256.|
+| | - It verifies the complete prefix using the current canonical|
+| |   HoloChain hash computation and the supplied genesis hash.  |
+| | - CLEAN identifies a fully verified observed byte sequence.  |
+| | - TERMINAL_INVALID_RECORD identifies the first failure at the|
+| |   last nonempty physical record in the observed bytes.       |
+| | - INTERIOR_INTEGRITY_FAILURE identifies a first failure with |
+| |   later nonempty physical records still present.             |
+| | - Failure line and bounded failure kind are reported without |
+| |   returning the invalid source bytes.                        |
+| | - Missing-source diagnosis does not create the source file or|
+| |   its absent parent directory.                               |
+| | - The existing append path remains fail-closed; diagnosis    |
+| |   cannot make a malformed chain appendable.                  |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused diagnosis/atomic/durability/core tests: 30 passed  |
+| |   in 9.10 s.                                                 |
+| | - Full Windows repository suite: 2128 passed, 4 skipped in  |
+| |   56.08 s.                                                   |
+| | - git diff --check: clean.                                   |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - A terminal invalid record is consistent with interruption,|
+| |   corruption, tampering, or another cause. Cause is not      |
+| |   proven by position, missing newline, or failure kind.      |
+| | - The receipt describes the bytes identified by source hash;|
+| |   it does not prove the file stayed current after that read. |
+| | - Diagnosis does not claim that a failed terminal record is  |
+| |   safe to truncate, recoverable, or absent from storage.     |
+| | - No lock, quarantine, truncation, rollback, repair, append, |
+| |   acceptance, or authorization operation is performed.      |
+| | - Future chain formats or hash rules require a separately    |
+| |   versioned diagnostic boundary rather than silent inference.|
+| | - This boundary grants no truth, acceptance, write, execution|
+| |   promotion, or external operational authority.             |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | HoloChain can now classify whether the first observed invalid|
+| | record is terminal or precedes later data without modifying  |
+| | the source. Stop before claiming cause, recovery safety,     |
+| | currentness beyond the bound bytes, or repair authority.     |
+| |}==============================================================|
