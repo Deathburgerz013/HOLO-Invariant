@@ -4304,3 +4304,83 @@
 | | the source. Stop before claiming cause, recovery safety,     |
 | | currentness beyond the bound bytes, or repair authority.     |
 | |}==============================================================|
+| |}==============================================================|
+| | DETERMINISTIC_SUPERVISOR_DECISION_057_OVERLAY               |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-17                                             |
+| | BRANCH: feat/deterministic-supervisor-decision              |
+| | BASE: main@ce54663                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/deterministic_supervisor.py                          |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 1ff56a23107bcbbfac2c1f305bfa98693fe9798b4d1ac5f0173546276d56c2e5
+| | FOCUSED_TEST:                                                |
+| | tests/test_deterministic_supervisor.py                       |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 3ba3b28fb250bf29ad2bf2ebb33f3703f7d81962af4bb676dd507d899d3bf63b
+| |                                                              |
+| | CONCRETE_SUPERVISOR_DECISION_GAP                             |
+| | Existing runtime and scheduler entry points coordinate or    |
+| | execute work directly. No deterministic read-only boundary   |
+| | first combined chain integrity, required invariant validity, |
+| | and declared pending-work identity into one lifecycle state. |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - The supervisor observes the chain through boundary 056 and |
+| |   projects supplied validity history through the existing    |
+| |   invariant-validity lifecycle.                              |
+| | - BLOCK is emitted for a missing chain source, an interior   |
+| |   chain failure, or an unavailable required invariant.       |
+| | - RECOVER is emitted for an invalid terminal record. It      |
+| |   identifies recovery need without performing or authorizing |
+| |   recovery.                                                  |
+| | - WAIT is emitted when observed state is usable and no       |
+| |   declared work identity is pending.                         |
+| | - RUN is emitted when observed state is usable, all required |
+| |   claims are active, and declared work identities are pending|
+| |   without executing or authorizing that work.                |
+| | - Required claims and pending work ids are validated, unique,|
+| |   sorted, and bound into the deterministic decision hash.    |
+| | - Missing, invalid, superseded, unknown, liquidated, or stale|
+| |   required claims remain unavailable with explicit reasons.  |
+| | - Unrelated excluded claims do not block satisfied required  |
+| |   claims.                                                    |
+| | - No scheduler, runtime mutation, or recovery runner is      |
+| |   invoked by the decision function.                          |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused supervisor/diagnosis/lifecycle tests: 37 passed in |
+| |   1.37 s.                                                    |
+| | - Full Windows repository suite: 2142 passed, 4 skipped in  |
+| |   51.46 s.                                                   |
+| | - git diff --check: clean.                                   |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - The decision embeds the chain observation and validity     |
+| |   projection but does not prove supplied history came from   |
+| |   that chain or that both describe one atomic instant.       |
+| | - Source bytes or environmental state may change after the   |
+| |   observations bound into the decision.                      |
+| | - RUN means declared work is eligible for a later exact      |
+| |   authorization check; it is not execution permission.       |
+| | - RECOVER identifies a recovery need; it is not evidence that|
+| |   recovery is safe, available, accepted, or authorized.      |
+| | - The decision hash binds content identity. It does not prove|
+| |   truth, issuer identity, approval, currentness, or authority.|
+| | - This is not a daemon, process scheduler, executor, recovery|
+| |   mechanism, or persistent lifecycle service.                |
+| | - No action, recovery, mutation, acceptance, truth, write,   |
+| |   execution, promotion, or operational authority is created.|
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Holo/Sim can now derive one deterministic WAIT, RUN, BLOCK,  |
+| | or RECOVER observation before runtime action. Stop before    |
+| | persistent supervision, scheduler invocation, recovery, or   |
+| | exact-target execution authorization.                        |
+| |}==============================================================|
