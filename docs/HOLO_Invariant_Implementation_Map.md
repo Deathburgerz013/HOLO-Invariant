@@ -4459,3 +4459,83 @@
 | | Stop before operation semantics, authorization, adapter      |
 | | dispatch, scheduler invocation, or observable effects.       |
 | |}==============================================================|
+| |}==============================================================|
+| | BOUNDED_PROPOSITIONAL_INFERENCE_059_OVERLAY                 |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-17                                             |
+| | BRANCH: feat/bounded-propositional-inference                |
+| | BASE: main@2982b58                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/bounded_propositional_inference.py                   |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | 560836479165a9ff397e65f0c26747ddcc4d23536505acc0202ab1cf01e57b1c
+| | FOCUSED_TEST:                                                |
+| | tests/test_bounded_propositional_inference.py                |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | 9e3ba092294b2a61aba93a2a819eb85bce04eaead544df13fad76a6ce8342865
+| |                                                              |
+| | CONCRETE_JUSTIFIED_INFERENCE_GAP                             |
+| | Existing justification, judgment, proof, and arithmetic     |
+| | receipts preserved rationale, declared support, bounded     |
+| | conclusions, or deterministic calculations. None            |
+| | mechanically established that one formal propositional      |
+| | conclusion followed from supplied formal premises, or       |
+| | returned a counterexample when it did not.                   |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - A closed version-1 propositional grammar admits ATOM, NOT,|
+| |   AND, OR, IMPLIES, and IFF only.                            |
+| | - The verifier exhaustively enumerates every assignment for |
+| |   at most ten atoms under bounded depth and node limits.     |
+| | - VALID requires satisfiable premises and no assignment in  |
+| |   which every premise is true while the conclusion is false.|
+| | - INVALID returns the first deterministic exact             |
+| |   counterexample, including assignment, premise values, and |
+| |   the false conclusion value.                               |
+| | - INCONSISTENT_PREMISES is separate from VALID so vacuous   |
+| |   implication cannot justify an arbitrary conclusion.       |
+| | - Premises are identity-normalized; permutation does not    |
+| |   change the receipt and duplicate premises fail closed.    |
+| | - Receipt validation rebuilds the complete truth-table      |
+| |   result and rejects schema, result, or authority tampering.|
+| | - The receipt declares premise support NOT_VALIDATED and    |
+| |   makes only conditional formal-inference claims.           |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused propositional-inference tests: 22 passed in       |
+| |   0.41 s.                                                    |
+| | - Full Windows repository suite: 2179 passed, 4 skipped in  |
+| |   56.41 s.                                                   |
+| | - git diff --check: clean.                                   |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - Formal validity does not establish that any atomic        |
+| |   proposition or supplied premise is environmentally true.  |
+| | - Natural-language meaning is not inferred, interpreted, or |
+| |   proven by atom identifiers or propositional structure.    |
+| | - A VALID receipt is conditional support under one declared |
+| |   scope, not truth, soundness, acceptance, or permission.   |
+| | - Exhaustive search is bounded to the declared grammar and  |
+| |   limits; it is not a general theorem prover.               |
+| | - INVALID provides one counterexample and does not diagnose |
+| |   intent, cause, or the best correction.                    |
+| | - INCONSISTENT_PREMISES blocks conditional support rather   |
+| |   than using contradiction to derive arbitrary conclusions.|
+| | - No premise evidence is fetched or validated and no        |
+| |   justification notice, proof, chain record, or state is    |
+| |   persisted or mutated.                                     |
+| | - This boundary grants no truth, acceptance, write,         |
+| |   execution, promotion, recovery, or external authority.    |
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | Holo/Sim can now distinguish a valid bounded propositional  |
+| | inference from an exact counterexample or inconsistent      |
+| | premises. Stop before treating formal validity as premise   |
+| | truth, soundness, acceptance, or operational authority.     |
+| |}==============================================================|
