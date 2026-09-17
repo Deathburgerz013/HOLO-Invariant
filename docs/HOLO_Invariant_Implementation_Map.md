@@ -4384,3 +4384,78 @@
 | | persistent supervision, scheduler invocation, recovery, or   |
 | | exact-target execution authorization.                        |
 | |}==============================================================|
+| |}==============================================================|
+| | SUPERVISOR_EXACT_WORK_REQUEST_058_OVERLAY                   |
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW               |
+| | DATE: 2026-09-17                                             |
+| | BRANCH: feat/supervisor-work-request                        |
+| | BASE: main@ec738f2                                           |
+| | IMPLEMENTATION:                                              |
+| | holosim/supervisor_work_request.py                           |
+| | IMPLEMENTATION_SHA256_NORMALIZED:                            |
+| | d4412bcbe6a73e20de1aa06230cb310ee90686b25fa0c7de992b19ff395f81bf
+| | FOCUSED_TEST:                                                |
+| | tests/test_supervisor_work_request.py                        |
+| | FOCUSED_TEST_SHA256_NORMALIZED:                              |
+| | ee053e6cbc2aecc92a1f3aefcd5441e846b103576ea6d567380bd072a4c63ebf
+| |                                                              |
+| | CONCRETE_RUN_TO_WORK_IDENTITY_GAP                            |
+| | Boundary 057 could emit RUN for declared pending work but did|
+| | not select one work identity or bind it to exact external    |
+| | payload bytes. No closed request existed between supervisor  |
+| | eligibility and later operational authorization.            |
+| |                                                              |
+| | IMPLEMENTED_RESULT                                           |
+| | - Request construction recomputes boundary 057 from current  |
+| |   chain and validity inputs and requires exact equality with |
+| |   the supplied supervisor decision.                          |
+| | - Only a current RUN decision can produce a work request;    |
+| |   WAIT, BLOCK, RECOVER, stale, or altered decisions fail.    |
+| | - One selected work id must already occur in the decision's  |
+| |   declared pending-work identities.                          |
+| | - One externally supplied lowercase payload SHA-256 binds the|
+| |   selected identity to exact payload bytes held elsewhere.   |
+| | - The request embeds decision, chain-source, projection, work|
+| |   and payload identities in one deterministic request hash.  |
+| | - Closed-schema validation regenerates the exact request from|
+| |   current source observations and rejects extra fields.      |
+| | - Changes to observed chain bytes, supplied validity history,|
+| |   selected work, or payload identity invalidate or change the|
+| |   request.                                                    |
+| | - No scheduler, runtime mutation, payload execution, or      |
+| |   recovery function is invoked.                              |
+| |                                                              |
+| | EXECUTION_RECEIPTS                                           |
+| | - Focused request/supervisor/diagnosis/lifecycle tests:      |
+| |   52 passed in 1.17 s.                                       |
+| | - Full Windows repository suite: 2157 passed, 4 skipped in  |
+| |   54.99 s.                                                   |
+| | - git diff --check: clean.                                   |
+| | - Spine rail validation: valid with 0 violations.            |
+| |                                                              |
+| | PRESERVED_LIMITS                                             |
+| | - The payload digest is opaque. The request does not inspect |
+| |   or prove payload meaning, availability, safety, provenance,|
+| |   completeness, or fitness for execution.                   |
+| | - No executable operation type, adapter, command, arguments, |
+| |   environment, or effect boundary is defined by this request.|
+| | - Source state can change after recomputation and request    |
+| |   construction; later stages must revalidate currentness.    |
+| | - The request hash binds content identity only. It does not  |
+| |   prove truth, issuer identity, approval, or authorization.  |
+| | - Authorization remains required and is not created, implied,|
+| |   consumed, or widened by request construction or validation.|
+| | - No action, recovery, mutation, acceptance, truth, write,   |
+| |   execution, promotion, or operational authority is created.|
+| |                                                              |
+| | EXTERNAL_REVIEW: PENDING                                     |
+| | ACCEPTED: false                                              |
+| | WRITE_AUTHORITY: NONE                                        |
+| |}==============================================================|
+| | TERMINAL                                                     |
+| | One current RUN decision can now name one pending work item  |
+| | and exact external payload identity without executing it.    |
+| | Stop before operation semantics, authorization, adapter      |
+| | dispatch, scheduler invocation, or observable effects.       |
+| |}==============================================================|
