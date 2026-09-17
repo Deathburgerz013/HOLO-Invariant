@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import os
 import platform
 import sys
 import zlib
@@ -175,6 +176,7 @@ class HoloChain:
             with self.file_path.open("a", encoding="utf-8") as chain_file:
                 chain_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
                 chain_file.flush()
+                os.fsync(chain_file.fileno())
 
         logger.info(
             f"✅ Appended entry {idx} ({entry_type}) "
