@@ -2500,3 +2500,217 @@ def run_functional_consciousness_ablation_trial(
             "receipt_hash": stable_hash(body),
         },
     }
+
+
+CAUSAL_EDGE_COUNTEREXAMPLE_RECEIPT_TYPE = (
+    "functional_consciousness_causal_edge_counterexample_receipt"
+)
+CAUSAL_EDGE_COUNTEREXAMPLE_RECEIPT_VERSION = 1
+
+_CAUSAL_EDGE_COUNTEREXAMPLE_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "absence_receipt_hash",
+    "treatment_controller_receipt_hash",
+    "counterexample_controller_receipt_hash",
+    "upstream_evidence_identical",
+    "treatment_controller_connected",
+    "counterexample_controller_connected",
+    "treatment_declared_action",
+    "counterexample_declared_action",
+    "treatment_causal_dependency_observed",
+    "counterexample_causal_dependency_observed",
+    "causal_edge_only_difference",
+    "downstream_consequence_disappeared",
+    "counterexample_established",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def build_causal_edge_counterexample_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    absence_receipt: Mapping[str, Any],
+    treatment_controller_receipt: Mapping[str, Any],
+    counterexample_controller_receipt: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Sever only the declared causal edge against identical absence evidence."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    verify_absence_model_receipt(absence_receipt)
+    verify_causal_controller_receipt(
+        treatment_controller_receipt,
+        absence_receipt=absence_receipt,
+    )
+    verify_causal_controller_receipt(
+        counterexample_controller_receipt,
+        absence_receipt=absence_receipt,
+    )
+
+    for label, receipt in (
+        ("absence", absence_receipt),
+        ("treatment controller", treatment_controller_receipt),
+        ("counterexample controller", counterexample_controller_receipt),
+    ):
+        if (
+            receipt["experiment_id"] != experiment
+            or receipt["condition_id"] != condition
+        ):
+            raise FunctionalConsciousnessExperimentError(
+                f"{label} receipt is not bound to counterexample experiment"
+            )
+
+    upstream_evidence_identical = (
+        treatment_controller_receipt["absence_receipt_hash"]
+        == absence_receipt["receipt_hash"]
+        == counterexample_controller_receipt["absence_receipt_hash"]
+    )
+
+    treatment_connected = treatment_controller_receipt["controller_connected"]
+    counterexample_connected = counterexample_controller_receipt[
+        "controller_connected"
+    ]
+
+    causal_edge_only_difference = (
+        upstream_evidence_identical
+        and treatment_connected is True
+        and counterexample_connected is False
+        and treatment_controller_receipt["absence_classification"]
+        == counterexample_controller_receipt["absence_classification"]
+        == absence_receipt["absence_classification"]
+        and treatment_controller_receipt["baseline_action"]
+        == counterexample_controller_receipt["baseline_action"]
+    )
+
+    downstream_consequence_disappeared = (
+        treatment_controller_receipt["action_changed"] is True
+        and treatment_controller_receipt["causal_dependency_observed"] is True
+        and counterexample_controller_receipt["action_changed"] is False
+        and counterexample_controller_receipt["causal_dependency_observed"] is False
+        and treatment_controller_receipt["declared_action"]
+        != counterexample_controller_receipt["declared_action"]
+    )
+
+    counterexample_established = (
+        causal_edge_only_difference
+        and downstream_consequence_disappeared
+    )
+
+    body = {
+        "type": CAUSAL_EDGE_COUNTEREXAMPLE_RECEIPT_TYPE,
+        "version": CAUSAL_EDGE_COUNTEREXAMPLE_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "absence_receipt_hash": absence_receipt["receipt_hash"],
+        "treatment_controller_receipt_hash": treatment_controller_receipt[
+            "receipt_hash"
+        ],
+        "counterexample_controller_receipt_hash": counterexample_controller_receipt[
+            "receipt_hash"
+        ],
+        "upstream_evidence_identical": upstream_evidence_identical,
+        "treatment_controller_connected": treatment_connected,
+        "counterexample_controller_connected": counterexample_connected,
+        "treatment_declared_action": treatment_controller_receipt["declared_action"],
+        "counterexample_declared_action": counterexample_controller_receipt[
+            "declared_action"
+        ],
+        "treatment_causal_dependency_observed": treatment_controller_receipt[
+            "causal_dependency_observed"
+        ],
+        "counterexample_causal_dependency_observed": counterexample_controller_receipt[
+            "causal_dependency_observed"
+        ],
+        "causal_edge_only_difference": causal_edge_only_difference,
+        "downstream_consequence_disappeared": downstream_consequence_disappeared,
+        "counterexample_established": counterexample_established,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_causal_edge_counterexample_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    absence_receipt: Mapping[str, Any],
+    treatment_controller_receipt: Mapping[str, Any],
+    counterexample_controller_receipt: Mapping[str, Any],
+) -> bool:
+    """Rebuild and verify the paired causal-edge counterexample."""
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _CAUSAL_EDGE_COUNTEREXAMPLE_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "causal edge counterexample receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != CAUSAL_EDGE_COUNTEREXAMPLE_RECEIPT_TYPE
+        or receipt["version"] != CAUSAL_EDGE_COUNTEREXAMPLE_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "causal edge counterexample receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(receipt["receipt_hash"], "receipt_hash")
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "causal edge counterexample receipt hash mismatch"
+        )
+
+    rebuilt = build_causal_edge_counterexample_receipt(
+        experiment_id=receipt["experiment_id"],
+        condition_id=receipt["condition_id"],
+        absence_receipt=absence_receipt,
+        treatment_controller_receipt=treatment_controller_receipt,
+        counterexample_controller_receipt=counterexample_controller_receipt,
+    )
+
+    if receipt != rebuilt:
+        raise FunctionalConsciousnessExperimentError(
+            "causal edge counterexample does not match verified evidence"
+        )
+
+    if receipt["counterexample_established"] is not True:
+        raise FunctionalConsciousnessExperimentError(
+            "causal edge counterexample is not established"
+        )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "counterexample receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True

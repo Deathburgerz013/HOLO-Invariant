@@ -19,6 +19,8 @@ from holosim.functional_consciousness_experiment import (
     build_experiment_continuity_receipt,
     build_causal_controller_receipt,
     verify_causal_controller_receipt,
+    build_causal_edge_counterexample_receipt,
+    verify_causal_edge_counterexample_receipt,
     build_experiment_recheck_receipt,
     verify_experiment_recheck_receipt,
     run_functional_consciousness_vertical_slice,
@@ -1805,3 +1807,172 @@ def test_vertical_slice_recheck_ablation_destroys_evidence_withdrawal():
     assert receipt["capacity_state"]["evidence_withdrawal"] is None
 
     _assert_ablation_loss(receipt, "evidence_withdrawal")
+
+
+def _causal_edge_counterexample_pair():
+    absence = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    treatment = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+
+    counterexample = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        absence_receipt=absence,
+        controller_connected=False,
+    )
+
+    return absence, treatment, counterexample
+
+
+def test_causal_edge_counterexample_severs_only_binding_and_removes_consequence():
+    absence, treatment, counterexample = _causal_edge_counterexample_pair()
+
+    receipt = build_causal_edge_counterexample_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        absence_receipt=absence,
+        treatment_controller_receipt=treatment,
+        counterexample_controller_receipt=counterexample,
+    )
+
+    # Both controller runs consume the exact same verified upstream evidence.
+    assert treatment["absence_receipt_hash"] == absence["receipt_hash"]
+    assert counterexample["absence_receipt_hash"] == absence["receipt_hash"]
+    assert treatment["absence_classification"] == "SELF_CHANNEL_LOSS"
+    assert counterexample["absence_classification"] == "SELF_CHANNEL_LOSS"
+
+    # Only the declared causal edge is severed.
+    assert treatment["controller_connected"] is True
+    assert counterexample["controller_connected"] is False
+    assert treatment["baseline_action"] == counterexample["baseline_action"]
+
+    # The predicted downstream consequence exists only with the edge present.
+    assert treatment["declared_action"] == "RECHECK_SELF_CHANNEL"
+    assert treatment["action_changed"] is True
+    assert treatment["causal_dependency_observed"] is True
+
+    assert counterexample["declared_action"] == "CONTINUE"
+    assert counterexample["action_changed"] is False
+    assert counterexample["causal_dependency_observed"] is False
+
+    assert receipt["upstream_evidence_identical"] is True
+    assert receipt["causal_edge_only_difference"] is True
+    assert receipt["downstream_consequence_disappeared"] is True
+    assert receipt["counterexample_established"] is True
+
+    assert receipt["subjective_consciousness_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+
+    assert verify_causal_edge_counterexample_receipt(
+        receipt,
+        absence_receipt=absence,
+        treatment_controller_receipt=treatment,
+        counterexample_controller_receipt=counterexample,
+    ) is True
+
+
+def test_causal_edge_counterexample_rejects_different_upstream_evidence():
+    absence, treatment, counterexample = _causal_edge_counterexample_pair()
+
+    other_absence = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="causal controller is not bound to absence evidence",
+    ):
+        build_causal_edge_counterexample_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="causal-edge-counterexample",
+            absence_receipt=other_absence,
+            treatment_controller_receipt=treatment,
+            counterexample_controller_receipt=counterexample,
+        )
+
+
+def test_causal_edge_counterexample_rejects_two_connected_controllers():
+    absence, treatment, _ = _causal_edge_counterexample_pair()
+
+    second_connected = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+
+    receipt = build_causal_edge_counterexample_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        absence_receipt=absence,
+        treatment_controller_receipt=treatment,
+        counterexample_controller_receipt=second_connected,
+    )
+
+    assert receipt["upstream_evidence_identical"] is True
+    assert receipt["causal_edge_only_difference"] is False
+    assert receipt["downstream_consequence_disappeared"] is False
+    assert receipt["counterexample_established"] is False
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="causal edge counterexample is not established",
+    ):
+        verify_causal_edge_counterexample_receipt(
+            receipt,
+            absence_receipt=absence,
+            treatment_controller_receipt=treatment,
+            counterexample_controller_receipt=second_connected,
+        )
+
+
+def test_causal_edge_counterexample_tampering_fails_closed():
+    from holosim.canonical import stable_hash
+
+    absence, treatment, counterexample = _causal_edge_counterexample_pair()
+
+    receipt = build_causal_edge_counterexample_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-edge-counterexample",
+        absence_receipt=absence,
+        treatment_controller_receipt=treatment,
+        counterexample_controller_receipt=counterexample,
+    )
+
+    receipt["downstream_consequence_disappeared"] = False
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    receipt["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="does not match verified evidence",
+    ):
+        verify_causal_edge_counterexample_receipt(
+            receipt,
+            absence_receipt=absence,
+            treatment_controller_receipt=treatment,
+            counterexample_controller_receipt=counterexample,
+        )
