@@ -1134,3 +1134,195 @@ def verify_experiment_continuity_receipt(
         )
 
     return True
+
+ABSENCE_RECEIPT_TYPE = "functional_consciousness_absence_model_receipt"
+ABSENCE_RECEIPT_VERSION = 1
+
+_ABSENCE_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "world_source_id",
+    "self_source_id",
+    "world_channel_available",
+    "self_channel_available",
+    "absence_classification",
+    "own_interruption_detected",
+    "world_evidence_missing",
+    "world_absence_claimed",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def _absence_classification(
+    *,
+    world_channel_available: bool,
+    self_channel_available: bool,
+) -> str:
+    if world_channel_available and self_channel_available:
+        return "CHANNELS_PRESENT"
+    if world_channel_available and not self_channel_available:
+        return "SELF_CHANNEL_LOSS"
+    if not world_channel_available and self_channel_available:
+        return "WORLD_EVIDENCE_MISSING"
+    return "BOTH_CHANNELS_UNAVAILABLE"
+
+
+def build_absence_model_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    world_source_id: str,
+    self_source_id: str,
+    world_channel_available: bool,
+    self_channel_available: bool,
+) -> dict[str, Any]:
+    """Distinguish own-channel interruption from missing world evidence."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+    world_source = _identifier(world_source_id, "world_source_id")
+    self_source = _identifier(self_source_id, "self_source_id")
+
+    if world_source == self_source:
+        raise FunctionalConsciousnessExperimentError(
+            "world_source_id and self_source_id must differ"
+        )
+    if type(world_channel_available) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "world_channel_available must be boolean"
+        )
+    if type(self_channel_available) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "self_channel_available must be boolean"
+        )
+
+    classification = _absence_classification(
+        world_channel_available=world_channel_available,
+        self_channel_available=self_channel_available,
+    )
+
+    body = {
+        "type": ABSENCE_RECEIPT_TYPE,
+        "version": ABSENCE_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "world_source_id": world_source,
+        "self_source_id": self_source,
+        "world_channel_available": world_channel_available,
+        "self_channel_available": self_channel_available,
+        "absence_classification": classification,
+        "own_interruption_detected": not self_channel_available,
+        "world_evidence_missing": not world_channel_available,
+        "world_absence_claimed": False,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_absence_model_receipt(receipt: Mapping[str, Any]) -> bool:
+    """Verify the closed absence-model classification without absence inference."""
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _ABSENCE_RECEIPT_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "absence receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != ABSENCE_RECEIPT_TYPE
+        or receipt["version"] != ABSENCE_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "absence receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(receipt["receipt_hash"], "receipt_hash")
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "absence receipt hash mismatch"
+        )
+
+    world_source = _identifier(
+        receipt["world_source_id"],
+        "world_source_id",
+    )
+    self_source = _identifier(
+        receipt["self_source_id"],
+        "self_source_id",
+    )
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+
+    if world_source == self_source:
+        raise FunctionalConsciousnessExperimentError(
+            "world and self sources are not separated"
+        )
+
+    world_available = receipt["world_channel_available"]
+    self_available = receipt["self_channel_available"]
+
+    if type(world_available) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "world_channel_available must be boolean"
+        )
+    if type(self_available) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "self_channel_available must be boolean"
+        )
+
+    expected_classification = _absence_classification(
+        world_channel_available=world_available,
+        self_channel_available=self_available,
+    )
+
+    if receipt["absence_classification"] != expected_classification:
+        raise FunctionalConsciousnessExperimentError(
+            "absence classification is inconsistent"
+        )
+    if receipt["own_interruption_detected"] is not (not self_available):
+        raise FunctionalConsciousnessExperimentError(
+            "own interruption state is inconsistent"
+        )
+    if receipt["world_evidence_missing"] is not (not world_available):
+        raise FunctionalConsciousnessExperimentError(
+            "world evidence state is inconsistent"
+        )
+
+    if receipt["world_absence_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "missing world evidence must not claim world absence"
+        )
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "absence receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True

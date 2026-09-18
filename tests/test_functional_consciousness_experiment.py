@@ -14,6 +14,8 @@ from holosim.verified_cold_start_reentry_gateway import (
 from holosim.functional_consciousness_experiment import (
     FunctionalConsciousnessExperimentError,
     build_experiment_input_receipt,
+    build_absence_model_receipt,
+    verify_absence_model_receipt,
     build_experiment_continuity_receipt,
     verify_experiment_continuity_receipt,
     build_internal_monitor_receipt,
@@ -1081,3 +1083,166 @@ def test_continuity_receipt_cannot_be_reused_with_other_packet():
             reentry_packet=other_packet,
             source_items=CONTINUITY_SOURCE_ITEMS,
         )
+
+
+@pytest.mark.parametrize(
+    (
+        "world_available",
+        "self_available",
+        "classification",
+        "own_interruption",
+        "world_evidence_missing",
+    ),
+    [
+        (True, True, "CHANNELS_PRESENT", False, False),
+        (True, False, "SELF_CHANNEL_LOSS", True, False),
+        (False, True, "WORLD_EVIDENCE_MISSING", False, True),
+        (False, False, "BOTH_CHANNELS_UNAVAILABLE", True, True),
+    ],
+)
+def test_absence_model_classifies_channel_availability_matrix(
+    world_available,
+    self_available,
+    classification,
+    own_interruption,
+    world_evidence_missing,
+):
+    receipt = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="absence-model-matrix",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=world_available,
+        self_channel_available=self_available,
+    )
+
+    assert receipt["absence_classification"] == classification
+    assert receipt["own_interruption_detected"] is own_interruption
+    assert receipt["world_evidence_missing"] is world_evidence_missing
+    assert receipt["world_absence_claimed"] is False
+    assert receipt["subjective_consciousness_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+    assert verify_absence_model_receipt(receipt) is True
+
+
+def test_absence_model_distinguishes_self_loss_from_world_evidence_loss():
+    self_loss = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="self-channel-loss",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    world_missing = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="world-evidence-missing",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=False,
+        self_channel_available=True,
+    )
+
+    assert self_loss["absence_classification"] == "SELF_CHANNEL_LOSS"
+    assert self_loss["own_interruption_detected"] is True
+    assert self_loss["world_evidence_missing"] is False
+
+    assert (
+        world_missing["absence_classification"]
+        == "WORLD_EVIDENCE_MISSING"
+    )
+    assert world_missing["own_interruption_detected"] is False
+    assert world_missing["world_evidence_missing"] is True
+
+    assert (
+        self_loss["absence_classification"]
+        != world_missing["absence_classification"]
+    )
+
+
+def test_missing_world_evidence_never_claims_world_absence():
+    receipt = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="world-evidence-missing",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=False,
+        self_channel_available=True,
+    )
+
+    assert receipt["world_evidence_missing"] is True
+    assert receipt["world_absence_claimed"] is False
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("world_channel_available", 1),
+        ("world_channel_available", None),
+        ("self_channel_available", 0),
+        ("self_channel_available", "false"),
+    ],
+)
+def test_absence_model_rejects_non_boolean_channel_availability(field, value):
+    kwargs = {
+        "experiment_id": "functional-consciousness-v1",
+        "condition_id": "invalid-availability",
+        "world_source_id": "world-channel",
+        "self_source_id": "self-channel",
+        "world_channel_available": True,
+        "self_channel_available": True,
+    }
+    kwargs[field] = value
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match=f"{field} must be boolean",
+    ):
+        build_absence_model_receipt(**kwargs)
+
+
+def test_absence_model_tampering_fails_before_semantic_credit():
+    receipt = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="self-channel-loss",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    receipt["absence_classification"] = "CHANNELS_PRESENT"
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="absence receipt hash mismatch",
+    ):
+        verify_absence_model_receipt(receipt)
+
+
+def test_rehashed_false_world_absence_claim_fails_closed():
+    receipt = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="world-evidence-missing",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=False,
+        self_channel_available=True,
+    )
+    receipt["world_absence_claimed"] = True
+
+    from holosim.canonical import stable_hash
+
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    receipt["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="missing world evidence must not claim world absence",
+    ):
+        verify_absence_model_receipt(receipt)
