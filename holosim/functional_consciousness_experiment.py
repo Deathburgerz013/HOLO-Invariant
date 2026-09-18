@@ -2714,3 +2714,235 @@ def verify_causal_edge_counterexample_receipt(
         )
 
     return True
+
+
+EVIDENCE_BINDING_COUNTEREXAMPLE_RECEIPT_TYPE = (
+    "functional_consciousness_evidence_binding_counterexample_receipt"
+)
+EVIDENCE_BINDING_COUNTEREXAMPLE_RECEIPT_VERSION = 1
+
+_EVIDENCE_BINDING_COUNTEREXAMPLE_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "absence_receipt_hash",
+    "controller_receipt_hash",
+    "controller_connected",
+    "absence_classification",
+    "declared_action",
+    "treatment_evidence_binding_available",
+    "counterexample_evidence_binding_available",
+    "controller_machinery_identical",
+    "upstream_evidence_identical",
+    "treatment_causal_dependency_observed",
+    "counterexample_causal_dependency_observed",
+    "binding_edge_only_difference",
+    "downstream_causal_credit_disappeared",
+    "counterexample_established",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def build_evidence_binding_counterexample_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    absence_receipt: Mapping[str, Any],
+    controller_receipt: Mapping[str, Any],
+    treatment_evidence_binding_available: bool,
+    counterexample_evidence_binding_available: bool,
+) -> dict[str, Any]:
+    """Sever only causal attribution from valid evidence to a valid controller."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    verify_absence_model_receipt(absence_receipt)
+    verify_causal_controller_receipt(
+        controller_receipt,
+        absence_receipt=absence_receipt,
+    )
+
+    for label, value in (
+        (
+            "treatment_evidence_binding_available",
+            treatment_evidence_binding_available,
+        ),
+        (
+            "counterexample_evidence_binding_available",
+            counterexample_evidence_binding_available,
+        ),
+    ):
+        if type(value) is not bool:
+            raise FunctionalConsciousnessExperimentError(
+                f"{label} must be boolean"
+            )
+
+    for label, receipt in (
+        ("absence", absence_receipt),
+        ("controller", controller_receipt),
+    ):
+        if (
+            receipt["experiment_id"] != experiment
+            or receipt["condition_id"] != condition
+        ):
+            raise FunctionalConsciousnessExperimentError(
+                f"{label} receipt is not bound to binding counterexample experiment"
+            )
+
+    if controller_receipt["controller_connected"] is not True:
+        raise FunctionalConsciousnessExperimentError(
+            "binding counterexample requires connected controller machinery"
+        )
+
+    upstream_evidence_identical = (
+        controller_receipt["absence_receipt_hash"]
+        == absence_receipt["receipt_hash"]
+        and controller_receipt["absence_classification"]
+        == absence_receipt["absence_classification"]
+    )
+
+    controller_machinery_identical = True
+
+    treatment_dependency = (
+        treatment_evidence_binding_available
+        and controller_receipt["causal_dependency_observed"] is True
+    )
+    counterexample_dependency = (
+        counterexample_evidence_binding_available
+        and controller_receipt["causal_dependency_observed"] is True
+    )
+
+    binding_edge_only_difference = (
+        upstream_evidence_identical
+        and controller_machinery_identical
+        and treatment_evidence_binding_available is True
+        and counterexample_evidence_binding_available is False
+    )
+
+    downstream_causal_credit_disappeared = (
+        treatment_dependency is True
+        and counterexample_dependency is False
+    )
+
+    counterexample_established = (
+        binding_edge_only_difference
+        and downstream_causal_credit_disappeared
+    )
+
+    body = {
+        "type": EVIDENCE_BINDING_COUNTEREXAMPLE_RECEIPT_TYPE,
+        "version": EVIDENCE_BINDING_COUNTEREXAMPLE_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "absence_receipt_hash": absence_receipt["receipt_hash"],
+        "controller_receipt_hash": controller_receipt["receipt_hash"],
+        "controller_connected": controller_receipt["controller_connected"],
+        "absence_classification": absence_receipt["absence_classification"],
+        "declared_action": controller_receipt["declared_action"],
+        "treatment_evidence_binding_available": (
+            treatment_evidence_binding_available
+        ),
+        "counterexample_evidence_binding_available": (
+            counterexample_evidence_binding_available
+        ),
+        "controller_machinery_identical": controller_machinery_identical,
+        "upstream_evidence_identical": upstream_evidence_identical,
+        "treatment_causal_dependency_observed": treatment_dependency,
+        "counterexample_causal_dependency_observed": counterexample_dependency,
+        "binding_edge_only_difference": binding_edge_only_difference,
+        "downstream_causal_credit_disappeared": (
+            downstream_causal_credit_disappeared
+        ),
+        "counterexample_established": counterexample_established,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_evidence_binding_counterexample_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    absence_receipt: Mapping[str, Any],
+    controller_receipt: Mapping[str, Any],
+) -> bool:
+    """Rebuild and verify the evidence-binding counterexample."""
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _EVIDENCE_BINDING_COUNTEREXAMPLE_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "evidence binding counterexample receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != EVIDENCE_BINDING_COUNTEREXAMPLE_RECEIPT_TYPE
+        or receipt["version"]
+        != EVIDENCE_BINDING_COUNTEREXAMPLE_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "evidence binding counterexample receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(receipt["receipt_hash"], "receipt_hash")
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "evidence binding counterexample receipt hash mismatch"
+        )
+
+    rebuilt = build_evidence_binding_counterexample_receipt(
+        experiment_id=receipt["experiment_id"],
+        condition_id=receipt["condition_id"],
+        absence_receipt=absence_receipt,
+        controller_receipt=controller_receipt,
+        treatment_evidence_binding_available=receipt[
+            "treatment_evidence_binding_available"
+        ],
+        counterexample_evidence_binding_available=receipt[
+            "counterexample_evidence_binding_available"
+        ],
+    )
+
+    if receipt != rebuilt:
+        raise FunctionalConsciousnessExperimentError(
+            "evidence binding counterexample does not match verified evidence"
+        )
+
+    if receipt["counterexample_established"] is not True:
+        raise FunctionalConsciousnessExperimentError(
+            "evidence binding counterexample is not established"
+        )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "binding counterexample receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True

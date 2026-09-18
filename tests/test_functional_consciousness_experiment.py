@@ -21,6 +21,8 @@ from holosim.functional_consciousness_experiment import (
     verify_causal_controller_receipt,
     build_causal_edge_counterexample_receipt,
     verify_causal_edge_counterexample_receipt,
+    build_evidence_binding_counterexample_receipt,
+    verify_evidence_binding_counterexample_receipt,
     build_experiment_recheck_receipt,
     verify_experiment_recheck_receipt,
     run_functional_consciousness_vertical_slice,
@@ -1975,4 +1977,149 @@ def test_causal_edge_counterexample_tampering_fails_closed():
             absence_receipt=absence,
             treatment_controller_receipt=treatment,
             counterexample_controller_receipt=counterexample,
+        )
+
+
+def _evidence_binding_counterexample_components(*, controller_connected=True):
+    absence = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="evidence-binding-counterexample",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    controller = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="evidence-binding-counterexample",
+        absence_receipt=absence,
+        controller_connected=controller_connected,
+    )
+
+    return absence, controller
+
+
+def test_evidence_binding_counterexample_withholds_only_causal_credit():
+    absence, controller = _evidence_binding_counterexample_components()
+
+    receipt = build_evidence_binding_counterexample_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="evidence-binding-counterexample",
+        absence_receipt=absence,
+        controller_receipt=controller,
+        treatment_evidence_binding_available=True,
+        counterexample_evidence_binding_available=False,
+    )
+
+    # Source evidence and controller machinery remain unchanged.
+    assert controller["absence_receipt_hash"] == absence["receipt_hash"]
+    assert controller["absence_classification"] == "SELF_CHANNEL_LOSS"
+    assert controller["controller_connected"] is True
+    assert controller["declared_action"] == "RECHECK_SELF_CHANNEL"
+    assert controller["causal_dependency_observed"] is True
+
+    # Only causal attribution through the evidence-binding edge is removed.
+    assert receipt["upstream_evidence_identical"] is True
+    assert receipt["controller_machinery_identical"] is True
+    assert receipt["treatment_evidence_binding_available"] is True
+    assert receipt["counterexample_evidence_binding_available"] is False
+    assert receipt["treatment_causal_dependency_observed"] is True
+    assert receipt["counterexample_causal_dependency_observed"] is False
+    assert receipt["binding_edge_only_difference"] is True
+    assert receipt["downstream_causal_credit_disappeared"] is True
+    assert receipt["counterexample_established"] is True
+
+    assert receipt["subjective_consciousness_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+
+    assert verify_evidence_binding_counterexample_receipt(
+        receipt,
+        absence_receipt=absence,
+        controller_receipt=controller,
+    ) is True
+
+
+def test_evidence_binding_counterexample_rejects_disconnected_controller():
+    absence, controller = _evidence_binding_counterexample_components(
+        controller_connected=False
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="binding counterexample requires connected controller machinery",
+    ):
+        build_evidence_binding_counterexample_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="evidence-binding-counterexample",
+            absence_receipt=absence,
+            controller_receipt=controller,
+            treatment_evidence_binding_available=True,
+            counterexample_evidence_binding_available=False,
+        )
+
+
+def test_evidence_binding_counterexample_requires_treatment_binding():
+    absence, controller = _evidence_binding_counterexample_components()
+
+    receipt = build_evidence_binding_counterexample_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="evidence-binding-counterexample",
+        absence_receipt=absence,
+        controller_receipt=controller,
+        treatment_evidence_binding_available=False,
+        counterexample_evidence_binding_available=False,
+    )
+
+    assert receipt["upstream_evidence_identical"] is True
+    assert receipt["controller_machinery_identical"] is True
+    assert receipt["binding_edge_only_difference"] is False
+    assert receipt["treatment_causal_dependency_observed"] is False
+    assert receipt["counterexample_causal_dependency_observed"] is False
+    assert receipt["downstream_causal_credit_disappeared"] is False
+    assert receipt["counterexample_established"] is False
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="evidence binding counterexample is not established",
+    ):
+        verify_evidence_binding_counterexample_receipt(
+            receipt,
+            absence_receipt=absence,
+            controller_receipt=controller,
+        )
+
+
+def test_evidence_binding_counterexample_semantic_tampering_fails_closed():
+    from holosim.canonical import stable_hash
+
+    absence, controller = _evidence_binding_counterexample_components()
+
+    receipt = build_evidence_binding_counterexample_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="evidence-binding-counterexample",
+        absence_receipt=absence,
+        controller_receipt=controller,
+        treatment_evidence_binding_available=True,
+        counterexample_evidence_binding_available=False,
+    )
+
+    receipt["counterexample_causal_dependency_observed"] = True
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    receipt["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="does not match verified evidence",
+    ):
+        verify_evidence_binding_counterexample_receipt(
+            receipt,
+            absence_receipt=absence,
+            controller_receipt=controller,
         )
