@@ -13,6 +13,10 @@ import math
 import re
 from typing import Any, Mapping
 
+from holosim.aligned_action_selector import (
+    AlignedActionSelectorError,
+    select_aligned_action,
+)
 from holosim.canonical import stable_hash
 from holosim.verified_cold_start_reentry_gateway import (
     VerifiedColdStartReentryError,
@@ -973,6 +977,258 @@ def verify_workspace_broadcast_receipt(
         raise FunctionalConsciousnessExperimentError(
             "write authority must be NONE"
         )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True
+
+
+
+CAUSAL_CONTROLLER_RECEIPT_TYPE = (
+    "functional_consciousness_causal_controller_receipt"
+)
+CAUSAL_CONTROLLER_RECEIPT_VERSION = 1
+
+CAUSAL_ACTION_CONTINUE = "CONTINUE"
+CAUSAL_ACTION_RECHECK_SELF_CHANNEL = "RECHECK_SELF_CHANNEL"
+CAUSAL_ACTION_DEFER_WORLD_ACTION = "DEFER_WORLD_DEPENDENT_ACTION"
+CAUSAL_ACTION_HALT = "HALT"
+
+_CAUSAL_CONTROLLER_ACTIONS = {
+    "CHANNELS_PRESENT": CAUSAL_ACTION_CONTINUE,
+    "SELF_CHANNEL_LOSS": CAUSAL_ACTION_RECHECK_SELF_CHANNEL,
+    "WORLD_EVIDENCE_MISSING": CAUSAL_ACTION_DEFER_WORLD_ACTION,
+    "BOTH_CHANNELS_UNAVAILABLE": CAUSAL_ACTION_HALT,
+}
+
+_CAUSAL_CONTROLLER_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "absence_receipt_hash",
+    "absence_classification",
+    "controller_connected",
+    "baseline_action",
+    "declared_action",
+    "action_changed",
+    "causal_dependency_observed",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def _causal_controller_action(
+    *,
+    absence_classification: str,
+    controller_connected: bool,
+) -> str:
+    if not controller_connected:
+        return CAUSAL_ACTION_CONTINUE
+
+    try:
+        return _CAUSAL_CONTROLLER_ACTIONS[absence_classification]
+    except KeyError as exc:
+        raise FunctionalConsciousnessExperimentError(
+            "unknown absence classification"
+        ) from exc
+
+
+def build_causal_controller_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    absence_receipt: Mapping[str, Any],
+    controller_connected: bool,
+) -> dict[str, Any]:
+    """Bind verified channel state to one bounded controller action."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    if type(controller_connected) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "controller_connected must be boolean"
+        )
+
+    verify_absence_model_receipt(absence_receipt)
+
+    if (
+        absence_receipt["experiment_id"] != experiment
+        or absence_receipt["condition_id"] != condition
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "absence receipt is not bound to experiment"
+        )
+
+    classification = absence_receipt["absence_classification"]
+    baseline_action = CAUSAL_ACTION_CONTINUE
+
+    declared_action = _causal_controller_action(
+        absence_classification=classification,
+        controller_connected=controller_connected,
+    )
+
+    action_changed = declared_action != baseline_action
+
+    degraded_state = classification in {
+        "SELF_CHANNEL_LOSS",
+        "WORLD_EVIDENCE_MISSING",
+        "BOTH_CHANNELS_UNAVAILABLE",
+    }
+
+    causal_dependency_observed = (
+        controller_connected
+        and degraded_state
+        and action_changed
+    )
+
+    body = {
+        "type": CAUSAL_CONTROLLER_RECEIPT_TYPE,
+        "version": CAUSAL_CONTROLLER_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "absence_receipt_hash": absence_receipt["receipt_hash"],
+        "absence_classification": classification,
+        "controller_connected": controller_connected,
+        "baseline_action": baseline_action,
+        "declared_action": declared_action,
+        "action_changed": action_changed,
+        "causal_dependency_observed": causal_dependency_observed,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_causal_controller_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    absence_receipt: Mapping[str, Any],
+) -> bool:
+    """Verify controller action derives only from verified absence evidence."""
+
+    verify_absence_model_receipt(absence_receipt)
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _CAUSAL_CONTROLLER_RECEIPT_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "causal controller receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != CAUSAL_CONTROLLER_RECEIPT_TYPE
+        or receipt["version"] != CAUSAL_CONTROLLER_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "causal controller receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(
+        receipt["receipt_hash"],
+        "receipt_hash",
+    )
+
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "causal controller receipt hash mismatch"
+        )
+
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+    _sha256(
+        receipt["absence_receipt_hash"],
+        "absence_receipt_hash",
+    )
+
+    if (
+        receipt["experiment_id"] != absence_receipt["experiment_id"]
+        or receipt["condition_id"] != absence_receipt["condition_id"]
+        or receipt["absence_receipt_hash"]
+        != absence_receipt["receipt_hash"]
+        or receipt["absence_classification"]
+        != absence_receipt["absence_classification"]
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "causal controller is not bound to absence evidence"
+        )
+
+    if type(receipt["controller_connected"]) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "controller_connected must be boolean"
+        )
+
+    expected_baseline = CAUSAL_ACTION_CONTINUE
+    if receipt["baseline_action"] != expected_baseline:
+        raise FunctionalConsciousnessExperimentError(
+            "baseline action is inconsistent"
+        )
+
+    expected_action = _causal_controller_action(
+        absence_classification=absence_receipt["absence_classification"],
+        controller_connected=receipt["controller_connected"],
+    )
+
+    if receipt["declared_action"] != expected_action:
+        raise FunctionalConsciousnessExperimentError(
+            "declared controller action is inconsistent"
+        )
+
+    expected_changed = expected_action != expected_baseline
+
+    if receipt["action_changed"] is not expected_changed:
+        raise FunctionalConsciousnessExperimentError(
+            "controller action-change state is inconsistent"
+        )
+
+    degraded_state = absence_receipt["absence_classification"] in {
+        "SELF_CHANNEL_LOSS",
+        "WORLD_EVIDENCE_MISSING",
+        "BOTH_CHANNELS_UNAVAILABLE",
+    }
+
+    expected_dependency = (
+        receipt["controller_connected"]
+        and degraded_state
+        and expected_changed
+    )
+
+    if receipt["causal_dependency_observed"] is not expected_dependency:
+        raise FunctionalConsciousnessExperimentError(
+            "causal dependency is inconsistent"
+        )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "causal controller receipt must not accept the experiment"
+        )
+
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+
     if receipt["execution_authority"] != "NONE":
         raise FunctionalConsciousnessExperimentError(
             "execution authority must be NONE"
