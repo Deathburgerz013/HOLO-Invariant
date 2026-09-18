@@ -238,3 +238,194 @@ def verify_experiment_input_receipt(receipt: Mapping[str, Any]) -> bool:
         )
 
     return True
+MONITOR_RECEIPT_TYPE = "functional_consciousness_internal_monitor_receipt"
+MONITOR_RECEIPT_VERSION = 1
+
+_MONITOR_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "self_source_id",
+    "expected_self_state_hash",
+    "observed_self_state_hash",
+    "mismatch_paths",
+    "perturbation_detected",
+    "observation_stage",
+    "reporter_executed",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def _mismatch_paths(expected: Any, observed: Any, path: str = "") -> list[str]:
+    """Return deterministic paths where two canonical states differ."""
+
+    if type(expected) is not type(observed):
+        return [path or "$root"]
+
+    if type(expected) is dict:
+        paths: list[str] = []
+        for key in sorted(set(expected) | set(observed)):
+            child = f"{path}.{key}" if path else key
+            if key not in expected or key not in observed:
+                paths.append(child)
+            else:
+                paths.extend(
+                    _mismatch_paths(expected[key], observed[key], child)
+                )
+        return paths
+
+    if type(expected) is list:
+        paths = []
+        length = max(len(expected), len(observed))
+        for index in range(length):
+            child = f"{path}[{index}]" if path else f"[{index}]"
+            if index >= len(expected) or index >= len(observed):
+                paths.append(child)
+            else:
+                paths.extend(
+                    _mismatch_paths(expected[index], observed[index], child)
+                )
+        return paths
+
+    return [] if expected == observed else [path or "$root"]
+
+
+def build_internal_monitor_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    self_source_id: str,
+    expected_self_state: Any,
+    observed_self_state: Any,
+) -> dict[str, Any]:
+    """Observe the self channel and detect mismatch before reporter execution."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+    self_source = _identifier(self_source_id, "self_source_id")
+    expected = _canonical(
+        expected_self_state,
+        label="expected_self_state",
+    )
+    observed = _canonical(
+        observed_self_state,
+        label="observed_self_state",
+    )
+    mismatch_paths = _mismatch_paths(expected, observed)
+
+    body = {
+        "type": MONITOR_RECEIPT_TYPE,
+        "version": MONITOR_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "self_source_id": self_source,
+        "expected_self_state_hash": stable_hash(expected),
+        "observed_self_state_hash": stable_hash(observed),
+        "mismatch_paths": mismatch_paths,
+        "perturbation_detected": bool(mismatch_paths),
+        "observation_stage": "PRE_REPORT",
+        "reporter_executed": False,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_internal_monitor_receipt(
+    receipt: Mapping[str, Any],
+) -> bool:
+    """Verify the closed pre-report internal-monitor receipt."""
+
+    if type(receipt) is not dict or set(receipt) != _MONITOR_RECEIPT_FIELDS:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != MONITOR_RECEIPT_TYPE
+        or receipt["version"] != MONITOR_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "monitor receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(
+        receipt["receipt_hash"],
+        "receipt_hash",
+    )
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor receipt hash mismatch"
+        )
+
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+    _identifier(receipt["self_source_id"], "self_source_id")
+    expected_hash = _sha256(
+        receipt["expected_self_state_hash"],
+        "expected_self_state_hash",
+    )
+    observed_hash = _sha256(
+        receipt["observed_self_state_hash"],
+        "observed_self_state_hash",
+    )
+
+    mismatch_paths = receipt["mismatch_paths"]
+    if (
+        type(mismatch_paths) is not list
+        or any(type(path) is not str or not path for path in mismatch_paths)
+        or mismatch_paths != sorted(set(mismatch_paths))
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "monitor mismatch paths are invalid"
+        )
+
+    expected_detection = bool(mismatch_paths)
+    if receipt["perturbation_detected"] is not expected_detection:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor detection is inconsistent"
+        )
+
+    if expected_detection != (expected_hash != observed_hash):
+        raise FunctionalConsciousnessExperimentError(
+            "monitor hashes and mismatch state are inconsistent"
+        )
+
+    if receipt["observation_stage"] != "PRE_REPORT":
+        raise FunctionalConsciousnessExperimentError(
+            "monitor must execute pre-report"
+        )
+    if receipt["reporter_executed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "reporter must not execute before monitoring"
+        )
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True

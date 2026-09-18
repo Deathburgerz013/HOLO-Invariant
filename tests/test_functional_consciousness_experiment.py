@@ -1,11 +1,12 @@
 import copy
 
 import pytest
-
 from holosim.functional_consciousness_experiment import (
     FunctionalConsciousnessExperimentError,
     build_experiment_input_receipt,
+    build_internal_monitor_receipt,
     verify_experiment_input_receipt,
+    verify_internal_monitor_receipt,
 )
 
 
@@ -181,3 +182,180 @@ def test_unknown_receipt_field_fails_closed():
         match="receipt fields mismatch",
     ):
         verify_experiment_input_receipt(receipt)
+def _monitor_receipt():
+    return build_internal_monitor_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="hidden-self-perturbation",
+        self_source_id="self-channel",
+        expected_self_state={
+            "operating_state": "nominal",
+            "load": 1,
+        },
+        observed_self_state={
+            "operating_state": "degraded",
+            "load": 1,
+        },
+    )
+
+
+def test_monitor_detects_hidden_self_perturbation_pre_report():
+    receipt = _monitor_receipt()
+
+    assert receipt["mismatch_paths"] == ["operating_state"]
+    assert receipt["perturbation_detected"] is True
+    assert receipt["observation_stage"] == "PRE_REPORT"
+    assert receipt["reporter_executed"] is False
+    assert verify_internal_monitor_receipt(receipt) is True
+
+
+def test_monitor_nominal_state_has_no_perturbation():
+    receipt = build_internal_monitor_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="nominal",
+        self_source_id="self-channel",
+        expected_self_state={"operating_state": "nominal"},
+        observed_self_state={"operating_state": "nominal"},
+    )
+
+    assert receipt["mismatch_paths"] == []
+    assert receipt["perturbation_detected"] is False
+    assert (
+        receipt["expected_self_state_hash"]
+        == receipt["observed_self_state_hash"]
+    )
+    assert verify_internal_monitor_receipt(receipt) is True
+
+
+def test_monitor_mismatch_paths_are_deterministic():
+    receipt = build_internal_monitor_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="multi-perturbation",
+        self_source_id="self-channel",
+        expected_self_state={
+            "z": 1,
+            "nested": {"b": 2, "a": 1},
+        },
+        observed_self_state={
+            "z": 2,
+            "nested": {"b": 3, "a": 0},
+        },
+    )
+
+    assert receipt["mismatch_paths"] == [
+        "nested.a",
+        "nested.b",
+        "z",
+    ]
+
+
+def test_monitor_rejects_non_json_self_state():
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="plain JSON values",
+    ):
+        build_internal_monitor_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="invalid",
+            self_source_id="self-channel",
+            expected_self_state={"value": 1},
+            observed_self_state={"value": {1, 2}},
+        )
+
+
+def test_monitor_tampering_fails_before_semantic_credit():
+    receipt = _monitor_receipt()
+    receipt["perturbation_detected"] = False
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="monitor receipt hash mismatch",
+    ):
+        verify_internal_monitor_receipt(receipt)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        (
+            "perturbation_detected",
+            False,
+            "monitor detection is inconsistent",
+        ),
+        (
+            "observation_stage",
+            "POST_REPORT",
+            "must execute pre-report",
+        ),
+        (
+            "reporter_executed",
+            True,
+            "reporter must not execute",
+        ),
+        (
+            "subjective_consciousness_claimed",
+            True,
+            "subjective consciousness",
+        ),
+        (
+            "accepted",
+            True,
+            "must not accept",
+        ),
+        (
+            "write_authority",
+            "FULL",
+            "write authority",
+        ),
+        (
+            "execution_authority",
+            "FULL",
+            "execution authority",
+        ),
+    ],
+)
+def test_rehashed_monitor_boundary_tampering_fails_closed(
+    field,
+    value,
+    message,
+):
+    receipt = _monitor_receipt()
+    forged = copy.deepcopy(receipt)
+    forged[field] = value
+
+    body = {
+        key: item
+        for key, item in forged.items()
+        if key != "receipt_hash"
+    }
+
+    from holosim.canonical import stable_hash
+
+    forged["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match=message,
+    ):
+        verify_internal_monitor_receipt(forged)
+
+
+def test_rehashed_monitor_hash_relation_tampering_fails_closed():
+    receipt = _monitor_receipt()
+    forged = copy.deepcopy(receipt)
+    forged["observed_self_state_hash"] = forged["expected_self_state_hash"]
+
+    body = {
+        key: item
+        for key, item in forged.items()
+        if key != "receipt_hash"
+    }
+
+    from holosim.canonical import stable_hash
+
+    forged["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="hashes and mismatch state are inconsistent",
+    ):
+        verify_internal_monitor_receipt(forged)
