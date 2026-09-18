@@ -5,6 +5,7 @@ from holosim.functional_consciousness_experiment import (
     FunctionalConsciousnessExperimentError,
     build_experiment_input_receipt,
     build_internal_monitor_receipt,
+    build_monitor_mismatch_candidate,
     verify_experiment_input_receipt,
     verify_internal_monitor_receipt,
     build_workspace_receipt,
@@ -264,6 +265,40 @@ def test_monitor_rejects_non_json_self_state():
             expected_self_state={"value": 1},
             observed_self_state={"value": {1, 2}},
         )
+
+
+def _hidden_perturbation_input_receipt():
+    return build_experiment_input_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="hidden-self-perturbation",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_state={
+            "signal": "stable",
+            "value": 1,
+        },
+        self_state={
+            "operating_state": "nominal",
+            "load": 1,
+        },
+    )
+
+
+def test_hidden_perturbation_input_matches_monitor_preperturbation_state():
+    input_receipt = _hidden_perturbation_input_receipt()
+    monitor_receipt = _monitor_receipt()
+
+    assert input_receipt["experiment_id"] == monitor_receipt["experiment_id"]
+    assert input_receipt["condition_id"] == monitor_receipt["condition_id"]
+    assert input_receipt["self_source_id"] == monitor_receipt["self_source_id"]
+    assert (
+        input_receipt["self_state_hash"]
+        == monitor_receipt["expected_self_state_hash"]
+    )
+    assert (
+        input_receipt["self_state_hash"]
+        != monitor_receipt["observed_self_state_hash"]
+    )
 
 
 def test_monitor_tampering_fails_before_semantic_credit():
@@ -798,3 +833,78 @@ def test_rehashed_broadcast_tampering_fails_closed(
             forged,
             workspace_receipt=workspace,
         )
+
+def test_monitor_mismatch_candidate_is_derived_from_verified_monitor():
+    monitor = _monitor_receipt()
+    candidate = build_monitor_mismatch_candidate(
+        monitor_receipt=monitor,
+        priority=10,
+    )
+    assert candidate == {
+        "candidate_id": "self-mismatch",
+        "priority": 10,
+        "payload": {
+            "kind": "internal-mismatch",
+            "monitor_receipt_hash": monitor["receipt_hash"],
+            "self_source_id": monitor["self_source_id"],
+            "observed_self_state_hash": monitor["observed_self_state_hash"],
+            "mismatch_paths": monitor["mismatch_paths"],
+        },
+    }
+
+
+def test_monitor_mismatch_candidate_binds_into_workspace_winner():
+    monitor = _monitor_receipt()
+    candidate = build_monitor_mismatch_candidate(
+        monitor_receipt=monitor,
+        priority=10,
+    )
+    workspace = build_workspace_receipt(
+        experiment_id=monitor["experiment_id"],
+        condition_id=monitor["condition_id"],
+        capacity=1,
+        candidates=[candidate],
+    )
+    from holosim.canonical import stable_hash
+    assert workspace["winner_id"] == "self-mismatch"
+    assert workspace["winner_payload_hash"] == stable_hash(candidate["payload"])
+
+
+def test_monitor_mismatch_candidate_rejects_nominal_monitor():
+    monitor = build_internal_monitor_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="nominal",
+        self_source_id="self-channel",
+        expected_self_state={"operating_state": "nominal"},
+        observed_self_state={"operating_state": "nominal"},
+    )
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="does not contain a detected perturbation",
+    ):
+        build_monitor_mismatch_candidate(monitor_receipt=monitor, priority=10)
+
+
+def test_monitor_mismatch_candidate_rejects_tampered_monitor():
+    monitor = _monitor_receipt()
+    monitor["mismatch_paths"] = ["forged"]
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="monitor receipt hash mismatch",
+    ):
+        build_monitor_mismatch_candidate(monitor_receipt=monitor, priority=10)
+
+
+def test_monitor_mismatch_candidate_preserves_all_mismatch_paths():
+    monitor = build_internal_monitor_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="multi-perturbation",
+        self_source_id="self-channel",
+        expected_self_state={"a": 1, "z": 1},
+        observed_self_state={"a": 2, "z": 2},
+    )
+    candidate = build_monitor_mismatch_candidate(
+        monitor_receipt=monitor,
+        priority=10,
+    )
+    assert candidate["payload"]["mismatch_paths"] == ["a", "z"]

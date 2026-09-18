@@ -430,6 +430,47 @@ def verify_internal_monitor_receipt(
         )
 
     return True
+def build_monitor_mismatch_candidate(
+    *,
+    monitor_receipt: Mapping[str, Any],
+    priority: int,
+) -> dict[str, Any]:
+    """Derive one workspace candidate from verified internal-mismatch evidence."""
+
+    if type(monitor_receipt) is not dict:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor_receipt must be a plain dictionary"
+        )
+    verify_internal_monitor_receipt(monitor_receipt)
+
+    if monitor_receipt["perturbation_detected"] is not True:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor receipt does not contain a detected perturbation"
+        )
+    if not monitor_receipt["mismatch_paths"]:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor receipt does not contain mismatch evidence"
+        )
+    if type(priority) is not int:
+        raise FunctionalConsciousnessExperimentError(
+            "candidate priority must be an integer"
+        )
+
+    return {
+        "candidate_id": "self-mismatch",
+        "priority": priority,
+        "payload": {
+            "kind": "internal-mismatch",
+            "monitor_receipt_hash": monitor_receipt["receipt_hash"],
+            "self_source_id": monitor_receipt["self_source_id"],
+            "observed_self_state_hash": monitor_receipt[
+                "observed_self_state_hash"
+            ],
+            "mismatch_paths": list(monitor_receipt["mismatch_paths"]),
+        },
+    }
+
+
 WORKSPACE_RECEIPT_TYPE = "functional_consciousness_workspace_receipt"
 WORKSPACE_RECEIPT_VERSION = 1
 
