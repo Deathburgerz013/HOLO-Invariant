@@ -114,7 +114,7 @@ References:
 - https://soar.eecs.umich.edu/
 - https://github.com/SoarGroup/Soar
 - https://github.com/infer-actively/pymdp
-- https://arxiv.org/abs/2201.03904
+- https://arxiv.org/abs/2310.18318
 
 Phase 1 remains Python 3.10+, deterministic, CPU-only, and zero-runtime-
 dependency. Existing projects inform the contract and controls; they do not
