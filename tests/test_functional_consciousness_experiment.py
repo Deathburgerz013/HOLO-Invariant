@@ -19,6 +19,8 @@ from holosim.functional_consciousness_experiment import (
     build_experiment_continuity_receipt,
     build_causal_controller_receipt,
     verify_causal_controller_receipt,
+    build_experiment_recheck_receipt,
+    verify_experiment_recheck_receipt,
     verify_experiment_continuity_receipt,
     build_internal_monitor_receipt,
     build_monitor_mismatch_candidate,
@@ -1397,4 +1399,186 @@ def test_causal_controller_tampering_fails_closed():
         verify_causal_controller_receipt(
             receipt,
             absence_receipt=absence,
+        )
+
+def test_recheck_withdraws_degraded_state_when_current_evidence_recovers():
+    prior = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    current = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    receipt = build_experiment_recheck_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        prior_absence_receipt=prior,
+        current_absence_receipt=current,
+    )
+
+    assert receipt["prior_classification"] == "SELF_CHANNEL_LOSS"
+    assert receipt["current_classification"] == "CHANNELS_PRESENT"
+    assert receipt["prior_degraded"] is True
+    assert receipt["current_degraded"] is False
+    assert receipt["degraded_state_supported"] is False
+    assert receipt["self_description_withdrawn"] is True
+    assert receipt["recheck_performed"] is True
+    assert receipt["reporter_executed"] is False
+
+    assert verify_experiment_recheck_receipt(
+        receipt,
+        prior_absence_receipt=prior,
+        current_absence_receipt=current,
+    ) is True
+
+
+def test_recheck_retains_degraded_state_when_current_evidence_still_degraded():
+    prior = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    current = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    receipt = build_experiment_recheck_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        prior_absence_receipt=prior,
+        current_absence_receipt=current,
+    )
+
+    assert receipt["prior_degraded"] is True
+    assert receipt["current_degraded"] is True
+    assert receipt["degraded_state_supported"] is True
+    assert receipt["self_description_withdrawn"] is False
+
+    assert verify_experiment_recheck_receipt(
+        receipt,
+        prior_absence_receipt=prior,
+        current_absence_receipt=current,
+    ) is True
+
+
+def test_recheck_cannot_keep_old_degraded_state_without_current_support():
+    from holosim.canonical import stable_hash
+
+    prior = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    current = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    receipt = build_experiment_recheck_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        prior_absence_receipt=prior,
+        current_absence_receipt=current,
+    )
+
+    receipt["degraded_state_supported"] = True
+    receipt["receipt_hash"] = stable_hash(
+        {
+            key: value
+            for key, value in receipt.items()
+            if key != "receipt_hash"
+        }
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="degraded support must derive from current evidence",
+    ):
+        verify_experiment_recheck_receipt(
+            receipt,
+            prior_absence_receipt=prior,
+            current_absence_receipt=current,
+        )
+
+
+def test_recheck_rejects_unbound_current_evidence():
+    prior = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    current = build_absence_model_receipt(
+        experiment_id="other-experiment",
+        condition_id="causal-controller",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="current absence receipt is not bound to experiment",
+    ):
+        build_experiment_recheck_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="causal-controller",
+            prior_absence_receipt=prior,
+            current_absence_receipt=current,
+        )
+
+
+def test_recheck_rejects_changed_source_identity():
+    prior = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    current = build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        world_source_id="different-world-channel",
+        self_source_id="self-channel",
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="recheck source identities must remain stable",
+    ):
+        build_experiment_recheck_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="causal-controller",
+            prior_absence_receipt=prior,
+            current_absence_receipt=current,
+        )
+
+
+def test_recheck_tampering_fails_closed():
+    prior = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    current = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    receipt = build_experiment_recheck_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        prior_absence_receipt=prior,
+        current_absence_receipt=current,
+    )
+
+    receipt["self_description_withdrawn"] = False
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="recheck receipt hash mismatch",
+    ):
+        verify_experiment_recheck_receipt(
+            receipt,
+            prior_absence_receipt=prior,
+            current_absence_receipt=current,
         )
