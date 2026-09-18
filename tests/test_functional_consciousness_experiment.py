@@ -17,6 +17,8 @@ from holosim.functional_consciousness_experiment import (
     build_absence_model_receipt,
     verify_absence_model_receipt,
     build_experiment_continuity_receipt,
+    build_causal_controller_receipt,
+    verify_causal_controller_receipt,
     verify_experiment_continuity_receipt,
     build_internal_monitor_receipt,
     build_monitor_mismatch_candidate,
@@ -1246,3 +1248,153 @@ def test_rehashed_false_world_absence_claim_fails_closed():
         match="missing world evidence must not claim world absence",
     ):
         verify_absence_model_receipt(receipt)
+
+def _absence_receipt(
+    *,
+    world_channel_available=True,
+    self_channel_available=True,
+):
+    return build_absence_model_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_channel_available=world_channel_available,
+        self_channel_available=self_channel_available,
+    )
+
+
+def test_causal_controller_changes_action_on_verified_self_loss():
+    absence = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    receipt = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+
+    assert receipt["absence_classification"] == "SELF_CHANNEL_LOSS"
+    assert receipt["baseline_action"] == "CONTINUE"
+    assert receipt["declared_action"] == "RECHECK_SELF_CHANNEL"
+    assert receipt["action_changed"] is True
+    assert receipt["causal_dependency_observed"] is True
+    assert verify_causal_controller_receipt(
+        receipt,
+        absence_receipt=absence,
+    ) is True
+
+
+def test_disconnected_controller_cannot_apply_self_loss_to_action():
+    absence = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    receipt = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        absence_receipt=absence,
+        controller_connected=False,
+    )
+
+    assert receipt["absence_classification"] == "SELF_CHANNEL_LOSS"
+    assert receipt["declared_action"] == "CONTINUE"
+    assert receipt["action_changed"] is False
+    assert receipt["causal_dependency_observed"] is False
+    assert verify_causal_controller_receipt(
+        receipt,
+        absence_receipt=absence,
+    ) is True
+
+
+def test_world_evidence_loss_selects_world_dependent_defer_action():
+    absence = _absence_receipt(
+        world_channel_available=False,
+        self_channel_available=True,
+    )
+
+    receipt = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+
+    assert receipt["absence_classification"] == "WORLD_EVIDENCE_MISSING"
+    assert receipt["declared_action"] == "DEFER_WORLD_DEPENDENT_ACTION"
+    assert receipt["action_changed"] is True
+    assert receipt["causal_dependency_observed"] is True
+
+
+def test_both_channels_unavailable_selects_halt():
+    absence = _absence_receipt(
+        world_channel_available=False,
+        self_channel_available=False,
+    )
+
+    receipt = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+
+    assert receipt["absence_classification"] == "BOTH_CHANNELS_UNAVAILABLE"
+    assert receipt["declared_action"] == "HALT"
+    assert receipt["action_changed"] is True
+    assert receipt["causal_dependency_observed"] is True
+
+
+def test_causal_controller_rejects_receipt_bound_to_other_absence():
+    absence = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+    other_absence = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=True,
+    )
+
+    receipt = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="causal controller is not bound to absence evidence",
+    ):
+        verify_causal_controller_receipt(
+            receipt,
+            absence_receipt=other_absence,
+        )
+
+
+def test_causal_controller_tampering_fails_closed():
+    absence = _absence_receipt(
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    receipt = build_causal_controller_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="causal-controller",
+        absence_receipt=absence,
+        controller_connected=True,
+    )
+    receipt["declared_action"] = "CONTINUE"
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="causal controller receipt hash mismatch",
+    ):
+        verify_causal_controller_receipt(
+            receipt,
+            absence_receipt=absence,
+        )
