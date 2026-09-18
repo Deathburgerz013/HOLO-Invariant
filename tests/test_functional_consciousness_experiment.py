@@ -1,9 +1,21 @@
 import copy
 
 import pytest
+
+from holosim.continuity_compliance import build_continuity_compliance_contract
+from holosim.continuity_head_binding import (
+    build_continuity_head_binding,
+    evaluate_continuity_head_binding,
+)
+from holosim.reconstructor import build_reconstructed_state
+from holosim.verified_cold_start_reentry_gateway import (
+    build_verified_cold_start_reentry_packet,
+)
 from holosim.functional_consciousness_experiment import (
     FunctionalConsciousnessExperimentError,
     build_experiment_input_receipt,
+    build_experiment_continuity_receipt,
+    verify_experiment_continuity_receipt,
     build_internal_monitor_receipt,
     build_monitor_mismatch_candidate,
     verify_experiment_input_receipt,
@@ -908,3 +920,164 @@ def test_monitor_mismatch_candidate_preserves_all_mismatch_paths():
         priority=10,
     )
     assert candidate["payload"]["mismatch_paths"] == ["a", "z"]
+
+CONTINUITY_SOURCE_ITEMS = [
+    {
+        "id": "active-goal",
+        "requires": ["verified-boundary"],
+        "value": "continue current work",
+    },
+    {
+        "id": "verified-boundary",
+        "requires": [],
+        "value": "observation does not grant authority",
+    },
+]
+
+
+def _continuity_head_check(*, current_hash="head-10", current_idx=10):
+    recall_kernel = {
+        "identity": {"system": "HOLO-Invariant"},
+        "last_verified_state": "head-10",
+        "history": ["head-9", "head-10"],
+    }
+    contract = build_continuity_compliance_contract(
+        contract_id="functional-consciousness-continuity-contract",
+        subject_id="HOLO-Invariant",
+        recall_kernel=recall_kernel,
+        observed_required_fields=list(recall_kernel),
+        authority_limits=["write:NONE", "execution:NONE"],
+        unresolved_gap_ids=[],
+        recheck_condition_ids=["head-changed"],
+    )
+    binding = build_continuity_head_binding(
+        binding_id="functional-consciousness-continuity-binding",
+        contract=contract,
+        originating_head_hash="head-10",
+        originating_head_idx=10,
+    )
+    return evaluate_continuity_head_binding(
+        binding=binding,
+        contract=contract,
+        current_head_hash=current_hash,
+        current_head_idx=current_idx,
+    )
+
+
+def _continuity_packet(*, head_check=None, conflicts=()):
+    state = build_reconstructed_state(
+        "functional-consciousness-reentry",
+        ["active-goal"],
+        CONTINUITY_SOURCE_ITEMS,
+    )
+    return build_verified_cold_start_reentry_packet(
+        packet_id="functional-consciousness-reentry-packet",
+        reconstructed_state=state,
+        source_items=CONTINUITY_SOURCE_ITEMS,
+        head_check=head_check or _continuity_head_check(),
+        conflicts=list(conflicts),
+    )
+
+
+def _experiment_continuity_receipt(packet=None):
+    packet = packet or _continuity_packet()
+    return build_experiment_continuity_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="post-gap-continuity",
+        reentry_packet=packet,
+        source_items=CONTINUITY_SOURCE_ITEMS,
+    )
+
+
+def test_current_verified_reentry_binds_continuity_without_authority():
+    packet = _continuity_packet()
+    receipt = _experiment_continuity_receipt(packet)
+
+    assert packet["status"] == "READY_FOR_REENTRY"
+    assert receipt["continuity_bound"] is True
+    assert receipt["reentry_packet_hash"] == packet["packet_hash"]
+    assert receipt["reconstructed_state_hash"] == packet["reconstructed_state_hash"]
+    assert receipt["head_status"] == "CURRENT"
+    assert receipt["subjective_consciousness_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+    assert verify_experiment_continuity_receipt(
+        receipt,
+        reentry_packet=packet,
+        source_items=CONTINUITY_SOURCE_ITEMS,
+    ) is True
+
+
+def test_stale_head_does_not_receive_continuity_credit():
+    packet = _continuity_packet(
+        head_check=_continuity_head_check(
+            current_hash="head-11",
+            current_idx=11,
+        )
+    )
+    receipt = _experiment_continuity_receipt(packet)
+
+    assert packet["status"] == "BLOCKED_HEAD"
+    assert receipt["head_status"] == "STALE"
+    assert receipt["continuity_bound"] is False
+    assert verify_experiment_continuity_receipt(
+        receipt,
+        reentry_packet=packet,
+        source_items=CONTINUITY_SOURCE_ITEMS,
+    ) is True
+
+
+def test_unresolved_conflict_does_not_receive_continuity_credit():
+    packet = _continuity_packet(
+        conflicts=[
+            {
+                "id": "goal-conflict",
+                "left_item_id": "active-goal",
+                "right_item_id": "active-goal-correction",
+                "reason": "unresolved",
+            }
+        ]
+    )
+    receipt = _experiment_continuity_receipt(packet)
+
+    assert packet["status"] == "BLOCKED_CONFLICT"
+    assert receipt["continuity_bound"] is False
+
+
+def test_continuity_receipt_tampering_fails_closed():
+    packet = _continuity_packet()
+    receipt = _experiment_continuity_receipt(packet)
+    receipt["continuity_bound"] = False
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="continuity receipt hash mismatch",
+    ):
+        verify_experiment_continuity_receipt(
+            receipt,
+            reentry_packet=packet,
+            source_items=CONTINUITY_SOURCE_ITEMS,
+        )
+
+
+def test_continuity_receipt_cannot_be_reused_with_other_packet():
+    packet = _continuity_packet()
+    receipt = _experiment_continuity_receipt(packet)
+
+    other_packet = _continuity_packet(
+        head_check=_continuity_head_check(
+            current_hash="head-11",
+            current_idx=11,
+        )
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="continuity receipt is not bound to reentry evidence",
+    ):
+        verify_experiment_continuity_receipt(
+            receipt,
+            reentry_packet=other_packet,
+            source_items=CONTINUITY_SOURCE_ITEMS,
+        )

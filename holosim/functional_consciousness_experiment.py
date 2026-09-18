@@ -14,6 +14,10 @@ import re
 from typing import Any, Mapping
 
 from holosim.canonical import stable_hash
+from holosim.verified_cold_start_reentry_gateway import (
+    VerifiedColdStartReentryError,
+    validate_verified_cold_start_reentry_packet,
+)
 
 
 RECEIPT_TYPE = "functional_consciousness_experiment_input_receipt"
@@ -964,6 +968,161 @@ def verify_workspace_broadcast_receipt(
     if receipt["accepted"] is not False:
         raise FunctionalConsciousnessExperimentError(
             "broadcast receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True
+
+
+CONTINUITY_RECEIPT_TYPE = "functional_consciousness_continuity_receipt"
+CONTINUITY_RECEIPT_VERSION = 1
+
+_CONTINUITY_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "reentry_packet_hash",
+    "reconstructed_state_hash",
+    "head_status",
+    "reentry_status",
+    "continuity_bound",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def build_experiment_continuity_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    reentry_packet: Mapping[str, Any],
+    source_items: Any,
+) -> dict[str, Any]:
+    """Bind verified post-gap continuity evidence into the experiment."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    try:
+        validate_verified_cold_start_reentry_packet(
+            reentry_packet,
+            source_items=source_items,
+        )
+    except VerifiedColdStartReentryError as exc:
+        raise FunctionalConsciousnessExperimentError(
+            f"reentry packet is invalid: {exc}"
+        ) from exc
+
+    continuity_bound = (
+        reentry_packet["status"] == "READY_FOR_REENTRY"
+        and reentry_packet["gate_decision"] == "ALLOW"
+        and reentry_packet["head_status"] == "CURRENT"
+    )
+
+    body = {
+        "type": CONTINUITY_RECEIPT_TYPE,
+        "version": CONTINUITY_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "reentry_packet_hash": reentry_packet["packet_hash"],
+        "reconstructed_state_hash": reentry_packet[
+            "reconstructed_state_hash"
+        ],
+        "head_status": reentry_packet["head_status"],
+        "reentry_status": reentry_packet["status"],
+        "continuity_bound": continuity_bound,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_experiment_continuity_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    reentry_packet: Mapping[str, Any],
+    source_items: Any,
+) -> bool:
+    """Verify exact experiment binding to validated continuity evidence."""
+
+    try:
+        validate_verified_cold_start_reentry_packet(
+            reentry_packet,
+            source_items=source_items,
+        )
+    except VerifiedColdStartReentryError as exc:
+        raise FunctionalConsciousnessExperimentError(
+            f"reentry packet is invalid: {exc}"
+        ) from exc
+
+    if type(receipt) is not dict or set(receipt) != _CONTINUITY_RECEIPT_FIELDS:
+        raise FunctionalConsciousnessExperimentError(
+            "continuity receipt fields mismatch"
+        )
+    if (
+        receipt["type"] != CONTINUITY_RECEIPT_TYPE
+        or receipt["version"] != CONTINUITY_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "continuity receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(receipt["receipt_hash"], "receipt_hash")
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "continuity receipt hash mismatch"
+        )
+
+    expected_bound = (
+        reentry_packet["status"] == "READY_FOR_REENTRY"
+        and reentry_packet["gate_decision"] == "ALLOW"
+        and reentry_packet["head_status"] == "CURRENT"
+    )
+    if (
+        receipt["reentry_packet_hash"] != reentry_packet["packet_hash"]
+        or receipt["reconstructed_state_hash"]
+        != reentry_packet["reconstructed_state_hash"]
+        or receipt["head_status"] != reentry_packet["head_status"]
+        or receipt["reentry_status"] != reentry_packet["status"]
+        or receipt["continuity_bound"] is not expected_bound
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "continuity receipt is not bound to reentry evidence"
+        )
+
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+    _sha256(receipt["reentry_packet_hash"], "reentry_packet_hash")
+    _sha256(
+        receipt["reconstructed_state_hash"],
+        "reconstructed_state_hash",
+    )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "continuity receipt must not accept the experiment"
         )
     if receipt["write_authority"] != "NONE":
         raise FunctionalConsciousnessExperimentError(
