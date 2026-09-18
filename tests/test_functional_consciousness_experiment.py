@@ -9,6 +9,8 @@ from holosim.functional_consciousness_experiment import (
     verify_internal_monitor_receipt,
     build_workspace_receipt,
     verify_workspace_receipt,
+    build_workspace_broadcast_receipt,
+    verify_workspace_broadcast_receipt,
 )
 
 
@@ -611,3 +613,188 @@ def test_rehashed_workspace_candidate_order_tampering_fails_closed():
         match="not deterministically ranked",
     ):
         verify_workspace_receipt(forged)
+def _broadcast_receipt(*, connected=True, capacity=1):
+    workspace = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="hidden-self-perturbation",
+        capacity=capacity,
+        candidates=_workspace_candidates(),
+    )
+    broadcast = build_workspace_broadcast_receipt(
+        workspace_receipt=workspace,
+        broadcast_connected=connected,
+    )
+    return workspace, broadcast
+
+
+def test_workspace_broadcast_reaches_both_declared_consumers():
+    workspace, receipt = _broadcast_receipt()
+
+    assert workspace["winner_id"] == "self-mismatch"
+    assert receipt["winner_id"] == "self-mismatch"
+    assert receipt["consumers_reached"] == ["attention", "action"]
+    assert receipt["consumer_payload_hashes"] == {
+        "attention": workspace["winner_payload_hash"],
+        "action": workspace["winner_payload_hash"],
+    }
+    assert receipt["broadcast_executed"] is True
+    assert receipt["global_availability"] is True
+    assert verify_workspace_broadcast_receipt(
+        receipt,
+        workspace_receipt=workspace,
+    ) is True
+
+
+def test_disconnected_broadcast_destroys_global_availability():
+    workspace, receipt = _broadcast_receipt(connected=False)
+
+    assert workspace["admitted_count"] == 1
+    assert workspace["winner_id"] == "self-mismatch"
+    assert receipt["broadcast_connected"] is False
+    assert receipt["consumers_reached"] == []
+    assert receipt["consumer_payload_hashes"] == {}
+    assert receipt["broadcast_executed"] is False
+    assert receipt["global_availability"] is False
+    assert verify_workspace_broadcast_receipt(
+        receipt,
+        workspace_receipt=workspace,
+    ) is True
+
+
+def test_zero_capacity_cannot_broadcast_without_admitted_winner():
+    workspace, receipt = _broadcast_receipt(
+        connected=True,
+        capacity=0,
+    )
+
+    assert workspace["admitted_count"] == 0
+    assert receipt["consumers_reached"] == []
+    assert receipt["broadcast_executed"] is False
+    assert receipt["global_availability"] is False
+    assert verify_workspace_broadcast_receipt(
+        receipt,
+        workspace_receipt=workspace,
+    ) is True
+
+
+def test_broadcast_requires_boolean_connection_state():
+    workspace = _workspace_receipt()
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="broadcast_connected must be boolean",
+    ):
+        build_workspace_broadcast_receipt(
+            workspace_receipt=workspace,
+            broadcast_connected=1,
+        )
+
+
+def test_broadcast_is_deterministic_for_identical_workspace():
+    workspace = _workspace_receipt()
+
+    first = build_workspace_broadcast_receipt(
+        workspace_receipt=workspace,
+        broadcast_connected=True,
+    )
+    second = build_workspace_broadcast_receipt(
+        workspace_receipt=workspace,
+        broadcast_connected=True,
+    )
+
+    assert first == second
+    assert first["receipt_hash"] == second["receipt_hash"]
+
+
+def test_broadcast_rejects_different_workspace_binding():
+    workspace, receipt = _broadcast_receipt()
+
+    other_workspace = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="other-condition",
+        capacity=1,
+        candidates=_workspace_candidates(),
+    )
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="not bound to workspace admission",
+    ):
+        verify_workspace_broadcast_receipt(
+            receipt,
+            workspace_receipt=other_workspace,
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        (
+            "consumers_reached",
+            ["attention"],
+            "broadcast consumers are inconsistent",
+        ),
+        (
+            "consumer_payload_hashes",
+            {"attention": "0" * 64, "action": "0" * 64},
+            "consumer payloads are inconsistent",
+        ),
+        (
+            "broadcast_executed",
+            False,
+            "execution state is inconsistent",
+        ),
+        (
+            "global_availability",
+            False,
+            "global availability is inconsistent",
+        ),
+        (
+            "subjective_consciousness_claimed",
+            True,
+            "subjective consciousness",
+        ),
+        (
+            "accepted",
+            True,
+            "must not accept",
+        ),
+        (
+            "write_authority",
+            "FULL",
+            "write authority",
+        ),
+        (
+            "execution_authority",
+            "FULL",
+            "execution authority",
+        ),
+    ],
+)
+def test_rehashed_broadcast_tampering_fails_closed(
+    field,
+    value,
+    message,
+):
+    workspace, receipt = _broadcast_receipt()
+    forged = copy.deepcopy(receipt)
+    forged[field] = value
+
+    body = {
+        key: item
+        for key, item in forged.items()
+        if key != "receipt_hash"
+    }
+
+    from holosim.canonical import stable_hash
+
+    forged["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match=message,
+    ):
+        verify_workspace_broadcast_receipt(
+            forged,
+            workspace_receipt=workspace,
+        )

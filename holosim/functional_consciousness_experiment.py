@@ -2,7 +2,7 @@
 
 This module establishes source-separated world/self state, pre-report internal
 monitoring, and bounded one-slot workspace admission for the deterministic
-reference experiment. It does not broadcast workspace content, control action,
+reference experiment. It does not broadcast control action,
 establish subjective consciousness, accept a result, or grant write or
 execution authority.
 """
@@ -716,6 +716,213 @@ def verify_workspace_receipt(
     if receipt["accepted"] is not False:
         raise FunctionalConsciousnessExperimentError(
             "workspace receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True
+BROADCAST_RECEIPT_TYPE = "functional_consciousness_workspace_broadcast_receipt"
+BROADCAST_RECEIPT_VERSION = 1
+BROADCAST_CONSUMERS = ("attention", "action")
+
+_BROADCAST_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "workspace_receipt_hash",
+    "winner_id",
+    "winner_payload_hash",
+    "broadcast_connected",
+    "consumers_reached",
+    "consumer_payload_hashes",
+    "broadcast_executed",
+    "global_availability",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def build_workspace_broadcast_receipt(
+    *,
+    workspace_receipt: Mapping[str, Any],
+    broadcast_connected: bool,
+) -> dict[str, Any]:
+    """Broadcast one admitted workspace winner to both declared consumers."""
+
+    verify_workspace_receipt(workspace_receipt)
+
+    if type(broadcast_connected) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast_connected must be boolean"
+        )
+
+    winner_id = workspace_receipt["winner_id"]
+    winner_payload_hash = workspace_receipt["winner_payload_hash"]
+
+    should_broadcast = (
+        broadcast_connected
+        and workspace_receipt["admitted_count"] == 1
+        and winner_id is not None
+        and winner_payload_hash is not None
+    )
+
+    consumers_reached = (
+        list(BROADCAST_CONSUMERS)
+        if should_broadcast
+        else []
+    )
+    consumer_payload_hashes = (
+        {
+            consumer: winner_payload_hash
+            for consumer in BROADCAST_CONSUMERS
+        }
+        if should_broadcast
+        else {}
+    )
+
+    body = {
+        "type": BROADCAST_RECEIPT_TYPE,
+        "version": BROADCAST_RECEIPT_VERSION,
+        "experiment_id": workspace_receipt["experiment_id"],
+        "condition_id": workspace_receipt["condition_id"],
+        "workspace_receipt_hash": workspace_receipt["receipt_hash"],
+        "winner_id": winner_id,
+        "winner_payload_hash": winner_payload_hash,
+        "broadcast_connected": broadcast_connected,
+        "consumers_reached": consumers_reached,
+        "consumer_payload_hashes": consumer_payload_hashes,
+        "broadcast_executed": should_broadcast,
+        "global_availability": should_broadcast,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_workspace_broadcast_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    workspace_receipt: Mapping[str, Any],
+) -> bool:
+    """Verify causal fan-out from one admitted winner to both consumers."""
+
+    verify_workspace_receipt(workspace_receipt)
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _BROADCAST_RECEIPT_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != BROADCAST_RECEIPT_TYPE
+        or receipt["version"] != BROADCAST_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(
+        receipt["receipt_hash"],
+        "receipt_hash",
+    )
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast receipt hash mismatch"
+        )
+
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+    _sha256(
+        receipt["workspace_receipt_hash"],
+        "workspace_receipt_hash",
+    )
+
+    if (
+        receipt["experiment_id"]
+        != workspace_receipt["experiment_id"]
+        or receipt["condition_id"]
+        != workspace_receipt["condition_id"]
+        or receipt["workspace_receipt_hash"]
+        != workspace_receipt["receipt_hash"]
+        or receipt["winner_id"]
+        != workspace_receipt["winner_id"]
+        or receipt["winner_payload_hash"]
+        != workspace_receipt["winner_payload_hash"]
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast is not bound to workspace admission"
+        )
+
+    connected = receipt["broadcast_connected"]
+    if type(connected) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast_connected must be boolean"
+        )
+
+    winner_exists = (
+        workspace_receipt["admitted_count"] == 1
+        and workspace_receipt["winner_id"] is not None
+        and workspace_receipt["winner_payload_hash"] is not None
+    )
+    expected_broadcast = connected and winner_exists
+    expected_consumers = (
+        list(BROADCAST_CONSUMERS)
+        if expected_broadcast
+        else []
+    )
+    expected_payloads = (
+        {
+            consumer: workspace_receipt["winner_payload_hash"]
+            for consumer in BROADCAST_CONSUMERS
+        }
+        if expected_broadcast
+        else {}
+    )
+
+    if receipt["consumers_reached"] != expected_consumers:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast consumers are inconsistent"
+        )
+    if receipt["consumer_payload_hashes"] != expected_payloads:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast consumer payloads are inconsistent"
+        )
+    if receipt["broadcast_executed"] is not expected_broadcast:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast execution state is inconsistent"
+        )
+    if receipt["global_availability"] is not expected_broadcast:
+        raise FunctionalConsciousnessExperimentError(
+            "global availability is inconsistent"
+        )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "broadcast receipt must not accept the experiment"
         )
     if receipt["write_authority"] != "NONE":
         raise FunctionalConsciousnessExperimentError(
