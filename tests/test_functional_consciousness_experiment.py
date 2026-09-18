@@ -7,6 +7,8 @@ from holosim.functional_consciousness_experiment import (
     build_internal_monitor_receipt,
     verify_experiment_input_receipt,
     verify_internal_monitor_receipt,
+    build_workspace_receipt,
+    verify_workspace_receipt,
 )
 
 
@@ -359,3 +361,253 @@ def test_rehashed_monitor_hash_relation_tampering_fails_closed():
         match="hashes and mismatch state are inconsistent",
     ):
         verify_internal_monitor_receipt(forged)
+def _workspace_candidates():
+    return [
+        {
+            "candidate_id": "background",
+            "priority": 1,
+            "payload": {"kind": "background"},
+        },
+        {
+            "candidate_id": "self-mismatch",
+            "priority": 10,
+            "payload": {
+                "kind": "internal-mismatch",
+                "path": "operating_state",
+            },
+        },
+    ]
+
+
+def _workspace_receipt():
+    return build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="hidden-self-perturbation",
+        capacity=1,
+        candidates=_workspace_candidates(),
+    )
+
+
+def test_workspace_admits_exactly_one_highest_priority_candidate():
+    receipt = _workspace_receipt()
+
+    assert receipt["winner_id"] == "self-mismatch"
+    assert receipt["admitted_count"] == 1
+    assert receipt["capacity"] == 1
+    assert receipt["consumers_reached"] == []
+    assert receipt["broadcast_executed"] is False
+    assert verify_workspace_receipt(receipt) is True
+
+
+def test_workspace_capacity_zero_admits_nobody():
+    receipt = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="capacity-zero-control",
+        capacity=0,
+        candidates=_workspace_candidates(),
+    )
+
+    assert receipt["winner_id"] is None
+    assert receipt["winner_payload_hash"] is None
+    assert receipt["admitted_count"] == 0
+    assert verify_workspace_receipt(receipt) is True
+
+
+def test_workspace_capacity_greater_than_one_fails_closed():
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="capacity must be zero or one",
+    ):
+        build_workspace_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="capacity-two-control",
+            capacity=2,
+            candidates=_workspace_candidates(),
+        )
+
+
+def test_workspace_empty_candidate_set_admits_nobody():
+    receipt = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="empty",
+        capacity=1,
+        candidates=[],
+    )
+
+    assert receipt["candidates"] == []
+    assert receipt["winner_id"] is None
+    assert receipt["admitted_count"] == 0
+    assert verify_workspace_receipt(receipt) is True
+
+
+def test_workspace_tie_breaks_by_candidate_id():
+    receipt = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="tie",
+        capacity=1,
+        candidates=[
+            {
+                "candidate_id": "z-candidate",
+                "priority": 5,
+                "payload": {"value": "z"},
+            },
+            {
+                "candidate_id": "a-candidate",
+                "priority": 5,
+                "payload": {"value": "a"},
+            },
+        ],
+    )
+
+    assert receipt["winner_id"] == "a-candidate"
+    assert [
+        candidate["candidate_id"]
+        for candidate in receipt["candidates"]
+    ] == ["a-candidate", "z-candidate"]
+
+
+def test_workspace_candidate_input_order_does_not_change_receipt():
+    candidates = _workspace_candidates()
+
+    first = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="order-invariance",
+        capacity=1,
+        candidates=candidates,
+    )
+    second = build_workspace_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="order-invariance",
+        capacity=1,
+        candidates=list(reversed(candidates)),
+    )
+
+    assert first == second
+    assert first["receipt_hash"] == second["receipt_hash"]
+
+
+def test_workspace_duplicate_candidate_ids_fail_closed():
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="candidate ids must be unique",
+    ):
+        build_workspace_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="duplicate",
+            capacity=1,
+            candidates=[
+                {
+                    "candidate_id": "same",
+                    "priority": 1,
+                    "payload": {"value": 1},
+                },
+                {
+                    "candidate_id": "same",
+                    "priority": 2,
+                    "payload": {"value": 2},
+                },
+            ],
+        )
+
+
+def test_workspace_non_integer_priority_fails_closed():
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="priority must be an integer",
+    ):
+        build_workspace_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="bad-priority",
+            capacity=1,
+            candidates=[
+                {
+                    "candidate_id": "candidate",
+                    "priority": 1.5,
+                    "payload": {"value": 1},
+                },
+            ],
+        )
+
+
+def test_workspace_non_json_payload_fails_closed():
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="plain JSON values",
+    ):
+        build_workspace_receipt(
+            experiment_id="functional-consciousness-v1",
+            condition_id="bad-payload",
+            capacity=1,
+            candidates=[
+                {
+                    "candidate_id": "candidate",
+                    "priority": 1,
+                    "payload": {"bad": {1, 2}},
+                },
+            ],
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("winner_id", "background", "winner is inconsistent"),
+        ("admitted_count", 0, "admitted count is inconsistent"),
+        ("consumers_reached", ["attention"], "must not claim consumers"),
+        ("broadcast_executed", True, "must not claim broadcast"),
+        (
+            "subjective_consciousness_claimed",
+            True,
+            "subjective consciousness",
+        ),
+        ("accepted", True, "must not accept"),
+        ("write_authority", "FULL", "write authority"),
+        ("execution_authority", "FULL", "execution authority"),
+    ],
+)
+def test_rehashed_workspace_boundary_tampering_fails_closed(
+    field,
+    value,
+    message,
+):
+    receipt = _workspace_receipt()
+    forged = copy.deepcopy(receipt)
+    forged[field] = value
+
+    body = {
+        key: item
+        for key, item in forged.items()
+        if key != "receipt_hash"
+    }
+
+    from holosim.canonical import stable_hash
+
+    forged["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match=message,
+    ):
+        verify_workspace_receipt(forged)
+
+
+def test_rehashed_workspace_candidate_order_tampering_fails_closed():
+    receipt = _workspace_receipt()
+    forged = copy.deepcopy(receipt)
+    forged["candidates"] = list(reversed(forged["candidates"]))
+
+    body = {
+        key: item
+        for key, item in forged.items()
+        if key != "receipt_hash"
+    }
+
+    from holosim.canonical import stable_hash
+
+    forged["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(
+        FunctionalConsciousnessExperimentError,
+        match="not deterministically ranked",
+    ):
+        verify_workspace_receipt(forged)

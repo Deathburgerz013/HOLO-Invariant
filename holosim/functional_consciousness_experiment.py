@@ -1,9 +1,10 @@
-"""Deterministic input contract for the functional-consciousness experiment.
+"""Deterministic contracts for the functional-consciousness experiment.
 
-This module establishes source-separated world and self state for the bounded
-reference experiment. It does not monitor internal state, broadcast workspace
-content, control action, establish subjective consciousness, accept a result,
-or grant write or execution authority.
+This module establishes source-separated world/self state, pre-report internal
+monitoring, and bounded one-slot workspace admission for the deterministic
+reference experiment. It does not broadcast workspace content, control action,
+establish subjective consciousness, accept a result, or grant write or
+execution authority.
 """
 
 from __future__ import annotations
@@ -418,6 +419,303 @@ def verify_internal_monitor_receipt(
     if receipt["accepted"] is not False:
         raise FunctionalConsciousnessExperimentError(
             "monitor receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True
+WORKSPACE_RECEIPT_TYPE = "functional_consciousness_workspace_receipt"
+WORKSPACE_RECEIPT_VERSION = 1
+
+_WORKSPACE_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "capacity",
+    "candidates",
+    "winner_id",
+    "winner_payload_hash",
+    "admitted_count",
+    "consumers_reached",
+    "broadcast_executed",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+_WORKSPACE_CANDIDATE_FIELDS = {
+    "candidate_id",
+    "priority",
+    "payload_hash",
+}
+
+
+def _normalize_workspace_candidate(
+    candidate: Mapping[str, Any],
+) -> dict[str, Any]:
+    if (
+        type(candidate) is not dict
+        or set(candidate) != {"candidate_id", "priority", "payload"}
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "workspace candidate fields mismatch"
+        )
+
+    candidate_id = _identifier(
+        candidate["candidate_id"],
+        "candidate_id",
+    )
+    priority = candidate["priority"]
+    if type(priority) is not int:
+        raise FunctionalConsciousnessExperimentError(
+            "candidate priority must be an integer"
+        )
+
+    payload = _canonical(
+        candidate["payload"],
+        label="candidate payload",
+    )
+
+    return {
+        "candidate_id": candidate_id,
+        "priority": priority,
+        "payload_hash": stable_hash(payload),
+    }
+
+
+def _validate_workspace_candidates(
+    candidates: Any,
+) -> list[dict[str, Any]]:
+    if type(candidates) is not list:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace candidates must be a list"
+        )
+
+    normalized = [
+        _normalize_workspace_candidate(candidate)
+        for candidate in candidates
+    ]
+
+    candidate_ids = [
+        candidate["candidate_id"]
+        for candidate in normalized
+    ]
+    if len(candidate_ids) != len(set(candidate_ids)):
+        raise FunctionalConsciousnessExperimentError(
+            "workspace candidate ids must be unique"
+        )
+
+    return sorted(
+        normalized,
+        key=lambda candidate: (
+            -candidate["priority"],
+            candidate["candidate_id"],
+        ),
+    )
+
+
+def build_workspace_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    capacity: int,
+    candidates: list[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Deterministically admit at most one candidate to the workspace."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    if type(capacity) is not int or capacity not in {0, 1}:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace capacity must be zero or one"
+        )
+
+    ranked = _validate_workspace_candidates(candidates)
+
+    winner = ranked[0] if capacity == 1 and ranked else None
+
+    body = {
+        "type": WORKSPACE_RECEIPT_TYPE,
+        "version": WORKSPACE_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "capacity": capacity,
+        "candidates": ranked,
+        "winner_id": (
+            None if winner is None else winner["candidate_id"]
+        ),
+        "winner_payload_hash": (
+            None if winner is None else winner["payload_hash"]
+        ),
+        "admitted_count": 0 if winner is None else 1,
+        "consumers_reached": [],
+        "broadcast_executed": False,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_workspace_receipt(
+    receipt: Mapping[str, Any],
+) -> bool:
+    """Verify deterministic one-slot admission without broadcast credit."""
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _WORKSPACE_RECEIPT_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "workspace receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != WORKSPACE_RECEIPT_TYPE
+        or receipt["version"] != WORKSPACE_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "workspace receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(
+        receipt["receipt_hash"],
+        "receipt_hash",
+    )
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace receipt hash mismatch"
+        )
+
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+
+    capacity = receipt["capacity"]
+    if type(capacity) is not int or capacity not in {0, 1}:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace capacity must be zero or one"
+        )
+
+    candidates = receipt["candidates"]
+    if type(candidates) is not list:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace candidates must be a list"
+        )
+
+    normalized: list[dict[str, Any]] = []
+    for candidate in candidates:
+        if (
+            type(candidate) is not dict
+            or set(candidate) != _WORKSPACE_CANDIDATE_FIELDS
+        ):
+            raise FunctionalConsciousnessExperimentError(
+                "workspace stored candidate fields mismatch"
+            )
+
+        candidate_id = _identifier(
+            candidate["candidate_id"],
+            "candidate_id",
+        )
+        priority = candidate["priority"]
+        if type(priority) is not int:
+            raise FunctionalConsciousnessExperimentError(
+                "candidate priority must be an integer"
+            )
+        payload_hash = _sha256(
+            candidate["payload_hash"],
+            "payload_hash",
+        )
+
+        normalized.append(
+            {
+                "candidate_id": candidate_id,
+                "priority": priority,
+                "payload_hash": payload_hash,
+            }
+        )
+
+    candidate_ids = [
+        candidate["candidate_id"]
+        for candidate in normalized
+    ]
+    if len(candidate_ids) != len(set(candidate_ids)):
+        raise FunctionalConsciousnessExperimentError(
+            "workspace candidate ids must be unique"
+        )
+
+    expected_ranked = sorted(
+        normalized,
+        key=lambda candidate: (
+            -candidate["priority"],
+            candidate["candidate_id"],
+        ),
+    )
+    if candidates != expected_ranked:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace candidates are not deterministically ranked"
+        )
+
+    expected_winner = (
+        expected_ranked[0]
+        if capacity == 1 and expected_ranked
+        else None
+    )
+    expected_winner_id = (
+        None
+        if expected_winner is None
+        else expected_winner["candidate_id"]
+    )
+    expected_payload_hash = (
+        None
+        if expected_winner is None
+        else expected_winner["payload_hash"]
+    )
+    expected_count = 0 if expected_winner is None else 1
+
+    if receipt["winner_id"] != expected_winner_id:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace winner is inconsistent"
+        )
+    if receipt["winner_payload_hash"] != expected_payload_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace winner payload is inconsistent"
+        )
+    if receipt["admitted_count"] != expected_count:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace admitted count is inconsistent"
+        )
+
+    if receipt["consumers_reached"] != []:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace admission must not claim consumers"
+        )
+    if receipt["broadcast_executed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace admission must not claim broadcast"
+        )
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "workspace receipt must not accept the experiment"
         )
     if receipt["write_authority"] != "NONE":
         raise FunctionalConsciousnessExperimentError(
