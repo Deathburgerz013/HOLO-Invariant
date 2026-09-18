@@ -1582,3 +1582,260 @@ def verify_absence_model_receipt(receipt: Mapping[str, Any]) -> bool:
         )
 
     return True
+
+RECHECK_RECEIPT_TYPE = "functional_consciousness_recheck_receipt"
+RECHECK_RECEIPT_VERSION = 1
+
+_RECHECK_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "prior_absence_receipt_hash",
+    "current_absence_receipt_hash",
+    "prior_classification",
+    "current_classification",
+    "prior_degraded",
+    "current_degraded",
+    "degraded_state_supported",
+    "self_description_withdrawn",
+    "recheck_performed",
+    "reporter_executed",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+_DEGRADED_ABSENCE_CLASSES = {
+    "SELF_CHANNEL_LOSS",
+    "WORLD_EVIDENCE_MISSING",
+    "BOTH_CHANNELS_UNAVAILABLE",
+}
+
+
+def build_experiment_recheck_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    prior_absence_receipt: Mapping[str, Any],
+    current_absence_receipt: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Re-observe absence evidence and withdraw unsupported degraded state."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    verify_absence_model_receipt(prior_absence_receipt)
+    verify_absence_model_receipt(current_absence_receipt)
+
+    for label, receipt in (
+        ("prior", prior_absence_receipt),
+        ("current", current_absence_receipt),
+    ):
+        if (
+            receipt["experiment_id"] != experiment
+            or receipt["condition_id"] != condition
+        ):
+            raise FunctionalConsciousnessExperimentError(
+                f"{label} absence receipt is not bound to experiment"
+            )
+
+    if (
+        prior_absence_receipt["world_source_id"]
+        != current_absence_receipt["world_source_id"]
+        or prior_absence_receipt["self_source_id"]
+        != current_absence_receipt["self_source_id"]
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "recheck source identities must remain stable"
+        )
+
+    prior_classification = prior_absence_receipt["absence_classification"]
+    current_classification = current_absence_receipt["absence_classification"]
+
+    prior_degraded = prior_classification in _DEGRADED_ABSENCE_CLASSES
+    current_degraded = current_classification in _DEGRADED_ABSENCE_CLASSES
+
+    degraded_state_supported = current_degraded
+    self_description_withdrawn = prior_degraded and not current_degraded
+
+    body = {
+        "type": RECHECK_RECEIPT_TYPE,
+        "version": RECHECK_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "prior_absence_receipt_hash": prior_absence_receipt["receipt_hash"],
+        "current_absence_receipt_hash": current_absence_receipt["receipt_hash"],
+        "prior_classification": prior_classification,
+        "current_classification": current_classification,
+        "prior_degraded": prior_degraded,
+        "current_degraded": current_degraded,
+        "degraded_state_supported": degraded_state_supported,
+        "self_description_withdrawn": self_description_withdrawn,
+        "recheck_performed": True,
+        "reporter_executed": False,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_experiment_recheck_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    prior_absence_receipt: Mapping[str, Any],
+    current_absence_receipt: Mapping[str, Any],
+) -> bool:
+    """Verify that current evidence controls retention or withdrawal."""
+
+    verify_absence_model_receipt(prior_absence_receipt)
+    verify_absence_model_receipt(current_absence_receipt)
+
+    if (
+        type(receipt) is not dict
+        or set(receipt) != _RECHECK_RECEIPT_FIELDS
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "recheck receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != RECHECK_RECEIPT_TYPE
+        or receipt["version"] != RECHECK_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "recheck receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(receipt["receipt_hash"], "receipt_hash")
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "recheck receipt hash mismatch"
+        )
+
+    _identifier(receipt["experiment_id"], "experiment_id")
+    _identifier(receipt["condition_id"], "condition_id")
+    _sha256(
+        receipt["prior_absence_receipt_hash"],
+        "prior_absence_receipt_hash",
+    )
+    _sha256(
+        receipt["current_absence_receipt_hash"],
+        "current_absence_receipt_hash",
+    )
+
+    expected_experiment = receipt["experiment_id"]
+    expected_condition = receipt["condition_id"]
+
+    for label, absence in (
+        ("prior", prior_absence_receipt),
+        ("current", current_absence_receipt),
+    ):
+        if (
+            absence["experiment_id"] != expected_experiment
+            or absence["condition_id"] != expected_condition
+        ):
+            raise FunctionalConsciousnessExperimentError(
+                f"{label} absence evidence is not bound to recheck"
+            )
+
+    if (
+        prior_absence_receipt["world_source_id"]
+        != current_absence_receipt["world_source_id"]
+        or prior_absence_receipt["self_source_id"]
+        != current_absence_receipt["self_source_id"]
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "recheck source identities must remain stable"
+        )
+
+    if (
+        receipt["prior_absence_receipt_hash"]
+        != prior_absence_receipt["receipt_hash"]
+        or receipt["current_absence_receipt_hash"]
+        != current_absence_receipt["receipt_hash"]
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "recheck evidence hashes are not bound"
+        )
+
+    prior_classification = prior_absence_receipt["absence_classification"]
+    current_classification = current_absence_receipt["absence_classification"]
+
+    prior_degraded = prior_classification in _DEGRADED_ABSENCE_CLASSES
+    current_degraded = current_classification in _DEGRADED_ABSENCE_CLASSES
+
+    if receipt["prior_classification"] != prior_classification:
+        raise FunctionalConsciousnessExperimentError(
+            "prior classification is inconsistent"
+        )
+
+    if receipt["current_classification"] != current_classification:
+        raise FunctionalConsciousnessExperimentError(
+            "current classification is inconsistent"
+        )
+
+    if receipt["prior_degraded"] is not prior_degraded:
+        raise FunctionalConsciousnessExperimentError(
+            "prior degraded state is inconsistent"
+        )
+
+    if receipt["current_degraded"] is not current_degraded:
+        raise FunctionalConsciousnessExperimentError(
+            "current degraded state is inconsistent"
+        )
+
+    if receipt["degraded_state_supported"] is not current_degraded:
+        raise FunctionalConsciousnessExperimentError(
+            "degraded support must derive from current evidence"
+        )
+
+    expected_withdrawal = prior_degraded and not current_degraded
+
+    if receipt["self_description_withdrawn"] is not expected_withdrawal:
+        raise FunctionalConsciousnessExperimentError(
+            "self-description withdrawal is inconsistent"
+        )
+
+    if receipt["recheck_performed"] is not True:
+        raise FunctionalConsciousnessExperimentError(
+            "recheck must be performed"
+        )
+
+    if receipt["reporter_executed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "reporter must not execute before recheck"
+        )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "recheck receipt must not accept the experiment"
+        )
+
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True
