@@ -21,6 +21,8 @@ from holosim.functional_consciousness_experiment import (
     verify_causal_controller_receipt,
     build_experiment_recheck_receipt,
     verify_experiment_recheck_receipt,
+    run_functional_consciousness_vertical_slice,
+    run_functional_consciousness_ablation_trial,
     verify_experiment_continuity_receipt,
     build_internal_monitor_receipt,
     build_monitor_mismatch_candidate,
@@ -1582,3 +1584,224 @@ def test_recheck_tampering_fails_closed():
             prior_absence_receipt=prior,
             current_absence_receipt=current,
         )
+
+def test_functional_consciousness_vertical_slice_closes_verified_loop():
+    packet = _continuity_packet()
+
+    result = run_functional_consciousness_vertical_slice(
+        experiment_id="functional-consciousness-v1",
+        condition_id="vertical-slice",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_state={"task": "continue"},
+        expected_self_state={"service": "nominal"},
+        perturbed_self_state={"service": "degraded"},
+        reentry_packet=packet,
+        source_items=CONTINUITY_SOURCE_ITEMS,
+        recovered_self_channel_available=True,
+    )
+
+    trial = result["trial_receipt"]
+
+    assert result["monitor_receipt"]["perturbation_detected"] is True
+    assert result["workspace_receipt"]["winner_id"] == "self-mismatch"
+    assert result["broadcast_receipt"]["broadcast_executed"] is True
+    assert result["broadcast_receipt"]["global_availability"] is True
+
+    assert result["prior_absence_receipt"]["absence_classification"] == (
+        "SELF_CHANNEL_LOSS"
+    )
+    assert result["controller_receipt"]["action_changed"] is True
+    assert result["controller_receipt"]["causal_dependency_observed"] is True
+
+    assert result["continuity_receipt"]["continuity_bound"] is True
+
+    assert result["current_absence_receipt"]["absence_classification"] == (
+        "CHANNELS_PRESENT"
+    )
+    assert result["recheck_receipt"]["recheck_performed"] is True
+    assert result["recheck_receipt"]["degraded_state_supported"] is False
+    assert result["recheck_receipt"]["self_description_withdrawn"] is True
+
+    assert trial["perturbation_detected"] is True
+    assert trial["workspace_admitted"] is True
+    assert trial["broadcast_executed"] is True
+    assert trial["causal_action_changed"] is True
+    assert trial["continuity_bound"] is True
+    assert trial["recheck_performed"] is True
+    assert trial["closed_loop_observed"] is True
+
+    assert trial["subjective_consciousness_claimed"] is False
+    assert trial["accepted"] is False
+    assert trial["write_authority"] == "NONE"
+    assert trial["execution_authority"] == "NONE"
+
+def _run_vertical_ablation(ablation_id):
+    return run_functional_consciousness_ablation_trial(
+        ablation_id=ablation_id,
+        experiment_id="functional-consciousness-v1",
+        condition_id="vertical-slice-ablation",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_state={"task": "continue"},
+        expected_self_state={"service": "nominal"},
+        perturbed_self_state={"service": "degraded"},
+        reentry_packet=_continuity_packet(),
+        source_items=CONTINUITY_SOURCE_ITEMS,
+    )
+
+
+def _assert_ablation_loss(receipt, capacity):
+    assert receipt["version"] == 2
+    assert receipt["expected_capacity_loss"] == capacity
+    assert receipt["capacity_state"][capacity] is not True
+    assert receipt["expected_capacity_loss_observed"] is True
+    assert receipt["closed_loop_observed"] is False
+    assert receipt["subjective_consciousness_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+
+
+def test_vertical_slice_monitor_ablation_destroys_perturbation_detection():
+    result = _run_vertical_ablation("monitor_unavailable")
+    receipt = result["ablation_receipt"]
+
+    assert result["monitor_receipt"] is None
+    assert receipt["component_receipt_hashes"]["monitor"] is None
+    assert receipt["capacity_state"]["perturbation_detection"] is None
+
+    # Downstream workspace receives no fabricated mismatch candidate.
+    assert result["workspace_receipt"]["admitted_count"] == 0
+
+    _assert_ablation_loss(receipt, "perturbation_detection")
+
+
+def test_vertical_slice_workspace_ablation_destroys_admission():
+    result = _run_vertical_ablation("workspace_disconnected")
+    receipt = result["ablation_receipt"]
+
+    assert result["monitor_receipt"]["perturbation_detected"] is True
+    assert result["workspace_receipt"]["admitted_count"] == 0
+    assert receipt["capacity_state"]["perturbation_detection"] is True
+    assert receipt["capacity_state"]["workspace_admission"] is False
+
+    _assert_ablation_loss(receipt, "workspace_admission")
+
+
+def test_vertical_slice_broadcast_ablation_destroys_global_availability():
+    result = _run_vertical_ablation("broadcast_disconnected")
+    receipt = result["ablation_receipt"]
+
+    assert result["workspace_receipt"]["admitted_count"] == 1
+    assert result["broadcast_receipt"]["broadcast_executed"] is False
+    assert result["broadcast_receipt"]["global_availability"] is False
+    assert receipt["capacity_state"]["workspace_admission"] is True
+    assert receipt["capacity_state"]["global_availability"] is False
+
+    _assert_ablation_loss(receipt, "global_availability")
+
+
+def test_vertical_slice_absence_model_ablation_destroys_source_distinction():
+    result = _run_vertical_ablation("absence_model_unavailable")
+    receipt = result["ablation_receipt"]
+
+    assert result["monitor_receipt"]["perturbation_detected"] is True
+    assert result["workspace_receipt"]["admitted_count"] == 1
+    assert result["broadcast_receipt"]["global_availability"] is True
+
+    assert result["prior_absence_receipt"] is None
+    assert result["current_absence_receipt"] is None
+    assert result["controller_receipt"] is None
+    assert result["recheck_receipt"] is None
+
+    assert receipt["component_receipt_hashes"]["prior_absence"] is None
+    assert receipt["component_receipt_hashes"]["current_absence"] is None
+    assert receipt["capacity_state"]["absence_distinction"] is None
+
+    # These dependent capacities are unavailable rather than falsely failed.
+    assert receipt["capacity_state"]["causal_action"] is None
+    assert receipt["capacity_state"]["evidence_withdrawal"] is None
+
+    _assert_ablation_loss(receipt, "absence_distinction")
+
+
+def test_vertical_slice_controller_ablation_destroys_causal_action():
+    result = _run_vertical_ablation("controller_disconnected")
+    receipt = result["ablation_receipt"]
+
+    assert result["workspace_receipt"]["admitted_count"] == 1
+    assert result["broadcast_receipt"]["global_availability"] is True
+    assert result["prior_absence_receipt"]["absence_classification"] == (
+        "SELF_CHANNEL_LOSS"
+    )
+    assert result["controller_receipt"]["controller_connected"] is False
+    assert result["controller_receipt"]["causal_dependency_observed"] is False
+    assert receipt["capacity_state"]["absence_distinction"] is True
+    assert receipt["capacity_state"]["causal_action"] is False
+
+    _assert_ablation_loss(receipt, "causal_action")
+
+
+def test_vertical_slice_continuity_ablation_destroys_post_gap_binding():
+    stale_packet = _continuity_packet(
+        head_check=_continuity_head_check(
+            current_hash="head-11",
+            current_idx=11,
+        )
+    )
+
+    result = run_functional_consciousness_ablation_trial(
+        ablation_id="continuity_disconnected",
+        experiment_id="functional-consciousness-v1",
+        condition_id="vertical-slice-ablation",
+        world_source_id="world-channel",
+        self_source_id="self-channel",
+        world_state={"task": "continue"},
+        expected_self_state={"service": "nominal"},
+        perturbed_self_state={"service": "degraded"},
+        reentry_packet=stale_packet,
+        source_items=CONTINUITY_SOURCE_ITEMS,
+    )
+
+    receipt = result["ablation_receipt"]
+
+    assert stale_packet["status"] == "BLOCKED_HEAD"
+    assert result["continuity_receipt"]["head_status"] == "STALE"
+    assert result["continuity_receipt"]["continuity_bound"] is False
+
+    # Surrounding independent capacities remain intact.
+    assert receipt["capacity_state"]["perturbation_detection"] is True
+    assert receipt["capacity_state"]["workspace_admission"] is True
+    assert receipt["capacity_state"]["global_availability"] is True
+    assert receipt["capacity_state"]["absence_distinction"] is True
+    assert receipt["capacity_state"]["causal_action"] is True
+    assert receipt["capacity_state"]["post_gap_continuity"] is False
+    assert receipt["capacity_state"]["evidence_withdrawal"] is True
+
+    _assert_ablation_loss(receipt, "post_gap_continuity")
+
+
+def test_vertical_slice_recheck_ablation_destroys_evidence_withdrawal():
+    result = _run_vertical_ablation("recheck_unavailable")
+    receipt = result["ablation_receipt"]
+
+    # Everything required before recheck remains established.
+    assert result["monitor_receipt"]["perturbation_detected"] is True
+    assert result["workspace_receipt"]["admitted_count"] == 1
+    assert result["broadcast_receipt"]["global_availability"] is True
+    assert result["prior_absence_receipt"]["absence_classification"] == (
+        "SELF_CHANNEL_LOSS"
+    )
+    assert result["controller_receipt"]["causal_dependency_observed"] is True
+    assert result["continuity_receipt"]["continuity_bound"] is True
+
+    # Current evidence exists, but no recheck consumes it.
+    assert result["current_absence_receipt"]["absence_classification"] == (
+        "CHANNELS_PRESENT"
+    )
+    assert result["recheck_receipt"] is None
+    assert receipt["component_receipt_hashes"]["recheck"] is None
+    assert receipt["capacity_state"]["evidence_withdrawal"] is None
+
+    _assert_ablation_loss(receipt, "evidence_withdrawal")

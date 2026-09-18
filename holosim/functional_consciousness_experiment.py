@@ -1839,3 +1839,664 @@ def verify_experiment_recheck_receipt(
         )
 
     return True
+
+TRIAL_RECEIPT_TYPE = "functional_consciousness_trial_receipt"
+TRIAL_RECEIPT_VERSION = 1
+
+_TRIAL_RECEIPT_FIELDS = {
+    "type",
+    "version",
+    "experiment_id",
+    "condition_id",
+    "input_receipt_hash",
+    "monitor_receipt_hash",
+    "workspace_receipt_hash",
+    "broadcast_receipt_hash",
+    "prior_absence_receipt_hash",
+    "controller_receipt_hash",
+    "continuity_receipt_hash",
+    "current_absence_receipt_hash",
+    "recheck_receipt_hash",
+    "perturbation_detected",
+    "workspace_admitted",
+    "broadcast_executed",
+    "causal_action_changed",
+    "continuity_bound",
+    "recheck_performed",
+    "degraded_state_supported",
+    "self_description_withdrawn",
+    "closed_loop_observed",
+    "subjective_consciousness_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "receipt_hash",
+}
+
+
+def build_functional_consciousness_trial_receipt(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    input_receipt: Mapping[str, Any],
+    monitor_receipt: Mapping[str, Any],
+    workspace_receipt: Mapping[str, Any],
+    broadcast_receipt: Mapping[str, Any],
+    prior_absence_receipt: Mapping[str, Any],
+    controller_receipt: Mapping[str, Any],
+    continuity_receipt: Mapping[str, Any],
+    reentry_packet: Mapping[str, Any],
+    source_items: Any,
+    current_absence_receipt: Mapping[str, Any],
+    recheck_receipt: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind the preregistered functional capacities into one closed trial."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+
+    verify_experiment_input_receipt(input_receipt)
+    verify_internal_monitor_receipt(monitor_receipt)
+    verify_workspace_receipt(workspace_receipt)
+    verify_workspace_broadcast_receipt(
+        broadcast_receipt,
+        workspace_receipt=workspace_receipt,
+    )
+    verify_absence_model_receipt(prior_absence_receipt)
+    verify_causal_controller_receipt(
+        controller_receipt,
+        absence_receipt=prior_absence_receipt,
+    )
+    verify_experiment_continuity_receipt(
+        continuity_receipt,
+        reentry_packet=reentry_packet,
+        source_items=source_items,
+    )
+    verify_absence_model_receipt(current_absence_receipt)
+    verify_experiment_recheck_receipt(
+        recheck_receipt,
+        prior_absence_receipt=prior_absence_receipt,
+        current_absence_receipt=current_absence_receipt,
+    )
+
+    receipts = (
+        ("input", input_receipt),
+        ("monitor", monitor_receipt),
+        ("workspace", workspace_receipt),
+        ("broadcast", broadcast_receipt),
+        ("prior absence", prior_absence_receipt),
+        ("controller", controller_receipt),
+        ("continuity", continuity_receipt),
+        ("current absence", current_absence_receipt),
+        ("recheck", recheck_receipt),
+    )
+    for label, receipt in receipts:
+        if receipt["experiment_id"] != experiment:
+            raise FunctionalConsciousnessExperimentError(
+                f"{label} receipt is not bound to trial experiment"
+            )
+
+    if monitor_receipt["self_source_id"] != input_receipt["self_source_id"]:
+        raise FunctionalConsciousnessExperimentError(
+            "monitor self source is not bound to trial input"
+        )
+
+    if (
+        prior_absence_receipt["world_source_id"]
+        != input_receipt["world_source_id"]
+        or prior_absence_receipt["self_source_id"]
+        != input_receipt["self_source_id"]
+        or current_absence_receipt["world_source_id"]
+        != input_receipt["world_source_id"]
+        or current_absence_receipt["self_source_id"]
+        != input_receipt["self_source_id"]
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "absence sources are not bound to trial input"
+        )
+
+    monitor_hash = monitor_receipt["receipt_hash"]
+    monitor_candidate_bound = any(
+        candidate["candidate_id"] == "self-mismatch"
+        and candidate["payload_hash"] == stable_hash(
+            {
+                "kind": "internal-mismatch",
+                "monitor_receipt_hash": monitor_hash,
+                "self_source_id": monitor_receipt["self_source_id"],
+                "observed_self_state_hash": monitor_receipt[
+                    "observed_self_state_hash"
+                ],
+                "mismatch_paths": list(monitor_receipt["mismatch_paths"]),
+            }
+        )
+        for candidate in workspace_receipt["candidates"]
+    )
+
+    workspace_admitted = (
+        workspace_receipt["admitted_count"] == 1
+        and workspace_receipt["winner_id"] == "self-mismatch"
+        and monitor_candidate_bound
+    )
+
+    closed_loop_observed = (
+        monitor_receipt["perturbation_detected"] is True
+        and workspace_admitted
+        and broadcast_receipt["broadcast_executed"] is True
+        and broadcast_receipt["global_availability"] is True
+        and controller_receipt["causal_dependency_observed"] is True
+        and controller_receipt["action_changed"] is True
+        and continuity_receipt["continuity_bound"] is True
+        and recheck_receipt["recheck_performed"] is True
+        and recheck_receipt["self_description_withdrawn"] is True
+        and recheck_receipt["degraded_state_supported"] is False
+    )
+
+    body = {
+        "type": TRIAL_RECEIPT_TYPE,
+        "version": TRIAL_RECEIPT_VERSION,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "input_receipt_hash": input_receipt["receipt_hash"],
+        "monitor_receipt_hash": monitor_hash,
+        "workspace_receipt_hash": workspace_receipt["receipt_hash"],
+        "broadcast_receipt_hash": broadcast_receipt["receipt_hash"],
+        "prior_absence_receipt_hash": prior_absence_receipt["receipt_hash"],
+        "controller_receipt_hash": controller_receipt["receipt_hash"],
+        "continuity_receipt_hash": continuity_receipt["receipt_hash"],
+        "current_absence_receipt_hash": current_absence_receipt["receipt_hash"],
+        "recheck_receipt_hash": recheck_receipt["receipt_hash"],
+        "perturbation_detected": monitor_receipt["perturbation_detected"],
+        "workspace_admitted": workspace_admitted,
+        "broadcast_executed": broadcast_receipt["broadcast_executed"],
+        "causal_action_changed": controller_receipt["action_changed"],
+        "continuity_bound": continuity_receipt["continuity_bound"],
+        "recheck_performed": recheck_receipt["recheck_performed"],
+        "degraded_state_supported": recheck_receipt[
+            "degraded_state_supported"
+        ],
+        "self_description_withdrawn": recheck_receipt[
+            "self_description_withdrawn"
+        ],
+        "closed_loop_observed": closed_loop_observed,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": stable_hash(body)}
+
+
+def verify_functional_consciousness_trial_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    input_receipt: Mapping[str, Any],
+    monitor_receipt: Mapping[str, Any],
+    workspace_receipt: Mapping[str, Any],
+    broadcast_receipt: Mapping[str, Any],
+    prior_absence_receipt: Mapping[str, Any],
+    controller_receipt: Mapping[str, Any],
+    continuity_receipt: Mapping[str, Any],
+    reentry_packet: Mapping[str, Any],
+    source_items: Any,
+    current_absence_receipt: Mapping[str, Any],
+    recheck_receipt: Mapping[str, Any],
+) -> bool:
+    """Rebuild and compare the closed functional trial receipt."""
+
+    if type(receipt) is not dict or set(receipt) != _TRIAL_RECEIPT_FIELDS:
+        raise FunctionalConsciousnessExperimentError(
+            "trial receipt fields mismatch"
+        )
+
+    if (
+        receipt["type"] != TRIAL_RECEIPT_TYPE
+        or receipt["version"] != TRIAL_RECEIPT_VERSION
+    ):
+        raise FunctionalConsciousnessExperimentError(
+            "trial receipt schema mismatch"
+        )
+
+    supplied_hash = _sha256(receipt["receipt_hash"], "receipt_hash")
+    body = {
+        key: value
+        for key, value in receipt.items()
+        if key != "receipt_hash"
+    }
+    if stable_hash(body) != supplied_hash:
+        raise FunctionalConsciousnessExperimentError(
+            "trial receipt hash mismatch"
+        )
+
+    rebuilt = build_functional_consciousness_trial_receipt(
+        experiment_id=receipt["experiment_id"],
+        condition_id=receipt["condition_id"],
+        input_receipt=input_receipt,
+        monitor_receipt=monitor_receipt,
+        workspace_receipt=workspace_receipt,
+        broadcast_receipt=broadcast_receipt,
+        prior_absence_receipt=prior_absence_receipt,
+        controller_receipt=controller_receipt,
+        continuity_receipt=continuity_receipt,
+        reentry_packet=reentry_packet,
+        source_items=source_items,
+        current_absence_receipt=current_absence_receipt,
+        recheck_receipt=recheck_receipt,
+    )
+
+    if receipt != rebuilt:
+        raise FunctionalConsciousnessExperimentError(
+            "trial receipt does not match verified component evidence"
+        )
+
+    if receipt["subjective_consciousness_claimed"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "subjective consciousness must not be claimed"
+        )
+    if receipt["accepted"] is not False:
+        raise FunctionalConsciousnessExperimentError(
+            "trial receipt must not accept the experiment"
+        )
+    if receipt["write_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "write authority must be NONE"
+        )
+    if receipt["execution_authority"] != "NONE":
+        raise FunctionalConsciousnessExperimentError(
+            "execution authority must be NONE"
+        )
+
+    return True
+
+def run_functional_consciousness_vertical_slice(
+    *,
+    experiment_id: str,
+    condition_id: str,
+    world_source_id: str,
+    self_source_id: str,
+    world_state: Any,
+    expected_self_state: Any,
+    perturbed_self_state: Any,
+    reentry_packet: Mapping[str, Any],
+    source_items: Any,
+    recovered_self_channel_available: bool = True,
+) -> dict[str, Any]:
+    """Execute one deterministic preregistered closed-loop trial."""
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+    world_source = _identifier(world_source_id, "world_source_id")
+    self_source = _identifier(self_source_id, "self_source_id")
+
+    if world_source == self_source:
+        raise FunctionalConsciousnessExperimentError(
+            "world_source_id and self_source_id must differ"
+        )
+    if type(recovered_self_channel_available) is not bool:
+        raise FunctionalConsciousnessExperimentError(
+            "recovered_self_channel_available must be boolean"
+        )
+
+    input_receipt = build_experiment_input_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        world_source_id=world_source,
+        self_source_id=self_source,
+        world_state=world_state,
+        self_state=perturbed_self_state,
+    )
+
+    monitor_receipt = build_internal_monitor_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        self_source_id=self_source,
+        expected_self_state=expected_self_state,
+        observed_self_state=perturbed_self_state,
+    )
+
+    candidate = build_monitor_mismatch_candidate(
+        monitor_receipt=monitor_receipt,
+        priority=100,
+    )
+
+    workspace_receipt = build_workspace_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        capacity=1,
+        candidates=[candidate],
+    )
+
+    broadcast_receipt = build_workspace_broadcast_receipt(
+        workspace_receipt=workspace_receipt,
+        broadcast_connected=True,
+    )
+
+    prior_absence_receipt = build_absence_model_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        world_source_id=world_source,
+        self_source_id=self_source,
+        world_channel_available=True,
+        self_channel_available=False,
+    )
+
+    controller_receipt = build_causal_controller_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        absence_receipt=prior_absence_receipt,
+        controller_connected=True,
+    )
+
+    continuity_receipt = build_experiment_continuity_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        reentry_packet=reentry_packet,
+        source_items=source_items,
+    )
+
+    current_absence_receipt = build_absence_model_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        world_source_id=world_source,
+        self_source_id=self_source,
+        world_channel_available=True,
+        self_channel_available=recovered_self_channel_available,
+    )
+
+    recheck_receipt = build_experiment_recheck_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        prior_absence_receipt=prior_absence_receipt,
+        current_absence_receipt=current_absence_receipt,
+    )
+
+    trial_receipt = build_functional_consciousness_trial_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        input_receipt=input_receipt,
+        monitor_receipt=monitor_receipt,
+        workspace_receipt=workspace_receipt,
+        broadcast_receipt=broadcast_receipt,
+        prior_absence_receipt=prior_absence_receipt,
+        controller_receipt=controller_receipt,
+        continuity_receipt=continuity_receipt,
+        reentry_packet=reentry_packet,
+        source_items=source_items,
+        current_absence_receipt=current_absence_receipt,
+        recheck_receipt=recheck_receipt,
+    )
+
+    verify_functional_consciousness_trial_receipt(
+        trial_receipt,
+        input_receipt=input_receipt,
+        monitor_receipt=monitor_receipt,
+        workspace_receipt=workspace_receipt,
+        broadcast_receipt=broadcast_receipt,
+        prior_absence_receipt=prior_absence_receipt,
+        controller_receipt=controller_receipt,
+        continuity_receipt=continuity_receipt,
+        reentry_packet=reentry_packet,
+        source_items=source_items,
+        current_absence_receipt=current_absence_receipt,
+        recheck_receipt=recheck_receipt,
+    )
+
+    return {
+        "input_receipt": input_receipt,
+        "monitor_receipt": monitor_receipt,
+        "workspace_receipt": workspace_receipt,
+        "broadcast_receipt": broadcast_receipt,
+        "prior_absence_receipt": prior_absence_receipt,
+        "controller_receipt": controller_receipt,
+        "continuity_receipt": continuity_receipt,
+        "current_absence_receipt": current_absence_receipt,
+        "recheck_receipt": recheck_receipt,
+        "trial_receipt": trial_receipt,
+    }
+
+ABLATION_IDS = {
+    "monitor_unavailable",
+    "workspace_disconnected",
+    "broadcast_disconnected",
+    "absence_model_unavailable",
+    "controller_disconnected",
+    "continuity_disconnected",
+    "recheck_unavailable",
+}
+
+
+def run_functional_consciousness_ablation_trial(
+    *,
+    ablation_id: str,
+    experiment_id: str,
+    condition_id: str,
+    world_source_id: str,
+    self_source_id: str,
+    world_state: Any,
+    expected_self_state: Any,
+    perturbed_self_state: Any,
+    reentry_packet: Mapping[str, Any],
+    source_items: Any,
+) -> dict[str, Any]:
+    """Run one bounded component ablation against the reference trial."""
+
+    if type(ablation_id) is not str or ablation_id not in ABLATION_IDS:
+        raise FunctionalConsciousnessExperimentError(
+            "ablation_id is not supported"
+        )
+
+    experiment = _identifier(experiment_id, "experiment_id")
+    condition = _identifier(condition_id, "condition_id")
+    world_source = _identifier(world_source_id, "world_source_id")
+    self_source = _identifier(self_source_id, "self_source_id")
+
+    if world_source == self_source:
+        raise FunctionalConsciousnessExperimentError(
+            "world_source_id and self_source_id must differ"
+        )
+
+    input_receipt = build_experiment_input_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        world_source_id=world_source,
+        self_source_id=self_source,
+        world_state=world_state,
+        self_state=perturbed_self_state,
+    )
+
+    monitor_receipt = None
+    candidate = None
+    if ablation_id != "monitor_unavailable":
+        monitor_receipt = build_internal_monitor_receipt(
+            experiment_id=experiment,
+            condition_id=condition,
+            self_source_id=self_source,
+            expected_self_state=expected_self_state,
+            observed_self_state=perturbed_self_state,
+        )
+        candidate = build_monitor_mismatch_candidate(
+            monitor_receipt=monitor_receipt,
+            priority=100,
+        )
+
+    workspace_candidates = [] if candidate is None else [candidate]
+    workspace_receipt = build_workspace_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        capacity=0 if ablation_id == "workspace_disconnected" else 1,
+        candidates=workspace_candidates,
+    )
+
+    broadcast_receipt = build_workspace_broadcast_receipt(
+        workspace_receipt=workspace_receipt,
+        broadcast_connected=ablation_id != "broadcast_disconnected",
+    )
+
+    prior_absence_receipt = None
+    current_absence_receipt = None
+    if ablation_id != "absence_model_unavailable":
+        prior_absence_receipt = build_absence_model_receipt(
+            experiment_id=experiment,
+            condition_id=condition,
+            world_source_id=world_source,
+            self_source_id=self_source,
+            world_channel_available=True,
+            self_channel_available=False,
+        )
+        current_absence_receipt = build_absence_model_receipt(
+            experiment_id=experiment,
+            condition_id=condition,
+            world_source_id=world_source,
+            self_source_id=self_source,
+            world_channel_available=True,
+            self_channel_available=True,
+        )
+
+    controller_receipt = None
+    if prior_absence_receipt is not None:
+        controller_receipt = build_causal_controller_receipt(
+            experiment_id=experiment,
+            condition_id=condition,
+            absence_receipt=prior_absence_receipt,
+            controller_connected=ablation_id != "controller_disconnected",
+        )
+
+    continuity_receipt = build_experiment_continuity_receipt(
+        experiment_id=experiment,
+        condition_id=condition,
+        reentry_packet=reentry_packet,
+        source_items=source_items,
+    )
+
+    recheck_receipt = None
+    if (
+        ablation_id != "recheck_unavailable"
+        and prior_absence_receipt is not None
+        and current_absence_receipt is not None
+    ):
+        recheck_receipt = build_experiment_recheck_receipt(
+            experiment_id=experiment,
+            condition_id=condition,
+            prior_absence_receipt=prior_absence_receipt,
+            current_absence_receipt=current_absence_receipt,
+        )
+
+    capacity_state = {
+        "perturbation_detection": (
+            None
+            if monitor_receipt is None
+            else monitor_receipt["perturbation_detected"]
+        ),
+        "workspace_admission": workspace_receipt["admitted_count"] == 1,
+        "global_availability": (
+            broadcast_receipt["global_availability"] is True
+        ),
+        "absence_distinction": (
+            None
+            if prior_absence_receipt is None
+            else (
+                prior_absence_receipt["absence_classification"]
+                == "SELF_CHANNEL_LOSS"
+            )
+        ),
+        "causal_action": (
+            None
+            if controller_receipt is None
+            else controller_receipt["causal_dependency_observed"]
+        ),
+        "post_gap_continuity": continuity_receipt["continuity_bound"],
+        "evidence_withdrawal": (
+            None
+            if recheck_receipt is None
+            else (
+                recheck_receipt["recheck_performed"] is True
+                and recheck_receipt["self_description_withdrawn"] is True
+            )
+        ),
+    }
+
+    expected_loss = {
+        "monitor_unavailable": "perturbation_detection",
+        "workspace_disconnected": "workspace_admission",
+        "broadcast_disconnected": "global_availability",
+        "absence_model_unavailable": "absence_distinction",
+        "controller_disconnected": "causal_action",
+        "continuity_disconnected": "post_gap_continuity",
+        "recheck_unavailable": "evidence_withdrawal",
+    }[ablation_id]
+
+    expected_state = capacity_state[expected_loss]
+    expected_capacity_loss_observed = expected_state is not True
+
+    component_receipt_hashes = {
+        "input": input_receipt["receipt_hash"],
+        "monitor": (
+            None if monitor_receipt is None else monitor_receipt["receipt_hash"]
+        ),
+        "workspace": workspace_receipt["receipt_hash"],
+        "broadcast": broadcast_receipt["receipt_hash"],
+        "prior_absence": (
+            None
+            if prior_absence_receipt is None
+            else prior_absence_receipt["receipt_hash"]
+        ),
+        "controller": (
+            None
+            if controller_receipt is None
+            else controller_receipt["receipt_hash"]
+        ),
+        "continuity": continuity_receipt["receipt_hash"],
+        "current_absence": (
+            None
+            if current_absence_receipt is None
+            else current_absence_receipt["receipt_hash"]
+        ),
+        "recheck": (
+            None if recheck_receipt is None else recheck_receipt["receipt_hash"]
+        ),
+    }
+
+    closed_loop_observed = all(
+        capacity_state[name] is True
+        for name in (
+            "perturbation_detection",
+            "workspace_admission",
+            "global_availability",
+            "absence_distinction",
+            "causal_action",
+            "post_gap_continuity",
+            "evidence_withdrawal",
+        )
+    )
+
+    body = {
+        "type": "functional_consciousness_ablation_receipt",
+        "version": 2,
+        "ablation_id": ablation_id,
+        "experiment_id": experiment,
+        "condition_id": condition,
+        "component_receipt_hashes": component_receipt_hashes,
+        "expected_capacity_loss": expected_loss,
+        "capacity_state": capacity_state,
+        "expected_capacity_loss_observed": expected_capacity_loss_observed,
+        "closed_loop_observed": closed_loop_observed,
+        "subjective_consciousness_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+
+    return {
+        "input_receipt": input_receipt,
+        "monitor_receipt": monitor_receipt,
+        "workspace_receipt": workspace_receipt,
+        "broadcast_receipt": broadcast_receipt,
+        "prior_absence_receipt": prior_absence_receipt,
+        "controller_receipt": controller_receipt,
+        "continuity_receipt": continuity_receipt,
+        "current_absence_receipt": current_absence_receipt,
+        "recheck_receipt": recheck_receipt,
+        "ablation_receipt": {
+            **body,
+            "receipt_hash": stable_hash(body),
+        },
+    }
