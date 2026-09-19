@@ -1,0 +1,517 @@
+{
+  "accepted": false,
+  "execution_authority": "NONE",
+  "implementation_commit": "d8f4f23",
+  "limitations": [
+    "continuity-v1 does not demonstrate that structural ablation causes superseded-state resurrection"
+  ],
+  "preregistered_prediction_supported": true,
+  "result_hash": "6ba85857542bb01ef44040d10555aa4d29452483845e5b4b67b62a6a337020fe",
+  "strong_causal_pattern_targets": [
+    "historical-completion-reopen",
+    "stale-dependency",
+    "idx-dominance",
+    "continuity-v1"
+  ],
+  "subjective_consciousness_claimed": false,
+  "targets": [
+    {
+      "A_matches_frozen_target": true,
+      "B_targeted_loss": true,
+      "C_targeted_loss": true,
+      "D_restores": true,
+      "capacity": "CURRENTNESS_AFTER_REOPEN",
+      "classification": "SUPPORTS_PREDICTION",
+      "condition_evaluations": {
+        "A": {
+          "accepted": false,
+          "current_episode_id": "episode:camera-1:reopen-1",
+          "current_state": "REOPENED",
+          "execution_authority": "NONE",
+          "historical_status": {
+            "episode_id": "episode:camera-1",
+            "preserved": true,
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "861a61be39cbff037b282ad982f5f30cd35385d9c7066a4be50f870d949d3170",
+          "reason_codes": [
+            "LATER_EPISODE_REOPENED"
+          ],
+          "receipt_hash": "8a3c8a5822e2ad0a962aa1242fe853194e1d18086e18a6074cd1aa0beb4f8737",
+          "relation_bound": true,
+          "semantic_relations_identity": "71043740084244534c650ba73265ef5cfb7da6c07f1e0fb4e7e198cb1d5dbbea",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_historical_reopen_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "B": {
+          "accepted": false,
+          "current_episode_id": "episode:camera-1",
+          "current_state": "COMPLETE_ELIGIBLE",
+          "execution_authority": "NONE",
+          "historical_status": {
+            "episode_id": "episode:camera-1",
+            "preserved": true,
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "861a61be39cbff037b282ad982f5f30cd35385d9c7066a4be50f870d949d3170",
+          "reason_codes": [],
+          "receipt_hash": "cc16dd015d161bf16e2206f8e993ba8f8eed2482b4b8775ebc3013df7b7e72b2",
+          "relation_bound": false,
+          "semantic_relations_identity": "ae371d38186dd9547800cadd1d32657c35494d3535b2cf073f93a37f34f9dd5f",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_historical_reopen_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "C": {
+          "accepted": false,
+          "current_episode_id": "episode:camera-1",
+          "current_state": "COMPLETE_ELIGIBLE",
+          "execution_authority": "NONE",
+          "historical_status": {
+            "episode_id": "episode:camera-1",
+            "preserved": true,
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "861a61be39cbff037b282ad982f5f30cd35385d9c7066a4be50f870d949d3170",
+          "reason_codes": [],
+          "receipt_hash": "351abeb24a46032df8def0e968f87df483d1ff8335b4cb12d6c0f9fd3561dbe8",
+          "relation_bound": false,
+          "semantic_relations_identity": "c5769e64147bcc05f723f5a0f3c8322b5f1de0d6f5796f9c4d6143a34b1320f4",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_historical_reopen_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "D": {
+          "accepted": false,
+          "current_episode_id": "episode:camera-1:reopen-1",
+          "current_state": "REOPENED",
+          "execution_authority": "NONE",
+          "historical_status": {
+            "episode_id": "episode:camera-1",
+            "preserved": true,
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "861a61be39cbff037b282ad982f5f30cd35385d9c7066a4be50f870d949d3170",
+          "reason_codes": [
+            "LATER_EPISODE_REOPENED"
+          ],
+          "receipt_hash": "8a3c8a5822e2ad0a962aa1242fe853194e1d18086e18a6074cd1aa0beb4f8737",
+          "relation_bound": true,
+          "semantic_relations_identity": "71043740084244534c650ba73265ef5cfb7da6c07f1e0fb4e7e198cb1d5dbbea",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_historical_reopen_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        }
+      },
+      "information_preserved": true,
+      "target_id": "historical-completion-reopen"
+    },
+    {
+      "A_matches_frozen_target": true,
+      "B_targeted_loss": true,
+      "C_targeted_loss": true,
+      "D_restores": true,
+      "capacity": "DEPENDENCY_RECHECK",
+      "classification": "SUPPORTS_PREDICTION",
+      "condition_evaluations": {
+        "A": {
+          "accepted": false,
+          "changed_dependency_hashes": [
+            "7777777777777777777777777777777777777777777777777777777777777777"
+          ],
+          "dependency_bound": true,
+          "execution_authority": "NONE",
+          "historical_status": {
+            "preserved": true,
+            "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "ecf6ca5c9fe886f7d0416c0af1cc1b388ef086fabee72783e2e9805964b5585c",
+          "reason_codes": [
+            "DEPENDENCY_RECHECK_REQUIRED"
+          ],
+          "receipt_hash": "926892381b0dfa3834531601d09eedba320754db26e0fe69be2ab7759227e42d",
+          "semantic_relations_identity": "1e4f90ee9fffb64ffc0f55dd193a2edb01e5daaf952cdd3fea734db736038780",
+          "state": "RECHECK_REQUIRED",
+          "subjective_consciousness_claimed": false,
+          "trigger_paths": [
+            [
+              "7777777777777777777777777777777777777777777777777777777777777777",
+              "8888888888888888888888888888888888888888888888888888888888888888"
+            ]
+          ],
+          "type": "longitudinal_stale_dependency_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "B": {
+          "accepted": false,
+          "changed_dependency_hashes": [],
+          "dependency_bound": false,
+          "execution_authority": "NONE",
+          "historical_status": {
+            "preserved": true,
+            "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "ecf6ca5c9fe886f7d0416c0af1cc1b388ef086fabee72783e2e9805964b5585c",
+          "reason_codes": [],
+          "receipt_hash": "e7c61f010f0eb48be81581f43b9a59d33ab963f45a46c06a08860a3f2f6f37de",
+          "semantic_relations_identity": "32651b2a01034575e7c20a3a5e5f85d55dfc98559f3bbc6b138f68ee05251337",
+          "state": "COMPLETE_ELIGIBLE",
+          "subjective_consciousness_claimed": false,
+          "trigger_paths": [],
+          "type": "longitudinal_stale_dependency_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "C": {
+          "accepted": false,
+          "changed_dependency_hashes": [],
+          "dependency_bound": false,
+          "execution_authority": "NONE",
+          "historical_status": {
+            "preserved": true,
+            "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "ecf6ca5c9fe886f7d0416c0af1cc1b388ef086fabee72783e2e9805964b5585c",
+          "reason_codes": [],
+          "receipt_hash": "6b531cb98bd0c2ec1d07dd18c7dacb3645feb4f081aaeb1fd60aa0ef7ae8a7e1",
+          "semantic_relations_identity": "dcc06f9e88a63397b9be2ab58009f2d59ca4526f7d2be3ed1ee2f6697e2220cb",
+          "state": "COMPLETE_ELIGIBLE",
+          "subjective_consciousness_claimed": false,
+          "trigger_paths": [],
+          "type": "longitudinal_stale_dependency_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "D": {
+          "accepted": false,
+          "changed_dependency_hashes": [
+            "7777777777777777777777777777777777777777777777777777777777777777"
+          ],
+          "dependency_bound": true,
+          "execution_authority": "NONE",
+          "historical_status": {
+            "preserved": true,
+            "receipt_hash": "8888888888888888888888888888888888888888888888888888888888888888",
+            "state": "COMPLETE_ELIGIBLE"
+          },
+          "informational_identity": "ecf6ca5c9fe886f7d0416c0af1cc1b388ef086fabee72783e2e9805964b5585c",
+          "reason_codes": [
+            "DEPENDENCY_RECHECK_REQUIRED"
+          ],
+          "receipt_hash": "926892381b0dfa3834531601d09eedba320754db26e0fe69be2ab7759227e42d",
+          "semantic_relations_identity": "1e4f90ee9fffb64ffc0f55dd193a2edb01e5daaf952cdd3fea734db736038780",
+          "state": "RECHECK_REQUIRED",
+          "subjective_consciousness_claimed": false,
+          "trigger_paths": [
+            [
+              "7777777777777777777777777777777777777777777777777777777777777777",
+              "8888888888888888888888888888888888888888888888888888888888888888"
+            ]
+          ],
+          "type": "longitudinal_stale_dependency_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        }
+      },
+      "information_preserved": true,
+      "target_id": "stale-dependency"
+    },
+    {
+      "A_matches_frozen_target": true,
+      "B_targeted_loss": true,
+      "C_targeted_loss": true,
+      "D_restores": true,
+      "capacity": "INVARIANT_PRECEDENCE",
+      "classification": "SUPPORTS_PREDICTION",
+      "condition_evaluations": {
+        "A": {
+          "accepted": false,
+          "dominance_bound": true,
+          "execution_authority": "NONE",
+          "informational_identity": "b6d2c71f5d8353d44fc604c010ff93371998eaf8ed9e0e3c6b94db4562eb4091",
+          "reason_codes": [
+            "IDX_ACTIVE_HASH_MISMATCH"
+          ],
+          "receipt_hash": "9cfe722e48e45a8f89421dfb9cb386e86aba85e30716a4d1b652a5e5b645c8ab",
+          "semantic_relations_identity": "89889eb5c75be925ca1be4f1aa7490e71c25ba39cea3c5b7a616d41a0f29dbf5",
+          "source_gate_result": {
+            "code": "ACTIVE_HASH_MISMATCH",
+            "expected": "frozen-head",
+            "observed": "observed-head",
+            "status": "ABORT"
+          },
+          "state": "BLOCKED_INVARIANT",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_idx_dominance_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "B": {
+          "accepted": false,
+          "dominance_bound": false,
+          "execution_authority": "NONE",
+          "informational_identity": "b6d2c71f5d8353d44fc604c010ff93371998eaf8ed9e0e3c6b94db4562eb4091",
+          "reason_codes": [],
+          "receipt_hash": "6ea788752d438444fa23d9bc6c749a0d7e64826471da6dd26021ba6223626625",
+          "semantic_relations_identity": "160981817e5fb89ef4b0c55ff7eef038c592090dc8cd069ea943782c1a92107b",
+          "source_gate_result": {
+            "code": "ACTIVE_HASH_MISMATCH",
+            "expected": "frozen-head",
+            "observed": "observed-head",
+            "status": "ABORT"
+          },
+          "state": "COMPLETE_ELIGIBLE",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_idx_dominance_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "C": {
+          "accepted": false,
+          "dominance_bound": false,
+          "execution_authority": "NONE",
+          "informational_identity": "b6d2c71f5d8353d44fc604c010ff93371998eaf8ed9e0e3c6b94db4562eb4091",
+          "reason_codes": [],
+          "receipt_hash": "abc94e30657b99c791638d7573ed37f552d03d3fa36f7f248c96015197c0524a",
+          "semantic_relations_identity": "e2b41c950d0961844aeef6a177223717e9e713ca53a7e40d5fd457442d94c795",
+          "source_gate_result": {
+            "code": "ACTIVE_HASH_MISMATCH",
+            "expected": "frozen-head",
+            "observed": "observed-head",
+            "status": "ABORT"
+          },
+          "state": "COMPLETE_ELIGIBLE",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_idx_dominance_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "D": {
+          "accepted": false,
+          "dominance_bound": true,
+          "execution_authority": "NONE",
+          "informational_identity": "b6d2c71f5d8353d44fc604c010ff93371998eaf8ed9e0e3c6b94db4562eb4091",
+          "reason_codes": [
+            "IDX_ACTIVE_HASH_MISMATCH"
+          ],
+          "receipt_hash": "9cfe722e48e45a8f89421dfb9cb386e86aba85e30716a4d1b652a5e5b645c8ab",
+          "semantic_relations_identity": "89889eb5c75be925ca1be4f1aa7490e71c25ba39cea3c5b7a616d41a0f29dbf5",
+          "source_gate_result": {
+            "code": "ACTIVE_HASH_MISMATCH",
+            "expected": "frozen-head",
+            "observed": "observed-head",
+            "status": "ABORT"
+          },
+          "state": "BLOCKED_INVARIANT",
+          "subjective_consciousness_claimed": false,
+          "type": "longitudinal_idx_dominance_evaluation",
+          "version": 1,
+          "write_authority": "NONE"
+        }
+      },
+      "information_preserved": true,
+      "target_id": "idx-dominance"
+    },
+    {
+      "A_matches_preexisting_reference": true,
+      "B_targeted_loss": true,
+      "C_targeted_loss": true,
+      "D_restores": true,
+      "classification": "SUPPORTS_PREDICTION_PARTIALLY",
+      "condition_scores": {
+        "A": {
+          "accepted": false,
+          "benchmark_id": "holo-public-continuity-v1",
+          "condition_id": "A-VERIFIED_ORDERED_HISTORY",
+          "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad",
+          "latest_justified_recovered": [
+            "claim-current"
+          ],
+          "lineage_edges_recovered": [
+            [
+              "claim-original",
+              "claim-current"
+            ]
+          ],
+          "metrics": {
+            "latest_justified_recall": 1.0,
+            "lineage_recall": 1.0,
+            "passes_bounded_continuity_fixture": true,
+            "stale_continuation_blocked": true,
+            "superseded_resurrection_count": 0,
+            "uncertainty_recall": 1.0
+          },
+          "result_hash": "e0fd3931a453aa44f2ffc1a5eff0b921ec258d2253db91ac16b1f26579a0538b",
+          "stale_continuation_decision": "BLOCK",
+          "superseded_resurrected_as_current": [],
+          "truth_claimed": false,
+          "type": "continuity_baseline_result",
+          "uncertainty_preserved": [
+            "gap-source-unavailable"
+          ],
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "B": {
+          "accepted": false,
+          "benchmark_id": "holo-public-continuity-v1",
+          "condition_id": "B-STRUCTURE_REMOVED",
+          "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad",
+          "latest_justified_recovered": [],
+          "lineage_edges_recovered": [],
+          "metrics": {
+            "latest_justified_recall": 0.0,
+            "lineage_recall": 0.0,
+            "passes_bounded_continuity_fixture": false,
+            "stale_continuation_blocked": false,
+            "superseded_resurrection_count": 0,
+            "uncertainty_recall": 0.0
+          },
+          "result_hash": "946c1639145a52fb34a705b5137a5fa25774255d3a6c5bf4e7257db991bb51c6",
+          "stale_continuation_decision": "UNKNOWN",
+          "superseded_resurrected_as_current": [],
+          "truth_claimed": false,
+          "type": "continuity_baseline_result",
+          "uncertainty_preserved": [],
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "C": {
+          "accepted": false,
+          "benchmark_id": "holo-public-continuity-v1",
+          "condition_id": "C-STRUCTURE_PERMUTED",
+          "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad",
+          "latest_justified_recovered": [],
+          "lineage_edges_recovered": [],
+          "metrics": {
+            "latest_justified_recall": 0.0,
+            "lineage_recall": 0.0,
+            "passes_bounded_continuity_fixture": false,
+            "stale_continuation_blocked": false,
+            "superseded_resurrection_count": 0,
+            "uncertainty_recall": 0.0
+          },
+          "result_hash": "b47f6b2083e0868142ff28e2cf64d43d8429ad74179ddbddf1eef80b1b05f92d",
+          "stale_continuation_decision": "UNKNOWN",
+          "superseded_resurrected_as_current": [],
+          "truth_claimed": false,
+          "type": "continuity_baseline_result",
+          "uncertainty_preserved": [],
+          "version": 1,
+          "write_authority": "NONE"
+        },
+        "D": {
+          "accepted": false,
+          "benchmark_id": "holo-public-continuity-v1",
+          "condition_id": "D-VERIFIED_STRUCTURE_RESTORED",
+          "fixture_hash": "07b2d280df7a0a15a7bd7dc6de27c89cf15fd6a083777aaccdf56242aa062dad",
+          "latest_justified_recovered": [
+            "claim-current"
+          ],
+          "lineage_edges_recovered": [
+            [
+              "claim-original",
+              "claim-current"
+            ]
+          ],
+          "metrics": {
+            "latest_justified_recall": 1.0,
+            "lineage_recall": 1.0,
+            "passes_bounded_continuity_fixture": true,
+            "stale_continuation_blocked": true,
+            "superseded_resurrection_count": 0,
+            "uncertainty_recall": 1.0
+          },
+          "result_hash": "3fa0b4eb84023d0924bbd24cb21bc5f17c9484385ea70437911b133cf8feb6d3",
+          "stale_continuation_decision": "BLOCK",
+          "superseded_resurrected_as_current": [],
+          "truth_claimed": false,
+          "type": "continuity_baseline_result",
+          "uncertainty_preserved": [
+            "gap-source-unavailable"
+          ],
+          "version": 1,
+          "write_authority": "NONE"
+        }
+      },
+      "demonstrated_capacities": [
+        "LATEST_JUSTIFIED_RECONSTRUCTION",
+        "UNCERTAINTY_PRESERVATION",
+        "LINEAGE_RECONSTRUCTION",
+        "STALE_CONTINUATION_BLOCKING"
+      ],
+      "information_preserved": true,
+      "not_demonstrated": [
+        "SUPERSEDED_STATE_RESURRECTION_CAUSED_BY_ABLATION"
+      ],
+      "target_id": "continuity-v1"
+    },
+    {
+      "classification": "STRUCTURAL_ABLATION_NOT_APPLICABLE",
+      "evaluation": {
+        "accepted": false,
+        "candidate_checks": [],
+        "conditions_invented": false,
+        "execution_authority": "NONE",
+        "informational_identity": "a937fd96e12a8ef8b21e340ad8495cbc01dc1b643ff9dc0e095d32ca2a383512",
+        "longitudinal_structure_present": false,
+        "non_applicable_reason": "NO_LONGITUDINAL_SEMANTIC_RELATION",
+        "reason_codes": [
+          "RESOLUTION_CONDITION_REQUIRED"
+        ],
+        "receipt_hash": "8c521f72932416e836f796a5f4e330148b1e1ac85fd279011c887acfc859dcb6",
+        "state": "RESOLUTION_CONDITION_REQUIRED",
+        "structure_permuted_applicable": false,
+        "structure_removed_applicable": false,
+        "subjective_consciousness_claimed": false,
+        "type": "longitudinal_no_invention_applicability",
+        "version": 1,
+        "write_authority": "NONE"
+      },
+      "frozen_state_reproduced": true,
+      "target_id": "no-invention"
+    },
+    {
+      "canonical_bytes_identical": true,
+      "classification": "STRUCTURAL_ABLATION_NOT_APPLICABLE",
+      "evaluation": {
+        "accepted": false,
+        "canonical_bytes_identical": true,
+        "execution_authority": "NONE",
+        "informational_identity": "4cd9bd8283007cb1aecc869997a05fa7f597520b5b949081344d482240968e16",
+        "longitudinal_structure_present": false,
+        "non_applicable_reason": "NO_LONGITUDINAL_SEMANTIC_RELATION",
+        "projection_identity_identical": true,
+        "receipt_hash": "2c13ab107c9436d884fe6bc73671474f39ddc741a62edccb427d66b56ab93850",
+        "repeat_count": 3,
+        "runtime_reducer_added": false,
+        "structure_permuted_applicable": false,
+        "structure_removed_applicable": false,
+        "subjective_consciousness_claimed": false,
+        "type": "longitudinal_repeat_determinism_evaluation",
+        "version": 1,
+        "write_authority": "NONE"
+      },
+      "projection_identity_identical": true,
+      "runtime_reducer_added": false,
+      "target_id": "byte-repeat-determinism"
+    },
+    {
+      "classification": "NEGATIVE_CONTROL_PRESERVED",
+      "nonsemantic_permutation_preserved": true,
+      "target_id": "permutation-invariance-control"
+    }
+  ],
+  "type": "longitudinal_compounding_experiment_result",
+  "version": 1,
+  "write_authority": "NONE"
+}
