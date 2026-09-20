@@ -166,7 +166,7 @@
       "boundary_id": "time-scoped-truth",
       "module": "holosim.time_scoped_truth",
       "implementation_path": "holosim/time_scoped_truth.py",
-      "implementation_sha256": "33cb3c574302d940dd1ec3cd80c870a2f77d095a5359f39a9dd0d2f7a3f593d2",
+      "implementation_sha256": "3d0a1e2048023aaaed622118b5a3a414736cd6d3df5b03c53610265473ffb580",
       "receipts": [
         {
           "type_constant": "TRUTH_RECEIPT_TYPE",
@@ -184,7 +184,7 @@
         }
       ],
       "test_path": "tests/test_time_scoped_truth.py",
-      "test_sha256": "a338990ca265f7886cfe16fd8e18ed2000331f0ea505f869ddd8ded773d0f729"
+      "test_sha256": "6a3e91279d5613c0e7288f8251085ab0b457a16dd03317d319db6b5a4fd167b4"
     },
     {
       "boundary_id": "verified-need-to-result",
@@ -223,5 +223,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "134baa804141fc1daab7d667378c29202b83b87de44a2f3f3d9d0fabb8e1fa02"
+  "register_hash": "d8ff3e7a8966dc853f2338e8a5377f75614d52d984907e2ed6477367f2dcecb9"
 }

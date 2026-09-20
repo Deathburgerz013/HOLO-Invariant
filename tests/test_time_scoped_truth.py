@@ -16,7 +16,7 @@ from holosim.time_scoped_truth import (
 )
 
 
-def _check(check_id="license", outcome="SUPPORTS", status="VERIFIED"):
+def _check(check_id="license", outcome="SUPPORTS", status="VERIFIED", output_state_hash=None):
     if status != "VERIFIED":
         result = {"status": "UNAVAILABLE"}
         expected = {"status": "COMPLETE"}
@@ -71,12 +71,15 @@ def _check(check_id="license", outcome="SUPPORTS", status="VERIFIED"):
         },
     )
 
+    if output_state_hash is None:
+        output_state_hash = stable_hash(
+            {"state": "after", "check": check_id}
+        )
+
     result_binding = bind_check_result(
         check_identity=identity,
         result=execution_receipt["result"],
-        output_state_hash=stable_hash(
-            {"state": "after", "check": check_id}
-        ),
+        output_state_hash=output_state_hash,
     )
 
     return {
@@ -92,7 +95,9 @@ def _check(check_id="license", outcome="SUPPORTS", status="VERIFIED"):
         },
     }
 
+
 def _inputs(*, outcome="SUPPORTS", temporal_scope="AT_OBSERVATION", observed_at="2026-09-03T10:00:00-07:00"):
+    check = _check(outcome=outcome)
     return {
         "claim": {
             "claim_id": "holo.free",
@@ -104,9 +109,9 @@ def _inputs(*, outcome="SUPPORTS", temporal_scope="AT_OBSERVATION", observed_at=
             "environment_id": "github.holo-invariant",
             "observed_at": observed_at,
             "clock_id": "operator.clock",
-            "state_hash": stable_hash({"state": observed_at}),
+            "state_hash": check["result_binding"]["output_state_hash"],
         },
-        "checks": [_check(outcome=outcome)],
+        "checks": [check],
     }
 
 
@@ -121,6 +126,23 @@ def test_verified_support_establishes_true_only_at_observation() -> None:
     assert receipt["global_truth_claimed"] is False
     assert receipt["future_truth_claimed"] is False
     assert verify_time_scoped_truth_receipt(receipt) is True
+
+def test_check_for_different_state_cannot_establish_observation_truth() -> None:
+    inputs = _inputs()
+    inputs["observation"]["state_hash"] = stable_hash(
+        {"state": "different-observation"}
+    )
+
+    assert (
+        inputs["observation"]["state_hash"]
+        != inputs["checks"][0]["result_binding"]["output_state_hash"]
+    )
+
+    with pytest.raises(
+        TimeScopedTruthError,
+        match="observation state",
+    ):
+        build_time_scoped_truth_receipt(**inputs)
 
 
 def test_verified_contradiction_establishes_false_only_at_observation() -> None:
@@ -146,9 +168,10 @@ def test_unavailable_check_keeps_truth_unknown() -> None:
 
 def test_conflicting_verified_checks_keep_truth_unknown() -> None:
     inputs = _inputs()
+    state_hash = inputs["observation"]["state_hash"]
     inputs["checks"] = [
-        _check("support", "SUPPORTS"),
-        _check("contradiction", "CONTRADICTS"),
+        _check("support", "SUPPORTS", output_state_hash=state_hash),
+        _check("contradiction", "CONTRADICTS", output_state_hash=state_hash),
     ]
     receipt = build_time_scoped_truth_receipt(**inputs)
     assert receipt["truth_status"] == "UNKNOWN"
@@ -185,7 +208,11 @@ def test_timestamp_requires_timezone() -> None:
 
 def test_receipt_is_deterministic_under_check_reordering() -> None:
     inputs = _inputs()
-    inputs["checks"] = [_check("a", "SUPPORTS"), _check("b", "SUPPORTS")]
+    state_hash = inputs["observation"]["state_hash"]
+    inputs["checks"] = [
+        _check("a", "SUPPORTS", output_state_hash=state_hash),
+        _check("b", "SUPPORTS", output_state_hash=state_hash),
+    ]
     reversed_inputs = deepcopy(inputs)
     reversed_inputs["checks"].reverse()
     assert build_time_scoped_truth_receipt(**inputs) == (
