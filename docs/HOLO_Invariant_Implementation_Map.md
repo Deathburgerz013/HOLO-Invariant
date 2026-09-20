@@ -4539,3 +4539,73 @@
 | | premises. Stop before treating formal validity as premise   |
 | | truth, soundness, acceptance, or operational authority.     |
 | |}==============================================================|
+| | ANCHORBOUND_VERTICAL_SLICE_DELTA
+| |}==============================================================|
+| | STATUS: PLAYABLE_CANDIDATE_AWAITING_HUMAN_PLAYTEST_AND_REVIEW
+| | BRANCH: feat/anchorbound-vertical-slice
+| | BASE: main@c992020
+| | IMPLEMENTATION: holosim/anchorbound.py
+| | IMPLEMENTATION_SHA256:
+| | 1c04e8b3b138af02e7e1687541065e26e7ed4389251c69fbb047fbc3c249d1b1
+| | FOCUSED_TEST: tests/test_anchorbound.py
+| | FOCUSED_TEST_SHA256:
+| | ea74fbd5c7cea67285431c154d3010923644fbc63fda66099b9dc88ed6a21a3e
+| | PACKAGING: pyproject.toml
+| | PACKAGING_SHA256:
+| | 900316e236b0f8bb0ddf14078e75bfdd7c0fdf8297b63bade7613a9046f9df6e
+| |
+| | CONCRETE_MISSING_FUNCTION:
+| | The repository exposed verified infrastructure but no immediately playable
+| | human-facing simulation demonstrating resets, preserved facts, corrections,
+| | contradictions, and a shared eight-button human/agent action boundary.
+| |
+| | PLAYABLE_VERTICAL_SLICE:
+| | - python -m holosim.anchorbound launches an original four-color 160 by 144
+| | Game Boy-style puzzle window scaled to 640 by 576.
+| | - One deterministic room contains a player, patrolling sentinel, exact key,
+| | movable block, pressure plate, main door, cracked wall, and secret exit.
+| | - Thirty-second loops may end by timeout or manual Select action.
+| | - Discovered SENTINEL_DEFEATED, BLOCK_REMAINS_MOVED, and KEY_RETAINED facts
+| | may be selected one at a time in the anchor menu.
+| | - Sentinel, key, and pressure-plate routes provide distinct main solutions.
+| | - Retaining the key while its base copy respawns creates a visible Rift;
+| | its fixed tick phase toggles the cracked wall and enables the secret exit.
+| | - Title, play, pause, anchor, ordinary victory, and secret victory screens
+| | render without external assets; four square-wave cues are generated at run.
+| |
+| | SIMULATION_BOUNDARY:
+| | - initial_state(), step(state, action), and state_snapshot() are stdlib-only
+| | and do not import pygame during headless simulation.
+| | - NONE, UP, DOWN, LEFT, RIGHT, A, B, START, and SELECT are the only actions.
+| | - State is frozen value data; every transition returns a new GameState.
+| | - Ticks, sentinel movement, loop time, Rift phases, collision, correction,
+| | reset, anchoring, and victory are deterministic and wall-clock independent.
+| | - Pygame remains isolated to rendering, input adaptation, audio, and launch.
+| |
+| | EXECUTION_RECEIPTS:
+| | - Focused ANCHORBOUND tests: 22 passed in 0.11 s.
+| | - Existing suite plus recovery, transfer, calculator, and game tests:
+| |   541 passed in 1.38 s.
+| | - Pygame 2.6.1 dummy video/audio launch-render-exit smoke check: PASS.
+| | - Five 160 by 144 title/play/anchor/Rift/victory frames rendered: PASS.
+| |
+| | PRESERVED_LIMITS:
+| | - Automated tests establish declared mechanics and determinism, not fun,
+| | balance, accessibility, appeal, player skill, or replay motivation.
+| | - Human playtesting on the target Windows environment remains NOT_RUN.
+| | - The vertical slice is one room, not the proposed three-room full game.
+| | - Pygame is an optional game dependency and must be installed explicitly.
+| | - Replay recording, saving, networking, model invocation, ROM generation,
+| | procedural randomness, and external assets are not implemented.
+| | - state_snapshot is an observation interface, not proof of fair play,
+| | authorship, intelligence, or model capability.
+| |
+| | EXTERNAL_REVIEW: PENDING
+| | HUMAN_PLAYTEST: NOT_RUN
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+| | TERMINAL
+| | The first playable ANCHORBOUND vertical slice is implemented. Stop at the
+| | candidate until Windows playtesting, rail validation, and review complete.
+| |}==============================================================|

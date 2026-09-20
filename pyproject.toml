@@ -48,3 +48,6 @@ dev = [
     "jsonschema>=4.23",
     "pytest>=8.0",
 ]
+game = [
+    "pygame>=2.5,<3",
+]
