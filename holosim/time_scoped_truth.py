@@ -13,6 +13,10 @@ import re
 from typing import Any, Mapping, Sequence
 
 from holosim.canonical import stable_hash
+from holosim.verified_directional_check_outcome import (
+    VerifiedDirectionalCheckOutcomeError,
+    build_verified_directional_check_outcome,
+)
 
 
 TRUTH_RECEIPT_TYPE = "time_scoped_truth_state_receipt"
@@ -34,8 +38,11 @@ _OBSERVATION_FIELDS = {
     "observation_id", "environment_id", "observed_at", "clock_id", "state_hash",
 }
 _CHECK_FIELDS = {
-    "check_id", "check_type", "verification_receipt_hash",
-    "verification_status", "outcome",
+    "check_id",
+    "check_type",
+    "execution_receipt",
+    "result_binding",
+    "evaluation_rule",
 }
 _TRUTH_FIELDS = {
     "type", "version", "claim", "observation", "checks", "checks_hash",
@@ -134,44 +141,57 @@ def _normalize_observation(value: Any) -> dict[str, str]:
     }
 
 
-def _normalize_checks(values: Any) -> list[dict[str, str]]:
-    result: list[dict[str, str]] = []
+def _normalize_checks(values: Any) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
     seen: set[str] = set()
+
     for raw in _sequence(values, "checks"):
         item = _closed(raw, _CHECK_FIELDS, "check")
         check_id = _identifier(item["check_id"], "check_id")
+
         if check_id in seen:
             raise TimeScopedTruthError("check_id values must be unique")
         seen.add(check_id)
+
         check_type = item["check_type"]
-        verification_status = item["verification_status"]
-        outcome = item["outcome"]
         if type(check_type) is not str or check_type not in CHECK_TYPES:
             raise TimeScopedTruthError("check_type is invalid")
-        if (
-            type(verification_status) is not str
-            or verification_status not in VERIFICATION_STATUSES
-        ):
-            raise TimeScopedTruthError("verification_status is invalid")
-        if type(outcome) is not str or outcome not in OUTCOMES:
-            raise TimeScopedTruthError("check outcome is invalid")
-        if verification_status != "VERIFIED" and outcome != "UNKNOWN":
-            raise TimeScopedTruthError(
-                "unverified checks must have UNKNOWN outcome"
+
+        execution_receipt = item["execution_receipt"]
+        result_binding = item["result_binding"]
+        evaluation_rule = item["evaluation_rule"]
+
+        try:
+            directional = build_verified_directional_check_outcome(
+                execution_receipt=execution_receipt,
+                result_binding=result_binding,
+                evaluation_rule=evaluation_rule,
             )
+        except VerifiedDirectionalCheckOutcomeError as exc:
+            raise TimeScopedTruthError(
+                f"verification receipt is invalid: {exc}"
+            ) from exc
+
+        if directional["check_id"] != check_id:
+            raise TimeScopedTruthError(
+                "verification receipt check_id mismatch"
+            )
+
         result.append({
             "check_id": check_id,
             "check_type": check_type,
-            "verification_receipt_hash": _sha256(
-                item["verification_receipt_hash"], "verification_receipt_hash"
-            ),
-            "verification_status": verification_status,
-            "outcome": outcome,
+            "execution_receipt": execution_receipt,
+            "result_binding": result_binding,
+            "evaluation_rule": evaluation_rule,
+            "verification_receipt_hash": directional["outcome_hash"],
+            "verification_status": "VERIFIED",
+            "outcome": directional["outcome"],
         })
+
     if not result:
         raise TimeScopedTruthError("at least one check is required")
-    return sorted(result, key=lambda item: item["check_id"])
 
+    return sorted(result, key=lambda item: item["check_id"])
 
 def _derive_truth(claim: Mapping[str, str], checks: Sequence[Mapping[str, str]]):
     if claim["temporal_scope"] == "UNBOUNDED_FUTURE":
@@ -239,10 +259,20 @@ def verify_time_scoped_truth_receipt(receipt: Mapping[str, Any]) -> bool:
     body = {key: value for key, value in receipt.items() if key != "receipt_hash"}
     if stable_hash(body) != supplied_hash:
         raise TimeScopedTruthError("truth receipt hash mismatch")
+    rebuild_checks = [
+        {
+            "check_id": item["check_id"],
+            "check_type": item["check_type"],
+            "execution_receipt": item["execution_receipt"],
+            "result_binding": item["result_binding"],
+            "evaluation_rule": item["evaluation_rule"],
+        }
+        for item in receipt["checks"]
+    ]
     expected = build_time_scoped_truth_receipt(
         claim=receipt["claim"],
         observation=receipt["observation"],
-        checks=receipt["checks"],
+        checks=rebuild_checks,
     )
     if dict(receipt) != expected:
         raise TimeScopedTruthError("truth receipt is internally inconsistent")
