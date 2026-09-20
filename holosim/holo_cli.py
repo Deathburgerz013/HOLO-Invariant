@@ -32,6 +32,10 @@ try:
     from holosim.local_ollama_software_convergence import (
         run_local_ollama_software_convergence,
     )
+    from holosim.lucidity_failure_extraction import (
+        LucidityFailureExtractionError,
+        extract_demonstrated_failures,
+    )
     from holosim.operator_resume_handoff import (
         OperatorResumeHandoffError,
         resume_operator_handoff,
@@ -62,6 +66,10 @@ except ImportError:
     )
     from holosim.local_ollama_software_convergence import (
         run_local_ollama_software_convergence,
+    )
+    from holosim.lucidity_failure_extraction import (
+        LucidityFailureExtractionError,
+        extract_demonstrated_failures,
     )
     from holosim.operator_resume_handoff import (
         OperatorResumeHandoffError,
@@ -758,6 +766,39 @@ def run_idx_check_command(
         return 2
 
 
+def run_lucidity_command(
+    args: argparse.Namespace,
+) -> int:
+    """Extract demonstrated failures from a verified evidence analysis."""
+    try:
+        analysis = json.loads(
+            Path(args.analysis).read_text(encoding="utf-8")
+        )
+        if type(analysis) is not dict:
+            raise TypeError(
+                "analysis JSON must contain an object"
+            )
+
+        receipt = extract_demonstrated_failures(analysis)
+        print(json.dumps(receipt, indent=2))
+        return 0
+
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        TypeError,
+        LucidityFailureExtractionError,
+    ) as error:
+        receipt = {
+            "status": "ERROR",
+            "code": "LUCIDITY_ANALYSIS_INVALID",
+            "error": str(error),
+        }
+        print(json.dumps(receipt, indent=2))
+        return 2
+
+
 def run_local_converge_command(
     args: argparse.Namespace,
 ) -> int:
@@ -1077,6 +1118,17 @@ def main() -> None:
         help="Exact continuity fixture JSON file",
     )
 
+    lucidity_parser = subparsers.add_parser(
+        "lucidity",
+        help="Extract demonstrated failures from evidence analysis",
+    )
+
+    lucidity_parser.add_argument(
+        "--analysis",
+        required=True,
+        help="Verified evidence-analysis receipt JSON file",
+    )
+
     demo_parser = subparsers.add_parser(
         "demo",
         help="Open a disposable verified continuity demonstration",
@@ -1301,6 +1353,11 @@ def main() -> None:
     elif args.command == "benchmark":
         sys.exit(
             run_public_continuity_benchmark(args)
+        )
+
+    elif args.command == "lucidity":
+        sys.exit(
+            run_lucidity_command(args)
         )
 
     elif args.command == "demo":
