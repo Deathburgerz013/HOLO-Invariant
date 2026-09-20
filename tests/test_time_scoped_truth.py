@@ -5,6 +5,8 @@ from copy import deepcopy
 import pytest
 
 from holosim.canonical import stable_hash
+from holosim.check_identity import build_check_identity, bind_check_result
+from holosim.declared_verifier_execution_receipt import execute_declared_verifier
 from holosim.time_scoped_truth import (
     TimeScopedTruthError,
     build_time_scoped_truth_receipt,
@@ -15,14 +17,80 @@ from holosim.time_scoped_truth import (
 
 
 def _check(check_id="license", outcome="SUPPORTS", status="VERIFIED"):
+    if status != "VERIFIED":
+        result = {"status": "UNAVAILABLE"}
+        expected = {"status": "COMPLETE"}
+        mismatch_outcome = "UNKNOWN"
+    elif outcome == "SUPPORTS":
+        result = {"status": "COMPLETE"}
+        expected = {"status": "COMPLETE"}
+        mismatch_outcome = "CONTRADICTS"
+    elif outcome == "CONTRADICTS":
+        result = {"status": "INCOMPLETE"}
+        expected = {"status": "COMPLETE"}
+        mismatch_outcome = "CONTRADICTS"
+    else:
+        result = {"status": "INCOMPLETE"}
+        expected = {"status": "COMPLETE"}
+        mismatch_outcome = "UNKNOWN"
+
+    identity = build_check_identity(
+        check_id=check_id,
+        check_type="environment_snapshot_comparison",
+        subject={"target": f"environment:{check_id}"},
+        reference_ids=[f"reference:{check_id}"],
+        scope={"field": "status"},
+        evidence_references=[f"evidence:{check_id}"],
+        rule_references=[f"rule:{check_id}"],
+        input_state_hash=stable_hash({"state": "before", "check": check_id}),
+    )
+
+    verifier_check_binding = {
+        "type": "declared_verifier_check_identity_binding",
+        "version": 1,
+        "declared_verifier_binding_hash": stable_hash(
+            {"declared": "binding", "check": check_id}
+        ),
+        "verifier_id": "environment_snapshot_comparison",
+        "check_id": identity["check_id"],
+        "check_identity_hash": identity["check_identity_hash"],
+        "execution_claimed": False,
+        "truth_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+    }
+    verifier_check_binding["binding_hash"] = stable_hash(
+        verifier_check_binding
+    )
+
+    execution_receipt = execute_declared_verifier(
+        verifier_check_binding=verifier_check_binding,
+        check_identity=identity,
+        available_verifiers={
+            "environment_snapshot_comparison": lambda _: result
+        },
+    )
+
+    result_binding = bind_check_result(
+        check_identity=identity,
+        result=execution_receipt["result"],
+        output_state_hash=stable_hash(
+            {"state": "after", "check": check_id}
+        ),
+    )
+
     return {
         "check_id": check_id,
         "check_type": "EVIDENCE",
-        "verification_receipt_hash": stable_hash({"check": check_id, "outcome": outcome}),
-        "verification_status": status,
-        "outcome": outcome,
+        "execution_receipt": execution_receipt,
+        "result_binding": result_binding,
+        "evaluation_rule": {
+            "type": "exact_result_match",
+            "expected_result": expected,
+            "match_outcome": "SUPPORTS",
+            "mismatch_outcome": mismatch_outcome,
+        },
     }
-
 
 def _inputs(*, outcome="SUPPORTS", temporal_scope="AT_OBSERVATION", observed_at="2026-09-03T10:00:00-07:00"):
     return {
@@ -87,11 +155,13 @@ def test_conflicting_verified_checks_keep_truth_unknown() -> None:
     assert receipt["status_reason"] == "CONFLICTING_VERIFIED_CHECKS"
 
 
-def test_unverified_directional_outcome_is_rejected() -> None:
+def test_unresolved_directional_outcome_keeps_truth_unknown() -> None:
     inputs = _inputs()
     inputs["checks"] = [_check(status="INVALID")]
-    with pytest.raises(TimeScopedTruthError, match="UNKNOWN outcome"):
-        build_time_scoped_truth_receipt(**inputs)
+    receipt = build_time_scoped_truth_receipt(**inputs)
+    assert receipt["truth_status"] == "UNKNOWN"
+    assert receipt["status_reason"] == "UNRESOLVED_CHECKS_REMAIN"
+    assert receipt["bounded_truth_established"] is False
 
 
 def test_formal_proof_can_support_bounded_truth() -> None:
@@ -199,3 +269,23 @@ def test_rehashed_comparison_change_forgery_is_rejected() -> None:
     comparison["receipt_hash"] = stable_hash(body)
     with pytest.raises(TimeScopedTruthError, match="relation is inconsistent"):
         verify_time_scoped_truth_comparison(comparison)
+
+def test_fabricated_verification_receipt_cannot_establish_truth() -> None:
+    inputs = _inputs()
+    inputs["checks"] = [
+        {
+            "check_id": "fabricated",
+            "check_type": "EVIDENCE",
+            "verification_receipt_hash": stable_hash(
+                {"this": "is not a supplied verification receipt"}
+            ),
+            "verification_status": "VERIFIED",
+            "outcome": "SUPPORTS",
+        }
+    ]
+
+    with pytest.raises(
+        TimeScopedTruthError,
+        match="check fields mismatch",
+    ):
+        build_time_scoped_truth_receipt(**inputs)
