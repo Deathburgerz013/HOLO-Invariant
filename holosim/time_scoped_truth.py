@@ -220,6 +220,16 @@ def build_time_scoped_truth_receipt(
     normalized_claim = _normalize_claim(claim)
     normalized_observation = _normalize_observation(observation)
     normalized_checks = _normalize_checks(checks)
+
+    for check in normalized_checks:
+        if (
+            check["result_binding"]["output_state_hash"]
+            != normalized_observation["state_hash"]
+        ):
+            raise TimeScopedTruthError(
+                "check output state does not match observation state"
+            )
+
     status, reason, established = _derive_truth(normalized_claim, normalized_checks)
     body = {
         "type": TRUTH_RECEIPT_TYPE,
