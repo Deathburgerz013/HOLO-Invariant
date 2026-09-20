@@ -29,6 +29,7 @@ def test_repository_status_comes_from_public_surfaces():
         "idx-check",
         "index",
         "local-converge",
+        "lucidity",
         "operator-summary",
         "replay",
         "resume",
@@ -66,7 +67,7 @@ def test_rendered_status_is_bounded_and_deterministic():
     assert first.endswith(END_MARKER)
 
     assert "Package version | `0.4.9`" in first
-    assert "CLI commands | 17" in first
+    assert "CLI commands | 18" in first
     assert "Public schemas | 3" in first
     assert "MCP tools | 1" in first
     assert "MCP resources | 2" in first
