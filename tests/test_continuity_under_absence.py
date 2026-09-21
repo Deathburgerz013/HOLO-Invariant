@@ -1,3 +1,4 @@
+from holosim.canonical import stable_hash
 from holosim.continuity_under_absence import build_continuity_receipt
 
 
@@ -116,8 +117,11 @@ def test_rehashed_forgery_fails_closed():
     body = {key: value for key, value in receipt.items() if key != "receipt_hash"}
     receipt["receipt_hash"] = stable_hash(body)
 
-    from holosim.continuity_under_absence import verify_continuity_receipt
-    with pytest.raises(Exception, match="internally inconsistent"):
+    from holosim.continuity_under_absence import (
+        ContinuityUnderAbsenceError,
+        verify_continuity_receipt,
+    )
+    with pytest.raises(ContinuityUnderAbsenceError, match="internally inconsistent"):
         verify_continuity_receipt(receipt)
 
 
@@ -142,3 +146,76 @@ def test_reconstruction_requires_verified_external_evidence():
     with pytest.raises(ContinuityUnderAbsenceError, match="external evidence"):
         reconstruct_continuity(receipt, external_evidence=None)
 
+
+
+def test_environment_may_change_during_observer_absence():
+    prior = {"environment": "present", "value": 1}
+    current = {"environment": "present", "value": 7}
+
+    receipt = build_continuity_receipt(
+        prior_state=prior,
+        current_state=current,
+        observer_present_before=True,
+        observer_present_after=False,
+    )
+
+    assert receipt["observer_present_after"] is False
+    assert receipt["prior_state"] != receipt["current_state"]
+    assert receipt["prior_state_hash"] != receipt["current_state_hash"]
+    assert receipt["current_state"]["environment"] == "present"
+
+
+def test_observer_absence_does_not_rewrite_prior_state():
+    prior = {"environment": "present", "value": 1}
+    current = {"environment": "present", "value": 7}
+
+    receipt = build_continuity_receipt(
+        prior_state=prior,
+        current_state=current,
+        observer_present_before=True,
+        observer_present_after=False,
+    )
+
+    assert receipt["prior_state"] == prior
+    assert receipt["prior_state_hash"] == stable_hash(prior)
+    assert receipt["current_state"] == current
+    assert receipt["current_state_hash"] == stable_hash(current)
+
+
+def test_absence_does_not_authorize_inventing_missing_state():
+    prior = {"environment": "present", "value": 1}
+    current = {"environment": "present", "value": 7}
+
+    receipt = build_continuity_receipt(
+        prior_state=prior,
+        current_state=current,
+        observer_present_before=True,
+        observer_present_after=False,
+    )
+
+    assert receipt["continuity_claimed"] is False
+    assert receipt["truth_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+
+
+def test_absence_interval_remains_unknown_without_external_evidence():
+    prior = {"environment": "present", "value": 1}
+    current = {"environment": "present", "value": 7}
+
+    receipt = build_continuity_receipt(
+        prior_state=prior,
+        current_state=current,
+        observer_present_before=True,
+        observer_present_after=False,
+    )
+
+    from holosim.continuity_under_absence import (
+        ContinuityUnderAbsenceError,
+        reconstruct_continuity,
+    )
+
+    import pytest
+    with pytest.raises(ContinuityUnderAbsenceError, match="external evidence"):
+        reconstruct_continuity(receipt, external_evidence=None)
