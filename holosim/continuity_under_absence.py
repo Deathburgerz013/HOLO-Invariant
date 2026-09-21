@@ -6,6 +6,10 @@ from typing import Any, Mapping
 
 from holosim.canonical import stable_hash
 
+from holosim.environment_invariant_receipts import (
+    EnvironmentInvariantReceiptError,
+    verify_environment_invariant_receipt,
+)
 
 class ContinuityUnderAbsenceError(ValueError):
     """Raised when continuity evidence is malformed or unverifiable."""
@@ -105,8 +109,28 @@ def reconstruct_continuity(
             "continuity reconstruction requires verified external evidence"
         )
 
+    try:
+        verify_environment_invariant_receipt(external_evidence)
+    except EnvironmentInvariantReceiptError as exc:
+        raise ContinuityUnderAbsenceError(
+            f"external evidence failed verification: {exc}"
+        ) from exc
+
+    if external_evidence.get("status") != "HELD":
+        raise ContinuityUnderAbsenceError(
+            f"external evidence status is {external_evidence.get('status')!r}; "
+            "reconstruction requires HELD"
+        )
+
+    observed_environment = external_evidence.get("observed_environment")
+
+    if observed_environment != receipt["current_state"]:
+        raise ContinuityUnderAbsenceError(
+            "verified external evidence does not match current state"
+        )
+
     raise ContinuityUnderAbsenceError(
-        "external evidence is not yet supported"
+        "verified external evidence is bound but reconstruction is not yet supported"
     )
 
 
