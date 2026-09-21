@@ -6,6 +6,10 @@ from typing import Any, Mapping
 
 from holosim.canonical import stable_hash
 
+from holosim.environment_invariant_receipts import (
+    EnvironmentInvariantReceiptError,
+    verify_environment_invariant_receipt,
+)
 
 class ContinuityUnderAbsenceError(ValueError):
     """Raised when continuity evidence is malformed or unverifiable."""
@@ -96,6 +100,7 @@ def reconstruct_continuity(
     receipt: Mapping[str, Any],
     *,
     external_evidence: Mapping[str, Any] | None,
+    collection_closed: bool = True,
 ) -> dict[str, Any]:
     """Reconstruct a bounded transition only from verified external evidence."""
     verify_continuity_receipt(receipt)
@@ -105,9 +110,50 @@ def reconstruct_continuity(
             "continuity reconstruction requires verified external evidence"
         )
 
-    raise ContinuityUnderAbsenceError(
-        "external evidence is not yet supported"
-    )
+    if collection_closed is not True:
+        raise ContinuityUnderAbsenceError(
+            "continuity reconstruction requires collection closure"
+        )
+
+    try:
+        verify_environment_invariant_receipt(external_evidence)
+    except EnvironmentInvariantReceiptError as exc:
+        raise ContinuityUnderAbsenceError(
+            f"external evidence failed verification: {exc}"
+        ) from exc
+
+    if external_evidence.get("status") != "HELD":
+        raise ContinuityUnderAbsenceError(
+            f"external evidence status is {external_evidence.get('status')!r}; "
+            "reconstruction requires HELD"
+        )
+
+    observed_environment = external_evidence.get("observed_environment")
+
+    if observed_environment != receipt["current_state"]:
+        raise ContinuityUnderAbsenceError(
+            "verified external evidence does not match current state"
+        )
+
+    return {
+        "type": "bounded_continuity_reconstruction",
+        "version": 1,
+        "prior_state": dict(receipt["prior_state"]),
+        "current_state": dict(receipt["current_state"]),
+        "prior_state_hash": receipt["prior_state_hash"],
+        "current_state_hash": receipt["current_state_hash"],
+        "external_evidence_hash": external_evidence["receipt_hash"],
+        "collection_closed": True,
+        "closure_ready": True,
+        "current_state_verified": True,
+        "absence_interval_observed": False,
+        "absence_interval_reconstructed": False,
+        "continuity_claimed": False,
+        "truth_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
 
 
 
