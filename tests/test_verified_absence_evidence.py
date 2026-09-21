@@ -103,3 +103,64 @@ def test_held_external_evidence_must_match_current_state():
 
     with pytest.raises(ContinuityUnderAbsenceError, match="current state"):
         reconstruct_continuity(receipt, external_evidence=evidence)
+
+
+def test_bound_evidence_does_not_claim_unobserved_interval_closed():
+    receipt = _receipt()
+    evidence = _verified_environment_receipt()
+
+    result = reconstruct_continuity(
+        receipt,
+        external_evidence=evidence,
+        collection_closed=True,
+    )
+
+    assert result["closure_ready"] is True
+    assert result["absence_interval_observed"] is False
+    assert result["absence_interval_reconstructed"] is False
+    assert result["truth_claimed"] is False
+    assert result["accepted"] is False
+
+
+def test_bounded_reconstruction_requires_collection_closure():
+    receipt = _receipt()
+    evidence = _verified_environment_receipt()
+
+    with pytest.raises(ContinuityUnderAbsenceError, match="collection"):
+        reconstruct_continuity(
+            receipt,
+            external_evidence=evidence,
+            collection_closed=False,
+        )
+
+
+def test_closed_bound_evidence_returns_non_authoritative_result():
+    receipt = _receipt()
+    evidence = _verified_environment_receipt()
+
+    result = reconstruct_continuity(
+        receipt,
+        external_evidence=evidence,
+        collection_closed=True,
+    )
+
+    assert result["closure_ready"] is True
+    assert result["accepted"] is False
+    assert result["write_authority"] == "NONE"
+    assert result["execution_authority"] == "NONE"
+    assert result["truth_claimed"] is False
+
+
+def test_closed_bound_result_preserves_unknown_absence_interval():
+    receipt = _receipt()
+    evidence = _verified_environment_receipt()
+
+    result = reconstruct_continuity(
+        receipt,
+        external_evidence=evidence,
+        collection_closed=True,
+    )
+
+    assert result["absence_interval_observed"] is False
+    assert result["absence_interval_reconstructed"] is False
+    assert result["current_state_verified"] is True

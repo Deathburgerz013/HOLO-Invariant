@@ -100,6 +100,7 @@ def reconstruct_continuity(
     receipt: Mapping[str, Any],
     *,
     external_evidence: Mapping[str, Any] | None,
+    collection_closed: bool = True,
 ) -> dict[str, Any]:
     """Reconstruct a bounded transition only from verified external evidence."""
     verify_continuity_receipt(receipt)
@@ -107,6 +108,11 @@ def reconstruct_continuity(
     if external_evidence is None:
         raise ContinuityUnderAbsenceError(
             "continuity reconstruction requires verified external evidence"
+        )
+
+    if collection_closed is not True:
+        raise ContinuityUnderAbsenceError(
+            "continuity reconstruction requires collection closure"
         )
 
     try:
@@ -129,9 +135,25 @@ def reconstruct_continuity(
             "verified external evidence does not match current state"
         )
 
-    raise ContinuityUnderAbsenceError(
-        "verified external evidence is bound but reconstruction is not yet supported"
-    )
+    return {
+        "type": "bounded_continuity_reconstruction",
+        "version": 1,
+        "prior_state": dict(receipt["prior_state"]),
+        "current_state": dict(receipt["current_state"]),
+        "prior_state_hash": receipt["prior_state_hash"],
+        "current_state_hash": receipt["current_state_hash"],
+        "external_evidence_hash": external_evidence["receipt_hash"],
+        "collection_closed": True,
+        "closure_ready": True,
+        "current_state_verified": True,
+        "absence_interval_observed": False,
+        "absence_interval_reconstructed": False,
+        "continuity_claimed": False,
+        "truth_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
 
 
 
