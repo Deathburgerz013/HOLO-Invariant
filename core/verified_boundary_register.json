@@ -129,6 +129,23 @@
       "test_sha256": "6d4c87d8e4575436e9020a8edc406f10f797c5323b83a748a9030e46e9d0a377"
     },
     {
+      "boundary_id": "invariant-failure-extraction",
+      "module": "holosim.invariant_failure_extraction",
+      "implementation_path": "holosim/invariant_failure_extraction.py",
+      "implementation_sha256": "08563f810d158806efcc0d3c46a0e0a5a016a885da140b0b12e4f76b56d915c8",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "holo_invariant_failure_extraction_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_invariant_failure_extraction"
+        }
+      ],
+      "test_path": "tests/test_invariant_failure_extraction.py",
+      "test_sha256": "1c19b11bf44af87d23fedf7496e967d9a086d7d02d43c5a1a58aff4609212090"
+    },
+    {
       "boundary_id": "provider-neutral-observer-transport",
       "module": "holosim.provider_neutral_observer_transport",
       "implementation_path": "holosim/provider_neutral_observer_transport.py",
@@ -223,5 +240,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "d8ff3e7a8966dc853f2338e8a5377f75614d52d984907e2ed6477367f2dcecb9"
+  "register_hash": "048a5be508d3d7580270cf6baeb39d918dc20b58591d298632bed634729f7591"
 }

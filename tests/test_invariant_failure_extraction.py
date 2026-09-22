@@ -126,3 +126,35 @@ def test_stale_invariant_is_not_extracted_as_failure():
 
     with pytest.raises(InvariantFailureExtractionError, match="not FAILED"):
         extract_invariant_failure(receipt)
+
+def test_extracted_failure_propagates_source_change_to_recheck():
+    from holosim.receipt_graph import (
+        RECHECK_REQUIRED,
+        build_receipt_graph,
+        plan_dependency_rechecks,
+    )
+
+    source = _failed_receipt()
+    failure = extract_invariant_failure(source)
+
+    graph = build_receipt_graph([source, failure])
+    plan = plan_dependency_rechecks(graph, [source["receipt_hash"]])
+
+    statuses = {
+        item["receipt_hash"]: item["status"]
+        for item in plan["results"]
+    }
+
+    assert statuses[source["receipt_hash"]] == RECHECK_REQUIRED
+    assert statuses[failure["receipt_hash"]] == RECHECK_REQUIRED
+
+    failure_result = next(
+        item
+        for item in plan["results"]
+        if item["receipt_hash"] == failure["receipt_hash"]
+    )
+
+    assert failure_result["trigger_paths"] == [[
+        source["receipt_hash"],
+        failure["receipt_hash"],
+    ]]
