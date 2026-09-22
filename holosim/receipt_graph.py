@@ -25,6 +25,7 @@ _SINGLE_DEPENDENCY_FIELDS = (
     "proposed_receipt_hash",
     "resulting_receipt_hash",
     "convergence_receipt_hash",
+    "source_receipt_hash",
 )
 _LIST_DEPENDENCY_FIELDS = ("evidence_receipt_hashes",)
 
