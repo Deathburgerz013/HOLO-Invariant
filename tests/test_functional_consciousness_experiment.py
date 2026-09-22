@@ -2123,3 +2123,140 @@ def test_evidence_binding_counterexample_semantic_tampering_fails_closed():
             absence_receipt=absence,
             controller_receipt=controller,
         )
+def test_verified_continuity_carried_notice_changes_later_processing():
+    from holosim.carried_notice import evaluate_carried_notice
+    from holosim.reconstructor import (
+        build_reconstructed_state,
+        validate_reconstructed_state,
+    )
+    from holosim.verified_cold_start_reentry_gateway import (
+        build_verified_cold_start_reentry_packet,
+        validate_verified_cold_start_reentry_packet,
+    )
+
+    source_items = [
+        {
+            "id": "notice-red",
+            "requires": [],
+            "observation": "red",
+            "noticed": True,
+        },
+        {
+            "id": "notice-target",
+            "requires": ["notice-red"],
+            "value": "reencounter red",
+        },
+    ]
+
+    state = build_reconstructed_state(
+        "functional-consciousness-carried-notice",
+        ["notice-target"],
+        source_items,
+    )
+    assert validate_reconstructed_state(state, source_items)
+
+    packet = build_verified_cold_start_reentry_packet(
+        packet_id="functional-consciousness-carried-notice-packet",
+        reconstructed_state=state,
+        source_items=source_items,
+        head_check=_continuity_head_check(),
+        conflicts=[],
+    )
+
+    assert packet["status"] == "READY_FOR_REENTRY"
+    assert packet["gate_decision"] == "ALLOW"
+    assert validate_verified_cold_start_reentry_packet(
+        packet,
+        source_items=source_items,
+    )
+
+    receipt = build_experiment_continuity_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="carried-notice-later-processing",
+        reentry_packet=packet,
+        source_items=source_items,
+    )
+
+    assert verify_experiment_continuity_receipt(
+        receipt,
+        reentry_packet=packet,
+        source_items=source_items,
+    )
+
+    result = evaluate_carried_notice(
+        packet["reconstructed_state"],
+        source_items,
+        "red",
+    )
+
+    assert result["prior_notice_present"] is True
+    assert result["observation_matches_prior_notice"] is True
+    assert result["recognized"] is True
+def test_verified_continuity_without_carried_notice_does_not_change_later_processing():
+    from holosim.carried_notice import evaluate_carried_notice
+    from holosim.reconstructor import (
+        build_reconstructed_state,
+        validate_reconstructed_state,
+    )
+    from holosim.verified_cold_start_reentry_gateway import (
+        build_verified_cold_start_reentry_packet,
+        validate_verified_cold_start_reentry_packet,
+    )
+
+    source_items = [
+        {
+            "id": "observation-red",
+            "requires": [],
+            "observation": "red",
+        },
+        {
+            "id": "observation-target",
+            "requires": ["observation-red"],
+            "value": "reencounter red",
+        },
+    ]
+
+    state = build_reconstructed_state(
+        "functional-consciousness-no-carried-notice",
+        ["observation-target"],
+        source_items,
+    )
+    assert validate_reconstructed_state(state, source_items)
+
+    packet = build_verified_cold_start_reentry_packet(
+        packet_id="functional-consciousness-no-carried-notice-packet",
+        reconstructed_state=state,
+        source_items=source_items,
+        head_check=_continuity_head_check(),
+        conflicts=[],
+    )
+
+    assert packet["status"] == "READY_FOR_REENTRY"
+    assert packet["gate_decision"] == "ALLOW"
+    assert validate_verified_cold_start_reentry_packet(
+        packet,
+        source_items=source_items,
+    )
+
+    receipt = build_experiment_continuity_receipt(
+        experiment_id="functional-consciousness-v1",
+        condition_id="no-carried-notice-later-processing",
+        reentry_packet=packet,
+        source_items=source_items,
+    )
+
+    assert verify_experiment_continuity_receipt(
+        receipt,
+        reentry_packet=packet,
+        source_items=source_items,
+    )
+
+    result = evaluate_carried_notice(
+        packet["reconstructed_state"],
+        source_items,
+        "red",
+    )
+
+    assert result["prior_notice_present"] is False
+    assert result["observation_matches_prior_notice"] is False
+    assert result["recognized"] is False
