@@ -77,10 +77,10 @@ def list_memory_card_generations(
     result: list[dict[str, Any]] = []
 
     for generation_path in _list_generation_paths(path):
-        card = load_memory_card(generation_path)
         generation = int(
             generation_path.stem.split("-", 1)[1]
         )
+        card = load_memory_card_generation(path, generation=generation)
 
         result.append(
             {
@@ -165,6 +165,11 @@ def load_memory_card_generation(
             f"generation does not exist: {generation}"
         )
 
-    card = load_memory_card(target)
+    try:
+        card = load_memory_card(target)
+    except MemoryCardError as exc:
+        raise MemoryCardGenerationError(
+            f"generation failed memory-card validation: {generation}"
+        ) from exc
 
     return deepcopy(card)
