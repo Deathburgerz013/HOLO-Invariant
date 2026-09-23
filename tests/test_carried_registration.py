@@ -1,6 +1,6 @@
-from holosim.carried_notice import (
-    CarriedNoticeError,
-    evaluate_carried_notice,
+from holosim.carried_registration import (
+    CarriedRegistrationError,
+    evaluate_verified_carried_registration,
 )
 from holosim.reconstructor import (
     build_reconstructed_state,
@@ -8,23 +8,23 @@ from holosim.reconstructor import (
 )
 
 
-def _state_with_notice():
+def _state_with_registration():
     sources = [
         {
-            "id": "notice-red",
+            "id": "registration-red",
             "requires": [],
             "observation": "red",
-            "noticed": True,
+            "registered": True,
         },
         {
             "id": "target",
-            "requires": ["notice-red"],
+            "requires": ["registration-red"],
             "value": "reencounter",
         },
     ]
 
     state = build_reconstructed_state(
-        "carried-notice",
+        "carried-registration",
         ["target"],
         sources,
     )
@@ -33,7 +33,7 @@ def _state_with_notice():
     return state, sources
 
 
-def _state_without_notice():
+def _state_without_registration():
     sources = [
         {
             "id": "observation-red",
@@ -48,7 +48,7 @@ def _state_without_notice():
     ]
 
     state = build_reconstructed_state(
-        "carried-notice-control",
+        "carried-registration-control",
         ["target"],
         sources,
     )
@@ -57,52 +57,52 @@ def _state_without_notice():
     return state, sources
 
 
-def test_carried_notice_recognizes_matching_reencounter():
-    state, sources = _state_with_notice()
+def test_carried_registration_recognizes_matching_reencounter():
+    state, sources = _state_with_registration()
 
-    result = evaluate_carried_notice(
+    result = evaluate_verified_carried_registration(
         state,
         sources,
         "red",
     )
 
-    assert result["prior_notice_present"] is True
-    assert result["observation_matches_prior_notice"] is True
+    assert result["prior_registration_present"] is True
+    assert result["observation_matches_prior_registration"] is True
     assert result["recognized"] is True
 
 
-def test_carried_notice_rejects_different_observation():
-    state, sources = _state_with_notice()
+def test_carried_registration_rejects_different_observation():
+    state, sources = _state_with_registration()
 
-    result = evaluate_carried_notice(
+    result = evaluate_verified_carried_registration(
         state,
         sources,
         "blue",
     )
 
-    assert result["prior_notice_present"] is True
-    assert result["observation_matches_prior_notice"] is False
+    assert result["prior_registration_present"] is True
+    assert result["observation_matches_prior_registration"] is False
     assert result["recognized"] is False
 
 
-def test_same_observation_without_notice_is_not_recognized():
-    state, sources = _state_without_notice()
+def test_same_observation_without_registration_is_not_recognized():
+    state, sources = _state_without_registration()
 
-    result = evaluate_carried_notice(
+    result = evaluate_verified_carried_registration(
         state,
         sources,
         "red",
     )
 
-    assert result["prior_notice_present"] is False
-    assert result["observation_matches_prior_notice"] is False
+    assert result["prior_registration_present"] is False
+    assert result["observation_matches_prior_registration"] is False
     assert result["recognized"] is False
 
 
 def test_result_grants_no_authority():
-    state, sources = _state_with_notice()
+    state, sources = _state_with_registration()
 
-    result = evaluate_carried_notice(
+    result = evaluate_verified_carried_registration(
         state,
         sources,
         "red",
@@ -114,12 +114,12 @@ def test_result_grants_no_authority():
 
 
 def test_invalid_reconstructed_state_fails_closed():
-    state, sources = _state_with_notice()
+    state, sources = _state_with_registration()
     state["state_hash"] = "0" * 64
 
     try:
-        evaluate_carried_notice(state, sources, "red")
-    except CarriedNoticeError:
+        evaluate_verified_carried_registration(state, sources, "red")
+    except CarriedRegistrationError:
         pass
     else:
         raise AssertionError("invalid reconstructed state must fail closed")
