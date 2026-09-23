@@ -78,6 +78,23 @@
       "test_sha256": "5af9f6594271e7a2c4a21722742f1eb057164bc8517f85f14008cffb5f8209fb"
     },
     {
+      "boundary_id": "detection-receipts",
+      "module": "holosim.detection_receipts",
+      "implementation_path": "holosim/detection_receipts.py",
+      "implementation_sha256": "2a8cfa31d4ff0decc6d5a5d4d57f317e5cab0e5a857d6cf68a015081c4a33919",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "detection_receipt",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_detection_receipt"
+        }
+      ],
+      "test_path": "tests/test_detection_receipts.py",
+      "test_sha256": "7e7cbb40ca705bccef1df64b79cd8388eea2b031a34031a6286270ec89c0e833"
+    },
+    {
       "boundary_id": "deterministic-boundary-key-maker",
       "module": "holosim.deterministic_boundary_key",
       "implementation_path": "holosim/deterministic_boundary_key.py",
@@ -240,5 +257,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "048a5be508d3d7580270cf6baeb39d918dc20b58591d298632bed634729f7591"
+  "register_hash": "cee616468350153747ddd6c9a7553fb34015585e8e2a7e920273f486164709b1"
 }
