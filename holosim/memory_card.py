@@ -6,6 +6,8 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
+from pathlib import Path
 from typing import Any, Mapping
 
 
@@ -44,7 +46,9 @@ def _canonical(value: Any) -> bytes:
             allow_nan=False,
         ).encode("utf-8")
     except (TypeError, ValueError) as exc:
-        raise MemoryCardError("value is not canonically serializable") from exc
+        raise MemoryCardError(
+            "value is not canonically serializable"
+        ) from exc
 
 
 def _hash(value: Any) -> str:
@@ -57,10 +61,14 @@ def _utc_now() -> str:
 
 def _validate_card(card: Mapping[str, Any]) -> dict[str, Any]:
     if type(card) is not dict:
-        raise MemoryCardError("memory card must be a plain dictionary")
+        raise MemoryCardError(
+            "memory card must be a plain dictionary"
+        )
 
     if set(card) != _MEMORY_CARD_FIELDS:
-        raise MemoryCardError("memory card fields do not match the expected schema")
+        raise MemoryCardError(
+            "memory card fields do not match the expected schema"
+        )
 
     if card["type"] != MEMORY_CARD_TYPE:
         raise MemoryCardError("invalid memory card type")
@@ -68,46 +76,91 @@ def _validate_card(card: Mapping[str, Any]) -> dict[str, Any]:
     if card["version"] != MEMORY_CARD_VERSION:
         raise MemoryCardError("unsupported memory card version")
 
-    if type(card["card_id"]) is not str or not card["card_id"].strip():
-        raise MemoryCardError("card_id must be a nonempty string")
+    if (
+        type(card["card_id"]) is not str
+        or not card["card_id"].strip()
+    ):
+        raise MemoryCardError(
+            "card_id must be a nonempty string"
+        )
 
-    if type(card["observation_hash"]) is not str or len(card["observation_hash"]) != 64:
-        raise MemoryCardError("observation_hash must be a SHA-256 hex digest")
+    if (
+        type(card["observation_hash"]) is not str
+        or len(card["observation_hash"]) != 64
+    ):
+        raise MemoryCardError(
+            "observation_hash must be a SHA-256 hex digest"
+        )
 
     if type(card["source"]) is not dict:
-        raise MemoryCardError("source must be a plain dictionary")
+        raise MemoryCardError(
+            "source must be a plain dictionary"
+        )
 
-    if type(card["observed_at"]) is not str or not card["observed_at"].strip():
-        raise MemoryCardError("observed_at must be a nonempty string")
+    if (
+        type(card["observed_at"]) is not str
+        or not card["observed_at"].strip()
+    ):
+        raise MemoryCardError(
+            "observed_at must be a nonempty string"
+        )
 
-    if type(card["status"]) is not str or not card["status"].strip():
-        raise MemoryCardError("status must be a nonempty string")
+    if (
+        type(card["status"]) is not str
+        or not card["status"].strip()
+    ):
+        raise MemoryCardError(
+            "status must be a nonempty string"
+        )
 
     if type(card["corrections"]) is not list:
-        raise MemoryCardError("corrections must be a list")
+        raise MemoryCardError(
+            "corrections must be a list"
+        )
 
     if type(card["reobservations"]) is not list:
-        raise MemoryCardError("reobservations must be a list")
+        raise MemoryCardError(
+            "reobservations must be a list"
+        )
 
     if card["accepted"] is not False:
-        raise MemoryCardError("memory cards cannot be accepted")
+        raise MemoryCardError(
+            "memory cards cannot be accepted"
+        )
 
     if card["write_authority"] != "NONE":
-        raise MemoryCardError("memory cards cannot grant write authority")
+        raise MemoryCardError(
+            "memory cards cannot grant write authority"
+        )
 
     if card["execution_authority"] != "NONE":
-        raise MemoryCardError("memory cards cannot grant execution authority")
+        raise MemoryCardError(
+            "memory cards cannot grant execution authority"
+        )
 
     if _hash(card["observation"]) != card["observation_hash"]:
-        raise MemoryCardError("observation hash does not match observation")
+        raise MemoryCardError(
+            "observation hash does not match observation"
+        )
 
-    body = {key: card[key] for key in _MEMORY_CARD_FIELDS if key != "card_hash"}
+    body = {
+        key: card[key]
+        for key in _MEMORY_CARD_FIELDS
+        if key != "card_hash"
+    }
 
-    if type(card["card_hash"]) is not str or len(card["card_hash"]) != 64:
-        raise MemoryCardError("card_hash must be a SHA-256 hex digest")
+    if (
+        type(card["card_hash"]) is not str
+        or len(card["card_hash"]) != 64
+    ):
+        raise MemoryCardError(
+            "card_hash must be a SHA-256 hex digest"
+        )
 
     if _hash(body) != card["card_hash"]:
-        raise MemoryCardError("card hash does not match card contents")
+        raise MemoryCardError(
+            "card hash does not match card contents"
+        )
 
     return deepcopy(card)
 
@@ -125,10 +178,14 @@ def build_memory_card(
     """Build a deterministic, authority-free memory card."""
 
     if type(observation) is not dict:
-        raise MemoryCardError("observation must be a plain dictionary")
+        raise MemoryCardError(
+            "observation must be a plain dictionary"
+        )
 
     if type(source) is not dict:
-        raise MemoryCardError("source must be a plain dictionary")
+        raise MemoryCardError(
+            "source must be a plain dictionary"
+        )
 
     body = {
         "type": MEMORY_CARD_TYPE,
@@ -159,3 +216,182 @@ def verify_memory_card(card: Mapping[str, Any]) -> bool:
 
     _validate_card(card)
     return True
+
+
+def _read_memory_card_json(path: Path) -> dict[str, Any]:
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise MemoryCardError(
+            f"unable to read memory card: {path}"
+        ) from exc
+
+    try:
+        value = json.loads(raw)
+    except (json.JSONDecodeError, TypeError) as exc:
+        raise MemoryCardError(
+            f"memory card is not valid JSON: {path}"
+        ) from exc
+
+    if type(value) is not dict:
+        raise MemoryCardError(
+            "stored memory card must be a plain dictionary"
+        )
+
+    return value
+
+
+def save_memory_card(
+    path: str | Path,
+    card: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Save a verified memory card to a storage slot.
+
+    The card is validated before persistence. The serialized bytes are
+    written to a temporary file, flushed and fsynced, then atomically
+    replaced into the destination slot.
+    """
+
+    validated = _validate_card(card)
+    target = Path(path)
+
+    if target.exists() and not target.is_file():
+        raise MemoryCardError(
+            "memory card path must be a file"
+        )
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    encoded = (
+        json.dumps(
+            validated,
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        )
+        + "\n"
+    ).encode("utf-8")
+
+    temporary = target.with_name(
+        f".{target.name}.tmp-{os.getpid()}"
+    )
+
+    try:
+        with temporary.open("wb") as handle:
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        os.replace(temporary, target)
+
+    except Exception as exc:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+        raise MemoryCardError(
+            f"unable to save memory card: {target}"
+        ) from exc
+
+    loaded = load_memory_card(target)
+
+    if loaded != validated:
+        raise MemoryCardError(
+            "saved memory card does not reconstruct identically"
+        )
+
+    return deepcopy(validated)
+
+
+def load_memory_card(
+    path: str | Path,
+) -> dict[str, Any]:
+    """Load and verify a memory card.
+
+    Loading reconstructs the recorded card. It does not establish that
+    the recorded observation remains current or correct.
+    """
+
+    target = Path(path)
+
+    if not target.exists():
+        raise MemoryCardError(
+            "memory card does not exist"
+        )
+
+    if not target.is_file():
+        raise MemoryCardError(
+            "memory card path must be a file"
+        )
+
+    card = _read_memory_card_json(target)
+
+    _validate_card(card)
+
+    return card
+
+
+def copy_memory_card(
+    source: str | Path,
+    target: str | Path,
+) -> dict[str, Any]:
+    """Copy a memory card while preserving its identity and contents."""
+
+    source_path = Path(source)
+    target_path = Path(target)
+
+    if source_path.absolute() == target_path.absolute():
+        raise MemoryCardError(
+            "copy source and target must be different"
+        )
+
+    card = load_memory_card(source_path)
+
+    return save_memory_card(target_path, card)
+
+
+def delete_memory_card(
+    path: str | Path,
+) -> None:
+    """Delete a memory-card storage slot."""
+
+    target = Path(path)
+
+    if not target.exists():
+        raise MemoryCardError(
+            "memory card does not exist"
+        )
+
+    if not target.is_file():
+        raise MemoryCardError(
+            "memory card path must be a file"
+        )
+
+    try:
+        target.unlink()
+    except OSError as exc:
+        raise MemoryCardError(
+            f"unable to delete memory card: {target}"
+        ) from exc
+
+
+def overwrite_memory_card(
+    path: str | Path,
+    card: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Explicitly replace the contents of an existing card slot.
+
+    This changes the active storage slot. It does not mutate the supplied
+    card and does not rewrite the historical identity contained in that
+    card.
+    """
+
+    target = Path(path)
+
+    if target.exists() and not target.is_file():
+        raise MemoryCardError(
+            "memory card path must be a file"
+        )
+
+    return save_memory_card(target, card)
