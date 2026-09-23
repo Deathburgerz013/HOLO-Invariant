@@ -2124,7 +2124,7 @@ def test_evidence_binding_counterexample_semantic_tampering_fails_closed():
             controller_receipt=controller,
         )
 def test_verified_continuity_carried_notice_changes_later_processing():
-    from holosim.carried_notice import evaluate_carried_notice
+    from holosim.carried_registration import evaluate_verified_carried_registration
     from holosim.reconstructor import (
         build_reconstructed_state,
         validate_reconstructed_state,
@@ -2139,7 +2139,7 @@ def test_verified_continuity_carried_notice_changes_later_processing():
             "id": "notice-red",
             "requires": [],
             "observation": "red",
-            "noticed": True,
+            "registered": True,
         },
         {
             "id": "notice-target",
@@ -2183,17 +2183,17 @@ def test_verified_continuity_carried_notice_changes_later_processing():
         source_items=source_items,
     )
 
-    result = evaluate_carried_notice(
+    result = evaluate_verified_carried_registration(
         packet["reconstructed_state"],
         source_items,
         "red",
     )
 
-    assert result["prior_notice_present"] is True
-    assert result["observation_matches_prior_notice"] is True
+    assert result["prior_registration_present"] is True
+    assert result["observation_matches_prior_registration"] is True
     assert result["recognized"] is True
 def test_verified_continuity_without_carried_notice_does_not_change_later_processing():
-    from holosim.carried_notice import evaluate_carried_notice
+    from holosim.carried_registration import evaluate_verified_carried_registration
     from holosim.reconstructor import (
         build_reconstructed_state,
         validate_reconstructed_state,
@@ -2251,12 +2251,12 @@ def test_verified_continuity_without_carried_notice_does_not_change_later_proces
         source_items=source_items,
     )
 
-    result = evaluate_carried_notice(
+    result = evaluate_verified_carried_registration(
         packet["reconstructed_state"],
         source_items,
         "red",
     )
 
-    assert result["prior_notice_present"] is False
-    assert result["observation_matches_prior_notice"] is False
+    assert result["prior_registration_present"] is False
+    assert result["observation_matches_prior_registration"] is False
     assert result["recognized"] is False
