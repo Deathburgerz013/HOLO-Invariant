@@ -221,7 +221,7 @@ def verify_memory_card(card: Mapping[str, Any]) -> bool:
 def _read_memory_card_json(path: Path) -> dict[str, Any]:
     try:
         raw = path.read_text(encoding="utf-8")
-    except Exception as exc:
+    except OSError as exc:
         raise MemoryCardError(
             f"unable to read memory card: {path}"
         ) from exc
