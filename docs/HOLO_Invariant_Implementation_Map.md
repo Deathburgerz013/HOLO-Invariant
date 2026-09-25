@@ -4633,3 +4633,31 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | ENVIRONMENT_ROUTE_GATE_RECEIPT_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/environment_route_gate.py
+| | FOCUSED_TEST: tests/test_environment_route_gate.py
+| | BASE: main@8c9849b
+| |
+| | IMPLEMENTED:
+| | - One route's declared boolean requirements are checked against one
+| |   structurally valid environmental observation snapshot.
+| | - Status separates observed conflict, observed compatibility, and
+| |   unresolved requirements; scoped unknowns remain unresolved.
+| | - Receipt binds route, requirement basis, check time, snapshot identity,
+| |   and evidence dependencies for later recheck planning.
+| | - A later snapshot creates a distinct result without rewriting the old.
+| | - Receipt replay compares every field with a new evaluation of the
+| |   supplied source snapshot; rehashed forged statuses fail replay.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Snapshot verification checks structure and identity, not physical truth.
+| | - Requirement validity and evidence corrections are supplied externally.
+| | - Dependency planning traces declared hashes; it detects no changes itself.
+| | - Observed compatibility grants neither feasibility nor permission.
+| | - No truth claim, acceptance, or write authority is granted.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
