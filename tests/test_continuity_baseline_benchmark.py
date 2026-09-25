@@ -180,3 +180,24 @@ def test_comparison_requires_exact_same_fixture():
 
     with pytest.raises(ContinuityBaselineBenchmarkError, match="fixture_hash must match"):
         compare_continuity_conditions(baseline=first, candidate=second)
+
+
+def test_comparison_rejects_changed_metrics_with_stale_result_hash():
+    fixture = _fixture()
+    baseline = score_continuity_condition(
+        fixture=fixture,
+        condition_id="baseline",
+        recovered_claim_ids=[],
+        claimed_current_claim_ids=[],
+        preserved_uncertainty_claim_ids=[],
+        reconstructed_lineage_edges=[],
+        stale_continuation_decision="UNKNOWN",
+    )
+    tampered = deepcopy(baseline)
+    tampered["metrics"]["latest_justified_recall"] = 1000.0
+
+    with pytest.raises(
+        ContinuityBaselineBenchmarkError,
+        match="result hash does not match content",
+    ):
+        compare_continuity_conditions(baseline=tampered, candidate=baseline)
