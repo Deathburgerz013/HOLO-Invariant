@@ -206,6 +206,21 @@ def compare_continuity_conditions(
     for name, result in (("baseline", baseline), ("candidate", candidate)):
         if not isinstance(result, Mapping) or result.get("type") != RESULT_TYPE:
             raise ContinuityBaselineBenchmarkError(f"{name} must be a continuity baseline result")
+        body = {
+            key: deepcopy(value)
+            for key, value in result.items()
+            if key != "result_hash"
+        }
+        try:
+            expected_hash = stable_hash(body)
+        except CanonicalValueError as exc:
+            raise ContinuityBaselineBenchmarkError(
+                f"{name} result cannot be canonicalized"
+            ) from exc
+        if result.get("result_hash") != expected_hash:
+            raise ContinuityBaselineBenchmarkError(
+                f"{name} result hash does not match content"
+            )
     if baseline.get("benchmark_id") != candidate.get("benchmark_id"):
         raise ContinuityBaselineBenchmarkError("benchmark_id must match across conditions")
     if baseline.get("fixture_hash") != candidate.get("fixture_hash"):
