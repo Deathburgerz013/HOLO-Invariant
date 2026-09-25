@@ -2,6 +2,8 @@ from copy import deepcopy
 
 import pytest
 
+from holosim.canonical import stable_hash
+
 from holosim.continuity_baseline_benchmark import (
     ContinuityBaselineBenchmarkError,
     build_continuity_benchmark,
@@ -199,5 +201,29 @@ def test_comparison_rejects_changed_metrics_with_stale_result_hash():
     with pytest.raises(
         ContinuityBaselineBenchmarkError,
         match="result hash does not match content",
+    ):
+        compare_continuity_conditions(baseline=tampered, candidate=baseline)
+
+
+def test_comparison_rejects_rehashed_inconsistent_resurrection_count():
+    fixture = _fixture()
+    baseline = score_continuity_condition(
+        fixture=fixture,
+        condition_id="baseline",
+        recovered_claim_ids=[],
+        claimed_current_claim_ids=[],
+        preserved_uncertainty_claim_ids=[],
+        reconstructed_lineage_edges=[],
+        stale_continuation_decision="UNKNOWN",
+    )
+    tampered = deepcopy(baseline)
+    tampered["metrics"]["superseded_resurrection_count"] = 1
+    tampered["result_hash"] = stable_hash(
+        {key: value for key, value in tampered.items() if key != "result_hash"}
+    )
+
+    with pytest.raises(
+        ContinuityBaselineBenchmarkError,
+        match="superseded_resurrection_count does not match",
     ):
         compare_continuity_conditions(baseline=tampered, candidate=baseline)
