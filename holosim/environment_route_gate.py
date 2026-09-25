@@ -40,13 +40,24 @@ def _requirements(value: Any) -> dict[str, bool]:
 
 
 def _marked_unknown(snapshot: Mapping[str, Any], field: str) -> bool:
+    marked = False
     for category in ("unknown", "missing", "assumptions", "uncertainty"):
         for item in snapshot[category]:
+            if category in ("unknown", "missing") and not (
+                isinstance(item, Mapping)
+                and any(
+                    isinstance(item.get(key), str) and item[key].strip()
+                    for key in ("field", "signal")
+                )
+            ):
+                raise RouteGateError(
+                    f"{category} marker must identify a field or signal"
+                )
             if isinstance(item, Mapping) and (
                 item.get("field") == field or item.get("signal") == field
             ):
-                return True
-    return False
+                marked = True
+    return marked
 
 
 def evaluate_route_gate(

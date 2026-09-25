@@ -4646,6 +4646,8 @@
 | |   structurally valid environmental observation snapshot.
 | | - Status separates observed conflict, observed compatibility, and
 | |   unresolved requirements; scoped unknowns remain unresolved.
+| | - Unknown or missing markers without a field/signal identity are
+| |   rejected rather than silently treated as irrelevant.
 | | - Receipt binds route, requirement basis, check time, snapshot identity,
 | |   and evidence dependencies for later recheck planning.
 | | - A later snapshot creates a distinct result without rewriting the old.
