@@ -4609,3 +4609,27 @@
 | | The first playable ANCHORBOUND vertical slice is implemented. Stop at the
 | | candidate until Windows playtesting, rail validation, and review complete.
 | |}==============================================================|
+
+| | BOUNDED_EVIDENCE_WEIGHT_RECEIPT_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/evidence_weight.py
+| | FOCUSED_TEST: tests/test_evidence_weight.py
+| | BASE: main@b4f9afc
+| |
+| | IMPLEMENTED:
+| | - A single observation updates prior odds for two stated alternatives.
+| | - Weight in bits is the log2 likelihood ratio; posterior uses prior odds.
+| | - Missing likelihoods stay UNRESOLVED with no weight or posterior.
+| | - Prior and likelihood model references are retained in the receipt.
+| | - Receipt hash binds the contents for later consistency checks.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Binary exhaustiveness is assumed explicitly, not independently verified.
+| | - Prior, likelihoods, and source reports are caller supplied, unverified.
+| | - Dependence and multi-observation combination are not established.
+| | - A hash establishes content identity, not empirical validity.
+| | - Receipt claims no truth, acceptance, or write authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
