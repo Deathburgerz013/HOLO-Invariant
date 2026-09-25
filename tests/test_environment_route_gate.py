@@ -11,7 +11,7 @@ from holosim.environment_route_gate import RouteGateError, evaluate_route_gate, 
 EVIDENCE = 'a' * 64
 
 
-def _snapshot(observed=None, *, observed_at='2026-09-25T20:00:00Z', unknown=None):
+def _snapshot(observed=None, *, observed_at='2026-09-25T20:00:00Z', unknown=None, missing=None):
     return build_snapshot(
         episode_id='episode:door', environment_id='building:1',
         check_id='check:lock', check_purpose='Read lock state',
@@ -19,7 +19,7 @@ def _snapshot(observed=None, *, observed_at='2026-09-25T20:00:00Z', unknown=None
         clock_id='clock:1', observed_at=observed_at,
         feature_schema_id='schema:door-v1',
         observed={'door_locked': True} if observed is None else observed,
-        missing=[], unknown=[] if unknown is None else unknown,
+        missing=[] if missing is None else missing, unknown=[] if unknown is None else unknown,
         assumptions=[], falsifiers=[], evidence_sha256=[EVIDENCE],
         provenance={'source_id': 'lock-sensor:1'}, uncertainty=[],
     )
@@ -108,6 +108,19 @@ def test_receipt_replay_rejects_rehashed_status_forgery():
     result = verify_route_gate_receipt(forged, snapshot)
     assert result['valid'] is False
     assert any('status' in violation for violation in result['violations'])
+
+
+@pytest.mark.parametrize('category, marker', [
+    ('unknown', 'door_locked'),
+    ('unknown', {'claim': 'door_locked'}),
+    ('missing', 'door_locked'),
+])
+def test_unstructured_unknown_marker_cannot_claim_compatibility(category, marker):
+    snapshot = _snapshot(
+        observed={'door_locked': False}, **{category: [marker]}
+    )
+    with pytest.raises(RouteGateError, match=f'{category} marker'):
+        _evaluate(snapshot)
 
 
 def test_receipt_replay_rejects_different_snapshot_and_extra_fields():
