@@ -221,6 +221,19 @@ def compare_continuity_conditions(
             raise ContinuityBaselineBenchmarkError(
                 f"{name} result hash does not match content"
             )
+        resurrected = _unique_texts(
+            result.get("superseded_resurrected_as_current"),
+            f"{name} superseded_resurrected_as_current",
+        )
+        metrics = result.get("metrics")
+        if (
+            not isinstance(metrics, Mapping)
+            or type(metrics.get("superseded_resurrection_count")) is not int
+            or metrics["superseded_resurrection_count"] != len(resurrected)
+        ):
+            raise ContinuityBaselineBenchmarkError(
+                f"{name} superseded_resurrection_count does not match scored fields"
+            )
     if baseline.get("benchmark_id") != candidate.get("benchmark_id"):
         raise ContinuityBaselineBenchmarkError("benchmark_id must match across conditions")
     if baseline.get("fixture_hash") != candidate.get("fixture_hash"):
