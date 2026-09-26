@@ -534,6 +534,8 @@ the implementation commit immediately preceding this documentation update is:
 main commit: d398302
 ```
 
+Retained historical post-merge observation:
+
 Older verification evidence remains useful for the exact commits it names. For
 example,
 [`main-5ba72ed-pytest-receipt.json`](docs/verification/main-5ba72ed-pytest-receipt.json)
