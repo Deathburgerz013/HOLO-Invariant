@@ -125,3 +125,64 @@ def bind_compression_observer_runtime(
     }
 
     return {**body, "receipt_id": _hash(body)}
+
+
+def verify_compression_observer_runtime_binding_receipt(
+    *,
+    receipt: Mapping[str, Any],
+    coverage_receipt: Mapping[str, Any],
+    observers: Mapping[str, Callable[..., Any]],
+) -> dict[str, Any]:
+    """Replay a runtime binding receipt against the supplied observers.
+
+    Verification re-derives the complete binding receipt from the verified
+    coverage receipt and current runtime observer mapping.
+
+    It does not execute observers, establish observation truth, establish
+    compression preservation, authorize compression, or grant authority.
+    """
+
+    violations: list[str] = []
+    expected_id: str | None = None
+    actual_id = (
+        receipt.get("receipt_id")
+        if isinstance(receipt, Mapping)
+        else None
+    )
+
+    try:
+        if not isinstance(receipt, Mapping):
+            raise CompressionObserverRuntimeBindingError(
+                "receipt must be a mapping"
+            )
+
+        expected = bind_compression_observer_runtime(
+            coverage_receipt=coverage_receipt,
+            observers=observers,
+        )
+        expected_id = expected["receipt_id"]
+
+        if set(receipt) != set(expected):
+            violations.append("receipt fields do not match replay")
+
+        for field, value in expected.items():
+            if field in receipt and receipt[field] != value:
+                violations.append(f"{field} does not match replay")
+
+    except (
+        CompressionObserverRuntimeBindingError,
+        TypeError,
+        ValueError,
+    ) as exc:
+        violations.append(str(exc))
+
+    return {
+        "valid": not violations,
+        "receipt_id": actual_id,
+        "expected_receipt_id": expected_id,
+        "violations": violations,
+        "observers_executed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
