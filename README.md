@@ -481,6 +481,49 @@ Long-horizon performance across different models, providers, machines, and
 operators remains an empirical question. Historical commits and retained
 artifacts make those experiments comparable over time.
 
+## Architectural Authority Hierarchy
+
+**The kernel governs; continuity carries; research tests.**
+
+HOLO-Invariant separates three layers with a one-way authority boundary:
+
+1. **Executable invariant layer**  
+   Verifies evidence, identity, correction, contradiction, reconstruction,
+   currentness, authorization, and transitions. This is the only layer that
+   can confer or reject operational status under its declared contracts.
+
+2. **Continuity protocol**  
+   Spine, IDX, handoff, recovery, absence, and reopening preserve and transfer
+   verifiable relationships across observers, sessions, and time. Continuity
+   artifacts do not independently establish truth, currentness, acceptance,
+   identity persistence, or operational authority.
+
+3. **Research layer**  
+   Functional-consciousness and observer experiments test explicit,
+   falsifiable hypotheses. Research artifacts are evidence-producing
+   experiments, not runtime authority and not claims of subjective experience.
+
+**Continuity artifacts preserve verifiable relationships between states; they
+do not establish persistence of a mind, consciousness, identity, truth, or
+authority.**
+
+The dependency direction is deliberate:
+
+`research / continuity → evidence → invariant verification → bounded status`
+
+Never:
+
+`research / continuity → truth or authority`
+
+A Spine may carry a relationship. An experiment may produce evidence. A later
+observation may satisfy a declared condition. None of those facts alone grants
+permission to accept, mutate, execute, promote, or reopen anything.
+
+Verification is not authorization.
+Persistence is not truth.
+Continuity is not identity.
+Research is not authority.
+
 ## License
 
 MIT. See [`holosim/LICENSE`](holosim/LICENSE).
