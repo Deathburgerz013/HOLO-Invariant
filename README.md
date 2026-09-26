@@ -68,6 +68,82 @@ HOLO is not a model, agent, vector database, or autonomous authority. It is a
 set of deterministic boundaries for evidence, identity, replay, correction,
 branching, validation, authorization, and bounded software work.
 
+
+## Architectural authority hierarchy
+
+**The kernel governs; continuity carries; research tests.**
+
+HOLO-Invariant separates three layers with a one-way authority boundary:
+
+1. **Executable invariant layer**
+   Verifies supplied evidence under declared contracts: identity, correction,
+   contradiction, reconstruction, currentness, authorization, and transitions.
+   This is the only layer that can confer or reject bounded operational status
+   under those contracts.
+
+2. **Continuity protocol**
+   Spine, IDX, handoff, recovery, absence, environment episodes, and reopening
+   preserve and transfer verifiable relationships across observers, sessions,
+   environments, and time. These artifacts can carry evidence into invariant
+   checks; they cannot independently establish truth, currentness, acceptance,
+   persistence of identity, or operational authority.
+
+3. **Research layer**
+   Functional-consciousness and observer experiments test explicit,
+   falsifiable hypotheses. Research artifacts may produce evidence for later
+   checks, but they are not runtime authority and are not claims of subjective
+   experience.
+
+The dependency direction is deliberate:
+
+```text
+research / continuity
+        |
+        v
+supplied evidence + declared contract
+        |
+        v
+executable invariant verification
+        |
+        v
+bounded status
+        |
+        v
+separate authorization where an effect requires it
+```
+
+Never:
+
+```text
+research / continuity -> truth, currentness, or authority
+```
+
+**Currentness is computed, not declared.** Given supplied evidence and a
+declared contract, the applicable verifier or gate determines the bounded
+status it is designed to check. HOLO does not independently discover the
+authoritative state of the world when the required evidence has not been
+supplied.
+
+**Identity is not authority.** Hashes and receipts establish bounded identity
+and lineage under their declared encodings and schemas. They do not by
+themselves establish truth, authorship, relevance, acceptance, permission, or
+execution authority.
+
+**Higher layers cannot promote themselves.** A Spine may carry a relationship.
+An experiment may produce evidence. A later observation may satisfy a declared
+condition. None of those facts alone grants permission to accept, mutate,
+execute, promote, or reopen anything.
+
+> Continuity artifacts preserve verifiable relationships between states; they
+> do not establish persistence of a mind, consciousness, identity, truth, or
+> authority.
+
+Verification is not authorization.
+Persistence is not truth.
+Continuity is not identity.
+Research is not authority.
+
+
 <!-- HOLO:STATUS:START -->
 ## Generated public status
 
@@ -238,23 +314,56 @@ Every adapter is tested against the same hostile cases:
 4. Branching preserves the parent.
 5. External effects require separately verifiable authorization.
 
-## Environment episodes
+## Environment episodes and change over time
 
-Completion is scoped to an observed window, not declared forever.
+Completion is scoped to an observed window, not declared forever. Historical
+completion remains valid for the window it actually describes; later evidence
+is evaluated against that exact boundary rather than silently rewriting it.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Observing
     Observing --> Complete: completion certificate
     Complete --> Complete: no verified difference
-    Complete --> Reopened: later trigger evidence
+    Complete --> Compared: later observation
+    Compared --> Complete: condition not satisfied
+    Compared --> ReopenEligible: declared condition satisfied
+    ReopenEligible --> Authorized: exact-target external authorization
+    Authorized --> Reopened: separate reopen operation
     Reopened --> Observing: distinct successor episode
 ```
 
+The current path separates each question:
+
+```text
+bounded completion
+  -> exact terminal boundary
+  -> later snapshot comparison
+  -> comparison identity
+  -> completion/comparison binding
+  -> declared reopen-condition evaluation
+  -> immutable reopen receipt
+  -> exact-target operational authorization
+  -> authorized reopen binding
+```
+
 `environment_completion_evaluator.py` emits bounded completion certificates.
+`environment_completion_comparison_binding.py` requires the later comparison
+to begin at the completed episode's exact terminal snapshot and `window_end`.
+`environment_reopen_condition.py` evaluates a declared condition against that
+same comparison identity without authorizing a reopen.
 `environment_episode_reopen_receipt.py` preserves the completed parent while
-binding later trigger evidence to a distinct successor episode. A reopen does
-not rewrite the earlier window or grant mutation authority.
+binding later trigger evidence to a distinct successor episode.
+`authorized_environment_episode_reopen.py` then binds a satisfied condition,
+the verified reopen receipt, and a separate external authorization for the
+exact reopen target.
+
+Even the authorized binding does not execute the reopen or mutate canonical
+state. The current implementation records
+`authorization_consumed: false`, `reopen_executed: false`,
+`accepted: false`, `write_authority: "NONE"`, and
+`execution_authority: "NONE"`. Authorization and execution therefore remain
+separate boundaries.
 
 ## Bounded software convergence
 
@@ -396,7 +505,7 @@ complete inventory.
 | Correction and uncertainty | `correction.py`, `correction_cycle.py`, `uncertainty_ledger.py`, `interpretation.py` | Preserve originals, bind corrections, and retain unresolved conflict. |
 | Reconstruction | `reconstruction_benchmark.py`, `reconstructor.py`, `recovery.py`, `recovery_runner.py` | Measure and test what survives across handoffs. |
 | Continuity gating | `continuity_compliance.py`, `continuity_head_binding.py`, `continuity_current_gate.py` | Build handoffs, bind them to verified heads, and fail closed. |
-| Environment evaluation | `environment_snapshot.py`, `environment_snapshot_comparator.py`, `environment_completion_evaluator.py`, `environment_episode_reopen_receipt.py` | Observe windows, compare state, declare bounded completion, and reopen immutably. |
+| Environment evaluation | `environment_snapshot.py`, `environment_snapshot_comparator.py`, `environment_completion_evaluator.py`, `environment_completion_comparison_binding.py`, `environment_reopen_condition.py`, `environment_episode_reopen_receipt.py`, `authorized_environment_episode_reopen.py` | Observe bounded windows, bind later comparisons to exact completed boundaries, evaluate reopen conditions, preserve immutable parents, and keep reopen authorization separate from execution. |
 | Transformations | `bounded_transformation_engine.py`, `transition_receipt.py`, `state_transfer.py` | Apply bounded changes and verify exact receipt boundaries. |
 | Software work | `software_builder.py`, `software_converger.py`, `software_project_orchestrator.py`, `bounded_python_workspace_verifier.py` | Propose, apply, test, compare, and stop. |
 | Local model path | `local_ollama_adapter.py`, `local_ollama_capability_proposer.py`, `local_ollama_software_convergence.py` | Use local model output as bounded software proposals. |
@@ -416,18 +525,23 @@ Run the complete test suite:
 python -m pytest -q
 ```
 
-Retained historical post-merge observation:
+Retained verification observations are commit-bound rather than treated as
+timeless repository claims. The latest locally observed full-suite result for
+the implementation commit immediately preceding this documentation update is:
 
 ```text
-1065 passed, 3 skipped
-main commit: 5ba72ed
+3026 passed, 4 skipped
+main commit: d398302
 ```
 
-Evidence is preserved in the
-[`main-5ba72ed-pytest-receipt.json`](docs/verification/main-5ba72ed-pytest-receipt.json) receipt and its separately
-hashed [`main-5ba72ed-pytest.txt`](docs/verification/main-5ba72ed-pytest.txt) raw output. The
-receipt is observational and grants no acceptance, truth, write, or execution
-authority.
+Older verification evidence remains useful for the exact commits it names. For
+example,
+[`main-5ba72ed-pytest-receipt.json`](docs/verification/main-5ba72ed-pytest-receipt.json)
+and its separately hashed
+[`main-5ba72ed-pytest.txt`](docs/verification/main-5ba72ed-pytest.txt)
+remain historical evidence for `5ba72ed`; they are not silently promoted into
+evidence for later commits. Verification observations grant no acceptance,
+truth, write, or execution authority.
 
 Run the integrated CLI self-test:
 
@@ -472,57 +586,22 @@ Automated assistants must follow [`AGENTS.md`](AGENTS.md). In particular:
 
 ## Project status
 
-HOLO-Invariant is an active experimental engineering project. Its strongest
-claims are executable and testable: exact schemas, deterministic identities,
-append-only lineage, fail-closed gates, bounded mutations, replay resistance,
-and explicit authority separation.
+HOLO-Invariant is an active experimental engineering project. The repository
+is expected to evolve, but later additions remain subordinate to the same
+declared boundaries rather than retroactively changing what older evidence
+established.
 
-Long-horizon performance across different models, providers, machines, and
-operators remains an empirical question. Historical commits and retained
-artifacts make those experiments comparable over time.
+Its strongest claims are executable and testable: exact schemas, deterministic
+identities, append-only lineage, correction and contradiction relations,
+fail-closed currentness gates, bounded completion windows, exact-boundary
+reopening, target-bound authorization, bounded mutations, replay resistance,
+and explicit separation of evidence, status, authority, and execution.
 
-## Architectural Authority Hierarchy
+Long-horizon performance across different models, providers, machines,
+environments, and operators remains an empirical question. Historical commits,
+fixtures, receipts, and retained artifacts make those experiments comparable
+over time without requiring old observations to be rewritten.
 
-**The kernel governs; continuity carries; research tests.**
-
-HOLO-Invariant separates three layers with a one-way authority boundary:
-
-1. **Executable invariant layer**  
-   Verifies evidence, identity, correction, contradiction, reconstruction,
-   currentness, authorization, and transitions. This is the only layer that
-   can confer or reject operational status under its declared contracts.
-
-2. **Continuity protocol**  
-   Spine, IDX, handoff, recovery, absence, and reopening preserve and transfer
-   verifiable relationships across observers, sessions, and time. Continuity
-   artifacts do not independently establish truth, currentness, acceptance,
-   identity persistence, or operational authority.
-
-3. **Research layer**  
-   Functional-consciousness and observer experiments test explicit,
-   falsifiable hypotheses. Research artifacts are evidence-producing
-   experiments, not runtime authority and not claims of subjective experience.
-
-**Continuity artifacts preserve verifiable relationships between states; they
-do not establish persistence of a mind, consciousness, identity, truth, or
-authority.**
-
-The dependency direction is deliberate:
-
-`research / continuity → evidence → invariant verification → bounded status`
-
-Never:
-
-`research / continuity → truth or authority`
-
-A Spine may carry a relationship. An experiment may produce evidence. A later
-observation may satisfy a declared condition. None of those facts alone grants
-permission to accept, mutate, execute, promote, or reopen anything.
-
-Verification is not authorization.
-Persistence is not truth.
-Continuity is not identity.
-Research is not authority.
 
 ## License
 
