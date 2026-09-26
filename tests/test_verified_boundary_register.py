@@ -196,7 +196,7 @@ def test_committed_json_is_canonical_data_not_generated_authority() -> None:
 
 def test_discovery_finds_current_versioned_receipt_boundaries() -> None:
     discovered = discover_receipt_boundaries(root=ROOT)
-    assert len(discovered) == 31
+    assert len(discovered) == 32
     paths = {item["implementation_path"] for item in discovered}
     assert "holosim/environment_route_gate.py" in paths
     assert "holosim/functional_awareness_loop.py" in paths
@@ -210,7 +210,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
     assert result["status"] == "INCOMPLETE"
     assert result["counts"] == {
         "REGISTERED": 14,
-        "UNREGISTERED": 17,
+        "UNREGISTERED": 18,
         "STALE": 0,
     }
     assert [
@@ -221,6 +221,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
         "holosim/bounded_contributor_attribution.py",
         "holosim/bounded_repository_compression_evaluator.py",
         "holosim/bounded_transformation_engine.py",
+        "holosim/compression_observer_coverage.py",
         "holosim/environment_episode_reopen_receipt.py",
         "holosim/environment_invariant_receipts.py",
         "holosim/environment_route_gate.py",
