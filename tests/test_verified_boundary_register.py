@@ -196,7 +196,7 @@ def test_committed_json_is_canonical_data_not_generated_authority() -> None:
 
 def test_discovery_finds_current_versioned_receipt_boundaries() -> None:
     discovered = discover_receipt_boundaries(root=ROOT)
-    assert len(discovered) == 37
+    assert len(discovered) == 40
     paths = {item["implementation_path"] for item in discovered}
     assert "holosim/environment_route_gate.py" in paths
     assert "holosim/functional_awareness_loop.py" in paths
@@ -210,7 +210,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
     assert result["status"] == "INCOMPLETE"
     assert result["counts"] == {
         "REGISTERED": 14,
-        "UNREGISTERED": 23,
+        "UNREGISTERED": 26,
         "STALE": 0,
     }
     assert [
@@ -218,6 +218,7 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
         for item in result["results"]
         if item["status"] == "UNREGISTERED"
     ] == [
+        "holosim/authorized_environment_episode_reopen.py",
         "holosim/bounded_baseline_content_identity.py",
         "holosim/bounded_contradiction_challenge.py",
         "holosim/bounded_contributor_attribution.py",
@@ -227,8 +228,10 @@ def test_completeness_preserves_current_unregistered_baseline() -> None:
         "holosim/compression_observer_coverage.py",
         "holosim/compression_observer_runtime_binding.py",
         "holosim/current_observation_challenge_binding.py",
+        "holosim/environment_completion_comparison_binding.py",
         "holosim/environment_episode_reopen_receipt.py",
         "holosim/environment_invariant_receipts.py",
+        "holosim/environment_reopen_condition.py",
         "holosim/environment_route_gate.py",
         "holosim/fact_identity.py",
         "holosim/functional_consciousness_experiment.py",
