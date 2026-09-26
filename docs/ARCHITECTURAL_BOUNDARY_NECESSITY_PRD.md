@@ -55,8 +55,32 @@ At minimum, candidate architectures must be tested against:
 8. superseded evidence resurfacing as current
 9. research evidence attempting runtime promotion
 10. continuity artifacts attempting to confer truth or authority
+11. correction adds constraints but does not reduce the declared mismatch
 
 Additional checks may be added only when their distinguishing purpose is stated.
+
+### Post-preregistration amendment: repair gain
+
+This check was added after the initial preregistration at commit `20dd464`.
+
+Its distinguishing purpose is to test whether additional correction machinery
+produces verified progress toward a declared condition rather than merely adding
+constraints or additional rejection paths.
+
+A repair gain exists only when the observed post-correction state reduces the
+declared mismatch relative to the pre-correction state while preserving
+previously satisfied declared conditions.
+
+For countable conditions:
+
+    unsatisfied_conditions_after < unsatisfied_conditions_before
+
+A correction that adds constraints, receipts, or rejection paths without
+reducing the declared mismatch does not establish repair gain.
+
+This amendment does not alter the existing NECESSARY, REDUNDANT, or UNRESOLVED
+classifications and does not grant truth, acceptance, currentness, or
+operational authority.
 
 ## Classification
 
