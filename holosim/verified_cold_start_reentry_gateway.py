@@ -23,6 +23,8 @@ from holosim.reconstructor import (
 
 PACKET_TYPE = "verified_cold_start_reentry_packet"
 PACKET_VERSION = 1
+COMPARISON_TYPE = "cross_observer_reentry_comparison"
+COMPARISON_VERSION = 1
 
 
 class VerifiedColdStartReentryError(ValueError):
@@ -190,4 +192,101 @@ def validate_verified_cold_start_reentry_packet(
         raise VerifiedColdStartReentryError(
             "packet does not match its reconstructed state and head evidence"
         )
+    return True
+
+
+def compare_observer_reentry_packets(
+    *,
+    left: Mapping[str, Any],
+    left_source_items: Sequence[Mapping[str, Any]],
+    right: Mapping[str, Any],
+    right_source_items: Sequence[Mapping[str, Any]],
+    left_observer_id: str,
+    right_observer_id: str,
+) -> dict[str, Any]:
+    """Compare two independently validated packets at the same verified head.
+
+    Observer IDs are caller-supplied labels, not authenticated identities. A match
+    establishes byte-level agreement in the bounded reconstruction, not truth or
+    permission to update a lineage. Disagreement is an explicit gateway conflict.
+    """
+    left_id = _required_text(left_observer_id, "left_observer_id")
+    right_id = _required_text(right_observer_id, "right_observer_id")
+    if left_id == right_id:
+        raise VerifiedColdStartReentryError("observer labels must differ")
+    validate_verified_cold_start_reentry_packet(left, source_items=left_source_items)
+    validate_verified_cold_start_reentry_packet(right, source_items=right_source_items)
+
+    left_state = left["reconstructed_state"]
+    right_state = right["reconstructed_state"]
+    left_head = left["head_check"]
+    right_head = right["head_check"]
+    same_scope = (
+        left_state["reference"] == right_state["reference"]
+        and left_state["target_ids"] == right_state["target_ids"]
+        and left_head["current_head_hash"] == right_head["current_head_hash"]
+        and left_head["current_head_idx"] == right_head["current_head_idx"]
+    )
+    reasons: list[str] = []
+    conflicts: list[dict[str, Any]] = []
+    if left["status"] != "READY_FOR_REENTRY" or right["status"] != "READY_FOR_REENTRY":
+        status = "BLOCKED_INPUT"
+        reasons.append("input_packet_not_ready")
+    elif not same_scope:
+        status = "BLOCKED_SCOPE"
+        reasons.append("reconstruction_scope_or_head_differs")
+    elif left["reconstructed_state_hash"] != right["reconstructed_state_hash"]:
+        status = "BLOCKED_CONFLICT"
+        reasons.append("reconstructed_states_disagree")
+        conflicts.append({
+            "id": "cross-observer-reconstruction-conflict",
+            "left_observer_id": left_id,
+            "right_observer_id": right_id,
+            "left_state_hash": left["reconstructed_state_hash"],
+            "right_state_hash": right["reconstructed_state_hash"],
+        })
+    else:
+        status = "MATCHED"
+
+    body = {
+        "type": COMPARISON_TYPE,
+        "version": COMPARISON_VERSION,
+        "left_observer_id": left_id,
+        "right_observer_id": right_id,
+        "left_packet_hash": left["packet_hash"],
+        "right_packet_hash": right["packet_hash"],
+        "left_state_hash": left["reconstructed_state_hash"],
+        "right_state_hash": right["reconstructed_state_hash"],
+        "status": status,
+        "reasons": reasons,
+        "conflicts": conflicts,
+        "truth_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "comparison_hash": stable_hash(body)}
+
+
+def validate_observer_reentry_comparison(
+    comparison: Mapping[str, Any],
+    *,
+    left: Mapping[str, Any],
+    left_source_items: Sequence[Mapping[str, Any]],
+    right: Mapping[str, Any],
+    right_source_items: Sequence[Mapping[str, Any]],
+) -> bool:
+    """Regenerate the comparison from both original packets and source items."""
+    if type(comparison) is not dict:
+        raise VerifiedColdStartReentryError("comparison must be a plain dictionary")
+    expected = compare_observer_reentry_packets(
+        left=left,
+        left_source_items=left_source_items,
+        right=right,
+        right_source_items=right_source_items,
+        left_observer_id=comparison.get("left_observer_id"),
+        right_observer_id=comparison.get("right_observer_id"),
+    )
+    if comparison != expected:
+        raise VerifiedColdStartReentryError("comparison does not match its evidence")
     return True

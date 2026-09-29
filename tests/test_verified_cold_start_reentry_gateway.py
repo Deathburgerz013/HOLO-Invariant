@@ -12,6 +12,8 @@ from holosim.reconstructor import build_reconstructed_state
 from holosim.verified_cold_start_reentry_gateway import (
     VerifiedColdStartReentryError,
     build_verified_cold_start_reentry_packet,
+    compare_observer_reentry_packets,
+    validate_observer_reentry_comparison,
     validate_verified_cold_start_reentry_packet,
 )
 
@@ -191,3 +193,93 @@ def test_tampered_ready_status_cannot_force_reentry():
             forged,
             source_items=SOURCE_ITEMS,
         )
+
+
+def _comparison(left, right, *, right_items=SOURCE_ITEMS):
+    return compare_observer_reentry_packets(
+        left=left,
+        left_source_items=SOURCE_ITEMS,
+        right=right,
+        right_source_items=right_items,
+        left_observer_id="observer-a",
+        right_observer_id="observer-b",
+    )
+
+
+def test_matching_independent_packets_do_not_grant_truth_or_authority():
+    left = _packet()
+    right = build_verified_cold_start_reentry_packet(
+        packet_id="other-observer-packet",
+        reconstructed_state=_state(),
+        source_items=SOURCE_ITEMS,
+        head_check=_head_check(),
+        conflicts=[],
+    )
+    comparison = _comparison(left, right)
+
+    assert comparison["status"] == "MATCHED"
+    assert comparison["conflicts"] == []
+    assert comparison["truth_claimed"] is False
+    assert comparison["accepted"] is False
+    assert comparison["write_authority"] == "NONE"
+    assert comparison["execution_authority"] == "NONE"
+    assert validate_observer_reentry_comparison(
+        comparison, left=left, left_source_items=SOURCE_ITEMS,
+        right=right, right_source_items=SOURCE_ITEMS,
+    ) is True
+
+
+def test_disagreement_is_explicit_and_blocks_existing_gateway():
+    changed_items = deepcopy(SOURCE_ITEMS)
+    changed_items[0]["value"] = "stop current work"
+    left = _packet()
+    right = build_verified_cold_start_reentry_packet(
+        packet_id="other-observer-packet",
+        reconstructed_state=_state(changed_items),
+        source_items=changed_items,
+        head_check=_head_check(),
+        conflicts=[],
+    )
+    comparison = _comparison(left, right, right_items=changed_items)
+    blocked = _packet(conflicts=comparison["conflicts"])
+
+    assert comparison["status"] == "BLOCKED_CONFLICT"
+    assert comparison["conflicts"][0]["left_state_hash"] == left["reconstructed_state_hash"]
+    assert comparison["conflicts"][0]["right_state_hash"] == right["reconstructed_state_hash"]
+    assert blocked["status"] == "BLOCKED_CONFLICT"
+    assert blocked["gate_decision"] == "BLOCK"
+    assert validate_observer_reentry_comparison(
+        comparison, left=left, left_source_items=SOURCE_ITEMS,
+        right=right, right_source_items=changed_items,
+    ) is True
+
+
+def test_different_head_or_scope_does_not_claim_agreement():
+    left = _packet()
+    other_scope = build_verified_cold_start_reentry_packet(
+        packet_id="other-scope",
+        reconstructed_state=_state(targets=("verified-boundary",)),
+        source_items=SOURCE_ITEMS,
+        head_check=_head_check(),
+        conflicts=[],
+    )
+    assert _comparison(left, other_scope)["status"] == "BLOCKED_SCOPE"
+    stale = _packet(head_check=_head_check(current_hash="head-11", current_idx=11))
+    assert _comparison(left, stale)["status"] == "BLOCKED_INPUT"
+
+
+def test_comparison_rejects_tampering_and_changed_source_items():
+    left = _packet()
+    right = _packet()
+    comparison = _comparison(left, right)
+    forged = deepcopy(comparison)
+    forged["status"] = "BLOCKED_CONFLICT"
+    with pytest.raises(VerifiedColdStartReentryError, match="does not match"):
+        validate_observer_reentry_comparison(
+            forged, left=left, left_source_items=SOURCE_ITEMS,
+            right=right, right_source_items=SOURCE_ITEMS,
+        )
+    changed = deepcopy(SOURCE_ITEMS)
+    changed[0]["value"] = "altered source"
+    with pytest.raises(VerifiedColdStartReentryError, match="reconstructed state"):
+        _comparison(left, right, right_items=changed)
