@@ -4687,3 +4687,28 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | CROSS_OBSERVER_RECONSTRUCTION_CONFLICT_RESEARCH_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/verified_cold_start_reentry_gateway.py
+| | FOCUSED_TEST: tests/test_verified_cold_start_reentry_gateway.py
+| | BASE: main@eb3fc3e
+| |
+| | IMPLEMENTED:
+| | - Two cold-start packets regenerate against their own source items.
+| | - Comparable current-head reconstructions with different state hashes
+| |   produce an explicit conflict for the existing reentry gate to block.
+| | - Different scope or non-ready packets remain blocked; matching states
+| |   are reported only as bounded agreement.
+| | - Comparison replay detects changed packets, sources, and output fields.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Caller-supplied observer labels are not authenticated identities.
+| | - Callers must use the comparison's conflicts when constructing a gate
+| |   packet; this helper does not install a lineage update policy.
+| | - Agreement is not source truth, independence, or consensus authority.
+| | - No truth, acceptance, write, or execution authority is granted.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
