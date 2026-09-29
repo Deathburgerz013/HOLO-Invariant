@@ -11,7 +11,13 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping, Sequence
 
-from holosim.canonical import CanonicalValueError, stable_hash
+from holosim.canonical import (
+    CANONICAL_TYPE,
+    CANONICAL_VERSION,
+    CanonicalValueError,
+    canonical_bytes,
+    stable_hash,
+)
 from holosim.continuity_current_gate import (
     ContinuityCurrentGateError,
     evaluate_continuity_current_gate,
@@ -25,6 +31,8 @@ PACKET_TYPE = "verified_cold_start_reentry_packet"
 PACKET_VERSION = 1
 COMPARISON_TYPE = "cross_observer_reentry_comparison"
 COMPARISON_VERSION = 1
+BUDGET_TYPE = "reentry_packet_byte_budget_check"
+BUDGET_VERSION = 1
 
 
 class VerifiedColdStartReentryError(ValueError):
@@ -289,4 +297,78 @@ def validate_observer_reentry_comparison(
     )
     if comparison != expected:
         raise VerifiedColdStartReentryError("comparison does not match its evidence")
+    return True
+
+
+def evaluate_reentry_packet_budget(
+    *,
+    packet: Mapping[str, Any],
+    source_items: Sequence[Mapping[str, Any]],
+    max_bytes: int,
+) -> dict[str, Any]:
+    """Measure the entire validated packet in canonical UTF-8 bytes.
+
+    This read-only check never trims a packet. Size includes the packet's hashes,
+    conflicts, and all carried items. It excludes this receipt, external source
+    items, and any transport or prompt wrapper. Byte fit does not establish token
+    fit, model comprehension, source truth, or permission to execute. Validation
+    and serialization happen before measurement; this is not a memory allocation
+    limit or a context-window enforcement mechanism.
+    """
+    if type(max_bytes) is not int or max_bytes < 1:
+        raise VerifiedColdStartReentryError("max_bytes must be a positive plain integer")
+    validate_verified_cold_start_reentry_packet(packet, source_items=source_items)
+    size = len(canonical_bytes(packet))
+    fits = size <= max_bytes
+    reasons: list[str] = []
+    if packet["status"] != "READY_FOR_REENTRY":
+        reasons.append("input_packet_not_ready")
+    if not fits:
+        reasons.append("packet_exceeds_byte_budget")
+    if packet["status"] != "READY_FOR_REENTRY":
+        status = "BLOCKED_INPUT"
+    elif not fits:
+        status = "BLOCKED_BUDGET"
+    else:
+        status = "READY_WITHIN_BUDGET"
+    body = {
+        "type": BUDGET_TYPE,
+        "version": BUDGET_VERSION,
+        "serialization_type": CANONICAL_TYPE,
+        "serialization_version": CANONICAL_VERSION,
+        "packet_hash": packet["packet_hash"],
+        "packet_status": packet["status"],
+        "packet_size_bytes": size,
+        "max_bytes": max_bytes,
+        "fits_budget": fits,
+        "status": status,
+        "gate_decision": "BLOCK" if reasons else "ALLOW",
+        "reasons": reasons,
+        "truth_claimed": False,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "budget_check_hash": stable_hash(body)}
+
+
+def validate_reentry_packet_budget_check(
+    check: Mapping[str, Any],
+    *,
+    packet: Mapping[str, Any],
+    source_items: Sequence[Mapping[str, Any]],
+    max_bytes: int,
+) -> bool:
+    """Replay against the original packet, source items, and external budget."""
+    if type(check) is not dict:
+        raise VerifiedColdStartReentryError("budget check must be a plain dictionary")
+    expected = evaluate_reentry_packet_budget(
+        packet=packet, source_items=source_items, max_bytes=max_bytes,
+    )
+    try:
+        matches = canonical_bytes(check) == canonical_bytes(expected)
+    except (CanonicalValueError, UnicodeError, RecursionError) as exc:
+        raise VerifiedColdStartReentryError("budget check is outside canonical JSON") from exc
+    if not matches:
+        raise VerifiedColdStartReentryError("budget check does not match its evidence")
     return True

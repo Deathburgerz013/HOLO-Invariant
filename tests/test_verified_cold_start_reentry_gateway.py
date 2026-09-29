@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from holosim.canonical import stable_hash
+from holosim.canonical import canonical_bytes, stable_hash
 from holosim.continuity_compliance import build_continuity_compliance_contract
 from holosim.continuity_head_binding import (
     build_continuity_head_binding,
@@ -13,7 +13,9 @@ from holosim.verified_cold_start_reentry_gateway import (
     VerifiedColdStartReentryError,
     build_verified_cold_start_reentry_packet,
     compare_observer_reentry_packets,
+    evaluate_reentry_packet_budget,
     validate_observer_reentry_comparison,
+    validate_reentry_packet_budget_check,
     validate_verified_cold_start_reentry_packet,
 )
 
@@ -283,3 +285,142 @@ def test_comparison_rejects_tampering_and_changed_source_items():
     changed[0]["value"] = "altered source"
     with pytest.raises(VerifiedColdStartReentryError, match="reconstructed state"):
         _comparison(left, right, right_items=changed)
+
+
+def test_packet_budget_boundary_blocks_without_truncating_required_state():
+    packet = _packet()
+    before = deepcopy(packet)
+    size = len(canonical_bytes(packet))
+    exact = evaluate_reentry_packet_budget(
+        packet=packet, source_items=SOURCE_ITEMS, max_bytes=size,
+    )
+    overflow = evaluate_reentry_packet_budget(
+        packet=packet, source_items=SOURCE_ITEMS, max_bytes=size - 1,
+    )
+    assert exact["status"] == "READY_WITHIN_BUDGET"
+    assert exact["gate_decision"] == "ALLOW"
+    assert overflow["status"] == "BLOCKED_BUDGET"
+    assert overflow["gate_decision"] == "BLOCK"
+    assert overflow["fits_budget"] is False
+    assert overflow["packet_size_bytes"] == size
+    assert overflow["reasons"] == ["packet_exceeds_byte_budget"]
+    assert packet == before
+    assert exact["truth_claimed"] is False
+    assert exact["accepted"] is False
+    assert exact["write_authority"] == "NONE"
+    assert exact["execution_authority"] == "NONE"
+    assert validate_reentry_packet_budget_check(
+        exact, packet=packet, source_items=SOURCE_ITEMS, max_bytes=size,
+    ) is True
+
+
+def test_budget_counts_utf8_bytes_and_required_uncertainty():
+    items = deepcopy(SOURCE_ITEMS)
+    items[0]["value"] = "\u672a\u78ba\u5b9a"
+    items[0]["uncertainty"] = "\u00e9" * 100
+    packet = build_verified_cold_start_reentry_packet(
+        packet_id="utf8-packet", reconstructed_state=_state(items),
+        source_items=items, head_check=_head_check(), conflicts=[],
+    )
+    encoded = canonical_bytes(packet)
+    character_count = len(encoded.decode("utf-8"))
+    assert len(encoded) > character_count
+    check = evaluate_reentry_packet_budget(
+        packet=packet, source_items=items, max_bytes=character_count,
+    )
+    assert check["packet_size_bytes"] == len(encoded)
+    assert check["status"] == "BLOCKED_BUDGET"
+    assert packet["reconstructed_state"]["carried_items"][0]["uncertainty"] == "\u00e9" * 100
+
+
+def test_large_budget_does_not_clear_conflicts_or_stale_heads():
+    conflict = {"id": "unresolved", "reason": "x" * 5000}
+    packet = _packet(conflicts=[conflict])
+    check = evaluate_reentry_packet_budget(
+        packet=packet, source_items=SOURCE_ITEMS, max_bytes=100_000,
+    )
+    assert check["packet_size_bytes"] == len(canonical_bytes(packet))
+    assert check["fits_budget"] is True
+    assert check["status"] == "BLOCKED_INPUT"
+    assert check["gate_decision"] == "BLOCK"
+    assert packet["conflicts"] == [conflict]
+    stale = _packet(head_check=_head_check(current_hash="head-11", current_idx=11))
+    stale_check = evaluate_reentry_packet_budget(
+        packet=stale, source_items=SOURCE_ITEMS, max_bytes=100_000,
+    )
+    assert stale_check["gate_decision"] == "BLOCK"
+    too_small = evaluate_reentry_packet_budget(
+        packet=packet, source_items=SOURCE_ITEMS, max_bytes=1,
+    )
+    assert too_small["reasons"] == ["input_packet_not_ready", "packet_exceeds_byte_budget"]
+
+
+def test_budget_replay_rejects_rehashed_forgery_and_changed_external_budget():
+    packet = _packet()
+    size = len(canonical_bytes(packet))
+    check = evaluate_reentry_packet_budget(
+        packet=packet, source_items=SOURCE_ITEMS, max_bytes=size - 1,
+    )
+    forged = deepcopy(check)
+    forged["fits_budget"] = True
+    forged["status"] = "READY_WITHIN_BUDGET"
+    forged["gate_decision"] = "ALLOW"
+    forged["reasons"] = []
+    body = {key: value for key, value in forged.items() if key != "budget_check_hash"}
+    forged["budget_check_hash"] = stable_hash(body)
+    with pytest.raises(VerifiedColdStartReentryError, match="does not match"):
+        validate_reentry_packet_budget_check(
+            forged, packet=packet, source_items=SOURCE_ITEMS, max_bytes=size - 1,
+        )
+    with pytest.raises(VerifiedColdStartReentryError, match="does not match"):
+        validate_reentry_packet_budget_check(
+            check, packet=packet, source_items=SOURCE_ITEMS, max_bytes=size,
+        )
+
+
+def test_budget_replay_rejects_a_replacement_packet_with_conflicts_removed():
+    original = _packet(conflicts=[{"id": "unresolved"}])
+    check = evaluate_reentry_packet_budget(
+        packet=original, source_items=SOURCE_ITEMS, max_bytes=100_000,
+    )
+    with pytest.raises(VerifiedColdStartReentryError, match="does not match"):
+        validate_reentry_packet_budget_check(
+            check, packet=_packet(), source_items=SOURCE_ITEMS, max_bytes=100_000,
+        )
+
+
+@pytest.mark.parametrize("field", ["fits_budget", "truth_claimed", "accepted"])
+def test_budget_replay_rejects_boolean_integer_substitution(field):
+    packet = _packet()
+    check = evaluate_reentry_packet_budget(
+        packet=packet, source_items=SOURCE_ITEMS, max_bytes=100_000,
+    )
+    check[field] = int(check[field])
+    with pytest.raises(VerifiedColdStartReentryError, match="does not match"):
+        validate_reentry_packet_budget_check(
+            check, packet=packet, source_items=SOURCE_ITEMS, max_bytes=100_000,
+        )
+
+
+def test_budget_revalidates_source_items_and_packet_status():
+    packet = _packet()
+    changed = deepcopy(SOURCE_ITEMS)
+    changed[0]["value"] = "changed source"
+    with pytest.raises(VerifiedColdStartReentryError, match="reconstructed state"):
+        evaluate_reentry_packet_budget(
+            packet=packet, source_items=changed, max_bytes=100_000,
+        )
+    forged = _packet(head_check=_head_check(current_hash="head-11", current_idx=11))
+    forged["status"] = "READY_FOR_REENTRY"
+    with pytest.raises(VerifiedColdStartReentryError):
+        evaluate_reentry_packet_budget(
+            packet=forged, source_items=SOURCE_ITEMS, max_bytes=100_000,
+        )
+
+
+@pytest.mark.parametrize("budget", [True, False, 0, -1, 1.0, "1000", None])
+def test_packet_budget_rejects_invalid_limits(budget):
+    with pytest.raises(VerifiedColdStartReentryError, match="positive plain integer"):
+        evaluate_reentry_packet_budget(
+            packet=_packet(), source_items=SOURCE_ITEMS, max_bytes=budget,
+        )
