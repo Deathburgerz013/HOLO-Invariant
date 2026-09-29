@@ -4712,3 +4712,31 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | RECONSTRUCTION_PACKET_BYTE_BUDGET_RESEARCH_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/verified_cold_start_reentry_gateway.py
+| | FOCUSED_TEST: tests/test_verified_cold_start_reentry_gateway.py
+| | BASE: main@c531712
+| |
+| | IMPLEMENTED:
+| | - A complete reentry packet regenerates against its source items before
+| |   its full canonical UTF-8 byte size is compared with a declared budget.
+| | - Size includes carried items, uncertainty fields, conflicts, and hashes.
+| | - Overflow blocks without truncation; a fitting packet with unresolved
+| |   conflicts, missing dependencies, or a non-current head remains blocked.
+| | - Replay uses the original packet, sources, and independently supplied
+| |   budget; forged results and replaced packets fail the check.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Byte fit establishes neither token fit nor model comprehension.
+| | - Measurement excludes the receipt, external sources, and prompt wrappers.
+| | - This helper neither retrieves evidence nor discovers omitted requirements.
+| | - Validation and serialization precede measurement; this is not a memory
+| |   allocation limit or automatic context-window enforcement.
+| | - Callers must consume the result; it performs no transport or update.
+| | - No truth, acceptance, write, or execution authority is granted.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
