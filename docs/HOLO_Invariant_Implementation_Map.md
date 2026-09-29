@@ -4663,3 +4663,27 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | SIGNED_ORIGIN_CHECKPOINT_RESEARCH_DELTA
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/signed_origin_checkpoint.py
+| | FOCUSED_TEST: tests/test_signed_origin_checkpoint.py
+| | BASE: main@78d8c1c
+| |
+| | IMPLEMENTED:
+| | - An OpenSSH signature binds one exact candidate Spine byte hash and
+| |   freshly regenerated admitted Spine receipt to a declared signer ID.
+| | - Verification uses a separate caller-supplied allowed-signers policy.
+| | - Changed candidate bytes, a different trusted key, and altered signer
+| |   identity fail the bounded check.
+| |
+| | PRESERVED_BOUNDARY:
+| | - No personal signing key, trust policy, or key rotation is installed.
+| | - The key owner, human authorship, source truth, and current environment
+| |   are not established by a valid signature.
+| | - The checkpoint is research evidence, not IDX admission authority.
+| | - Verification grants no truth, acceptance, write, or execution authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
