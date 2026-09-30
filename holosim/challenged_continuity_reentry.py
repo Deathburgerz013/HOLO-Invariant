@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 from holosim.canonical import stable_hash
+from holosim.current_observation_challenge_binding import (
+    CurrentObservationChallengeBindingError,
+    verify_current_observation_challenge_binding_receipt,
+)
 from holosim.verified_cold_start_reentry_gateway import (
     VerifiedColdStartReentryError,
     validate_verified_cold_start_reentry_packet,
@@ -30,8 +34,13 @@ def evaluate_challenged_continuity_reentry(
     source_items: Sequence[Mapping[str, Any]],
     observation_challenge_binding: Mapping[str, Any],
     challenge_receipt: Mapping[str, Any],
+    current_truth_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Require ordinary reentry readiness plus a bound completed challenge."""
+    """Recheck the supplied observation binding before deciding reentry readiness."""
+    if current_truth_receipt is None:
+        raise ChallengedContinuityReentryError(
+            "current truth receipt is required to verify the binding"
+        )
     try:
         validate_verified_cold_start_reentry_packet(
             reentry_packet,
@@ -75,6 +84,17 @@ def evaluate_challenged_continuity_reentry(
             "binding does not reference supplied challenge"
         )
 
+    try:
+        verify_current_observation_challenge_binding_receipt(
+            observation_challenge_binding,
+            current_truth_receipt=current_truth_receipt,
+            challenge_receipt=challenge_receipt,
+        )
+    except CurrentObservationChallengeBindingError as exc:
+        raise ChallengedContinuityReentryError(
+            f"observation challenge binding is invalid: {exc}"
+        ) from exc
+
     reasons: list[str] = []
 
     if reentry_packet["gate_decision"] != "ALLOW":
@@ -114,7 +134,7 @@ def evaluate_challenged_continuity_reentry(
         "execution_authority": "NONE",
         "interpretation_notice": (
             "ALLOW means only that the supplied verified reentry packet is ready, "
-            "the supplied contradiction challenge is bound to its verified current "
+            "the supplied contradiction challenge is bound to the supplied verified "
             "observation, and the declared completed challenge found no contradiction. "
             "It does not establish global truth, future truth, acceptance, or authority."
         ),
@@ -129,6 +149,7 @@ def verify_challenged_continuity_reentry_receipt(
     source_items: Sequence[Mapping[str, Any]],
     observation_challenge_binding: Mapping[str, Any],
     challenge_receipt: Mapping[str, Any],
+    current_truth_receipt: Mapping[str, Any] | None = None,
 ) -> bool:
     """Regenerate challenged reentry from its evidence and require exact equality."""
     if type(receipt) is not dict:
@@ -177,6 +198,7 @@ def verify_challenged_continuity_reentry_receipt(
         source_items=source_items,
         observation_challenge_binding=observation_challenge_binding,
         challenge_receipt=challenge_receipt,
+        current_truth_receipt=current_truth_receipt,
     )
     if dict(receipt) != expected:
         raise ChallengedContinuityReentryError(
