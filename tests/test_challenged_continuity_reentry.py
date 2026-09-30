@@ -16,7 +16,7 @@ from holosim.reconstructor import build_reconstructed_state
 from holosim.verified_cold_start_reentry_gateway import (
     build_verified_cold_start_reentry_packet,
 )
-from tests.test_current_observation_challenge_binding import _truth
+from tests.test_current_observation_challenge_binding import _receipt, _truth
 from tests.test_verified_cold_start_reentry_gateway import (
     SOURCE_ITEMS,
     _head_check,
@@ -79,12 +79,13 @@ def _bound_inputs(*, challenge_mode="none", target_hash=None, current=True):
     return packet, binding, challenge
 
 
-def _evaluate(packet, binding, challenge):
+def _evaluate(packet, binding, challenge, truth=None):
     return evaluate_challenged_continuity_reentry(
         reentry_packet=packet,
         source_items=SOURCE_ITEMS,
         observation_challenge_binding=binding,
         challenge_receipt=challenge,
+        current_truth_receipt=_truth() if truth is None else truth,
     )
 
 
@@ -196,15 +197,18 @@ def test_composition_is_deterministic_and_does_not_mutate_inputs():
     packet_before = deepcopy(packet)
     binding_before = deepcopy(binding)
     challenge_before = deepcopy(challenge)
+    truth = _truth()
+    truth_before = deepcopy(truth)
 
-    first = _evaluate(packet, binding, challenge)
-    second = _evaluate(packet, binding, challenge)
+    first = _evaluate(packet, binding, challenge, truth=truth)
+    second = _evaluate(packet, binding, challenge, truth=truth)
 
     assert first == second
     assert first["receipt_hash"] == second["receipt_hash"]
     assert packet == packet_before
     assert binding == binding_before
     assert challenge == challenge_before
+    assert truth == truth_before
 
 
 def test_challenged_reentry_receipt_verifies_against_exact_evidence():
@@ -217,6 +221,7 @@ def test_challenged_reentry_receipt_verifies_against_exact_evidence():
         source_items=SOURCE_ITEMS,
         observation_challenge_binding=binding,
         challenge_receipt=challenge,
+        current_truth_receipt=_truth(),
     ) is True
 
 
@@ -239,6 +244,7 @@ def test_rehashed_challenged_reentry_semantic_tamper_is_rejected():
             source_items=SOURCE_ITEMS,
             observation_challenge_binding=binding,
             challenge_receipt=challenge,
+            current_truth_receipt=_truth(),
         )
 
 
@@ -261,6 +267,7 @@ def test_foreign_challenged_reentry_field_is_rejected_even_when_rehashed():
             source_items=SOURCE_ITEMS,
             observation_challenge_binding=binding,
             challenge_receipt=challenge,
+            current_truth_receipt=_truth(),
         )
 
 
@@ -279,4 +286,72 @@ def test_challenged_reentry_receipt_cannot_verify_against_different_evidence():
             source_items=SOURCE_ITEMS,
             observation_challenge_binding=binding,
             challenge_receipt=challenge,
+            current_truth_receipt=_truth(),
         )
+
+
+@pytest.mark.parametrize("changes", [
+    {"status": "BOUND", "identity_matches": True, "binding_complete": True},
+    {"observed_state_hash": "0" * 64},
+    {"challenge_target_state_hash": "0" * 64},
+    {"current_truth_receipt_hash": "0" * 64},
+    {"accepted": True},
+    {"write_authority": "GRANTED"},
+    {"extra": "unbound"},
+])
+def test_rehashed_false_binding_is_rejected_against_observation(changes):
+    packet, binding, challenge = _bound_inputs(target_hash="f" * 64)
+    forged = deepcopy(binding)
+    forged.update(changes)
+    body = dict(forged)
+    body.pop("receipt_hash")
+    forged["receipt_hash"] = stable_hash(body)
+
+    with pytest.raises(ChallengedContinuityReentryError, match="binding is invalid"):
+        _evaluate(packet, forged, challenge)
+
+
+def test_missing_observation_evidence_is_rejected_by_both_entrypoints():
+    packet, binding, challenge = _bound_inputs()
+    receipt = _evaluate(packet, binding, challenge)
+    arguments = dict(
+        reentry_packet=packet, source_items=SOURCE_ITEMS,
+        observation_challenge_binding=binding, challenge_receipt=challenge,
+    )
+    with pytest.raises(ChallengedContinuityReentryError, match="current truth receipt is required"):
+        evaluate_challenged_continuity_reentry(**arguments)
+    with pytest.raises(ChallengedContinuityReentryError, match="current truth receipt is required"):
+        verify_challenged_continuity_reentry_receipt(receipt, **arguments)
+
+
+def test_changed_observation_evidence_is_rejected():
+    packet, binding, challenge = _bound_inputs()
+    truth = _truth()
+    truth["observation"]["state_hash"] = "f" * 64
+    with pytest.raises(ChallengedContinuityReentryError, match="current truth receipt is invalid"):
+        _evaluate(packet, binding, challenge, truth=truth)
+
+
+def test_receipt_replay_rejects_rehashed_false_binding():
+    packet, binding, challenge = _bound_inputs()
+    receipt = _evaluate(packet, binding, challenge)
+    forged = deepcopy(binding)
+    forged["observed_state_hash"] = "f" * 64
+    body = dict(forged)
+    body.pop("receipt_hash")
+    forged["receipt_hash"] = stable_hash(body)
+    with pytest.raises(ChallengedContinuityReentryError, match="binding is invalid"):
+        verify_challenged_continuity_reentry_receipt(
+            receipt, reentry_packet=packet, source_items=SOURCE_ITEMS,
+            observation_challenge_binding=forged, challenge_receipt=challenge,
+            current_truth_receipt=_truth(),
+        )
+
+
+def test_different_valid_observation_receipt_cannot_replace_original():
+    packet, binding, challenge = _bound_inputs()
+    replacement = _receipt(observed_at="2026-09-03T11:00:00-07:00")
+    assert replacement["observation"]["state_hash"] == binding["observed_state_hash"]
+    assert replacement["receipt_hash"] != binding["current_truth_receipt_hash"]
+    with pytest.raises(ChallengedContinuityReentryError, match="binding is invalid"):
+        _evaluate(packet, binding, challenge, truth=replacement)

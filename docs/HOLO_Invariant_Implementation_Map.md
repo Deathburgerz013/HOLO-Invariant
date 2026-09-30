@@ -4740,3 +4740,33 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | CHALLENGED_REENTRY_OBSERVATION_EVIDENCE_CORRECTION
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/challenged_continuity_reentry.py
+| | FOCUSED_TEST: tests/test_challenged_continuity_reentry.py
+| | BASE: main@39823e9
+| |
+| | CORRECTED:
+| | - Rehashed false BOUND flags previously passed the composition gate.
+| | - Evaluation and replay now require current_truth_receipt and use the
+| |   existing observation/challenge verifier to regenerate the binding.
+| | - Missing evidence, altered observation receipts, rehashed false bindings,
+| |   foreign fields, and authority claims are rejected before ALLOW.
+| | - Genuine identity mismatch, contradiction, insufficient search, and
+| |   blocked base reentry retain their existing BLOCK classifications.
+| |
+| | CALLER_UPDATE:
+| | - Pass the original current_truth_receipt to evaluation and replay.
+| | - Omission raises an error; there is no legacy hash-only ALLOW path.
+| |
+| | PRESERVED_BOUNDARY:
+| | - The observation is separately supplied; this correction does not bind
+| |   its state identity to the reconstructed packet or chain head.
+| | - Receipt replay does not freshly observe the environment or prove that
+| |   the declared checks are sufficient, independent, or globally true.
+| | - No truth, acceptance, write, or execution authority is granted.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
