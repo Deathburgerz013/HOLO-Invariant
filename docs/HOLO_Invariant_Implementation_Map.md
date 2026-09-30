@@ -4770,3 +4770,31 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | CHALLENGED_REENTRY_RECONSTRUCTED_IDENTITY_CORRECTION
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/challenged_continuity_reentry.py
+| | FOCUSED_TEST: tests/test_challenged_continuity_reentry.py
+| | BASE: main@8914e13
+| |
+| | CORRECTED:
+| | - A valid observation/challenge pair for another state previously
+| |   accompanied ALLOW for an unrelated reconstructed packet.
+| | - After evidence validation, compare observed_state_hash with the
+| |   validated packet's reconstructed_state_hash; mismatch yields BLOCK.
+| | - Record current_observation_not_bound_to_reconstructed_state without
+| |   clearing existing base, binding, contradiction, or search blocks.
+| | - Replay regenerates the same decision; rehashed false ALLOW is rejected.
+| | - Matching identities remain eligible under the existing checks.
+| |
+| | PRESERVED_BOUNDARY:
+| | - This compares declared state identities; it does not freshly observe
+| |   the environment or prove the checks actually examined that state.
+| | - Reconstruction identity is not chain-head identity; this does not
+| |   prove that the reconstruction belongs to the declared current head.
+| | - No evidence is trimmed or mutated; no new authority is granted.
+| | - The observation/challenge evidence requirements remain unchanged.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

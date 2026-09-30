@@ -16,7 +16,8 @@ from holosim.reconstructor import build_reconstructed_state
 from holosim.verified_cold_start_reentry_gateway import (
     build_verified_cold_start_reentry_packet,
 )
-from tests.test_current_observation_challenge_binding import _receipt, _truth
+from holosim.time_scoped_truth import build_time_scoped_truth_receipt
+from tests.test_current_observation_challenge_binding import _check, _inputs
 from tests.test_verified_cold_start_reentry_gateway import (
     SOURCE_ITEMS,
     _head_check,
@@ -40,6 +41,20 @@ def _packet(*, current=True):
         head_check=head,
         conflicts=[],
     )
+
+
+
+def _receipt(*, state_hash=None, **kwargs):
+    inputs = _inputs(**kwargs)
+    if state_hash is None:
+        state_hash = _packet()["reconstructed_state_hash"]
+    inputs["observation"]["state_hash"] = state_hash
+    inputs["checks"] = [_check(output_state_hash=state_hash)]
+    return build_time_scoped_truth_receipt(**inputs)
+
+
+def _truth():
+    return _receipt()
 
 
 def _challenge(*, state_hash, mode="none"):
@@ -355,3 +370,73 @@ def test_different_valid_observation_receipt_cannot_replace_original():
     assert replacement["receipt_hash"] != binding["current_truth_receipt_hash"]
     with pytest.raises(ChallengedContinuityReentryError, match="binding is invalid"):
         _evaluate(packet, binding, challenge, truth=replacement)
+
+
+@pytest.mark.parametrize("current, mode, other_reasons", [
+    (True, "none", []),
+    (False, "none", ["base_reentry_blocked"]),
+    (True, "contradiction", ["contradiction_found"]),
+    (True, "insufficient", ["contradiction_search_insufficient"]),
+])
+def test_valid_challenge_of_other_state_cannot_allow_reentry(current, mode, other_reasons):
+    packet = _packet(current=current)
+    truth = _receipt(state_hash="f" * 64)
+    challenge = _challenge(state_hash=truth["observation"]["state_hash"], mode=mode)
+    binding = bind_current_observation_to_challenge(
+        current_truth_receipt=truth, challenge_receipt=challenge,
+    )
+    assert binding["status"] == "BOUND"
+    assert binding["observed_state_hash"] != packet["reconstructed_state_hash"]
+    before = deepcopy((packet, truth, challenge, binding))
+    receipt = _evaluate(packet, binding, challenge, truth=truth)
+    assert receipt["decision"] == "BLOCK"
+    assert set(receipt["reasons"]) == set(other_reasons + [
+        "current_observation_not_bound_to_reconstructed_state"
+    ])
+    assert receipt["truth_claimed"] is False
+    assert receipt["accepted"] is False
+    assert receipt["write_authority"] == "NONE"
+    assert receipt["execution_authority"] == "NONE"
+    assert (packet, truth, challenge, binding) == before
+    assert verify_challenged_continuity_reentry_receipt(
+        receipt, reentry_packet=packet, source_items=SOURCE_ITEMS,
+        observation_challenge_binding=binding, challenge_receipt=challenge,
+        current_truth_receipt=truth,
+    ) is True
+    forged = dict(receipt, decision="ALLOW", reasons=[])
+    body = dict(forged)
+    body.pop("receipt_hash")
+    forged["receipt_hash"] = stable_hash(body)
+    with pytest.raises(ChallengedContinuityReentryError, match="does not match supplied evidence"):
+        verify_challenged_continuity_reentry_receipt(
+            forged, reentry_packet=packet, source_items=SOURCE_ITEMS,
+            observation_challenge_binding=binding, challenge_receipt=challenge,
+            current_truth_receipt=truth,
+        )
+
+
+def test_valid_replacement_reconstruction_cannot_reuse_other_state_challenge():
+    packet, binding, challenge = _bound_inputs()
+    sources = deepcopy(SOURCE_ITEMS)
+    sources[0]["value"] = "different current work"
+    state = build_reconstructed_state("cold-start", ["active-goal"], sources)
+    replacement = build_verified_cold_start_reentry_packet(
+        packet_id=packet["packet_id"], reconstructed_state=state,
+        source_items=sources, head_check=packet["head_check"], conflicts=[],
+    )
+    assert replacement["gate_decision"] == "ALLOW"
+    assert replacement["reconstructed_state_hash"] != binding["observed_state_hash"]
+    receipt = evaluate_challenged_continuity_reentry(
+        reentry_packet=replacement, source_items=sources,
+        observation_challenge_binding=binding, challenge_receipt=challenge,
+        current_truth_receipt=_truth(),
+    )
+    assert receipt["decision"] == "BLOCK"
+    assert receipt["reasons"] == ["current_observation_not_bound_to_reconstructed_state"]
+    original = _evaluate(packet, binding, challenge)
+    with pytest.raises(ChallengedContinuityReentryError, match="does not match supplied evidence"):
+        verify_challenged_continuity_reentry_receipt(
+            original, reentry_packet=replacement, source_items=sources,
+            observation_challenge_binding=binding, challenge_receipt=challenge,
+            current_truth_receipt=_truth(),
+        )
