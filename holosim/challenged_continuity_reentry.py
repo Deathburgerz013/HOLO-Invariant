@@ -107,6 +107,12 @@ def evaluate_challenged_continuity_reentry(
     ):
         reasons.append("challenge_target_not_bound_to_current_observation")
 
+    if (
+        observation_challenge_binding["observed_state_hash"]
+        != reentry_packet["reconstructed_state_hash"]
+    ):
+        reasons.append("current_observation_not_bound_to_reconstructed_state")
+
     challenge_result = challenge_receipt["result"]
     if challenge_result == CONTRADICTION_FOUND:
         reasons.append("contradiction_found")
@@ -135,7 +141,8 @@ def evaluate_challenged_continuity_reentry(
         "interpretation_notice": (
             "ALLOW means only that the supplied verified reentry packet is ready, "
             "the supplied contradiction challenge is bound to the supplied verified "
-            "observation, and the declared completed challenge found no contradiction. "
+            "observation of the same reconstructed state identity, and the declared "
+            "completed challenge found no contradiction. "
             "It does not establish global truth, future truth, acceptance, or authority."
         ),
     }
