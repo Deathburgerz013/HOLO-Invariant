@@ -166,6 +166,18 @@ Research is not authority.
 **MCP resources:** `holo://schemas/idx-check-receipt`, `holo://schemas/idx-spine-packet`
 <!-- HOLO:STATUS:END -->
 
+## EnvPath workspace
+
+Open the local chat, evidence search, and proposal-drafting interface:
+
+```powershell
+python -m holosim.envpath
+```
+
+Search and draft export work without a model. Chat uses an already-installed,
+tool-capable Ollama model; select it with `--model NAME`. EnvPath does not change
+the retained chain or grant authority. See [EnvPath setup and limits](docs/ENVPATH.md).
+
 ## The continuity path
 
 ```mermaid

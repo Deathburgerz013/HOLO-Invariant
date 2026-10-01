@@ -4798,3 +4798,34 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | ENVPATH_LOCAL_WORKSPACE
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/envpath.py; holosim/envpath_ui.py
+| | FOCUSED_TEST: tests/test_envpath.py
+| | DOCUMENTATION: docs/ENVPATH.md
+| | BASE: main@c542c04
+| |
+| | IMPLEMENTED:
+| | - Local browser workspace for streaming Ollama chat and evidence lookup.
+| | - Ollama requests explicitly select CPU execution (num_gpu: 0).
+| | - Existing topology verifier owns record and correction interpretation.
+| | - Search/read expose exact retained identities and correction links.
+| | - Dispatcher restricts model tools to search, read, and draft proposals.
+| | - Whole JSON content calls use the same closed dispatcher and budgets.
+| | - Note/correction export binds source bytes, head, and exact target.
+| | - Stop prevents later queued tools; incomplete turns do not enter history.
+| | - Source changes prevent completed answers; limits refuse excess work.
+| |
+| | PRESERVED_BOUNDARY:
+| | - No automatic persistence, model installation, or external effect tools.
+| | - Download is a proposal export, not an authorized HOLO memory commit.
+| | - Historical hashes and model answers do not establish current truth.
+| | - Socket cancellation is cooperative; Ollama read timeout is 180 seconds.
+| | - Archive search, audio, and authorized commit UI remain unimplemented.
+| | - No truth, acceptance, write, or execution authority is granted.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
