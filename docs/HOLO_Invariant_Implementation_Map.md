@@ -4856,3 +4856,30 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | CORRECTION_DESCENT_AND_MOVEMENT_BOUNDS
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@da0b890
+| | IMPLEMENTATION: holosim/retained_correction_dynamics.py
+| | FOCUSED_TEST: tests/test_retained_correction_dynamics.py
+| | DOCUMENTATION: docs/RETAINED_CORRECTION_DYNAMICS.md
+| |
+| | IMPLEMENTED:
+| | - Original-input replay before analyzing squared-error changes.
+| | - Exact comparisons over stored floats and actual applied movement.
+| | - Permitted-step decay inequalities; denied steps remain unassessed.
+| | - Separate gap energy, remaining error, and strict-decrease checks.
+| | - L1 movement includes recovery jumps and every prefix bound.
+| | - Analysis replay binds decay rate, allowance, and movement budget.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Finite numerical trace only; no general convergence certificate.
+| | - Budget is measured, not enforced or an infinite-horizon bound.
+| | - Fixed target, projection coverage, clipping, and gates matter.
+| | - JSON displays can round; exact comparisons decide the flags.
+| | - No production mutation, truth, acceptance, or new authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
