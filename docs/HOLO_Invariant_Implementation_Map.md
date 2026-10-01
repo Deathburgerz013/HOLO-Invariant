@@ -4829,3 +4829,30 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | RETAINED_CORRECTION_DYNAMICS
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@861da5b
+| | IMPLEMENTATION: holosim/retained_correction_dynamics.py
+| | FOCUSED_TEST: tests/test_retained_correction_dynamics.py
+| | DOCUMENTATION: docs/RETAINED_CORRECTION_DYNAMICS.md
+| |
+| | IMPLEMENTED:
+| | - Bounded numerical specialization of the retained correction loop.
+| | - Retained, reset, and history-replayed state across a JSON byte gap.
+| | - Raw residual history survives deadband, projection, and denied gates.
+| | - Independent scalar expectations and stopped-error counterexamples.
+| | - Large gain worsens mismatch; moving observations reopen error.
+| | - Replay binds results to caller-supplied original experiment inputs.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Simulation only; no production memory, chain, or Spine mutation.
+| | - Boolean gates are controls, not evidence or authorization checks.
+| | - No general convergence or safe-subspace adequacy is established.
+| | - Serialization/replay does not observe an absence interval.
+| | - No consciousness, truth, acceptance, or operational authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
