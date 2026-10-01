@@ -303,3 +303,250 @@ def test_allowance_can_hide_energy_increase():
     assert result['descent_inequality_held_on_permitted_steps'] is True
     assert result['steps'][0]['energy_change'] == 192
     assert result['all_steps_strictly_decrease'] is False
+
+
+# Scheduled gaps use the same correction map and original-input replay boundary.
+def scheduled_inputs(**changes):
+    result = dict(initial=[0.0], observations=[[8.0]] * 6,
+                  gap_schedule=[dict(after=2, mode="RETAINED"),
+                                dict(after=4, mode="RETAINED")])
+    result.update(changes)
+    return result
+
+
+def scheduled_analysis(**changes):
+    original = scheduled_inputs(**changes)
+    experiment = run(**original)
+    return original, experiment, analyze(
+        experiment, original_inputs=original)
+
+
+@pytest.mark.parametrize("mode, final, movement, loss", [
+    ("RETAINED", 7.875, 7.875, 0),
+    ("RECONSTRUCTED", 7.875, 7.875, 0),
+    ("RESET", 6, 30, 120),
+])
+def test_multiple_gap_closed_form_and_progress_loss(mode, final, movement, loss):
+    original, experiment, audit = scheduled_analysis(gap_schedule=[
+        dict(after=2, mode=mode), dict(after=4, mode=mode)])
+    assert experiment["final_model"] == [final]
+    assert all(g["history_preserved"] for g in experiment["gaps"])
+    assert audit["total_movement_l1"] == movement
+    assert audit["total_gap_progress_loss"] == loss
+    assert audit["all_prefix_bounds_held"] is True
+    assert len(audit["prefixes"]) == 8
+    assert audit["gap_nonincreasing"] is (mode != "RESET")
+    if mode != "RESET":
+        assert [r["contraction_ratio"] for r in audit["steps"]] == [0.25] * 6
+        assert [r["residual_after"] for r in experiment["history"]] == [4, 2, 1, .5, .25, .125]
+    assert verify(experiment, **original)
+    assert verify_analysis(audit, experiment, original_inputs=original)
+
+
+def test_reconstruction_replays_earlier_resets_not_an_unbroken_trajectory():
+    original, experiment, audit = scheduled_analysis(gap_schedule=[
+        dict(after=2, mode="RESET"), dict(after=4, mode="RECONSTRUCTED")])
+    assert experiment["gaps"][1]["before"] == experiment["gaps"][1]["after"] == [6.0]
+    assert experiment["final_model"] == [7.5]
+    assert audit["total_gap_progress_loss"] == 60
+    assert audit["total_movement_l1"] == 19.5
+    assert audit["all_prefix_bounds_held"]
+
+
+@pytest.mark.parametrize("mode", ["RETAINED", "RECONSTRUCTED", "RESET"])
+def test_rounding_and_repeated_gaps_together(mode):
+    original, experiment, audit = scheduled_analysis(
+        initial=[1e16, 0], observations=[[1e16 + 2, 8]] * 6, alpha=.25,
+        gap_schedule=[dict(after=2, mode=mode), dict(after=4, mode=mode)])
+    assert all(r["model_after"][0] == 1e16 for r in experiment["history"])
+    assert all(not r["requested_update_applied_exactly"] for r in audit["steps"])
+    assert all(r["energy_identity_held"] for r in audit["steps"])
+    assert all(g["history_preserved"] for g in experiment["gaps"])
+    assert audit["all_prefix_bounds_held"]
+    if mode == "RESET":
+        assert experiment["final_model"][1] == 3.5
+        assert audit["total_gap_progress_loss"] == 87.5
+    else:
+        assert experiment["final_model"][1] == 8 * (1 - .75 ** 6)
+        assert audit["total_gap_progress_loss"] == 0
+    assert audit["steps"][-1]["error_remains"]
+
+
+def test_masked_error_persists_while_visible_error_contracts():
+    _, experiment, audit = scheduled_analysis(initial=[0, 0], observations=[[8, 3]] * 6,
+                                              projection=[True, False])
+    assert experiment["final_model"] == [7.875, 0]
+    assert audit["projection_pullback_metric_diagonal"] == [1, 0]
+    assert audit["metric_positive_definite"] is False
+    assert audit["metric_positive_semidefinite"] is True
+    assert [r["hidden_energy_before"] for r in audit["steps"]] == [9] * 6
+    assert [r["hidden_energy_after"] for r in audit["steps"]] == [9] * 6
+    assert all(r["hidden_energy_unchanged"] for r in audit["steps"])
+    assert audit["steps"][-1]["energy_after"] == 9.015625
+    assert all(r["strictly_decreased"] for r in audit["steps"])
+    assert audit["descent_inequality_held_on_permitted_steps"] is False
+
+
+@pytest.mark.parametrize("mask, diagonal, definite", [
+    ([True, True], [1, 1], True), ([False, False], [0, 0], False),
+])
+def test_coordinate_pullback_metric_is_derived_from_declared_projection(mask, diagonal, definite):
+    _, _, audit = scheduled_analysis(initial=[0, 0], observations=[[8, 3]] * 6, projection=mask)
+    assert audit["projection_pullback_metric_diagonal"] == diagonal
+    assert audit["metric_positive_definite"] is definite
+
+
+def test_zero_energy_has_no_contraction_ratio():
+    _, _, audit = scheduled_analysis(initial=[8], gap_schedule=[])
+    assert all(r["contraction_ratio"] is None for r in audit["steps"])
+    assert audit["gaps"] == []
+    assert audit["total_gap_progress_loss"] == 0
+
+
+def test_empty_and_endpoint_schedules_preserve_trajectory():
+    for schedule in ([], [dict(after=0, mode="RECONSTRUCTED"), dict(after=6, mode="RESET")]):
+        original, experiment, audit = scheduled_analysis(gap_schedule=schedule)
+        assert experiment["final_model"] == ([0] if schedule else [7.875])
+        assert len(experiment["history"]) == 6
+        assert audit["all_prefix_bounds_held"]
+        assert verify(experiment, **original)
+    assert audit["gaps"][-1]["progress_loss"] == 64 - .015625
+
+
+@pytest.mark.parametrize("schedule", [
+    {}, [dict(after=True, mode="RETAINED")], [dict(after=-1, mode="RESET")],
+    [dict(after=7, mode="RESET")], [dict(after=2, mode="UNKNOWN")],
+    [dict(after=2, mode=1)], [dict(after=2, mode="RESET", accepted=True)],
+    [dict(after=2)], [dict(after=2, mode="RESET"), dict(after=2, mode="RESET")],
+    [dict(after=4, mode="RESET"), dict(after=2, mode="RESET")],
+    [dict(after=i, mode="RETAINED") for i in range(33)],
+])
+def test_schedule_validation(schedule):
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        run(**scheduled_inputs(gap_schedule=schedule))
+
+
+@pytest.mark.parametrize("changes", [dict(gap_after=2), dict(mode="RESET")])
+def test_schedule_cannot_silently_override_legacy_controls(changes):
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        run(**scheduled_inputs(**changes))
+
+
+def test_multiple_gaps_do_not_mutate_caller_inputs():
+    original = scheduled_inputs()
+    before = deepcopy(original)
+    experiment = run(**original)
+    saved = deepcopy(experiment)
+    analyze(experiment, original_inputs=original)
+    assert original == before and experiment == saved
+
+
+def test_gap_schedule_and_hidden_metrics_cannot_be_rehashed_into_valid_receipts():
+    original, experiment, audit = scheduled_analysis()
+    forged = deepcopy(experiment)
+    forged["gaps"][0]["after"][0] += 1
+    forged["receipt_hash"] = stable_hash({k: v for k, v in forged.items() if k != "receipt_hash"})
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        verify(forged, **original)
+    for key, value in (("metric_positive_definite", False), ("total_gap_progress_loss", 1),
+                       ("accepted", 0), ("foreign", True)):
+        altered = deepcopy(audit)
+        altered[key] = value
+        altered["receipt_hash"] = stable_hash({k: v for k, v in altered.items() if k != "receipt_hash"})
+        with pytest.raises(RetainedCorrectionDynamicsError):
+            verify_analysis(altered, experiment, original_inputs=original)
+    changed = deepcopy(original)
+    changed["gap_schedule"][0]["mode"] = "RESET"
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        verify(experiment, **changed)
+
+
+def test_legacy_receipt_identity_is_preserved():
+    assert run(**inputs())["receipt_hash"] == "5d25ba104549489430f8401399c5a3c07e0d7833fa04fa703f2e4e41dd5ae56b"
+    assert analyze(run(**inputs()), original_inputs=inputs())["receipt_hash"] == "20ec51d131d4c2cef6a462f9ce65c116dde1f43338d7f621f9265ceb03d1340a"
+
+
+
+def test_tiny_hidden_energy_uses_exact_flags_when_display_underflows():
+    _, _, audit = scheduled_analysis(initial=[0, 0], observations=[[0, 1e-200]] * 6,
+                                     projection=[True, False])
+    assert all(r["hidden_energy_after"] == 0 for r in audit["steps"])
+    assert all(r["hidden_error_remains"] for r in audit["steps"])
+    assert all(r["energy_decomposition_held"] for r in audit["steps"])
+    assert all(r["contraction_ratio"] == 1 for r in audit["steps"])
+
+
+def test_maximum_schedule_replays_every_boundary():
+    original, experiment, audit = scheduled_analysis(observations=[[8]] * 32,
+        gap_schedule=[dict(after=i, mode="RECONSTRUCTED") for i in range(32)])
+    assert len(experiment["gaps"]) == 32
+    assert experiment["final_model"] == [8 * (1 - .5 ** 32)]
+    assert audit["all_prefix_bounds_held"]
+    assert all(g["nonincreasing"] for g in audit["gaps"])
+    assert verify(experiment, **original)
+
+
+def test_moving_target_gap_uses_same_declared_target_on_both_sides():
+    _, experiment, audit = scheduled_analysis(observations=[[8], [8], [-8], [-8]],
+        gap_schedule=[dict(after=2, mode="RESET")])
+    assert audit["fixed_target"] is False
+    # Reset from +6 to 0 moves closer to the next observation -8.
+    assert audit["gaps"][0]["energy_before"] == 196
+    assert audit["gaps"][0]["energy_after"] == 64
+    assert audit["gaps"][0]["energy_change"] == -132
+    assert audit["total_gap_progress_loss"] == 0
+    assert experiment["gaps"][0]["recovery_jump"] == [-6]
+
+
+def test_schedule_with_clipping_and_denied_gates_keeps_hidden_residuals():
+    _, experiment, audit = scheduled_analysis(initial=[0, 0], observations=[[8, 3]] * 6,
+        projection=[True, False], clip=1, gates=[False, True] * 3,
+        gap_schedule=[dict(after=2, mode="RESET"), dict(after=4, mode="RECONSTRUCTED")])
+    assert experiment["final_model"] == [1, 0]
+    assert audit["permitted_step_count"] == 3
+    assert all(r["hidden_error_remains"] for r in audit["steps"])
+    assert all(r["descent_inequality_held"] is None for r in audit["steps"] if not r["gate"])
+    assert audit["all_prefix_bounds_held"]
+
+
+def test_hidden_step_and_gap_metrics_are_bound_to_external_controls():
+    original, experiment, audit = scheduled_analysis()
+    for field, value in (("hidden_energy_after", 10), ("contraction_ratio", 1)):
+        altered = deepcopy(audit)
+        altered["steps"][0][field] = value
+        altered["receipt_hash"] = stable_hash({k: v for k, v in altered.items() if k != "receipt_hash"})
+        with pytest.raises(RetainedCorrectionDynamicsError):
+            verify_analysis(altered, experiment, original_inputs=original)
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        verify_analysis(audit, experiment, original_inputs=original, movement_budget=100)
+
+
+def test_scheduled_replay_and_cli_in_fresh_process(tmp_path):
+    import json
+    original, experiment, audit = scheduled_analysis(gap_schedule=[
+        dict(after=2, mode="RESET"), dict(after=4, mode="RECONSTRUCTED")])
+    packet = tmp_path / "scheduled.json"
+    packet.write_bytes(canonical_bytes(dict(original=original, experiment=experiment, audit=audit)))
+    script = (
+        "import json,sys; from holosim.retained_correction_dynamics import "
+        "verify_retained_correction_experiment,verify_correction_descent_bounds; "
+        "p=json.load(open(sys.argv[1])); "
+        "assert verify_retained_correction_experiment(p['experiment'],**p['original']); "
+        "assert verify_correction_descent_bounds(p['audit'],p['experiment'],original_inputs=p['original'])"
+    )
+    subprocess.run([sys.executable, "-c", script, str(packet)], check=True)
+    result = subprocess.run([sys.executable, "-m", "holosim.retained_correction_dynamics", "--multi-gap"],
+                            check=True, capture_output=True, text=True)
+    cases = json.loads(result.stdout)
+    assert cases["RESET"]["total_gap_progress_loss"] == 120
+    assert cases["HIDDEN_ERROR"]["hidden_energy_after"] == [9] * 6
+
+
+
+def test_improving_gap_does_not_cancel_positive_reset_loss():
+    _, _, audit = scheduled_analysis(observations=[[8]] * 4 + [[-8]] * 2,
+        gap_schedule=[dict(after=2, mode="RESET"), dict(after=4, mode="RESET")])
+    assert [g["energy_change"] for g in audit["gaps"]] == [60, -132]
+    assert audit["gap_energy_change"] == -72
+    assert audit["total_gap_progress_loss"] == 60
+    assert audit["gap_nonincreasing"] is False
