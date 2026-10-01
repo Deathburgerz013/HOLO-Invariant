@@ -1,4 +1,8 @@
-"""Version-bound truth states that move only through verified evidence."""
+"""Version-bound statement records with validator-checked attached receipts.
+
+Receipt validity does not establish relevance, sufficiency, or statement truth.
+Legacy API and transition names describe record lineage, not epistemic status.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +13,15 @@ from typing import Any
 
 
 TRUTH_STATE_TYPE = "holo_truth_state"
-TRUTH_STATE_VERSION = 1
+TRUTH_STATE_VERSION = 2
+
+TRUTH_INTERPRETATION_NOTICE = (
+    "This state records a caller-supplied statement and validator-checked "
+    "receipts. Claim support is NOT_ASSESSED: receipt validity and hashes do "
+    "not establish relevance, sufficiency, or statement truth. Transitions "
+    "describe record lineage only. No acceptance, write authority, or "
+    "execution authority is granted."
+)
 
 TruthEvidenceValidator = Callable[[Mapping[str, Any]], None]
 
@@ -103,11 +115,10 @@ def _build_truth_state(
         "transition": transition,
         "accepted": False,
         "write_authority": "NONE",
-        "interpretation_notice": (
-            "This state records a statement currently justified by verified "
-            "evidence. It does not grant acceptance or write authority. The "
-            "statement may move only through a later evidence-bound revision."
-        ),
+        "execution_authority": "NONE",
+        "truth_claimed": False,
+        "claim_support": "NOT_ASSESSED",
+        "interpretation_notice": TRUTH_INTERPRETATION_NOTICE,
     }
 
     return {
@@ -122,11 +133,11 @@ def crystallize_truth(
     evidence_validator: TruthEvidenceValidator,
 ) -> dict[str, Any]:
     """
-    Create an initial truth state from verified evidence.
+    Record a supplied statement with validator-checked receipts.
 
     The evidence validator determines whether each supplied receipt is valid.
-    The resulting state records evidence and its canonical hashes without
-    granting acceptance or authority.
+    It is not given the statement and cannot establish claim support here.
+    The resulting record does not assert truth, acceptance, or authority.
     """
     normalized_statement = _require_nonempty_string(statement, "statement")
     receipts, hashes = _validate_evidence(
@@ -150,12 +161,12 @@ def revise_truth(
     evidence_validator: TruthEvidenceValidator,
 ) -> dict[str, Any]:
     """
-    Re-justify a truth state using its prior evidence plus new verified evidence.
+    Revise a statement record while retaining prior receipts and adding new ones.
 
     At least one newly verified evidence receipt is required. Existing evidence
-    cannot be silently removed or replaced. If the statement changes, the truth
-    is reported as moved. If it survives the new evidence unchanged, it is
-    reported as further crystallized.
+    cannot be silently removed or replaced. The legacy transition labels
+    describe only whether statement text changed, not support or confidence.
+    A version 1 parent remains untouched; the revision emits version 2.
     """
     validate_truth_state(current_truth)
 
@@ -205,7 +216,12 @@ def revise_truth(
 
 
 def validate_truth_state(state: Mapping[str, Any]) -> None:
-    """Validate the structure and canonical hash of a truth state."""
+    """Validate structure and identity, not receipt validity or claim support.
+
+    Version 1 records remain readable, including their historical notices.
+    This does not endorse those notices or establish their statements as facts.
+    Rehashed statement substitutions can pass: this is not evidence replay.
+    """
     if not isinstance(state, Mapping):
         raise TruthStateError("truth state must be a mapping")
 
@@ -222,14 +238,17 @@ def validate_truth_state(state: Mapping[str, Any]) -> None:
         "interpretation_notice",
         "truth_hash",
     }
+    version = state.get("version")
+    if type(version) is not int or version not in {1, TRUTH_STATE_VERSION}:
+        raise TruthStateError("truth state version is invalid")
+    if version == 2:
+        required_fields |= {"truth_claimed", "claim_support", "execution_authority"}
+
     if set(state) != required_fields:
         raise TruthStateError("truth state fields are invalid")
 
     if state["type"] != TRUTH_STATE_TYPE:
         raise TruthStateError("truth state type is invalid")
-
-    if state["version"] != TRUTH_STATE_VERSION:
-        raise TruthStateError("truth state version is invalid")
 
     _require_nonempty_string(state["statement"], "statement")
 
@@ -277,6 +296,16 @@ def validate_truth_state(state: Mapping[str, Any]) -> None:
 
     if state["write_authority"] != "NONE":
         raise TruthStateError("truth state cannot grant write authority")
+
+    if version == 2:
+        if state["truth_claimed"] is not False:
+            raise TruthStateError("truth state cannot claim truth")
+        if state["claim_support"] != "NOT_ASSESSED":
+            raise TruthStateError("claim support must remain unassessed")
+        if state["execution_authority"] != "NONE":
+            raise TruthStateError("truth state cannot grant execution authority")
+        if state["interpretation_notice"] != TRUTH_INTERPRETATION_NOTICE:
+            raise TruthStateError("truth interpretation notice is invalid")
 
     _require_nonempty_string(
         state["interpretation_notice"],

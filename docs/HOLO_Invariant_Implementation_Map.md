@@ -4911,3 +4911,29 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | TRUTH_CLAIM_EVIDENCE_BOUNDARY
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@d92995e
+| | IMPLEMENTATION: holosim/truth.py
+| | FOCUSED_TEST: tests/test_truth.py
+| | DOCUMENTATION: docs/TRUTH_CLAIM_EVIDENCE_BOUNDARY.md
+| |
+| | IMPLEMENTED:
+| | - Version 2 records explicitly leave statement support unassessed.
+| | - Fixed notice separates receipt checks from relevance and truth.
+| | - Rehashed truth/support/authority upgrades fail version 2 validation.
+| | - Legacy records remain readable and unchanged; revisions emit v2.
+| | - Prior receipts and parent identities remain retained on revision.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Structural validation is not receipt replay or claim evaluation.
+| | - Legacy notices are historical text, not endorsed truth assertions.
+| | - No free-text entailment, sufficiency, or environmental truth check.
+| | - Transition labels describe lineage, not increased confidence.
+| | - No acceptance, write authority, or execution authority granted.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
