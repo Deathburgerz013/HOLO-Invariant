@@ -4883,3 +4883,31 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | MULTI_GAP_CORRECTION_DYNAMICS
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@cbc8211
+| | IMPLEMENTATION: holosim/retained_correction_dynamics.py
+| | FOCUSED_TEST: tests/test_retained_correction_dynamics.py
+| | DOCUMENTATION: docs/RETAINED_CORRECTION_DYNAMICS.md
+| |
+| | IMPLEMENTED:
+| | - Optional bounded schedule; legacy receipt identities preserved.
+| | - Reconstruction replays previous reset boundaries and controls.
+| | - Repeated gaps combined with rounded applied-update measurements.
+| | - Local squared-error ratios and separate positive gap progress loss.
+| | - Every jump enters L1 movement and prefix telescoping bounds.
+| | - Fixed coordinate pullback metric and excluded residual energy.
+| | - Replay binds schedules, gap data, hidden error and audit controls.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Finite specialization; no general convergence certificate.
+| | - Projection metric may be singular; no manifold geometry claimed.
+| | - Metrics do not describe discontinuous recovery-map derivatives.
+| | - Serialization is simulated recovery, not measured absence.
+| | - No production mutation, truth, acceptance, or new authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

@@ -147,3 +147,94 @@ improves error against its own observation; fixed_target is reported explicitly.
 No general convergence certificate is issued. Replay of the analysis binds the
 original experiment, c, epsilon, and budget; forged flags, substituted evidence,
 extra fields, and rehashed results fail. All original authority limits remain.
+
+
+## Repeated recovery boundaries (PARTIAL)
+
+An optional `gap_schedule` extends the existing runner and descent evaluator:
+
+```python
+original = dict(
+    initial=[0.0], observations=[[8.0]] * 6,
+    gap_schedule=[{"after": 2, "mode": "RESET"},
+                  {"after": 4, "mode": "RECONSTRUCTED"}],
+)
+experiment = run_retained_correction_experiment(**original)
+audit = evaluate_correction_descent_bounds(experiment, original_inputs=original)
+```
+
+The list contains at most 32 closed `{after, mode}` objects. Indices must be
+strictly increasing integers from zero through the observation count. An empty
+list means no gap. Mixed modes are supported; scheduled calls must leave legacy
+`gap_after` and `mode` at their defaults. Bounds of 256 observations and 16
+coordinates remain. A scheduled experiment and analysis use version 2 with a
+`gaps` list. Omitting the schedule preserves the version-1 schema and receipt
+hashes, including the default CLI output.
+
+Each boundary serializes the model and full raw history, destroys working
+state, then recovers. A later RECONSTRUCTED boundary replays observations,
+original gates and previous RESET boundaries. It does not erase reset history
+by replaying an uninterrupted trajectory. The schedule is supplied experimental
+input, not a discovered environmental history or a production checkpoint policy.
+
+### Rates, jumps and rounding
+
+The same exact rational audit over stored floats measures actual applied updates.
+Each scheduled step adds the squared-error contraction ratio `V_after/V_before`;
+zero initial energy gives `None`. Displays may round or underflow. Exact flags,
+not displayed ratios, determine decrease, remaining error and the decay inequality.
+Gates, clipping and rounding can prevent uniform contraction.
+
+Every gap is measured against the same declared target on both sides: the next
+observation, or the final observation for an endpoint gap. Gap audit records
+before/after energy, ratio, signed energy change and positive progress loss.
+`total_gap_progress_loss` sums positive gap changes; `gap_energy_change` is the
+signed sum, so improvements cannot cancel the reported loss. `gap_nonincreasing`
+requires every jump to be nonincreasing (an empty schedule has no violating jump).
+For moving targets these are local comparisons, not global progress certificates.
+Every recovery jump enters the L1 path and prefix telescoping bounds.
+
+With target 8, initial 0, alpha 0.5 and boundaries after steps 2 and 4:
+
+| Recovery modes | Final model | L1 movement | Sum of positive gap energy changes |
+| --- | ---: | ---: | ---: |
+| RETAINED / RETAINED | 7.875 | 7.875 | 0 |
+| RECONSTRUCTED / RECONSTRUCTED | 7.875 | 7.875 | 0 |
+| RESET / RESET | 6 | 30 | 120 |
+| RESET / RECONSTRUCTED | 7.5 | 19.5 | 60 |
+
+Combined rounding tests use initial `[1e16, 0]`, target `[1e16+2, 8]` and
+alpha 0.25 across repeated gaps. The requested 0.5 update in the large coordinate
+is lost on addition while the other coordinate changes. Exact applied movement
+still satisfies the energy identity; retention cannot repair lost updates.
+
+### Defined projection metric and hidden residual
+
+Here the projection is the existing fixed coordinate mask `P`, not an arbitrary
+manifold chart. For the map from full residual coordinates to projected residuals,
+`J=P` and the Euclidean pullback is `G=J^T J=P`: diagonal entries are 1 for retained
+coordinates and 0 for excluded coordinates. The audit derives that diagonal from
+the supplied mask. It is positive semidefinite, and positive definite on the full
+space only when no coordinate is excluded. It is unchanged by recovery boundaries.
+This is NOT a Jacobian or metric of RESET, reconstruction, clipping or the whole
+correction map. No differentiable geometry across a discontinuous jump is assumed.
+
+For each scheduled step, exact pre-update energy is split into projected/visible
+energy and excluded/hidden energy. Hidden energy is also measured after the step,
+with exact unchanged and remaining-error flags (even when a tiny display becomes
+zero). Projection does not transfer excluded error into retained coordinates in
+this coordinate-wise specialization. Exclusion leaves error uncorrected; it does
+not establish a general bound on cross-coordinate leakage in nonlinear models.
+For target `[8,3]` and mask `[True,False]`, visible energy shrinks while hidden
+energy stays 9; the final total energy is 9.015625, and the metric is singular.
+
+Run the combined demonstration without writing files:
+
+```powershell
+python -m holosim.retained_correction_dynamics --multi-gap
+```
+
+Replay still requires caller-supplied original inputs and external audit controls.
+Rehashed gap, rate, metric, hidden-error, authority or budget changes fail replay.
+No acceptance, truth, write or execution authority is added. These finite tests
+establish neither general convergence nor production recovery under absence.
