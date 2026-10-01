@@ -129,3 +129,177 @@ def test_fresh_process_replay(tmp_path):
                            capture_output=True, text=True, timeout=20)
     assert child.returncode == 0, child.stderr
     assert child.stdout.strip() == "7.875"
+
+
+# Descent/bound analysis uses the original owning experiment and exact
+# arithmetic over its stored floats. It does not certify arbitrary dynamics.
+from holosim.retained_correction_dynamics import (
+    evaluate_correction_descent_bounds as analyze,
+    verify_correction_descent_bounds as verify_analysis,
+)
+
+
+def measured(changes=None, **controls):
+    original = inputs(**(changes or {}))
+    experiment = run(**original)
+    return analyze(experiment, original_inputs=original, **controls)
+
+
+def test_descent_default_independent_energy_sequence():
+    result = measured()
+    assert [r['energy_after'] for r in result['steps']] == [16, 4, 1, .25, .0625, .015625]
+    assert result['descent_inequality_held_on_permitted_steps'] is True
+    assert result['all_steps_strictly_decrease'] is True
+    assert result['all_prefix_bounds_held'] is True
+    assert result['total_movement_l1'] == 7.875
+    assert all(r['energy_identity_held'] for r in result['steps'])
+
+
+@pytest.mark.parametrize('alpha,expected', [(0, False), (.5, True), (1, True),
+                                           (1.5, True), (2, False), (3, False)])
+def test_scalar_gain_energy_relation(alpha, expected):
+    result = measured(dict(alpha=alpha, observations=[[8]], gap_after=0, clip=100))
+    row = result['steps'][0]
+    assert row['energy_change'] == 64 * (alpha*alpha - 2*alpha)
+    assert row['strictly_decreased'] is expected
+
+
+def test_masked_clipped_exact_identity_and_partial_progress():
+    result = measured(dict(initial=[0, 0], observations=[[3, 4]], gap_after=0,
+                           projection=[True, False], clip=1, alpha=1))
+    row = result['steps'][0]
+    assert row['energy_before'] == 25
+    assert row['energy_after'] == 20
+    assert row['energy_change'] == -5
+    assert row['energy_identity_held'] and row['strictly_decreased'] and row['error_remains']
+    # A positive decrease is weaker than the requested uniform decay rate.
+    assert row['descent_inequality_held'] is False
+
+
+@pytest.mark.parametrize('changes', [dict(threshold=8), dict(projection=[False])])
+def test_suppression_can_hold_bound_and_fail_descent(changes):
+    result = measured(changes)
+    assert result['movement_within_budget'] is True
+    assert result['descent_inequality_held_on_permitted_steps'] is False
+    assert all(r['error_remains'] and r['applied_update_stopped'] for r in result['steps'])
+
+
+def test_denied_gates_are_unobserved_descent_not_vacuous_success():
+    result = measured(dict(gates=[False]*6))
+    assert result['permitted_step_count'] == 0
+    assert result['descent_inequality_held_on_permitted_steps'] is None
+    assert all(r['descent_inequality_held'] is None for r in result['steps'])
+
+
+def test_allowance_can_hold_inequality_without_correction():
+    result = measured(dict(threshold=8), deadband_allowance=32)
+    assert result['descent_inequality_held_on_permitted_steps'] is True
+    assert result['all_steps_strictly_decrease'] is False
+    assert result['steps'][0]['energy_after'] == 64
+
+
+def test_reset_jump_is_separate_from_local_descent():
+    result = measured(dict(mode='RESET'))
+    assert result['descent_inequality_held_on_permitted_steps'] is True
+    assert result['gap_energy_change'] == 63
+    assert result['gap_nonincreasing'] is False
+    assert result['correction_movement_l1'] == 14
+    assert result['recovery_movement_l1'] == 7
+    assert result['total_movement_l1'] == 21
+    assert result['movement_within_budget'] is False
+    assert result['all_prefix_bounds_held']
+
+
+def test_retained_and_reconstructed_analysis_agree():
+    retained = measured()
+    rebuilt = measured(dict(mode='RECONSTRUCTED'))
+    assert retained['steps'] == rebuilt['steps']
+    assert retained['prefixes'] == rebuilt['prefixes']
+
+
+def test_cancelling_updates_have_large_path_despite_zero_displacement():
+    result = measured(dict(alpha=2, clip=100))
+    assert result['prefixes'][-1]['displacement_l1'] == 0
+    assert result['total_movement_l1'] == 96
+    assert result['movement_within_budget'] is False
+    assert result['all_prefix_bounds_held']
+
+
+def test_budget_equal_and_one_below():
+    assert measured(movement_budget=7.875)['movement_within_budget']
+    assert not measured(movement_budget=7.874)['movement_within_budget']
+
+
+def test_changing_target_is_not_fixed_target_proof():
+    result = measured(dict(observations=[[8], [-8]], gap_after=1))
+    assert result['fixed_target'] is False
+    assert result['all_steps_strictly_decrease'] is True
+    assert result['steps'][1]['energy_before'] > result['steps'][0]['energy_after']
+
+
+def test_requested_small_update_lost_to_float_rounding():
+    result = measured(dict(initial=[1e16], observations=[[1e16+2]],
+                           alpha=.25, gap_after=0))
+    row = result['steps'][0]
+    assert row['requested_update_applied_exactly'] is False
+    assert row['applied_update_stopped'] is True
+    assert row['energy_change'] == 0
+    assert not row['descent_inequality_held']
+    assert result['total_movement_l1'] == 0
+
+
+def test_exact_decisions_survive_energy_display_underflow():
+    result = measured(dict(observations=[[1e-200]], gap_after=0))
+    row = result['steps'][0]
+    assert row['energy_before'] == row['energy_after'] == 0.0
+    assert row['strictly_decreased'] and row['error_remains']
+    assert row['energy_identity_held'] and row['descent_inequality_held']
+
+
+def test_negative_gain_is_rejected_not_abs_alpha_certificate():
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        measured(dict(alpha=-.5))
+
+
+@pytest.mark.parametrize('controls', [dict(decay_rate=0), dict(decay_rate=True),
+    dict(deadband_allowance=-1), dict(movement_budget=-1), dict(movement_budget=float('inf'))])
+def test_invalid_analysis_controls(controls):
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        measured(**controls)
+
+
+def test_energy_overflow_fails_display_closed():
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        measured(dict(observations=[[1e200]], gap_after=0))
+
+
+def test_analysis_no_mutation_and_replay_tampering():
+    original = inputs()
+    experiment = run(**original)
+    prior = deepcopy(experiment)
+    result = analyze(experiment, original_inputs=original)
+    assert experiment == prior
+    assert verify_analysis(result, experiment, original_inputs=original)
+    assert result['accepted'] is result['truth_claimed'] is False
+    for field, value in [('movement_within_budget', False), ('accepted', True),
+                         ('truth_claimed', 0), ('extra', 'authority')]:
+        bad = deepcopy(result)
+        bad[field] = value
+        bad['receipt_hash'] = stable_hash({k:v for k,v in bad.items() if k != 'receipt_hash'})
+        with pytest.raises(RetainedCorrectionDynamicsError):
+            verify_analysis(bad, experiment, original_inputs=original)
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        verify_analysis(result, experiment, original_inputs=original, movement_budget=17)
+    forged = deepcopy(experiment)
+    forged['history'][0]['model_after'] = [8.0]
+    forged['receipt_hash'] = stable_hash({k:v for k,v in forged.items() if k != 'receipt_hash'})
+    with pytest.raises(RetainedCorrectionDynamicsError):
+        analyze(forged, original_inputs=original)
+
+
+def test_allowance_can_hide_energy_increase():
+    result = measured(dict(alpha=3, observations=[[8]], gap_after=0, clip=100),
+                      deadband_allowance=224)
+    assert result['descent_inequality_held_on_permitted_steps'] is True
+    assert result['steps'][0]['energy_change'] == 192
+    assert result['all_steps_strictly_decrease'] is False
