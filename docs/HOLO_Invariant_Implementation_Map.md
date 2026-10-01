@@ -4937,3 +4937,29 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | BOUNDED_KNOWLEDGE_COMPLETENESS_EXPERIMENT
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@e451e2a
+| | IMPLEMENTATION: holosim/bounded_knowledge_completeness.py
+| | FOCUSED_TEST: tests/test_bounded_knowledge_completeness.py
+| | DOCUMENTATION: docs/BOUNDED_KNOWLEDGE_COMPLETENESS.md
+| |
+| | IMPLEMENTED:
+| | - Query-only investigator and separate exhaustive Boolean-world audit.
+| | - Full and restricted hypothesis families; bounded active queries.
+| | - Unknown answers, wrong-family agreement and inaccessible controls.
+| | - Epoch rechecks with stale model audits and query-based detection.
+| | - Append-only observation history and original-input receipt replay.
+| |
+| | PRESERVED_BOUNDARY:
+| | - Deterministic finite learner; no language model evaluation.
+| | - Completeness applies only to the supplied finite table and epoch.
+| | - Candidate agreement depends on the declared hypothesis family.
+| | - Unobserved changes can escape detection; no future guarantee.
+| | - No universal knowledge, truth, acceptance or operational authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
