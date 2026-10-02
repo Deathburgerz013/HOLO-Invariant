@@ -5025,3 +5025,25 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | REFERENCE_AMBIGUITY_HANDOFF
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@e4d3f6d
+| | IMPLEMENTATION: holosim/reference_ambiguity_handoff.py
+| | FOCUSED_TEST: tests/test_reference_ambiguity_handoff.py
+| | DOCUMENTATION: docs/REFERENCE_AMBIGUITY_HANDOFF.md
+| | IMPLEMENTED:
+| | - Exact declared names, IDs, kind and scope; ambiguity retained.
+| | - Conflicting explicit IDs refused; contributions bind entity IDs.
+| | - Canonical round-trip and fresh-process replay from original inputs.
+| | - Alias changes alter registry identity without moving contributions.
+| | PRESERVED_BOUNDARY:
+| | - Caller registry is assumed; names do not authenticate identities.
+| | - No prose inference, selfhood claim or automatic alias migration.
+| | - Resolution cannot grant approval or production operational authority.
+| | - Replay requires independent originals; hashes do not prove authorship.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
