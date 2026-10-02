@@ -1,9 +1,11 @@
+import errno
 import hashlib
 import json
 import logging
 import os
 import platform
 import sys
+import time
 import zlib
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -19,6 +21,10 @@ except ImportError:
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+WINDOWS_APPEND_LOCK_TIMEOUT_SECONDS = 30.0
+WINDOWS_APPEND_LOCK_RETRY_SECONDS = 0.01
 
 
 class HoloChain:
@@ -53,17 +59,25 @@ class HoloChain:
         return hashlib.sha256(data).hexdigest()
 
     def _acquire_lock(self, lock_file):
-        """Acquire one blocking byte-range or advisory append lock."""
+        """Acquire the append lock; Windows contention has a bounded wait."""
         if platform.system() == "Windows":
             import msvcrt
 
-            lock_file.seek(0, 2)
-            if lock_file.tell() == 0:
-                lock_file.write(b"\0")
-                lock_file.flush()
-            lock_file.seek(0)
-            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
-            return
+            deadline = time.monotonic() + WINDOWS_APPEND_LOCK_TIMEOUT_SECONDS
+            while True:
+                lock_file.seek(0)
+                try:
+                    # Byte-range locking may extend beyond EOF; no marker write
+                    # is needed before acquiring the shared lock byte.
+                    msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+                    return
+                except OSError as exc:
+                    if exc.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+                        raise
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("Windows append lock timed out") from exc
+                    time.sleep(min(WINDOWS_APPEND_LOCK_RETRY_SECONDS, remaining))
 
         import fcntl
 
