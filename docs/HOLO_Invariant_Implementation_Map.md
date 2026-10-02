@@ -5047,3 +5047,25 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | WITNESSED_HISTORY_RECOVERY
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@65c9dd2
+| | IMPLEMENTATION: holosim/witnessed_history_recovery.py
+| | FOCUSED_TEST: tests/test_witnessed_history_recovery.py
+| | DOCUMENTATION: docs/WITNESSED_HISTORY_RECOVERY.md
+| | IMPLEMENTED:
+| | - External SSH commitment binds chain ID, count and head hash.
+| | - Rehashed history and valid rollback fail retained witness checks.
+| | - Missing or untrusted witnesses refuse; fresh-process recovery.
+| | - Bounded captured snapshot; supplied chain bytes remain unchanged.
+| | PRESERVED_BOUNDARY:
+| | - Exact snapshot match, not currentness or an extension proof.
+| | - Excluded metadata is not protected by the current chain head.
+| | - Replacing trusted witness or policy remains outside protection.
+| | - No authorship, truth, acceptance or production resume authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
