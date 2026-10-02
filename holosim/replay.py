@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import sys
+import zlib
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -18,6 +19,13 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from holosim.config import DEFAULT_CHAIN_FILE
     from holosim.core import HoloChain
+
+
+MAX_SEARCH_DECODED_BYTES = 1_048_576
+
+
+class SearchDecodeError(ValueError):
+    """A compressed search record cannot be decoded within the byte cap."""
 
 
 class ReplayEngine:
@@ -71,7 +79,11 @@ class ReplayEngine:
         return self.entries()[-count:]
 
     def search(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
-        """Search verified raw entries by content text."""
+        """Match verified decoded content; return unchanged stored entries.
+
+        Compressed content is limited to MAX_SEARCH_DECODED_BYTES per record.
+        Invalid or oversized compressed records raise SearchDecodeError.
+        """
         needle = query.lower().strip()
         if not needle:
             return []
@@ -79,13 +91,38 @@ class ReplayEngine:
         results: List[Dict[str, Any]] = []
 
         for entry in self.entries():
-            content = str(entry.get("content", ""))
+            content = self._searchable_content(entry)
             if needle in content.lower():
                 results.append(entry)
                 if len(results) >= limit:
                     break
 
         return results
+
+    @staticmethod
+    def _searchable_content(entry: Dict[str, Any]) -> str:
+        content = str(entry.get("content", ""))
+        if entry.get("type") != "compressed":
+            return content
+        try:
+            raw = bytes.fromhex(content)
+        except ValueError as exc:
+            raise SearchDecodeError("malformed hex") from exc
+        try:
+            decoder = zlib.decompressobj()
+            decoded = decoder.decompress(raw, MAX_SEARCH_DECODED_BYTES + 1)
+        except zlib.error as exc:
+            raise SearchDecodeError("invalid zlib") from exc
+        if len(decoded) > MAX_SEARCH_DECODED_BYTES:
+            raise SearchDecodeError("decoded content exceeds limit")
+        if not decoder.eof:
+            raise SearchDecodeError("incomplete zlib stream")
+        if decoder.unused_data:
+            raise SearchDecodeError("trailing compressed data")
+        try:
+            return decoded.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise SearchDecodeError("invalid utf-8") from exc
 
     def timeline(self) -> List[Dict[str, Any]]:
         """Return compact timeline view."""

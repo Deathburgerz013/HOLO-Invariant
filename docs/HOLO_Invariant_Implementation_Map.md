@@ -4963,3 +4963,43 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | REPLAY_COMPRESSED_SEARCH_CORRECTION
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@bcd3c70
+| | IMPLEMENTATION: holosim/replay.py
+| | FOCUSED_TEST: tests/test_replay_compressed_search.py
+| | IMPLEMENTED:
+| | - Search verified decoded text and return original stored records.
+| | - Compressed output capped at 1,048,576 bytes per searched record.
+| | - Reject malformed, incomplete, trailing or oversized decode data.
+| | - Preserve chain bytes; search does not append or accept a record.
+| | PRESERVED_BOUNDARY:
+| | - A text match is not truth, approval or correction validity.
+| | - Cap applies to compressed decoding, not full-chain loading.
+| | - Search may stop at its result limit; unvisited records not decoded.
+| | - State reconstruction and timeline decoding remain outside scope.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
+
+
+| | WINDOWS_APPEND_LOCK_CONTENTION_CORRECTION
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | IMPLEMENTATION: holosim/core.py
+| | FOCUSED_TEST: tests/test_windows_append_lock.py
+| | IMPLEMENTED:
+| | - Nonblocking Windows byte-lock attempts with yielding retry waits.
+| | - Contention wait bounded to 30 seconds using a monotonic deadline.
+| | - Timeout and other lock errors occur before chain read or write.
+| | - No marker byte written before acquisition; OS lock retained.
+| | PRESERVED_BOUNDARY:
+| | - Cooperating writers must use the same lock file and byte range.
+| | - Retry timeout is not fairness or guaranteed eventual acquisition.
+| | - Linux mock tests do not establish native Windows lock behavior.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
