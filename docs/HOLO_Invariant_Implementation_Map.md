@@ -5003,3 +5003,25 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | CROSS_SOFTWARE_CORRECTION_BENCHMARK
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@67f3ec9
+| | IMPLEMENTATION: holosim/cross_software_correction_benchmark.py
+| | FOCUSED_TEST: tests/test_cross_software_correction_benchmark.py
+| | DOCUMENTATION: docs/CROSS_SOFTWARE_CORRECTION_BENCHMARK.md
+| | IMPLEMENTED:
+| | - Three executable jobs; two stores share gates and fixed proposals.
+| | - Two epochs with fresh-process recovery and preserved byte prefixes.
+| | - Task outcomes, refusals, timing, storage and copy-only tamper probe.
+| | PRESERVED_BOUNDARY:
+| | - Authored pilot fixtures, not production or all-software coverage.
+| | - Experimental grants are not external approval or authentication.
+| | - Shared validators explain refusals; storage is the only treatment.
+| | - No model trial, sandbox, statistical ranking or universal winner.
+| | - Hashes identify reports; timing changes and hashes do not prove runs.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
