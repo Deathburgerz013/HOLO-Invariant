@@ -5113,3 +5113,23 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | RETAINED_CAPABILITY_FLOOR_RESULT
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@20618db
+| | IMPLEMENTATION: holosim/cross_model_correction_handoff.py
+| | FOCUSED_TEST: tests/test_saved_capability_floor_run.py
+| | DOCUMENTATION: docs/HANDOFF_CAPABILITY_FLOOR.md
+| | IMPLEMENTED:
+| | - Original fixed-floor bytes retained; neither model eligible.
+| | - Offline complete-capture bindings, scores and summary replay.
+| | - Companion analysis names and hashes source; no new model calls.
+| | PRESERVED_BOUNDARY:
+| | - Error-bearing reports remain outside this bounded auditor.
+| | - No authenticated emission, freshness, understanding or ranking.
+| | - No handoff success or enforced stale-action gate.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
