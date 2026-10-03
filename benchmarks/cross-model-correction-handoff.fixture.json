@@ -1,0 +1,9 @@
+{
+  "type": "cross_model_correction_handoff_fixture",
+  "version": 1,
+  "original": {"id": "rule-original", "rule": "Sum integers strictly greater than 0.", "threshold": 0},
+  "correction": {"id": "rule-current", "rule": "Sum integers strictly greater than 2.", "threshold": 2, "supersedes": "rule-original"},
+  "evidence": {"id": "requirement-check", "notice": "Authored test requirement; not a real-world truth or approval."},
+  "inputs": [[1, -2, 3, 0], [2, 2, 4, -1], [-3, 0, 2]],
+  "stale_plan": {"based_on": "rule-original", "action": "Continue using threshold 0."}
+}

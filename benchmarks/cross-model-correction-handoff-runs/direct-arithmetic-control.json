@@ -1,0 +1,82 @@
+[
+  {
+    "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+    "prompt": "For each list, sum only integers strictly greater than 2. Lists: [[1,-2,3,0],[2,2,4,-1],[-3,0,2]]. Return ONLY JSON with one key: answers, containing the three integer sums.",
+    "prompt_sha256": "cd4e3bd34b9f97a3fe521f8686b00fdafd6d21cbd01b5ad1fc0ac931eda309ff",
+    "output": {
+      "answers": [
+        3,
+        4,
+        2
+      ]
+    },
+    "error": null,
+    "elapsed_seconds": 5.699019199997565,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiRm9yIGVhY2ggbGlzdCwgc3VtIG9ubHkgaW50ZWdlcnMgc3RyaWN0bHkgZ3JlYXRlciB0aGFuIDIuIExpc3RzOiBbWzEsLTIsMywwXSxbMiwyLDQsLTFdLFstMywwLDJdXS4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIG9uZSBrZXk6IGFuc3dlcnMsIGNvbnRhaW5pbmcgdGhlIHRocmVlIGludGVnZXIgc3Vtcy4iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NDQ6NDkuOTU5ODg5NFoiLCJyZXNwb25zZSI6IntcbiAgXCJhbnN3ZXJzXCI6IFszLCA0LCAyXVxufSIsImRvbmUiOnRydWUsImRvbmVfcmVhc29uIjoic3RvcCIsImNvbnRleHQiOlsxNTE2NDQsODk0OCwxOTgsMjYxMCw1MjUsMTIwNywxNjk0OCwxMSwzNDY1LDU1Myw1NDM2NCwxNDgxNywxMywxNDQ2LDUyNSwyNjQsMTA5NTAsMTc4NDcsMTMsMTUxNjQ1LDE5OCwxNTE2NDQsODcyLDE5OCwyNDYxLDE4MTcsMTE0MCwxMSwyNjI5LDExNzIsMjU3ODAsMjU0NzAsNzA0NiwxMDkxLDIyMCwxNywxMywzNzkwNSwyNSw0MzE4LDE2LDQ5OTksMTcsMTEsMTgsMTEsMTUsMTQ5NTUsMTcsMTEsMTcsMTEsMTksNDk5OSwxNiw5NDYzMiwxOCwxMSwxNSwxMSwxNywyMjA5OSwzNDExLDI2Njg3LDQ3MTgsNDQ4LDgyNSwxMzc2LDI1LDExMjUzLDExLDg0ODIsMjc5LDIzMjYsNzU0NiwzNjM5OCwxMywxNTE2NDUsMTk4LDE1MTY0NCw3NzA5MSwxOTgsNTE1LDIyMCwzMzAsMjQ3MTAsNzg4LDUwOCwxOCwxMSwyMjAsMTksMTEsMjIwLDE3LDkyMSw5Ml0sInRvdGFsX2R1cmF0aW9uIjo1NjM1NDExMTAwLCJsb2FkX2R1cmF0aW9uIjo0MzU2NzAwLCJwcm9tcHRfZXZhbF9jb3VudCI6ODIsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6MjQsInByb21wdF9ldmFsX2R1cmF0aW9uIjozNDY4MTg0MDAwLCJldmFsX2NvdW50IjoxNiwiZXZhbF9kdXJhdGlvbiI6MjEzMTA1Njk5OX0=",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  {
+    "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+    "prompt": "For each list, sum only integers strictly greater than 2. Lists: [[1,-2,3,0],[2,2,4,-1],[-3,0,2]]. Return ONLY JSON with one key: answers, containing the three integer sums.",
+    "prompt_sha256": "cd4e3bd34b9f97a3fe521f8686b00fdafd6d21cbd01b5ad1fc0ac931eda309ff",
+    "output": {
+      "answers": [
+        3,
+        4,
+        2
+      ]
+    },
+    "error": null,
+    "elapsed_seconds": 2.5260597999986203,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiRm9yIGVhY2ggbGlzdCwgc3VtIG9ubHkgaW50ZWdlcnMgc3RyaWN0bHkgZ3JlYXRlciB0aGFuIDIuIExpc3RzOiBbWzEsLTIsMywwXSxbMiwyLDQsLTFdLFstMywwLDJdXS4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIG9uZSBrZXk6IGFuc3dlcnMsIGNvbnRhaW5pbmcgdGhlIHRocmVlIGludGVnZXIgc3Vtcy4iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NDQ6NTIuNDg1NTQwOFoiLCJyZXNwb25zZSI6IntcbiAgXCJhbnN3ZXJzXCI6IFszLCA0LCAyXVxufSIsImRvbmUiOnRydWUsImRvbmVfcmVhc29uIjoic3RvcCIsImNvbnRleHQiOlsxNTE2NDQsODk0OCwxOTgsMjYxMCw1MjUsMTIwNywxNjk0OCwxMSwzNDY1LDU1Myw1NDM2NCwxNDgxNywxMywxNDQ2LDUyNSwyNjQsMTA5NTAsMTc4NDcsMTMsMTUxNjQ1LDE5OCwxNTE2NDQsODcyLDE5OCwyNDYxLDE4MTcsMTE0MCwxMSwyNjI5LDExNzIsMjU3ODAsMjU0NzAsNzA0NiwxMDkxLDIyMCwxNywxMywzNzkwNSwyNSw0MzE4LDE2LDQ5OTksMTcsMTEsMTgsMTEsMTUsMTQ5NTUsMTcsMTEsMTcsMTEsMTksNDk5OSwxNiw5NDYzMiwxOCwxMSwxNSwxMSwxNywyMjA5OSwzNDExLDI2Njg3LDQ3MTgsNDQ4LDgyNSwxMzc2LDI1LDExMjUzLDExLDg0ODIsMjc5LDIzMjYsNzU0NiwzNjM5OCwxMywxNTE2NDUsMTk4LDE1MTY0NCw3NzA5MSwxOTgsNTE1LDIyMCwzMzAsMjQ3MTAsNzg4LDUwOCwxOCwxMSwyMjAsMTksMTEsMjIwLDE3LDkyMSw5Ml0sInRvdGFsX2R1cmF0aW9uIjoyNTIyOTk1MzAwLCJsb2FkX2R1cmF0aW9uIjo1ODU4MTAwLCJwcm9tcHRfZXZhbF9jb3VudCI6ODIsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6ODEsInByb21wdF9ldmFsX2R1cmF0aW9uIjoxODc0MzIwMDAsImV2YWxfY291bnQiOjE2LCJldmFsX2R1cmF0aW9uIjoyMzI1NDg3MDAwfQ==",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  {
+    "model": "llama3.2:1b",
+    "prompt": "For each list, sum only integers strictly greater than 2. Lists: [[1,-2,3,0],[2,2,4,-1],[-3,0,2]]. Return ONLY JSON with one key: answers, containing the three integer sums.",
+    "prompt_sha256": "cd4e3bd34b9f97a3fe521f8686b00fdafd6d21cbd01b5ad1fc0ac931eda309ff",
+    "output": {
+      "answers": [
+        5,
+        6,
+        3
+      ]
+    },
+    "error": null,
+    "elapsed_seconds": 14.21435080000083,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJsbGFtYTMuMjoxYiIsICJwcm9tcHQiOiAiRm9yIGVhY2ggbGlzdCwgc3VtIG9ubHkgaW50ZWdlcnMgc3RyaWN0bHkgZ3JlYXRlciB0aGFuIDIuIExpc3RzOiBbWzEsLTIsMywwXSxbMiwyLDQsLTFdLFstMywwLDJdXS4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIG9uZSBrZXk6IGFuc3dlcnMsIGNvbnRhaW5pbmcgdGhlIHRocmVlIGludGVnZXIgc3Vtcy4iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6ImxsYW1hMy4yOjFiIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NDU6MDYuNzAwNTIzNloiLCJyZXNwb25zZSI6IntcblxuIFwiYW5zd2Vyc1wiOiBbNSwgNiwgM10gfSIsImRvbmUiOnRydWUsImRvbmVfcmVhc29uIjoic3RvcCIsImNvbnRleHQiOlsxMjgwMDYsOTEyNSwxMjgwMDcsMjcxLDM4NzY2LDEzMDMsMzMwMjUsMjY5NiwyNSw2NzkwLDIyMCwyMzY2LDE4LDI3MSwxMjgwMDksMTI4MDA2LDg4MiwxMjgwMDcsMjcxLDI1MjAsMTg1NSwxMTYwLDExLDI2OTQsMTE5MywyNjg2NCwyNjU0OSw3MTkxLDExMDksMjIwLDE3LDEzLDM5MDA1LDI1LDQ0MTYsMTYsNTEwNiwxNywxMSwxOCwxMSwxNSwxNTMwNCwxNywxMSwxNywxMSwxOSw1MTA2LDE2LDk1NzMyLDE4LDExLDE1LDExLDE3LDIyODc3LDM0OTQsMjc3ODUsNDgyMyw0NDksODMyLDE0MDEsMjUsMTE1MDMsMTEsODY0OSwyNzksMjM4MCw3Njk4LDM3NDk4LDEzLDEyODAwOSwxMjgwMDYsNzgxOTEsMTI4MDA3LDI3MSw0MzUyLDMzMCwyNTczOSw3OTQsNTEwLDIwLDExLDIyMCwyMSwxMSwyMjAsMTgsNjAsMzM1XSwidG90YWxfZHVyYXRpb24iOjE0MTk4MjQ0NjAwLCJsb2FkX2R1cmF0aW9uIjoxMjY3NjE1MzYwMCwicHJvbXB0X2V2YWxfY291bnQiOjc4LCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjAsInByb21wdF9ldmFsX2R1cmF0aW9uIjo3NDExOTIwMDAsImV2YWxfY291bnQiOjE1LCJldmFsX2R1cmF0aW9uIjo3NzY1MjgwMDB9",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  {
+    "model": "llama3.2:1b",
+    "prompt": "For each list, sum only integers strictly greater than 2. Lists: [[1,-2,3,0],[2,2,4,-1],[-3,0,2]]. Return ONLY JSON with one key: answers, containing the three integer sums.",
+    "prompt_sha256": "cd4e3bd34b9f97a3fe521f8686b00fdafd6d21cbd01b5ad1fc0ac931eda309ff",
+    "output": {
+      "answers": [
+        5,
+        6,
+        5
+      ]
+    },
+    "error": null,
+    "elapsed_seconds": 0.9288038999984565,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJsbGFtYTMuMjoxYiIsICJwcm9tcHQiOiAiRm9yIGVhY2ggbGlzdCwgc3VtIG9ubHkgaW50ZWdlcnMgc3RyaWN0bHkgZ3JlYXRlciB0aGFuIDIuIExpc3RzOiBbWzEsLTIsMywwXSxbMiwyLDQsLTFdLFstMywwLDJdXS4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIG9uZSBrZXk6IGFuc3dlcnMsIGNvbnRhaW5pbmcgdGhlIHRocmVlIGludGVnZXIgc3Vtcy4iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6ImxsYW1hMy4yOjFiIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NDU6MDcuNjI5MjcyM1oiLCJyZXNwb25zZSI6IntcblxuXCJhbnN3ZXJzXCI6IFs1LCA2LCA1XSB9IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzEyODAwNiw5MTI1LDEyODAwNywyNzEsMzg3NjYsMTMwMywzMzAyNSwyNjk2LDI1LDY3OTAsMjIwLDIzNjYsMTgsMjcxLDEyODAwOSwxMjgwMDYsODgyLDEyODAwNywyNzEsMjUyMCwxODU1LDExNjAsMTEsMjY5NCwxMTkzLDI2ODY0LDI2NTQ5LDcxOTEsMTEwOSwyMjAsMTcsMTMsMzkwMDUsMjUsNDQxNiwxNiw1MTA2LDE3LDExLDE4LDExLDE1LDE1MzA0LDE3LDExLDE3LDExLDE5LDUxMDYsMTYsOTU3MzIsMTgsMTEsMTUsMTEsMTcsMjI4NzcsMzQ5NCwyNzc4NSw0ODIzLDQ0OSw4MzIsMTQwMSwyNSwxMTUwMywxMSw4NjQ5LDI3OSwyMzgwLDc2OTgsMzc0OTgsMTMsMTI4MDA5LDEyODAwNiw3ODE5MSwxMjgwMDcsMjcxLDQzNTIsMSwyNTczOSw3OTQsNTEwLDIwLDExLDIyMCwyMSwxMSwyMjAsMjAsNjAsMzM1XSwidG90YWxfZHVyYXRpb24iOjkxNjQ4NDMwMCwibG9hZF9kdXJhdGlvbiI6ODU4ODk4MDAsInByb21wdF9ldmFsX2NvdW50Ijo3OCwicHJvbXB0X2V2YWxfY2FjaGVkX2NvdW50Ijo3NywicHJvbXB0X2V2YWxfZHVyYXRpb24iOjc4NzE4MDAwLCJldmFsX2NvdW50IjoxNSwiZXZhbF9kdXJhdGlvbiI6NzQ4NTczMDAwfQ==",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  }
+]

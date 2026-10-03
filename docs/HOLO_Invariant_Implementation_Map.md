@@ -5069,3 +5069,28 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | CROSS_MODEL_CORRECTION_HANDOFF
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@55ac893
+| | IMPLEMENTATION: holosim/cross_model_correction_handoff.py
+| | TRANSPORT: holosim/local_ollama_adapter.py
+| | FOCUSED_TEST: tests/test_cross_model_correction_handoff.py
+| | DOCUMENTATION: docs/CROSS_MODEL_CORRECTION_HANDOFF.md
+| | IMPLEMENTED:
+| | - Same-model and distinct-declared-weight fresh-request cases.
+| | - Complete notes and packet histories; equal requested budgets.
+| | - Real chain projection; raw prompts, responses and scores retained.
+| | - Closed task oracle; failed attempts included; no silent retry.
+| | - Retained local pilot: no complete notes/packet successes.
+| | - Exploratory controls retained; offline scores bind raw files.
+| | PRESERVED_BOUNDARY:
+| | - Scripted transport tests are not empirical model results.
+| | - Format comparison, not a production gate or storage ranking.
+| | - Fresh requests do not prove fresh server processes or identity.
+| | - No truth, authentication, currentness or operational authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

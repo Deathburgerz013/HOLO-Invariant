@@ -51,6 +51,7 @@ def request_local_ollama_json(
     endpoint: str = DEFAULT_ENDPOINT,
     timeout_seconds: float = 120.0,
     context: Mapping[str, Any] | None = None,
+    generation_options: Mapping[str, Any] | None = None,
     opener: Callable[..., Any] = urlopen,
 ) -> dict[str, Any]:
     """Request one JSON object while explicitly disabling GPU offload."""
@@ -75,6 +76,20 @@ def request_local_ollama_json(
     }
     if context:
         request_body["context"] = deepcopy(dict(context))
+
+    if generation_options is not None:
+        if not isinstance(generation_options, Mapping):
+            raise LocalOllamaAdapterError("generation_options must be a mapping")
+        limits = {"num_predict": (1, 2048), "num_ctx": (512, 32768), "seed": (0, 2147483647)}
+        if set(generation_options) - (set(limits) | {"temperature"}):
+            raise LocalOllamaAdapterError("unsupported generation option")
+        for key, value in generation_options.items():
+            if key == "temperature":
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 2:
+                    raise LocalOllamaAdapterError("temperature outside bounds")
+            elif type(value) is not int or not limits[key][0] <= value <= limits[key][1]:
+                raise LocalOllamaAdapterError(f"{key} outside bounds")
+        request_body["options"].update(dict(generation_options))
 
     request = Request(
         clean_endpoint,
