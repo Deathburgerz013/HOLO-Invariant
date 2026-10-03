@@ -5094,3 +5094,22 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | HANDOFF_CAPABILITY_FLOOR
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL
+| | BASE: main@d440e2c
+| | IMPLEMENTATION: holosim/cross_model_correction_handoff.py
+| | FOCUSED_TEST: tests/test_handoff_capability_floor.py
+| | DOCUMENTATION: docs/HANDOFF_CAPABILITY_FLOOR.md
+| | IMPLEMENTED:
+| | - Fixed isolated schema, ID-copy and three arithmetic cases.
+| | - Equal budgets, raw captures, failed attempts and case scores.
+| | - Fixture-specific eligibility; no handoff run or ranking.
+| | PRESERVED_BOUNDARY:
+| | - Scripted tests are not empirical model results.
+| | - No understanding, authentication, fresh process or action gate.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

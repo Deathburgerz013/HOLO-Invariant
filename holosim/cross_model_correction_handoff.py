@@ -292,10 +292,89 @@ def audit_saved_runs(directory):
     return {**result, "result_hash": stable_hash(result)}
 
 
+DEFAULT_FLOOR_FIXTURE = Path(__file__).resolve().parents[1] / "benchmarks/handoff-capability-floor.fixture.json"
+
+
+def load_floor_fixture(path=DEFAULT_FLOOR_FIXTURE):
+    """One frozen authored floor, not an open-ended judge or adaptive control."""
+    with Path(path).open("rb") as stream:
+        raw = stream.read(16_385)
+    if len(raw) > 16_384:
+        raise ValueError("floor fixture exceeds limit")
+    fixture = json.loads(raw)
+    if canonical_bytes(fixture) != canonical_bytes(json.loads(DEFAULT_FLOOR_FIXTURE.read_bytes())):
+        raise ValueError("unsupported floor fixture")
+    return fixture
+
+
+def score_floor_output(output, expected):
+    """Exact JSON structure and scalar types: booleans cannot count as integers."""
+    def exact(actual, target):
+        if type(actual) is not type(target):
+            return False
+        if type(target) is dict:
+            return set(actual) == set(target) and all(exact(actual[k], target[k]) for k in target)
+        if type(target) is list:
+            return len(actual) == len(target) and all(exact(a, b) for a, b in zip(actual, target))
+        return actual == target
+    return exact(output, expected)
+
+
+def run_capability_floor(*, sender_model, receiver_model, opener=urlopen):
+    """Separate basic tasks at fixed budgets; no handoff or enforced action gate.
+
+    Eligibility applies only to these exact cases and repeats. Requested CPU
+    options and server digests are retained declarations, not runtime witnesses.
+    """
+    for model in (sender_model, receiver_model):
+        if type(model) is not str or not model.strip() or len(model) > 256:
+            raise ValueError("model must be a nonempty identifier")
+    if sender_model == receiver_model:
+        raise ValueError("floor requires two distinct requested model IDs")
+    fixture = load_floor_fixture()
+    fixture_raw = DEFAULT_FLOOR_FIXTURE.read_bytes()
+    identities = identify_models(sender_model, receiver_model, opener)
+    trials = []
+    budgets = fixture["budgets"]
+    for repeat in range(budgets["repeats"]):
+        models = (sender_model, receiver_model) if repeat % 2 == 0 else (receiver_model, sender_model)
+        cases = fixture["cases"] if repeat % 2 == 0 else list(reversed(fixture["cases"]))
+        for case in cases:
+            for model in models:
+                call = recorded_call(case["prompt"], model=model, options=budgets["options"],
+                                     timeout=budgets["timeout_seconds"], opener=opener)
+                passed = call["error"] is None and score_floor_output(call["output"], case["expected"])
+                trials.append({"case_id": case["id"], "repeat": repeat, "call": call, "passed": passed})
+    summaries = {}
+    for model in (sender_model, receiver_model):
+        selected = [t for t in trials if t["call"]["model"] == model]
+        summaries[model] = {"cases": {case["id"]: {
+            "attempts": sum(t["case_id"] == case["id"] for t in selected),
+            "passed": sum(t["passed"] for t in selected if t["case_id"] == case["id"])}
+            for case in fixture["cases"]},
+            "request_errors": sum(t["call"]["error"] is not None for t in selected),
+            "eligible_for_this_fixture": all(t["passed"] for t in selected),
+            "confounded_by": ["floor_failure"] if not all(t["passed"] for t in selected) else []}
+    body = {"type": "handoff_capability_floor", "version": 1, "status": "RECORDED",
+            "fixture": fixture, "fixture_hash": stable_hash(fixture),
+            "fixture_bytes_b64": base64.b64encode(fixture_raw).decode("ascii"),
+            "fixture_sha256": hashlib.sha256(fixture_raw).hexdigest(),
+            "budgets": budgets, "model_identities": identities,
+            "capability_pair": {"sender_model": sender_model, "receiver_model": receiver_model},
+            "trials": trials, "summary": summaries, "ranking": None,
+            "handoff_executed": False, "action_gate_tested": False,
+            "notice": "Fixed floor only; eligibility is not handoff success, general capability, process freshness, authentication or authority. Deterministic repeats are not independent samples.",
+            "source_hashes": {name: hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest()
+                              for name in ("cross_model_correction_handoff.py", "local_ollama_adapter.py", "canonical.py")},
+            **BOUNDARY}
+    return {**body, "result_hash": stable_hash(body)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sender-model")
     parser.add_argument("--receiver-model")
+    parser.add_argument("--capability-floor", action="store_true", help="Run fixed isolated capability checks only")
     parser.add_argument("--audit-runs", help="Re-score saved evidence without model requests")
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--output", required=True)
@@ -306,6 +385,18 @@ def main():
     destination = Path(args.output)
     if destination.exists():
         parser.error("output already exists; preserve prior evidence")
+    if args.capability_floor and args.audit_runs:
+        parser.error("capability-floor and audit-runs are separate modes")
+    if args.capability_floor:
+        if not args.sender_model or not args.receiver_model:
+            parser.error("sender-model and receiver-model are required for floor")
+        if args.repeats != 2 or args.timeout_seconds != 120.0 or args.num_predict != 512 or args.num_ctx != 8192:
+            parser.error("floor budgets are fixed in the fixture; omit budget overrides")
+        result = run_capability_floor(sender_model=args.sender_model, receiver_model=args.receiver_model)
+        with destination.open("xb") as stream:
+            stream.write(canonical_bytes(result))
+        print(json.dumps({"status": result["status"], "output": str(destination), "summary": result["summary"], "ranking": None}))
+        return
     if args.audit_runs:
         result = audit_saved_runs(args.audit_runs)
         with destination.open("xb") as stream:

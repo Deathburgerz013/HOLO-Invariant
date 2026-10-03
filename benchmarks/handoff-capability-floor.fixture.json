@@ -1,0 +1,57 @@
+{
+  "type": "handoff_capability_floor",
+  "version": 1,
+  "budgets": {
+    "options": {
+      "num_predict": 512,
+      "num_ctx": 8192,
+      "seed": 0,
+      "temperature": 0
+    },
+    "timeout_seconds": 300,
+    "repeats": 2,
+    "retries": 0
+  },
+  "cases": [
+    {
+      "id": "schema_echo",
+      "prompt": "Return ONLY JSON exactly matching this object, with no additional keys: {\"label\":\"floor\",\"count\":2,\"ready\":true}",
+      "expected": {
+        "label": "floor",
+        "count": 2,
+        "ready": true
+      }
+    },
+    {
+      "id": "id_copy",
+      "prompt": "Copy the id fields exactly and in their given order from these records: [{\"id\":\"rule-original\"},{\"id\":\"rule-current\"}]. Return ONLY JSON with exactly one key, ids, containing the two strings. Do not select a rule or infer a correction.",
+      "expected": {
+        "ids": [
+          "rule-original",
+          "rule-current"
+        ]
+      }
+    },
+    {
+      "id": "arithmetic_1",
+      "prompt": "For the list [1, -2, 3, 0], sum only integers strictly greater than 2. Return ONLY JSON with exactly one key, answer, containing the integer sum.",
+      "expected": {
+        "answer": 3
+      }
+    },
+    {
+      "id": "arithmetic_2",
+      "prompt": "For the list [2, 2, 4, -1], sum only integers strictly greater than 2. Return ONLY JSON with exactly one key, answer, containing the integer sum.",
+      "expected": {
+        "answer": 4
+      }
+    },
+    {
+      "id": "arithmetic_3",
+      "prompt": "For the list [-3, 0, 2], sum only integers strictly greater than 2. Return ONLY JSON with exactly one key, answer, containing the integer sum.",
+      "expected": {
+        "answer": 0
+      }
+    }
+  ]
+}
