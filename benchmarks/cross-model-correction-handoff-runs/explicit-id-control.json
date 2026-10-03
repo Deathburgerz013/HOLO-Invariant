@@ -1,0 +1,90 @@
+[
+  {
+    "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+    "prompt": "Within this authored fixture, use the validated correction instead of the rule it supersedes. Both records remain stored. Copy IDs exactly from the id fields. Return ONLY JSON with exactly three keys: active_rule_id (string), retained_rule_ids (list of all stored IDs), stale_plan_blocked (boolean indicating whether the proposed plan uses a superseded rule). Data: {\"records\": [{\"id\": \"rule-original\", \"threshold\": 0}, {\"id\": \"rule-current\", \"threshold\": 2, \"supersedes\": \"rule-original\", \"validated_for_fixture\": true}], \"proposed_plan\": {\"based_on\": \"rule-original\"}}",
+    "prompt_sha256": "15f34cffbaea52d572b31845c5f4fea52839371557c93085c07ec24801085509",
+    "output": {
+      "active_rule_id": "rule-current",
+      "retained_rule_ids": [
+        "rule-original",
+        "rule-current"
+      ],
+      "stale_plan_blocked": true
+    },
+    "error": null,
+    "elapsed_seconds": 14.098121099999844,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiV2l0aGluIHRoaXMgYXV0aG9yZWQgZml4dHVyZSwgdXNlIHRoZSB2YWxpZGF0ZWQgY29ycmVjdGlvbiBpbnN0ZWFkIG9mIHRoZSBydWxlIGl0IHN1cGVyc2VkZXMuIEJvdGggcmVjb3JkcyByZW1haW4gc3RvcmVkLiBDb3B5IElEcyBleGFjdGx5IGZyb20gdGhlIGlkIGZpZWxkcy4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIGV4YWN0bHkgdGhyZWUga2V5czogYWN0aXZlX3J1bGVfaWQgKHN0cmluZyksIHJldGFpbmVkX3J1bGVfaWRzIChsaXN0IG9mIGFsbCBzdG9yZWQgSURzKSwgc3RhbGVfcGxhbl9ibG9ja2VkIChib29sZWFuIGluZGljYXRpbmcgd2hldGhlciB0aGUgcHJvcG9zZWQgcGxhbiB1c2VzIGEgc3VwZXJzZWRlZCBydWxlKS4gRGF0YToge1wicmVjb3Jkc1wiOiBbe1wiaWRcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidGhyZXNob2xkXCI6IDB9LCB7XCJpZFwiOiBcInJ1bGUtY3VycmVudFwiLCBcInRocmVzaG9sZFwiOiAyLCBcInN1cGVyc2VkZXNcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidmFsaWRhdGVkX2Zvcl9maXh0dXJlXCI6IHRydWV9XSwgXCJwcm9wb3NlZF9wbGFuXCI6IHtcImJhc2VkX29uXCI6IFwicnVsZS1vcmlnaW5hbFwifX0iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NTA6MTUuNDE0MjA5N1oiLCJyZXNwb25zZSI6IntcbiAgXCJhY3RpdmVfcnVsZV9pZFwiOiBcInJ1bGUtY3VycmVudFwiLFxuICBcInJldGFpbmVkX3J1bGVfaWRzXCI6IFtcInJ1bGUtb3JpZ2luYWxcIiwgXCJydWxlLWN1cnJlbnRcIl0sXG4gIFwic3RhbGVfcGxhbl9ibG9ja2VkXCI6IHRydWVcbn0iLCJkb25lIjp0cnVlLCJkb25lX3JlYXNvbiI6InN0b3AiLCJjb250ZXh0IjpbMTUxNjQ0LDg5NDgsMTk4LDI2MTAsNTI1LDEyMDcsMTY5NDgsMTEsMzQ2NSw1NTMsNTQzNjQsMTQ4MTcsMTMsMTQ0Niw1MjUsMjY0LDEwOTUwLDE3ODQ3LDEzLDE1MTY0NSwxOTgsMTUxNjQ0LDg3MiwxOTgsNDE5NjEsNDE5LDY2MTEzLDEyNTA3LDExLDk5MCwyNzksMzIzMzIsMjYyNjIsNDUxOCwzMTUsMjc5LDU5MTIsNDMyLDEwMjYsMzk5MTksMjg4LDEzLDExNzMzLDc0MjQsNzE0Niw5NzY4LDEzLDE0NTQwLDI4MzYwLDY4OTYsNTA0LDI3OSw4NzcsNTA0MywxMywzNDExLDI2Njg3LDQ3MTgsNDQ4LDY4OTYsMjMyNiw2ODk0LDI1LDQ1NDEsMjExMjQsODQyLDMyMCw5MTcsNzAxLDM0MjYzLDIxMTI0LDgwNzcsMzIwLDE2MDcsMzE1LDY3OCw5NzY4LDI4MzYwLDcwMSw1MDM1MSwyNjU2NCw4OTIyMywzMjAsNjExNywxODg2MCwzNDI1LDI3OSwxMDk4MSwzMTE5LDU3MTEsMjY0LDUxNjkwLDI5OTM1LDU5MTIsNTY4LDI4ODUsMjUsNTIxMiwyNjIwMyw3ODgsNjE3NTMsMzA3LDc4OCwzMzAsMTI5MzcsNjY5NTgsNDk3LDMzMCwyODkwMiw3ODgsMjIwLDE1LDIxMzcsNTIxMiwzMDcsNzg4LDMzMCwxMjkzNyw0NDE3NSw0OTcsMzMwLDI4OTAyLDc4OCwyMjAsMTcsMTEsMzMwLDEyNzc2LDM5OTE5LDI4OCw3ODgsMzMwLDEyOTM3LDY2OTU4LDQ5NywzMzAsNTk1OTAsNTQ3OCw3NDQwOSw3ODgsODMwLDcyNDQxLDMzMCw3NzYsMzg2NSwyNjU2NCw3ODgsNTIxMiwyOTkzOSw0NDcwLDc4OCwzMzAsMTI5MzcsNjY5NTgsMzA5NzUsMTUxNjQ1LDE5OCwxNTE2NDQsNzcwOTEsMTk4LDUxNSwyMjAsMzMwLDMwMjgsMjExMjQsODQyLDc4OCwzMzAsMTI5MzcsNDQxNzUsNzU2LDIyMCwzMzAsMjEyMiwyNjI3LDIxMTI0LDgwNzcsNzg4LDQzODMsMTI5MzcsNjY5NTgsNDk3LDMzMCwxMjkzNyw0NDE3NSw4MDk3LDIyMCwzMzAsMjY3LDE1NzQsMjY1NjQsODkyMjMsNzg4LDgzMCwxOTgsOTJdLCJ0b3RhbF9kdXJhdGlvbiI6MTQwMzQ2MjE4MDAsImxvYWRfZHVyYXRpb24iOjQxNzAzMDAsInByb21wdF9ldmFsX2NvdW50IjoxNjAsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6MjQsInByb21wdF9ldmFsX2R1cmF0aW9uIjo4OTEzNjM0MDAwLCJldmFsX2NvdW50IjozNywiZXZhbF9kdXJhdGlvbiI6NTEwOTYxNDAwMH0=",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  {
+    "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+    "prompt": "Within this authored fixture, use the validated correction instead of the rule it supersedes. Both records remain stored. Copy IDs exactly from the id fields. Return ONLY JSON with exactly three keys: active_rule_id (string), retained_rule_ids (list of all stored IDs), stale_plan_blocked (boolean indicating whether the proposed plan uses a superseded rule). Data: {\"records\": [{\"id\": \"rule-original\", \"threshold\": 0}, {\"id\": \"rule-current\", \"threshold\": 2, \"supersedes\": \"rule-original\", \"validated_for_fixture\": true}], \"proposed_plan\": {\"based_on\": \"rule-original\"}}",
+    "prompt_sha256": "15f34cffbaea52d572b31845c5f4fea52839371557c93085c07ec24801085509",
+    "output": {
+      "active_rule_id": "rule-current",
+      "retained_rule_ids": [
+        "rule-original",
+        "rule-current"
+      ],
+      "stale_plan_blocked": true
+    },
+    "error": null,
+    "elapsed_seconds": 5.32425659999717,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiV2l0aGluIHRoaXMgYXV0aG9yZWQgZml4dHVyZSwgdXNlIHRoZSB2YWxpZGF0ZWQgY29ycmVjdGlvbiBpbnN0ZWFkIG9mIHRoZSBydWxlIGl0IHN1cGVyc2VkZXMuIEJvdGggcmVjb3JkcyByZW1haW4gc3RvcmVkLiBDb3B5IElEcyBleGFjdGx5IGZyb20gdGhlIGlkIGZpZWxkcy4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIGV4YWN0bHkgdGhyZWUga2V5czogYWN0aXZlX3J1bGVfaWQgKHN0cmluZyksIHJldGFpbmVkX3J1bGVfaWRzIChsaXN0IG9mIGFsbCBzdG9yZWQgSURzKSwgc3RhbGVfcGxhbl9ibG9ja2VkIChib29sZWFuIGluZGljYXRpbmcgd2hldGhlciB0aGUgcHJvcG9zZWQgcGxhbiB1c2VzIGEgc3VwZXJzZWRlZCBydWxlKS4gRGF0YToge1wicmVjb3Jkc1wiOiBbe1wiaWRcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidGhyZXNob2xkXCI6IDB9LCB7XCJpZFwiOiBcInJ1bGUtY3VycmVudFwiLCBcInRocmVzaG9sZFwiOiAyLCBcInN1cGVyc2VkZXNcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidmFsaWRhdGVkX2Zvcl9maXh0dXJlXCI6IHRydWV9XSwgXCJwcm9wb3NlZF9wbGFuXCI6IHtcImJhc2VkX29uXCI6IFwicnVsZS1vcmlnaW5hbFwifX0iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NTA6MjAuNzM5MTI5WiIsInJlc3BvbnNlIjoie1xuICBcImFjdGl2ZV9ydWxlX2lkXCI6IFwicnVsZS1jdXJyZW50XCIsXG4gIFwicmV0YWluZWRfcnVsZV9pZHNcIjogW1wicnVsZS1vcmlnaW5hbFwiLCBcInJ1bGUtY3VycmVudFwiXSxcbiAgXCJzdGFsZV9wbGFuX2Jsb2NrZWRcIjogdHJ1ZVxufSIsImRvbmUiOnRydWUsImRvbmVfcmVhc29uIjoic3RvcCIsImNvbnRleHQiOlsxNTE2NDQsODk0OCwxOTgsMjYxMCw1MjUsMTIwNywxNjk0OCwxMSwzNDY1LDU1Myw1NDM2NCwxNDgxNywxMywxNDQ2LDUyNSwyNjQsMTA5NTAsMTc4NDcsMTMsMTUxNjQ1LDE5OCwxNTE2NDQsODcyLDE5OCw0MTk2MSw0MTksNjYxMTMsMTI1MDcsMTEsOTkwLDI3OSwzMjMzMiwyNjI2Miw0NTE4LDMxNSwyNzksNTkxMiw0MzIsMTAyNiwzOTkxOSwyODgsMTMsMTE3MzMsNzQyNCw3MTQ2LDk3NjgsMTMsMTQ1NDAsMjgzNjAsNjg5Niw1MDQsMjc5LDg3Nyw1MDQzLDEzLDM0MTEsMjY2ODcsNDcxOCw0NDgsNjg5NiwyMzI2LDY4OTQsMjUsNDU0MSwyMTEyNCw4NDIsMzIwLDkxNyw3MDEsMzQyNjMsMjExMjQsODA3NywzMjAsMTYwNywzMTUsNjc4LDk3NjgsMjgzNjAsNzAxLDUwMzUxLDI2NTY0LDg5MjIzLDMyMCw2MTE3LDE4ODYwLDM0MjUsMjc5LDEwOTgxLDMxMTksNTcxMSwyNjQsNTE2OTAsMjk5MzUsNTkxMiw1NjgsMjg4NSwyNSw1MjEyLDI2MjAzLDc4OCw2MTc1MywzMDcsNzg4LDMzMCwxMjkzNyw2Njk1OCw0OTcsMzMwLDI4OTAyLDc4OCwyMjAsMTUsMjEzNyw1MjEyLDMwNyw3ODgsMzMwLDEyOTM3LDQ0MTc1LDQ5NywzMzAsMjg5MDIsNzg4LDIyMCwxNywxMSwzMzAsMTI3NzYsMzk5MTksMjg4LDc4OCwzMzAsMTI5MzcsNjY5NTgsNDk3LDMzMCw1OTU5MCw1NDc4LDc0NDA5LDc4OCw4MzAsNzI0NDEsMzMwLDc3NiwzODY1LDI2NTY0LDc4OCw1MjEyLDI5OTM5LDQ0NzAsNzg4LDMzMCwxMjkzNyw2Njk1OCwzMDk3NSwxNTE2NDUsMTk4LDE1MTY0NCw3NzA5MSwxOTgsNTE1LDIyMCwzMzAsMzAyOCwyMTEyNCw4NDIsNzg4LDMzMCwxMjkzNyw0NDE3NSw3NTYsMjIwLDMzMCwyMTIyLDI2MjcsMjExMjQsODA3Nyw3ODgsNDM4MywxMjkzNyw2Njk1OCw0OTcsMzMwLDEyOTM3LDQ0MTc1LDgwOTcsMjIwLDMzMCwyNjcsMTU3NCwyNjU2NCw4OTIyMyw3ODgsODMwLDE5OCw5Ml0sInRvdGFsX2R1cmF0aW9uIjo1MzIwNjMwNzAwLCJsb2FkX2R1cmF0aW9uIjo0OTc2NTAwLCJwcm9tcHRfZXZhbF9jb3VudCI6MTYwLCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjE1OSwicHJvbXB0X2V2YWxfZHVyYXRpb24iOjE5MTc3ODAwMCwiZXZhbF9jb3VudCI6MzcsImV2YWxfZHVyYXRpb24iOjUxMTk1NTIwMDB9",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  {
+    "model": "llama3.2:1b",
+    "prompt": "Within this authored fixture, use the validated correction instead of the rule it supersedes. Both records remain stored. Copy IDs exactly from the id fields. Return ONLY JSON with exactly three keys: active_rule_id (string), retained_rule_ids (list of all stored IDs), stale_plan_blocked (boolean indicating whether the proposed plan uses a superseded rule). Data: {\"records\": [{\"id\": \"rule-original\", \"threshold\": 0}, {\"id\": \"rule-current\", \"threshold\": 2, \"supersedes\": \"rule-original\", \"validated_for_fixture\": true}], \"proposed_plan\": {\"based_on\": \"rule-original\"}}",
+    "prompt_sha256": "15f34cffbaea52d572b31845c5f4fea52839371557c93085c07ec24801085509",
+    "output": {
+      "active_rule_id": "rule-current",
+      "retained_rule_ids": [
+        "rule-original",
+        "rule-current"
+      ],
+      "stale_plan_blocked": false
+    },
+    "error": null,
+    "elapsed_seconds": 3.1231379000018933,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJsbGFtYTMuMjoxYiIsICJwcm9tcHQiOiAiV2l0aGluIHRoaXMgYXV0aG9yZWQgZml4dHVyZSwgdXNlIHRoZSB2YWxpZGF0ZWQgY29ycmVjdGlvbiBpbnN0ZWFkIG9mIHRoZSBydWxlIGl0IHN1cGVyc2VkZXMuIEJvdGggcmVjb3JkcyByZW1haW4gc3RvcmVkLiBDb3B5IElEcyBleGFjdGx5IGZyb20gdGhlIGlkIGZpZWxkcy4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIGV4YWN0bHkgdGhyZWUga2V5czogYWN0aXZlX3J1bGVfaWQgKHN0cmluZyksIHJldGFpbmVkX3J1bGVfaWRzIChsaXN0IG9mIGFsbCBzdG9yZWQgSURzKSwgc3RhbGVfcGxhbl9ibG9ja2VkIChib29sZWFuIGluZGljYXRpbmcgd2hldGhlciB0aGUgcHJvcG9zZWQgcGxhbiB1c2VzIGEgc3VwZXJzZWRlZCBydWxlKS4gRGF0YToge1wicmVjb3Jkc1wiOiBbe1wiaWRcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidGhyZXNob2xkXCI6IDB9LCB7XCJpZFwiOiBcInJ1bGUtY3VycmVudFwiLCBcInRocmVzaG9sZFwiOiAyLCBcInN1cGVyc2VkZXNcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidmFsaWRhdGVkX2Zvcl9maXh0dXJlXCI6IHRydWV9XSwgXCJwcm9wb3NlZF9wbGFuXCI6IHtcImJhc2VkX29uXCI6IFwicnVsZS1vcmlnaW5hbFwifX0iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6ImxsYW1hMy4yOjFiIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NTA6MjMuODYyNjQwN1oiLCJyZXNwb25zZSI6IntcblxuICAgIFwiYWN0aXZlX3J1bGVfaWRcIjogXCJydWxlLWN1cnJlbnRcIixcbiAgICBcInJldGFpbmVkX3J1bGVfaWRzXCI6IFtcInJ1bGUtb3JpZ2luYWxcIiwgXCJydWxlLWN1cnJlbnRcIl0sXG4gICAgXCJzdGFsZV9wbGFuX2Jsb2NrZWRcIjogZmFsc2VcblxufSIsImRvbmUiOnRydWUsImRvbmVfcmVhc29uIjoic3RvcCIsImNvbnRleHQiOlsxMjgwMDYsOTEyNSwxMjgwMDcsMjcxLDM4NzY2LDEzMDMsMzMwMjUsMjY5NiwyNSw2NzkwLDIyMCwyMzY2LDE4LDI3MSwxMjgwMDksMTI4MDA2LDg4MiwxMjgwMDcsMjcxLDQzMDYxLDQyMCw2NzIxMywxMjc5MCwxMSwxMDA1LDI3OSwzMzQzMiwyNzM1OCw0NjE5LDMxNSwyNzksNjAzNyw0MzMsMTA0Myw0MTAxOSwyODgsMTMsMTE5OTUsNzU3Niw3MjkzLDk5NjcsMTMsMTQ4ODIsMjk0NjAsNzA0MSw1MDUsMjc5LDg4Nyw1MTUxLDEzLDM0OTQsMjc3ODUsNDgyMyw0NDksNzA0MSwyMzgwLDcwMzksMjUsNDY0MiwyMTgwOCw4NTEsMzIwLDkyOCw3MDUsMzUzNjMsMjE4MDgsODIzNywzMjAsMTYzOCwzMTUsNjgyLDk5NjcsMjk0NjAsNzA1LDUxNDUxLDI3NjYyLDkwMzIzLDMyMCw2MjQ1LDE5MzkyLDM1MDgsMjc5LDExMjIzLDMxOTcsNTgyOSwyNjQsNTI3OTAsMzEwMzUsNjAzNyw1NzAsMjk1NiwyNSw1MzI0LDI3Mjk1LDc5NCw2Mjg1MywzMDcsNzk0LDMzMCwxMzIzMyw2ODA1OCw0OTgsMzMwLDMwMDAyLDc5NCwyMjAsMTUsMjE4Niw1MzI0LDMwNyw3OTQsMzMwLDEzMjMzLDQ1Mjc1LDQ5OCwzMzAsMzAwMDIsNzk0LDIyMCwxNywxMSwzMzAsMTMwNjYsNDEwMTksMjg4LDc5NCwzMzAsMTMyMzMsNjgwNTgsNDk4LDMzMCw2MDY5MCw1NTk1LDc1NTA5LDc5NCw4MzcsNzM1NDEsMzMwLDc4MiwzOTUwLDI3NjYyLDc5NCw1MzI0LDMxMDM5LDQ1NzAsNzk0LDMzMCwxMzIzMyw2ODA1OCwzMjA3NSwxMjgwMDksMTI4MDA2LDc4MTkxLDEyODAwNywyNzEsNDM1MiwyNjIsMzMwLDMxMDQsMjE4MDgsODUxLDc5NCwzMzAsMTMyMzMsNDUyNzUsNzYxLDI2MiwzMzAsMjE3MSwyNjkyLDIxODA4LDgyMzcsNzk0LDQ0ODIsMTMyMzMsNjgwNTgsNDk4LDMzMCwxMzIzMyw0NTI3NSw4MjU3LDI2MiwzMzAsMjY3LDE2MDQsMjc2NjIsOTAzMjMsNzk0LDkwNSwyNzEsOTJdLCJ0b3RhbF9kdXJhdGlvbiI6MzEyMDI0MjgwMCwibG9hZF9kdXJhdGlvbiI6NTgyMjgwMCwicHJvbXB0X2V2YWxfY291bnQiOjE1NiwicHJvbXB0X2V2YWxfY2FjaGVkX2NvdW50IjoyMCwicHJvbXB0X2V2YWxfZHVyYXRpb24iOjEyMDU4NDUwMDAsImV2YWxfY291bnQiOjM3LCJldmFsX2R1cmF0aW9uIjoxOTAyNzUzMDAwfQ==",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  },
+  {
+    "model": "llama3.2:1b",
+    "prompt": "Within this authored fixture, use the validated correction instead of the rule it supersedes. Both records remain stored. Copy IDs exactly from the id fields. Return ONLY JSON with exactly three keys: active_rule_id (string), retained_rule_ids (list of all stored IDs), stale_plan_blocked (boolean indicating whether the proposed plan uses a superseded rule). Data: {\"records\": [{\"id\": \"rule-original\", \"threshold\": 0}, {\"id\": \"rule-current\", \"threshold\": 2, \"supersedes\": \"rule-original\", \"validated_for_fixture\": true}], \"proposed_plan\": {\"based_on\": \"rule-original\"}}",
+    "prompt_sha256": "15f34cffbaea52d572b31845c5f4fea52839371557c93085c07ec24801085509",
+    "output": {
+      "records": [
+        {
+          "active_rule_id": "rule-current",
+          "retained_rule_ids": [
+            "rule-original",
+            "rule-current"
+          ],
+          "stale_plan_blocked": false
+        }
+      ]
+    },
+    "error": null,
+    "elapsed_seconds": 2.8876698999993096,
+    "request_bytes_b64": "eyJtb2RlbCI6ICJsbGFtYTMuMjoxYiIsICJwcm9tcHQiOiAiV2l0aGluIHRoaXMgYXV0aG9yZWQgZml4dHVyZSwgdXNlIHRoZSB2YWxpZGF0ZWQgY29ycmVjdGlvbiBpbnN0ZWFkIG9mIHRoZSBydWxlIGl0IHN1cGVyc2VkZXMuIEJvdGggcmVjb3JkcyByZW1haW4gc3RvcmVkLiBDb3B5IElEcyBleGFjdGx5IGZyb20gdGhlIGlkIGZpZWxkcy4gUmV0dXJuIE9OTFkgSlNPTiB3aXRoIGV4YWN0bHkgdGhyZWUga2V5czogYWN0aXZlX3J1bGVfaWQgKHN0cmluZyksIHJldGFpbmVkX3J1bGVfaWRzIChsaXN0IG9mIGFsbCBzdG9yZWQgSURzKSwgc3RhbGVfcGxhbl9ibG9ja2VkIChib29sZWFuIGluZGljYXRpbmcgd2hldGhlciB0aGUgcHJvcG9zZWQgcGxhbiB1c2VzIGEgc3VwZXJzZWRlZCBydWxlKS4gRGF0YToge1wicmVjb3Jkc1wiOiBbe1wiaWRcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidGhyZXNob2xkXCI6IDB9LCB7XCJpZFwiOiBcInJ1bGUtY3VycmVudFwiLCBcInRocmVzaG9sZFwiOiAyLCBcInN1cGVyc2VkZXNcIjogXCJydWxlLW9yaWdpbmFsXCIsIFwidmFsaWRhdGVkX2Zvcl9maXh0dXJlXCI6IHRydWV9XSwgXCJwcm9wb3NlZF9wbGFuXCI6IHtcImJhc2VkX29uXCI6IFwicnVsZS1vcmlnaW5hbFwifX0iLCAic3RyZWFtIjogZmFsc2UsICJmb3JtYXQiOiAianNvbiIsICJvcHRpb25zIjogeyJudW1fZ3B1IjogMCwgIm51bV9wcmVkaWN0IjogNTEyLCAibnVtX2N0eCI6IDgxOTIsICJzZWVkIjogMCwgInRlbXBlcmF0dXJlIjogMH19",
+    "response_bytes_b64": "eyJtb2RlbCI6ImxsYW1hMy4yOjFiIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTAtMDNUMDE6NTA6MjYuNzQ5NzM5M1oiLCJyZXNwb25zZSI6IntcblxuICAgIFwicmVjb3Jkc1wiOiBbXG4gICAgICAgIHtcbiAgICAgICAgICAgIFwiYWN0aXZlX3J1bGVfaWRcIjogXCJydWxlLWN1cnJlbnRcIixcbiAgICAgICAgICAgIFwicmV0YWluZWRfcnVsZV9pZHNcIjogW1xuICAgICAgICAgICAgICAgIFwicnVsZS1vcmlnaW5hbFwiLFxuICAgICAgICAgICAgICAgIFwicnVsZS1jdXJyZW50XCJcbiAgICAgICAgICAgIF0sXG4gICAgICAgICAgICBcInN0YWxlX3BsYW5fYmxvY2tlZFwiOiBmYWxzZVxuICAgICAgICB9XG4gICAgXVxufSIsImRvbmUiOnRydWUsImRvbmVfcmVhc29uIjoic3RvcCIsImNvbnRleHQiOlsxMjgwMDYsOTEyNSwxMjgwMDcsMjcxLDM4NzY2LDEzMDMsMzMwMjUsMjY5NiwyNSw2NzkwLDIyMCwyMzY2LDE4LDI3MSwxMjgwMDksMTI4MDA2LDg4MiwxMjgwMDcsMjcxLDQzMDYxLDQyMCw2NzIxMywxMjc5MCwxMSwxMDA1LDI3OSwzMzQzMiwyNzM1OCw0NjE5LDMxNSwyNzksNjAzNyw0MzMsMTA0Myw0MTAxOSwyODgsMTMsMTE5OTUsNzU3Niw3MjkzLDk5NjcsMTMsMTQ4ODIsMjk0NjAsNzA0MSw1MDUsMjc5LDg4Nyw1MTUxLDEzLDM0OTQsMjc3ODUsNDgyMyw0NDksNzA0MSwyMzgwLDcwMzksMjUsNDY0MiwyMTgwOCw4NTEsMzIwLDkyOCw3MDUsMzUzNjMsMjE4MDgsODIzNywzMjAsMTYzOCwzMTUsNjgyLDk5NjcsMjk0NjAsNzA1LDUxNDUxLDI3NjYyLDkwMzIzLDMyMCw2MjQ1LDE5MzkyLDM1MDgsMjc5LDExMjIzLDMxOTcsNTgyOSwyNjQsNTI3OTAsMzEwMzUsNjAzNyw1NzAsMjk1NiwyNSw1MzI0LDI3Mjk1LDc5NCw2Mjg1MywzMDcsNzk0LDMzMCwxMzIzMyw2ODA1OCw0OTgsMzMwLDMwMDAyLDc5NCwyMjAsMTUsMjE4Niw1MzI0LDMwNyw3OTQsMzMwLDEzMjMzLDQ1Mjc1LDQ5OCwzMzAsMzAwMDIsNzk0LDIyMCwxNywxMSwzMzAsMTMwNjYsNDEwMTksMjg4LDc5NCwzMzAsMTMyMzMsNjgwNTgsNDk4LDMzMCw2MDY5MCw1NTk1LDc1NTA5LDc5NCw4MzcsNzM1NDEsMzMwLDc4MiwzOTUwLDI3NjYyLDc5NCw1MzI0LDMxMDM5LDQ1NzAsNzk0LDMzMCwxMzIzMyw2ODA1OCwzMjA3NSwxMjgwMDksMTI4MDA2LDc4MTkxLDEyODAwNywyNzEsNDM1MiwyNjIsMzMwLDI3Mjk1LDc5NCwyMzMwLDI4NiwzNDEsMzEwLDMzMCwzMTA0LDIxODA4LDg1MSw3OTQsMzMwLDEzMjMzLDQ1Mjc1LDc2MSwzMTAsMzMwLDIxNzEsMjY5MiwyMTgwOCw4MjM3LDc5NCwyMzMwLDM5NCwzMzAsMTMyMzMsNjgwNTgsNzYxLDM5NCwzMzAsMTMyMzMsNDUyNzUsNzAyLDMxMCwzMjkxLDMxMCwzMzAsMjY3LDE2MDQsMjc2NjIsOTAzMjMsNzk0LDkwNSwxOTgsMjg2LDQ1NywyNjIsNTI0Myw5Ml0sInRvdGFsX2R1cmF0aW9uIjoyODgzOTE2NTAwLCJsb2FkX2R1cmF0aW9uIjo0MjM0MzAwLCJwcm9tcHRfZXZhbF9jb3VudCI6MTU2LCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjE1NSwicHJvbXB0X2V2YWxfZHVyYXRpb24iOjEwMTM2MzAwMCwiZXZhbF9jb3VudCI6NTMsImV2YWxfZHVyYXRpb24iOjI3NzQyMjIwMDB9",
+    "accepted": false,
+    "truth_claimed": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE"
+  }
+]
