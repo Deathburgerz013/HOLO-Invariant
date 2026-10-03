@@ -5133,3 +5133,20 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | OLLAMA_RESPONSE_BYTE_CAP
+| |}==============================================================|
+| | CLASSIFICATION: IMPLEMENTED bounded transport read
+| | BASE: main@f321aef
+| | IMPLEMENTATION: holosim/local_ollama_adapter.py
+| | FOCUSED_TEST: tests/test_ollama_response_byte_cap.py
+| | DOCUMENTATION: docs/OLLAMA_RESPONSE_BYTE_CAP.md
+| | - Shared generation response read capped at 1,048,576 bytes.
+| | - One extra byte detects overflow before JSON parsing.
+| | - Existing adapter exception and authority boundary retained.
+| | - Recorder wrapper supports sized reads; raw evidence unchanged.
+| | - No demonstrated OOM exploit, server generation budget, sandbox,
+| |   total deadline, model correctness or execution authority claim.
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

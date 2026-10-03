@@ -98,8 +98,8 @@ class _CapturedResponse:
         return self
     def __exit__(self, *_):
         return False
-    def read(self):
-        return self.raw
+    def read(self, size=-1):
+        return self.raw if size < 0 else self.raw[:size]
 
 
 def recorded_call(prompt, *, model, options, timeout, opener=urlopen):
