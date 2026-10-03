@@ -370,10 +370,107 @@ def run_capability_floor(*, sender_model, receiver_model, opener=urlopen):
     return {**body, "result_hash": stable_hash(body)}
 
 
+def audit_floor_run(path):
+    """Rebuild scores from one complete captured floor run, without requests.
+
+    This bounded audit requires completed parseable responses with no request
+    errors. It checks consistency, not emission authenticity or all metadata.
+    """
+    with Path(path).open("rb") as stream:
+        raw = stream.read(2_097_153)
+    if len(raw) > 2_097_152:
+        raise ValueError("floor run exceeds audit limit")
+    run = json.loads(raw)
+    if type(run) is not dict or stable_hash({k: v for k, v in run.items() if k != "result_hash"}) != run.get("result_hash"):
+        raise ValueError("floor result hash mismatch")
+    fixture = load_floor_fixture()
+    fixture_raw = base64.b64decode(run["fixture_bytes_b64"], validate=True)
+    if (canonical_bytes(run["fixture"]) != canonical_bytes(fixture)
+            or canonical_bytes(json.loads(fixture_raw)) != canonical_bytes(fixture)
+            or run["fixture_sha256"] != hashlib.sha256(fixture_raw).hexdigest()
+            or run["fixture_hash"] != stable_hash(fixture)
+            or canonical_bytes(run["budgets"]) != canonical_bytes(fixture["budgets"])):
+        raise ValueError("floor fixture/budget binding mismatch")
+    fixed = {"type": "handoff_capability_floor", "version": 1, "status": "RECORDED",
+             "ranking": None, "handoff_executed": False, "action_gate_tested": False, **BOUNDARY}
+    if any(type(run.get(k)) is not type(v) or run[k] != v for k, v in fixed.items()):
+        raise ValueError("floor boundary mismatch")
+    pair = run["capability_pair"]
+    if type(pair) is not dict or set(pair) != {"sender_model", "receiver_model"}:
+        raise ValueError("invalid capability pair")
+    models = (pair["sender_model"], pair["receiver_model"])
+    if any(type(m) is not str or not m.strip() or len(m) > 256 for m in models) or models[0] == models[1]:
+        raise ValueError("invalid capability pair")
+    identities = run["model_identities"]
+    inventory = json.loads(base64.b64decode(identities["inventory_bytes_b64"], validate=True))
+    digests = {}
+    for model in models:
+        matches = [row for row in inventory["models"] if row.get("name") == model]
+        if len(matches) != 1 or type(matches[0].get("digest")) is not str or not matches[0]["digest"]:
+            raise ValueError("invalid declared inventory")
+        digests[model] = matches[0]["digest"]
+    if identities["declared_digests"] != digests or len(set(digests.values())) != 2:
+        raise ValueError("declared inventory binding mismatch")
+    schedule = []
+    for repeat in range(fixture["budgets"]["repeats"]):
+        order = models if repeat % 2 == 0 else tuple(reversed(models))
+        cases = fixture["cases"] if repeat % 2 == 0 else list(reversed(fixture["cases"]))
+        schedule.extend((repeat, case, model) for case in cases for model in order)
+    if type(run["trials"]) is not list or len(run["trials"]) != len(schedule):
+        raise ValueError("floor schedule mismatch")
+    rows = []
+    for trial, (repeat, case, model) in zip(run["trials"], schedule):
+        call = trial["call"]
+        if (type(trial["repeat"]) is not int or trial["repeat"] != repeat
+                or trial["case_id"] != case["id"] or call["model"] != model):
+            raise ValueError("floor schedule mismatch")
+        if any(type(call.get(k)) is not type(v) or call[k] != v for k, v in BOUNDARY.items()):
+            raise ValueError("floor call boundary mismatch")
+        request = json.loads(base64.b64decode(call["request_bytes_b64"], validate=True))
+        expected_request = {"model": model, "prompt": case["prompt"], "stream": False,
+                            "format": "json", "options": {"num_gpu": 0, **fixture["budgets"]["options"]}}
+        if (canonical_bytes(request) != canonical_bytes(expected_request)
+                or call["prompt"] != case["prompt"] or call["prompt_sha256"] != stable_hash(case["prompt"])):
+            raise ValueError("floor request binding mismatch")
+        if call["error"] is not None:
+            raise ValueError("floor audit requires complete error-free captures")
+        response = json.loads(base64.b64decode(call["response_bytes_b64"], validate=True))
+        if response.get("model") != model or response.get("done") is not True:
+            raise ValueError("floor response binding mismatch")
+        output = json.loads(response["response"])
+        if canonical_bytes(output) != canonical_bytes(call["output"]):
+            raise ValueError("floor response/output binding mismatch")
+        passed = score_floor_output(output, case["expected"])
+        if type(trial["passed"]) is not bool or trial["passed"] != passed:
+            raise ValueError("floor score mismatch")
+        rows.append({"model": model, "case_id": case["id"], "repeat": repeat,
+                     "output": output, "expected": case["expected"], "passed": passed,
+                     "done_reason": response.get("done_reason")})
+    summary = {}
+    for model in models:
+        selected = [row for row in rows if row["model"] == model]
+        eligible = all(row["passed"] for row in selected)
+        summary[model] = {"cases": {case["id"]: {
+            "attempts": sum(row["case_id"] == case["id"] for row in selected),
+            "passed": sum(row["passed"] for row in selected if row["case_id"] == case["id"])}
+            for case in fixture["cases"]}, "request_errors": 0,
+            "eligible_for_this_fixture": eligible,
+            "confounded_by": [] if eligible else ["floor_failure"]}
+    if canonical_bytes(summary) != canonical_bytes(run["summary"]):
+        raise ValueError("floor summary mismatch")
+    body = {"type": "saved_capability_floor_analysis", "source_sha256": hashlib.sha256(raw).hexdigest(),
+            "source_name": Path(path).name, "fixture_hash": stable_hash(fixture),
+            "capability_pair": pair, "rows": rows, "summary": summary, "ranking": None,
+            "notice": "Complete-capture internal consistency only; not authenticated emission, fresh processes, CPU execution, understanding, handoff or action authority. Source-version hashes and timing metadata are retained, not independently authenticated.",
+            **BOUNDARY}
+    return {**body, "result_hash": stable_hash(body)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sender-model")
     parser.add_argument("--receiver-model")
+    parser.add_argument("--audit-floor-run", help="Audit one complete saved floor run without model calls")
     parser.add_argument("--capability-floor", action="store_true", help="Run fixed isolated capability checks only")
     parser.add_argument("--audit-runs", help="Re-score saved evidence without model requests")
     parser.add_argument("--repeats", type=int, default=2)
@@ -385,8 +482,14 @@ def main():
     destination = Path(args.output)
     if destination.exists():
         parser.error("output already exists; preserve prior evidence")
-    if args.capability_floor and args.audit_runs:
-        parser.error("capability-floor and audit-runs are separate modes")
+    if sum(bool(x) for x in (args.capability_floor, args.audit_runs, args.audit_floor_run)) > 1:
+        parser.error("select only one experiment or audit mode")
+    if args.audit_floor_run:
+        result = audit_floor_run(args.audit_floor_run)
+        with destination.open("xb") as stream:
+            stream.write(canonical_bytes(result))
+        print(json.dumps({"output": str(destination), "scored_calls": len(result["rows"]), "passed": sum(row["passed"] for row in result["rows"]), "summary": result["summary"]}))
+        return
     if args.capability_floor:
         if not args.sender_model or not args.receiver_model:
             parser.error("sender-model and receiver-model are required for floor")
