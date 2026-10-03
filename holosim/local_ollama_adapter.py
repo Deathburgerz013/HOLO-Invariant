@@ -18,6 +18,7 @@ DEFAULT_MODEL = "qwen2.5-coder:7b-instruct-q3_K_S"
 DEFAULT_ENDPOINT = "http://127.0.0.1:11434/api/generate"
 RECEIPT_TYPE = "local_ollama_json_receipt"
 RECEIPT_VERSION = 1
+MAX_RESPONSE_BYTES = 1_048_576
 
 
 class LocalOllamaAdapterError(ValueError):
@@ -99,7 +100,10 @@ def request_local_ollama_json(
     )
     try:
         with opener(request, timeout=float(timeout_seconds)) as response:
-            raw_response = response.read()
+            # One bounded read, including one byte to detect overflow.
+            raw_response = response.read(MAX_RESPONSE_BYTES + 1)
+            if len(raw_response) > MAX_RESPONSE_BYTES:
+                raise LocalOllamaAdapterError("local Ollama response exceeds byte limit")
     except (HTTPError, URLError, OSError) as exc:
         raise LocalOllamaAdapterError(
             f"local Ollama request failed: {exc}"

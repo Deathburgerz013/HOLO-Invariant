@@ -21,8 +21,9 @@ class _Response:
     def __exit__(self, exc_type, exc, traceback):
         return False
 
-    def read(self):
-        return json.dumps(self._payload).encode("utf-8")
+    def read(self, size=-1):
+        raw = json.dumps(self._payload).encode("utf-8")
+        return raw if size < 0 else raw[:size]
 
 
 def test_request_forces_cpu_and_returns_bounded_json_receipt():
