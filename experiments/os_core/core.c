@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "traps.h"
+#include "console.h"
 
 #ifndef CORE_FAULT_CASE
 #define CORE_FAULT_CASE 0
@@ -25,7 +26,13 @@
 #if CORE_BLOCK_CASE < 0 || CORE_BLOCK_CASE > 2
 #error Unsupported block case
 #endif
-#if (!!CORE_STACK_CASE + !!CORE_FAULT_CASE + !!CORE_BLOCK_CASE) > 1
+#ifndef CORE_CONSOLE_CASE
+#define CORE_CONSOLE_CASE 0
+#endif
+#if CORE_CONSOLE_CASE < 0 || CORE_CONSOLE_CASE > 1
+#error Unsupported console case
+#endif
+#if (!!CORE_STACK_CASE + !!CORE_FAULT_CASE + !!CORE_BLOCK_CASE + !!CORE_CONSOLE_CASE) > 1
 #error Fixtures must be separate images
 #endif
 
@@ -225,6 +232,51 @@ static int core_schedule(void) {
     }
     return 0;
 }
+
+#if CORE_CONSOLE_CASE != 0
+_Static_assert(MAX_TASKS <= 9, "console counts use a single decimal digit");
+static void print_count(unsigned value) {
+    char text[2] = { (char)('0' + value), 0 };
+    print(text);
+}
+static void console_status(void) {
+    unsigned ready = 0, running = 0, blocked = 0, unused = 0, retired = 0;
+    for (unsigned i = 0; i < MAX_TASKS; ++i) {
+        ready += tasks[i].state == READY;
+        running += tasks[i].state == RUNNING;
+        blocked += tasks[i].state == BLOCKED;
+        unused += tasks[i].state == UNUSED;
+        retired += tasks[i].state == UNUSED && tasks[i].generation == UINT32_MAX;
+    }
+    print("STATUS ready="); print_count(ready);
+    print(" running="); print_count(running);
+    print(" blocked="); print_count(blocked);
+    print(" unused="); print_count(unused);
+    print(" retired="); print_count(retired);
+    print("\n");
+}
+static __attribute__((noreturn)) void run_console(void) {
+    console_input_t input = {0};
+    print("CONSOLE ready\n");
+    for (;;) {
+        /* One byte per scheduler turn; input waiting never blocks dispatch. */
+        core_schedule();
+        uint8_t status = inb(0x3fd);
+        if (!(status & 1)) continue;
+        uint8_t byte = inb(0x3f8);
+        if (status & 0x1e) console_invalidate(&input);
+        switch (console_feed(&input, byte)) {
+        case CONSOLE_HELP: print("OK help: help status quit\n"); break;
+        case CONSOLE_STATUS: console_status(); break;
+        case CONSOLE_QUIT: print("CONSOLE bye\n"); finish(0x10);
+        case CONSOLE_UNKNOWN: print("ERR unknown command\n"); break;
+        case CONSOLE_TOO_LONG: print("ERR line too long\n"); break;
+        case CONSOLE_INVALID: print("ERR invalid input\n"); break;
+        case CONSOLE_NONE: break;
+        }
+    }
+}
+#endif
 
 static unsigned completed;
 static unsigned steps[2];
@@ -443,7 +495,9 @@ void kmain(uint32_t magic, uint32_t info) {
     require(!core_schedule(), "idle after exit");
     print("PASS two tasks yield resume exit reuse\n");
     run_block_demo();
-#if CORE_BLOCK_CASE != 0
+#if CORE_CONSOLE_CASE != 0
+    run_console();
+#elif CORE_BLOCK_CASE != 0
     run_block_fixture();
 #elif CORE_STACK_CASE != 0
     run_stack_fixture();

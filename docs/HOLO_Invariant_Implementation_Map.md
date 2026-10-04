@@ -5231,3 +5231,25 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | OS_CORE_POLLED_SERIAL_CONSOLE
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL OS experiment
+| | BASE: main@da4d2e1
+| | IMPLEMENTATION: experiments/os_core/console.c, console.h
+| | COMPOSITION: experiments/os_core/core.c
+| | FOCUSED_CHECK: make -C experiments/os_core check
+| | INTERACTIVE_DEMO: make -C experiments/os_core console
+| | DOCUMENTATION: experiments/os_core/README.md
+| | - Fixed-size input, exact help/status/quit command matching.
+| | - CR/LF framing, rejection and delimiter-based discard recovery.
+| | - Polled COM1 receive; one byte per cooperative scheduler turn.
+| | - Separate console image retains all existing lifecycle demos.
+| | - Paced QEMU pipe checks retain exact bounded serial output.
+| | - No echo/editing, IRQ input, shell execution or program loading.
+| | - No hardware UART-error injection, flow-control or isolation claim.
+| | - Physical keyboards, serial hardware and host actions unverified.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
