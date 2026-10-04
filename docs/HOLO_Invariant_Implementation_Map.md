@@ -5190,3 +5190,23 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | OS_CORE_TASK_STACK_INTEGRITY
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL OS experiment
+| | BASE: main@ce98b14
+| | IMPLEMENTATION: experiments/os_core/core.c
+| | FOCUSED_CHECK: make -C experiments/os_core check
+| | DOCUMENTATION: experiments/os_core/README.md
+| | - Per-task bottom marker reset on spawn and slot reuse.
+| | - Saved-pointer bounds/alignment and full switch-frame space.
+| | - Scheduler checks before dispatch and after yield or exit.
+| | - Six deliberate corruption fixtures require terminal panic.
+| | - Existing demo and exception checks retained; 20 boots observed.
+| | - No overflow prevention, paging, repair or task isolation.
+| | - Valid-frame corruption and non-yielding tasks remain unchecked.
+| | - Live-stack failure and scheduler-stack corruption unresolved.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
