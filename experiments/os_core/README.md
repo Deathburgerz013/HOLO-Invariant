@@ -11,10 +11,10 @@ not a complete OS or an extension of HOLO's operational authority.
 ## Build and check
 
 Use Linux or WSL with GNU Make, GCC capable of freestanding `-m32` compilation,
-GNU binutils (`ld` with `elf_i386` support and `nm`), GNU timeout,
+GNU binutils (`ld` with `elf_i386` support and `nm`), GNU timeout, Python 3,
 and QEMU system x86. No 32-bit libc
 is linked. On Ubuntu these tools are provided by `build-essential` and
-`qemu-system-x86`.
+`qemu-system-x86` and `python3`.
 
 ```sh
 make -C experiments/os_core check
@@ -37,9 +37,9 @@ PASS two tasks yield resume exit reuse
 PASS block wake idle stale handle reuse
 ```
 
-The check runs twelve separate images: ordinary demo, divide error (#DE),
+The check runs thirteen separate images: ordinary demo, divide error (#DE),
 invalid opcode (#UD), general protection (#GP), six stack-corruption cases,
-and two blocking misuse cases.
+two blocking misuse cases, and an interactive serial-console image.
 Every image first runs the
 existing allocator and scheduler checks. Fault variants then spawn a task which
 executes the deliberate fault instruction.
@@ -53,7 +53,8 @@ additional PASS or FAULT report. They use the real panic path.
 `nm`, as well as vector, error, and code selector. Each QEMU run has a ten-second
 timeout. Reset, timeout, missing markers, malformed reports, and unexpected
 exit codes fail the check. QEMU uses software emulation, 32 MiB RAM, no NIC,
-and no disk; it does not boot the host.
+and no disk; it does not boot the host. The console session has a separate
+ten-second process deadline and a 64 KiB captured-output limit.
 
 To exercise both compiler layouts:
 
@@ -256,3 +257,68 @@ check were rejected. Python reported `3461 passed in 23.48s`; the map validated
 5188 nonempty lines with zero rail violations. These are development
 observations; GitHub CI and operator Windows checks for this extension are
 pending. Physical hardware remains untested.
+
+
+## Polled serial console contract
+
+This extension is based on `da4d2e1`. The ordinary twelve boot images keep their
+existing terminal behavior. A separate console image first runs the same three
+lifecycle demos, then prints `CONSOLE ready` and polls COM1 input. To interact
+from a Linux/WSL terminal:
+
+```sh
+make -C experiments/os_core console
+```
+
+Type `help`, `status`, or `quit`, ending the line with CR or LF. Commands are
+case-sensitive and exact; extra spaces or arguments are unknown commands.
+Empty lines are ignored, so CRLF executes a command once. There is no echo,
+backspace editing, history, escape processing, or arbitrary command execution.
+`quit` prints `CONSOLE bye` and uses debug-exit status 33 in QEMU. The interactive Make
+target accepts that exit code and rejects other emulator exits; `make check`
+adds the command-response validation.
+
+`status` reports counts of READY, RUNNING, BLOCKED, UNUSED, and retired slots.
+Retired slots are a subset of UNUSED slots, not a fifth task state. The initial
+console status is `ready=0 running=0 blocked=0 unused=8 retired=1` because the
+preceding generation-exhaustion demo deliberately retires one slot. This is a
+snapshot of this demo's task table, not host state, memory safety, or authority.
+
+`console.c` holds a 32-byte line buffer and accepts at most 31 printable ASCII
+bytes before a delimiter. Matching uses explicit lengths, not an unterminated
+C-string scan. An oversized line or a nonprintable byte enters discard mode;
+the parser stops storing bytes, drains through CR/LF, emits one error, resets,
+and accepts a later line. The first rejection reason is retained. UART receive
+error flags also invalidate the current line, but hardware error injection is
+not covered by these observations. Prefixes and rejected suffixes cannot run
+commands. A line without a delimiter remains pending without buffer growth
+past the cap. Input-state storage is fixed; no heap allocation occurs.
+
+The console checks for one received byte per scheduler iteration. With no
+input it continues cooperative dispatch. It does not enable interrupts, invoke
+preemption, dispatch commands from an IRQ, or sleep on input. A task that never
+returns can still starve the console; UART overruns and unpaced bursts are not
+prevented. Serial output still assumes an available UART and may wait forever.
+No disk, network, program loading, permissions, host actions, or recovery is
+added. Physical keyboards and hardware serial ports remain unverified.
+
+`check_console.py` drives QEMU serial pipes on Linux/WSL with paced input. It
+waits for the ready marker, then compares exact responses for help/status,
+fragmented input without premature execution, CR/LF and blank lines, unknown
+commands, case and whitespace rejection, exactly 31 bytes, overlength lines
+including valid command suffixes, discard recovery, NUL/tab/non-ASCII bytes,
+and quit. It requires the existing three PASS markers, no fault/panic, and exit
+33. Exact captured serial bytes are retained in `build/console.log`, including
+on failure. The automated console test uses only Python's standard library.
+
+Classification remains PARTIAL OS experiment. This console is a bounded
+interaction path inside the emulator, not a general shell or new authority.
+
+Development validation: thirteen QEMU 8.2.2 images passed at each of `-O0` and
+`-O2` (26 boots). Three parser mutations in disposable copies were rejected:
+a wrong line-length boundary, acceptance of invalid bytes, and failure to reset
+discard state. Python reported `3461 passed in 31.18s`; the map validated 5208
+nonempty lines with zero rail violations. Interactive-target exit handling
+accepted a simulated status 33 and rejected simulated status 35; those two
+checks were shell checks, not emulator boots. GitHub CI and operator Windows
+results for this extension are pending.
