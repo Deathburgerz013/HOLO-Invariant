@@ -4,6 +4,14 @@
  */
 #include <stdint.h>
 #include <stddef.h>
+#include "traps.h"
+
+#ifndef CORE_FAULT_CASE
+#define CORE_FAULT_CASE 0
+#endif
+#if CORE_FAULT_CASE < 0 || CORE_FAULT_CASE > 3
+#error Unsupported fault case
+#endif
 
 #define MAX_TASKS 8
 #define STACK_SIZE 4096
@@ -54,6 +62,41 @@ static __attribute__((noreturn)) void panic(const char *reason) {
 }
 static void require(int condition, const char *reason) {
     if (!condition) panic(reason);
+}
+
+static void print_hex(uint32_t value) {
+    static const char digits[] = "0123456789abcdef";
+    char text[11] = "0x00000000";
+    for (unsigned i = 0; i < 8; ++i)
+        text[2 + i] = digits[(value >> (28 - 4 * i)) & 15];
+    print(text);
+}
+
+__attribute__((noreturn)) void core_exception(const trap_frame_t *frame) {
+    print("FAULT vector="); print_hex(frame->vector);
+    print(" error="); print_hex(frame->error);
+    print(" eip="); print_hex(frame->eip);
+    print(" cs="); print_hex(frame->cs);
+    print(" eflags="); print_hex(frame->eflags);
+    print("\n");
+#if CORE_FAULT_CASE != 0
+    const uint32_t expected_vector = CORE_FAULT_CASE == 1 ? 0 :
+                                     CORE_FAULT_CASE == 2 ? 6 : 13;
+    const uint32_t expected_error = CORE_FAULT_CASE == 3 ? 0x18 : 0;
+    const uint32_t expected_eip = (uint32_t)(CORE_FAULT_CASE == 1 ?
+        fault_divide_instruction : CORE_FAULT_CASE == 2 ?
+        fault_invalid_instruction : fault_gp_instruction);
+    require(current >= 0 && tasks[current].state == RUNNING, "fault task context");
+    require(frame->vector == expected_vector, "exception vector");
+    require(frame->error == expected_error, "exception error code");
+    require(frame->eip == expected_eip, "exception instruction address");
+    require(frame->cs == 0x08 && !(frame->eflags & 0x200), "exception context");
+    print("PASS expected exception frame\n");
+    /* Distinguish expected-fault completion from ordinary demo success. */
+    finish(0x12);
+#else
+    panic("unhandled CPU exception");
+#endif
 }
 
 /* Zero and oversized requests fail without altering the allocation cursor. */
@@ -139,10 +182,25 @@ static void demo_task(void *arg) {
     ++completed;
     print(id ? "B exit\n" : "A exit\n");
 }
+#if CORE_FAULT_CASE != 0
+static void deliberate_fault_task(void *arg) {
+    (void)arg;
+#if CORE_FAULT_CASE == 1
+    fault_divide();
+#elif CORE_FAULT_CASE == 2
+    fault_invalid();
+#else
+    fault_general_protection();
+#endif
+    panic("fault instruction returned");
+}
+#endif
+
 void kmain(uint32_t magic, uint32_t info) {
     (void)info;
     serial_init();
     require(magic == 0x2badb002, "multiboot magic");
+    traps_init();
     print("BOOT protected-mode cooperative core\n");
     require(!core_schedule(), "empty scheduler");
     require(core_spawn(NULL, NULL) == -1, "null entry");
@@ -169,5 +227,11 @@ void kmain(uint32_t magic, uint32_t info) {
     for (unsigned i = 0; i < 6; ++i) require(order[i] == i % 2, "round robin");
     require(!core_schedule(), "idle after exit");
     print("PASS two tasks yield resume exit reuse\n");
+#if CORE_FAULT_CASE != 0
+    require(core_spawn(deliberate_fault_task, NULL) >= 0, "fault task spawn");
+    core_schedule();
+    panic("fault task returned to scheduler");
+#else
     finish(0x10);
+#endif
 }

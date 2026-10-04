@@ -5170,3 +5170,23 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | OS_CORE_TERMINAL_EXCEPTION_REPORTING
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL OS experiment
+| | BASE: main@fe3f1dd
+| | IMPLEMENTATION: experiments/os_core/traps.S, traps.c, traps.h
+| | COMPOSITION: experiments/os_core/boot.S, core.c
+| | FOCUSED_CHECK: make -C experiments/os_core check
+| | DOCUMENTATION: experiments/os_core/README.md
+| | - Private flat GDT, 32 exception gates, normalized ring-0 frame.
+| | - Serial vector, error, EIP, CS and EFLAGS; terminal panic path.
+| | - Task #DE, #UD and #GP fixtures check exact ELF instruction.
+| | - Existing task lifecycle retained; eight QEMU boots observed.
+| | - No IRET recovery, timer IRQ, preemption or user-mode frame.
+| | - No alternate stack, double-fault or stack-overflow recovery.
+| | - Other exception vectors and physical hardware unverified.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
