@@ -3,7 +3,9 @@ LD = ld
 QEMU = qemu-system-i386
 OPT ?= -O2
 CFLAGS = -m32 $(OPT) -std=c11 -ffreestanding -fno-pie -fno-pic -fno-stack-protector -fno-asynchronous-unwind-tables -fno-builtin -mno-sse -mno-mmx -msoft-float -Wall -Wextra -Werror
-OBJECTS = build/boot.o build/switch.o build/core.o
+COMMON = build/boot.o build/switch.o build/traps.o build/trap-table.o
+OBJECTS = $(COMMON) build/core.o
+FAULT_IMAGES = build/fault-1.elf build/fault-2.elf build/fault-3.elf
 
 .PHONY: all check clean
 all: build/core.elf
@@ -11,11 +13,17 @@ build:
 	mkdir -p build
 build/%.o: %.S | build
 	$(CC) $(CFLAGS) -c $< -o $@
-build/core.o: core.c | build
+build/trap-table.o: traps.c traps.h | build
+	$(CC) $(CFLAGS) -c $< -o $@
+build/core.o: core.c traps.h | build
 	$(CC) $(CFLAGS) -c $< -o $@
 build/core.elf: $(OBJECTS) linker.ld
 	$(LD) -m elf_i386 -T linker.ld -o $@ $(OBJECTS)
-check: build/core.elf
-	@set +e; timeout 10s $(QEMU) -accel tcg -m 32M -kernel $< -display none -serial stdio -monitor none -no-reboot -nic none -device isa-debug-exit,iobase=0xf4,iosize=4 > build/serial.log 2>&1; status=$$?; cat build/serial.log; test $$status -eq 33 || exit 1; test "$$(grep -c '^PASS ' build/serial.log)" -eq 2 && grep -qx 'PASS two tasks yield resume exit reuse' build/serial.log
+build/fault-%.o: core.c traps.h | build
+	$(CC) $(CFLAGS) -DCORE_FAULT_CASE=$* -c $< -o $@
+build/fault-%.elf: $(COMMON) build/fault-%.o linker.ld
+	$(LD) -m elf_i386 -T linker.ld -o $@ $(COMMON) build/fault-$*.o
+check: build/core.elf $(FAULT_IMAGES)
+	@QEMU="$(QEMU)" sh check.sh
 clean:
 	rm -rf build
