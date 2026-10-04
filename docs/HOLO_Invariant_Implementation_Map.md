@@ -5150,3 +5150,23 @@
 | |   total deadline, model correctness or execution authority claim.
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | COOPERATIVE_OS_CORE_BOOT_EXPERIMENT
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL OS experiment
+| | BASE: main@ac43ede
+| | IMPLEMENTATION: experiments/os_core/core.c, boot.S, switch.S
+| | BOOT_LAYOUT: experiments/os_core/linker.ld
+| | FOCUSED_CHECK: make -C experiments/os_core check
+| | DOCUMENTATION: experiments/os_core/README.md
+| | - Multiboot v1 protected-mode boot; i386 cooperative ABI switch.
+| | - Two tasks yield, resume, exit; ready-slot reuse and safe idle.
+| | - Bounded aligned bump allocator; QEMU serial and exit checks.
+| | - Single CPU, ring 0, trusted tasks; interrupts remain disabled.
+| | - No traps, preemption, paging, drivers, network or isolation.
+| | - No physical boot, AI authority or general OS safety claim.
+| | CONTRIBUTORS: Canyon Brock Haney; Grok proposal; GPT correction.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

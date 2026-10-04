@@ -1,0 +1,32 @@
+name: Cooperative OS core experiment
+on:
+  pull_request:
+    paths:
+      - 'experiments/os_core/**'
+      - '.github/workflows/os-core.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/os_core/**'
+      - '.github/workflows/os-core.yml'
+permissions:
+  contents: read
+jobs:
+  boot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        optimization: ['-O0', '-O2']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install emulator and compiler
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential qemu-system-x86
+      - name: Boot and check cooperative task lifecycle
+        run: make -C experiments/os_core check OPT=${{ matrix.optimization }}
+      - name: Retain serial output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: os-core-serial-${{ matrix.optimization }}
+          path: experiments/os_core/build/serial.log
