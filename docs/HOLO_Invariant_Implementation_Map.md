@@ -5210,3 +5210,24 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+
+| | OS_CORE_COOPERATIVE_BLOCK_WAKE
+| |}==============================================================|
+| | CLASSIFICATION: PARTIAL OS experiment
+| | BASE: main@9baecd9
+| | IMPLEMENTATION: experiments/os_core/core.c
+| | FOCUSED_CHECK: make -C experiments/os_core check
+| | DOCUMENTATION: experiments/os_core/README.md
+| | - RUNNING to BLOCKED; matching wake makes BLOCKED READY.
+| | - All-blocked idle preserves saved task state and stacks.
+| | - Generation handles reject stale wake after slot reuse.
+| | - Generation exhaustion retires slots without identity wrap.
+| | - Wake validates blocked stack before changing task state.
+| | - Repeated block/wake/yield/exit and task-to-task wake checks.
+| | - Existing fault/stack cases plus two terminal misuse fixtures.
+| | - No event queue, IRQ wake, timeout, locks or preemption.
+| | - No pending wake storage, isolation, repair or new authority.
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|

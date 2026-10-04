@@ -16,14 +16,15 @@ run_case() {
     cat "$log"
     test "$status" -eq "$expected_status"
     grep -qx 'PASS two tasks yield resume exit reuse' "$log"
+    grep -qx 'PASS block wake idle stale handle reuse' "$log"
 }
 run_case build/core.elf 33 build/serial.log
 ! grep -q '^FAULT ' build/serial.log
-test "$(grep -c '^PASS ' build/serial.log)" -eq 2
+test "$(grep -c '^PASS ' build/serial.log)" -eq 3
 for case_id in 1 2 3; do
     log="build/fault-$case_id.log"
     run_case "build/fault-$case_id.elf" 37 "$log"
-    test "$(grep -c '^PASS ' "$log")" -eq 3
+    test "$(grep -c '^PASS ' "$log")" -eq 4
     grep -qx 'PASS expected exception frame' "$log"
     case "$case_id" in
         1) vector=00000000; error=00000000; symbol=fault_divide_instruction ;;
@@ -46,11 +47,29 @@ for case_id in 1 2 3 4 5 6; do
     esac
     grep -qx "FAIL: $reason" "$log"
     test "$(grep -c '^FAIL:' "$log")" -eq 1
-    test "$(grep -c '^PASS ' "$log")" -eq 2
+    test "$(grep -c '^PASS ' "$log")" -eq 3
     ! grep -q '^FAULT ' "$log"
     ! grep -q 'corrupt task resumed\|corrupt task accepted' "$log"
     if test "$case_id" -ge 5; then
         grep -qx 'FIXTURE corrupt running task guard' "$log"
+    else
+        ! grep -q '^FIXTURE ' "$log"
+    fi
+done
+for case_id in 1 2; do
+    log="build/block-$case_id.log"
+    run_case "build/block-$case_id.elf" 35 "$log"
+    case "$case_id" in
+        1) reason='task stack guard' ;;
+        2) reason='block context' ;;
+    esac
+    grep -qx "FAIL: $reason" "$log"
+    test "$(grep -c '^FAIL:' "$log")" -eq 1
+    test "$(grep -c '^PASS ' "$log")" -eq 3
+    ! grep -q '^FAULT ' "$log"
+    ! grep -Eq 'corrupt blocked task accepted|invalid block accepted' "$log"
+    if test "$case_id" -eq 1; then
+        grep -qx 'FIXTURE blocked task guard' "$log"
     else
         ! grep -q '^FIXTURE ' "$log"
     fi
