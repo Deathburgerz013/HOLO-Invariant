@@ -34,17 +34,20 @@ B yield
 A exit
 B exit
 PASS two tasks yield resume exit reuse
+PASS block wake idle stale handle reuse
 ```
 
-The check runs ten separate images: ordinary demo, divide error (#DE),
-invalid opcode (#UD), general protection (#GP), and six stack-corruption cases.
+The check runs twelve separate images: ordinary demo, divide error (#DE),
+invalid opcode (#UD), general protection (#GP), six stack-corruption cases,
+and two blocking misuse cases.
 Every image first runs the
 existing allocator and scheduler checks. Fault variants then spawn a task which
 executes the deliberate fault instruction.
 
-The demo requires debug-exit status 33 and two PASS lines. Each expected fault
-requires status 37, three PASS lines, and one FAULT report. Panic uses status 35.
-Stack-corruption cases require status 35 and the specific diagnostic, with no
+The demo requires debug-exit status 33 and three PASS lines. Each expected fault
+requires status 37, four PASS lines, and one FAULT report. Panic uses status 35.
+Stack-corruption and blocking misuse cases require status 35 and the specific
+diagnostic, with no
 additional PASS or FAULT report. They use the real panic path.
 `check.sh` independently compares the printed EIP to the ELF symbol read by
 `nm`, as well as vector, error, and code selector. Each QEMU run has a ten-second
@@ -91,7 +94,7 @@ The demo checks its own progress bounds; these are not isolation boundaries
 against arbitrary code. All tasks are trusted, single-CPU ring-0 code.
 
 Terminal exception reporting is implemented as described below. No timer IRQ,
-preemption, paging, userspace isolation, blocking/wakeup, network queue, NIC
+preemption, paging, userspace isolation, network queue, NIC
 driver, persistence, or physical-hardware boot has been implemented. A task that never yields can monopolize the CPU;
 stack corruption is checked only at scheduler boundaries as described below.
 QEMU's test timeout is external to the kernel.
@@ -198,3 +201,58 @@ stack exhaustion or hardware protection. Classification remains PARTIAL.
 The same development checkout's Python suite reported `3461 passed in 22.89s`.
 The updated map validated 5169 nonempty lines with zero rail violations.
 GitHub CI for this extension has not yet run; Windows results are pending.
+
+
+## Cooperative block/wake contract
+
+This extension is based on `9baecd9`. A RUNNING task calls `core_block`, becomes
+BLOCKED, saves its cooperative context, and returns control to the scheduler.
+The scheduler still dispatches only READY slots. With every live task BLOCKED,
+it returns zero to its caller without changing those tasks or their saved
+pointers. This is an idle observation, not successful task completion.
+
+`core_spawn` keeps its existing slot-number result. `core_handle` snapshots the
+slot and its nonzero 32-bit generation; invalid or UNUSED slots produce an
+invalid handle. Each successful spawn increments the generation. A slot whose
+generation reaches UINT32_MAX can run its last incarnation, then is permanently
+retired from spawn, reducing capacity rather than allowing identity wraparound.
+The demo moves an unused counter to MAX-1 to exercise that bound without
+billions of spawns. Handles are internal task identity, not authorization.
+
+`core_wake` accepts only a matching handle for a BLOCKED task, validates its
+saved stack, then makes it READY. It returns zero on success and -1 for an
+invalid slot, zero/mismatched generation, or non-BLOCKED state, with no mutation
+on those rejected requests. Matching handles with damaged stacks use the
+existing terminal panic path. READY, RUNNING, exited, and stale incarnations
+cannot be woken. A successful wake can come from the scheduler caller or
+another trusted task. Exit still retires the task incarnation normally.
+
+The demo checks two tasks becoming blocked, unchanged all-blocked idle,
+rejection of malformed and mismatched handles, an unrelated READY task running
+past blocked slots, duplicate wake rejection, repeated block/wake/yield/exit,
+local stack continuity, wake from another task, and stale wake rejection while
+a replacement task occupies the same slot. Stack checks apply after blocking
+returns to the scheduler and before subsequent dispatch, as for yield/exit.
+A third PASS marker reports this lifecycle in every boot image.
+
+Two additional terminal fixtures check a blocked stack marker corrupted before
+wake and `core_block` called from scheduler context. The shell check requires
+the exact panic diagnostic, three existing PASS markers, and no FAULT report;
+corruption acceptance or invalid blocking acceptance must fail.
+
+All calls remain single-CPU, ring 0, with interrupts disabled. There is no event
+queue, pending wake storage, IRQ wakeup, timeout, cancellation, synchronization,
+or preemption. A wake arriving before a task blocks is rejected, not buffered.
+The caller must arrange ordering and explicitly dispatch after waking. A task
+that never yields/blocks/exits can still monopolize the CPU, and a blocked task
+can wait forever. Handles do not prevent trusted tasks from modifying kernel
+memory. Existing terminal-fault and task-stack limits remain. Classification
+is PARTIAL OS experiment.
+
+Development validation: twelve QEMU 8.2.2 images passed at both `-O0` and `-O2`
+(24 boots). Disposable mutations making block leave a task READY, ignoring
+handle generation, omitting wake's READY transition, and skipping wake's stack
+check were rejected. Python reported `3461 passed in 23.48s`; the map validated
+5188 nonempty lines with zero rail violations. These are development
+observations; GitHub CI and operator Windows checks for this extension are
+pending. Physical hardware remains untested.

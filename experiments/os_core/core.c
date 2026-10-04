@@ -19,7 +19,13 @@
 #if CORE_STACK_CASE < 0 || CORE_STACK_CASE > 6
 #error Unsupported stack case
 #endif
-#if CORE_STACK_CASE && CORE_FAULT_CASE
+#ifndef CORE_BLOCK_CASE
+#define CORE_BLOCK_CASE 0
+#endif
+#if CORE_BLOCK_CASE < 0 || CORE_BLOCK_CASE > 2
+#error Unsupported block case
+#endif
+#if (!!CORE_STACK_CASE + !!CORE_FAULT_CASE + !!CORE_BLOCK_CASE) > 1
 #error Fixtures must be separate images
 #endif
 
@@ -30,9 +36,14 @@
 #define STACK_SIZE 4096
 #define HEAP_SIZE (64 * 1024)
 
-typedef enum { UNUSED, READY, RUNNING } task_state_t;
+typedef enum { UNUSED, READY, RUNNING, BLOCKED } task_state_t;
+typedef struct {
+    unsigned slot;
+    uint32_t generation;
+} task_handle_t;
 typedef struct {
     task_state_t state;
+    uint32_t generation;
     uint32_t *sp;
     void (*entry)(void *);
     void *arg;
@@ -142,6 +153,26 @@ static void core_yield(void) {
     tasks[current].state = READY;
     core_switch(&tasks[current].sp, scheduler_sp);
 }
+static void core_block(void) {
+    require(current >= 0 && tasks[current].state == RUNNING, "block context");
+    tasks[current].state = BLOCKED;
+    core_switch(&tasks[current].sp, scheduler_sp);
+}
+/* Snapshot identity without changing the existing slot-returning spawn API. */
+static task_handle_t core_handle(int id) {
+    if (id < 0 || id >= MAX_TASKS || tasks[id].state == UNUSED)
+        return (task_handle_t){ MAX_TASKS, 0 };
+    return (task_handle_t){ (unsigned)id, tasks[id].generation };
+}
+static int core_wake(task_handle_t handle) {
+    if (handle.slot >= MAX_TASKS || !handle.generation) return -1;
+    task_t *task = &tasks[handle.slot];
+    if (task->generation != handle.generation || task->state != BLOCKED)
+        return -1;
+    check_task_stack(handle.slot);
+    task->state = READY;
+    return 0;
+}
 static __attribute__((noreturn)) void task_exit(void) {
     tasks[current].state = UNUSED;
     core_switch(&tasks[current].sp, scheduler_sp);
@@ -157,7 +188,8 @@ static __attribute__((noreturn)) void unexpected_return(void) {
 static int core_spawn(void (*entry)(void *), void *arg) {
     if (!entry) return -1;
     for (unsigned i = 0; i < MAX_TASKS; ++i) {
-        if (tasks[i].state != UNUSED) continue;
+        if (tasks[i].state != UNUSED || tasks[i].generation == UINT32_MAX)
+            continue; /* Retire exhausted slots rather than reuse an identity. */
         for (unsigned n = 0; n < STACK_GUARD_SIZE; ++n)
             stacks[i][n] = STACK_GUARD_BYTE;
         uint32_t *sp = (uint32_t *)(stacks[i] + STACK_SIZE);
@@ -171,6 +203,7 @@ static int core_spawn(void (*entry)(void *), void *arg) {
         tasks[i].sp = sp;
         tasks[i].entry = entry;
         tasks[i].arg = arg;
+        ++tasks[i].generation;
         tasks[i].state = READY;
         return (int)i;
     }
@@ -214,6 +247,121 @@ static void demo_task(void *arg) {
     ++completed;
     print(id ? "B exit\n" : "A exit\n");
 }
+static unsigned block_steps[2];
+static void blocking_task(void *arg) {
+    unsigned id = (unsigned)(uintptr_t)arg;
+    volatile unsigned sentinel = 0xb10c0000u + id;
+    require(core_wake(core_handle(current)) == -1, "wake running task");
+    ++block_steps[id];
+    core_block();
+    require(sentinel == 0xb10c0000u + id, "blocked stack continuity");
+    ++block_steps[id];
+    core_yield();
+    require(sentinel == 0xb10c0000u + id, "woken yield continuity");
+    ++block_steps[id];
+    core_block();
+    require(sentinel == 0xb10c0000u + id, "reblocked stack continuity");
+    ++block_steps[id];
+    ++completed;
+}
+static void finish_blocked_task(task_handle_t handle, unsigned id) {
+    require(core_wake(handle) == 0, "wake blocked task");
+    require(core_wake(handle) == -1, "duplicate wake");
+    require(core_schedule() && block_steps[id] == 2, "wake resumes yield");
+    require(core_schedule() && block_steps[id] == 3, "wake resumes reblock");
+    require(!core_schedule(), "reblocked idle");
+    require(core_wake(handle) == 0, "wake reblocked task");
+    require(core_schedule() && block_steps[id] == 4, "woken exit");
+    require(core_wake(handle) == -1, "wake exited task");
+}
+static void waking_task(void *arg) {
+    const task_handle_t *handle = arg;
+    require(core_wake(*handle) == 0, "task wakes other task");
+}
+static void run_block_demo(void) {
+    completed = 0;
+    require(core_handle(-1).generation == 0 &&
+            core_handle(MAX_TASKS).generation == 0 &&
+            core_handle(0).generation == 0, "invalid handle snapshot");
+    int first = core_spawn(blocking_task, (void *)0);
+    int second = core_spawn(blocking_task, (void *)1);
+    require(first == 0 && second == 1, "blocking spawn");
+    task_handle_t a = core_handle(first), b = core_handle(second);
+    require(core_wake(a) == -1, "wake ready task");
+    require(core_schedule() && core_schedule(), "blocking dispatches");
+    require(block_steps[0] == 1 && block_steps[1] == 1, "blocked progress");
+    uint32_t *saved_a = tasks[first].sp, *saved_b = tasks[second].sp;
+    require(!core_schedule() && current == -1, "all blocked idle");
+    require(core_wake((task_handle_t){MAX_TASKS, 1}) == -1, "wake invalid slot");
+    require(core_wake((task_handle_t){0, 0}) == -1, "wake zero generation");
+    require(core_wake((task_handle_t){a.slot, a.generation + 1}) == -1,
+            "wake mismatched generation");
+    require(tasks[first].state == BLOCKED && tasks[second].state == BLOCKED &&
+            tasks[first].sp == saved_a && tasks[second].sp == saved_b,
+            "rejected wake mutation");
+    require(core_spawn(simple_task, NULL) == 2, "blocked slots retained");
+    require(core_schedule() && completed == 1, "ready task bypasses blocked");
+    require(!core_schedule(), "blocked idle after ready exit");
+    finish_blocked_task(a, 0);
+    require(block_steps[1] == 1 && tasks[second].state == BLOCKED,
+            "wake leaves other task blocked");
+    require(core_spawn(blocking_task, (void *)0) == first, "blocked slot reuse");
+    task_handle_t reused = core_handle(first);
+    require(reused.generation != a.generation, "generation advances");
+    block_steps[0] = 0;
+    require(core_schedule() && block_steps[0] == 1, "reused task blocks");
+    require(core_wake(a) == -1 && tasks[first].state == BLOCKED,
+            "stale wake after reuse");
+    finish_blocked_task(reused, 0);
+    require(core_spawn(waking_task, &b) == 0, "waker spawn");
+    require(core_schedule() && tasks[second].state == READY, "waker dispatch");
+    require(core_wake(b) == -1, "duplicate task wake");
+    require(core_schedule() && block_steps[1] == 2, "task wake resumes yield");
+    require(core_schedule() && block_steps[1] == 3, "task wake resumes reblock");
+    require(!core_schedule(), "task wake reblocked idle");
+    require(core_wake(b) == 0, "task wake final unblock");
+    require(core_schedule() && block_steps[1] == 4, "task wake exit");
+    require(core_wake(b) == -1, "task wake exited rejection");
+    require(completed == 4 && !core_schedule(), "blocking tasks exited");
+    /* Exercise nonwrapping identity at its boundary without billions of spawns. */
+    tasks[2].generation = UINT32_MAX - 1;
+    require(core_spawn(simple_task, NULL) == 0, "ordinary unused slot");
+    require(core_spawn(simple_task, NULL) == 1, "second unused slot");
+    require(core_spawn(simple_task, NULL) == 2, "last generation spawn");
+    task_handle_t last = core_handle(2);
+    require(last.generation == UINT32_MAX, "last generation identity");
+    unsigned dispatches = 0;
+    while (core_schedule()) require(++dispatches <= 3, "generation exit progress");
+    require(dispatches == 3, "generation tasks exited");
+    require(core_wake(last) == -1, "wake retired slot");
+    require(core_spawn(simple_task, NULL) == 0, "reuse ordinary slot");
+    require(core_spawn(simple_task, NULL) == 1, "reuse second slot");
+    require(core_spawn(simple_task, NULL) == 3, "exhausted generation skipped");
+    dispatches = 0;
+    while (core_schedule()) require(++dispatches <= 3, "retirement exit progress");
+    require(dispatches == 3 && tasks[2].generation == UINT32_MAX,
+            "generation never wraps");
+    print("PASS block wake idle stale handle reuse\n");
+}
+#if CORE_BLOCK_CASE != 0
+static __attribute__((noreturn)) void run_block_fixture(void) {
+#if CORE_BLOCK_CASE == 1
+    block_steps[0] = 0;
+    int id = core_spawn(blocking_task, (void *)0);
+    require(id >= 0, "block fixture spawn");
+    task_handle_t handle = core_handle(id);
+    require(core_schedule() && tasks[id].state == BLOCKED, "block fixture waits");
+    print("FIXTURE blocked task guard\n");
+    stacks[id][0] ^= 1;
+    core_wake(handle);
+    panic("corrupt blocked task accepted");
+#else
+    core_block();
+    panic("invalid block accepted");
+#endif
+}
+#endif
+
 #if CORE_FAULT_CASE != 0
 static void deliberate_fault_task(void *arg) {
     (void)arg;
@@ -294,7 +442,10 @@ void kmain(uint32_t magic, uint32_t info) {
     for (unsigned i = 0; i < 6; ++i) require(order[i] == i % 2, "round robin");
     require(!core_schedule(), "idle after exit");
     print("PASS two tasks yield resume exit reuse\n");
-#if CORE_STACK_CASE != 0
+    run_block_demo();
+#if CORE_BLOCK_CASE != 0
+    run_block_fixture();
+#elif CORE_STACK_CASE != 0
     run_stack_fixture();
 #elif CORE_FAULT_CASE != 0
     require(core_spawn(deliberate_fault_task, NULL) >= 0, "fault task spawn");
