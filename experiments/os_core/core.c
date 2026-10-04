@@ -13,6 +13,19 @@
 #error Unsupported fault case
 #endif
 
+#ifndef CORE_STACK_CASE
+#define CORE_STACK_CASE 0
+#endif
+#if CORE_STACK_CASE < 0 || CORE_STACK_CASE > 6
+#error Unsupported stack case
+#endif
+#if CORE_STACK_CASE && CORE_FAULT_CASE
+#error Fixtures must be separate images
+#endif
+
+#define STACK_GUARD_SIZE 16
+#define STACK_GUARD_BYTE 0xa5
+#define SWITCH_FRAME_SIZE (5 * sizeof(uint32_t))
 #define MAX_TASKS 8
 #define STACK_SIZE 4096
 #define HEAP_SIZE (64 * 1024)
@@ -109,6 +122,21 @@ static void *core_alloc(size_t n) {
     return p;
 }
 
+/* Integer bounds checks never dereference an unvalidated saved pointer.
+ * The bottom marker detects writes to these bytes, not arbitrary overflow.
+ */
+static void check_task_stack(unsigned id) {
+    uintptr_t low = (uintptr_t)stacks[id] + STACK_GUARD_SIZE;
+    uintptr_t high = (uintptr_t)stacks[id] + STACK_SIZE;
+    uintptr_t saved = (uintptr_t)tasks[id].sp;
+    require(saved >= low && saved <= high - SWITCH_FRAME_SIZE,
+            "task stack pointer bounds");
+    require((saved & (sizeof(uint32_t) - 1)) == 0,
+            "task stack pointer alignment");
+    for (unsigned n = 0; n < STACK_GUARD_SIZE; ++n)
+        require(stacks[id][n] == STACK_GUARD_BYTE, "task stack guard");
+}
+
 static void core_yield(void) {
     require(current >= 0 && tasks[current].state == RUNNING, "yield context");
     tasks[current].state = READY;
@@ -130,6 +158,8 @@ static int core_spawn(void (*entry)(void *), void *arg) {
     if (!entry) return -1;
     for (unsigned i = 0; i < MAX_TASKS; ++i) {
         if (tasks[i].state != UNUSED) continue;
+        for (unsigned n = 0; n < STACK_GUARD_SIZE; ++n)
+            stacks[i][n] = STACK_GUARD_BYTE;
         uint32_t *sp = (uint32_t *)(stacks[i] + STACK_SIZE);
         /* ret enters trampoline with esp == 12 mod 16, as a C call does. */
         *--sp = (uint32_t)unexpected_return;
@@ -151,10 +181,12 @@ static int core_schedule(void) {
     for (unsigned n = 0; n < MAX_TASKS; ++n) {
         unsigned i = (cursor + n) % MAX_TASKS;
         if (tasks[i].state != READY) continue;
+        check_task_stack(i);
         cursor = (i + 1) % MAX_TASKS;
         current = (int)i;
         tasks[i].state = RUNNING;
         core_switch(&scheduler_sp, tasks[i].sp);
+        check_task_stack(i);
         current = -1;
         return 1;
     }
@@ -196,6 +228,38 @@ static void deliberate_fault_task(void *arg) {
 }
 #endif
 
+#if CORE_STACK_CASE != 0
+static void stack_fixture_task(void *arg) {
+    (void)arg;
+#if CORE_STACK_CASE <= 4
+    panic("corrupt task resumed");
+#else
+    print("FIXTURE corrupt running task guard\n");
+    stacks[current][0] ^= 1;
+#if CORE_STACK_CASE == 5
+    core_yield();
+    panic("corrupt task resumed");
+#endif
+    /* Case 6 returns through the ordinary task exit path. */
+#endif
+}
+static __attribute__((noreturn)) void run_stack_fixture(void) {
+    int id = core_spawn(stack_fixture_task, NULL);
+    require(id >= 0, "stack fixture spawn");
+#if CORE_STACK_CASE == 1
+    stacks[id][0] ^= 1;
+#elif CORE_STACK_CASE == 2
+    tasks[id].sp = (uint32_t *)(stacks[id] + STACK_GUARD_SIZE - 4);
+#elif CORE_STACK_CASE == 3
+    tasks[id].sp = (uint32_t *)(stacks[id] + STACK_SIZE - 16);
+#elif CORE_STACK_CASE == 4
+    tasks[id].sp = (uint32_t *)(stacks[id] + STACK_SIZE - 25);
+#endif
+    core_schedule();
+    panic("corrupt task accepted");
+}
+#endif
+
 void kmain(uint32_t magic, uint32_t info) {
     (void)info;
     serial_init();
@@ -218,6 +282,9 @@ void kmain(uint32_t magic, uint32_t info) {
     require(completed == MAX_TASKS, "all tasks exited");
     print("PASS idle allocator capacity exit\n");
     completed = 0;
+    /* Retired stack markers must be reset when a slot is reused. */
+    stacks[0][0] = 0;
+    stacks[1][STACK_GUARD_SIZE - 1] = 0;
     require(core_spawn(demo_task, (void *)0) == 0, "slot reuse A");
     require(core_spawn(demo_task, (void *)1) == 1, "slot reuse B");
     dispatches = 0;
@@ -227,7 +294,9 @@ void kmain(uint32_t magic, uint32_t info) {
     for (unsigned i = 0; i < 6; ++i) require(order[i] == i % 2, "round robin");
     require(!core_schedule(), "idle after exit");
     print("PASS two tasks yield resume exit reuse\n");
-#if CORE_FAULT_CASE != 0
+#if CORE_STACK_CASE != 0
+    run_stack_fixture();
+#elif CORE_FAULT_CASE != 0
     require(core_spawn(deliberate_fault_task, NULL) >= 0, "fault task spawn");
     core_schedule();
     panic("fault task returned to scheduler");

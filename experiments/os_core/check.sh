@@ -35,3 +35,23 @@ for case_id in 1 2 3; do
     test "$(grep -c '^FAULT ' "$log")" -eq 1
     grep -Eq "^FAULT vector=0x$vector error=0x$error eip=0x$address cs=0x00000008 eflags=0x[0-9a-f]{8}$" "$log"
 done
+# Corruption must take the actual panic path, never expected-fault success.
+for case_id in 1 2 3 4 5 6; do
+    log="build/stack-$case_id.log"
+    run_case "build/stack-$case_id.elf" 35 "$log"
+    case "$case_id" in
+        1|5|6) reason='task stack guard' ;;
+        2|3) reason='task stack pointer bounds' ;;
+        4) reason='task stack pointer alignment' ;;
+    esac
+    grep -qx "FAIL: $reason" "$log"
+    test "$(grep -c '^FAIL:' "$log")" -eq 1
+    test "$(grep -c '^PASS ' "$log")" -eq 2
+    ! grep -q '^FAULT ' "$log"
+    ! grep -q 'corrupt task resumed\|corrupt task accepted' "$log"
+    if test "$case_id" -ge 5; then
+        grep -qx 'FIXTURE corrupt running task guard' "$log"
+    else
+        ! grep -q '^FIXTURE ' "$log"
+    fi
+done

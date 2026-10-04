@@ -36,13 +36,16 @@ B exit
 PASS two tasks yield resume exit reuse
 ```
 
-The check now runs four separate images: ordinary demo, divide error (#DE),
-invalid opcode (#UD), and general protection (#GP). Every image first runs the
+The check runs ten separate images: ordinary demo, divide error (#DE),
+invalid opcode (#UD), general protection (#GP), and six stack-corruption cases.
+Every image first runs the
 existing allocator and scheduler checks. Fault variants then spawn a task which
 executes the deliberate fault instruction.
 
 The demo requires debug-exit status 33 and two PASS lines. Each expected fault
 requires status 37, three PASS lines, and one FAULT report. Panic uses status 35.
+Stack-corruption cases require status 35 and the specific diagnostic, with no
+additional PASS or FAULT report. They use the real panic path.
 `check.sh` independently compares the printed EIP to the ELF symbol read by
 `nm`, as well as vector, error, and code selector. Each QEMU run has a ten-second
 timeout. Reset, timeout, missing markers, malformed reports, and unexpected
@@ -90,7 +93,8 @@ against arbitrary code. All tasks are trusted, single-CPU ring-0 code.
 Terminal exception reporting is implemented as described below. No timer IRQ,
 preemption, paging, userspace isolation, blocking/wakeup, network queue, NIC
 driver, persistence, or physical-hardware boot has been implemented. A task that never yields can monopolize the CPU;
-a stack overflow is not caught. QEMU's test timeout is external to the kernel.
+stack corruption is checked only at scheduler boundaries as described below.
+QEMU's test timeout is external to the kernel.
 Serial port availability and the Multiboot loader are environmental assumptions.
 
 Linux GCC/QEMU observations do not establish Windows-native build support,
@@ -151,3 +155,46 @@ fault in the ordinary demo were rejected. HOLO's Linux suite reported
 `3461 passed in 18.39s`. GitHub CI for this extension has not yet run. Only
 these three deliberate faults were exercised; other installed vectors,
 physical hardware, and recovery remain unverified. Classification stays PARTIAL.
+
+
+## Task stack integrity contract
+
+This extension is based on `ce98b14`. The bottom 16 bytes of each 4096-byte
+task stack hold a marker, leaving 4080 bytes for task execution. Spawn resets
+those bytes on every slot reuse. The ordinary demo deliberately damages two
+retired markers before reuse and then exercises normal yield/resume/exit.
+
+Before switching to a READY task, the scheduler checks its saved pointer using
+integer addresses: it must lie between the first byte after the marker and
+stack-top minus 20 bytes, inclusive, and be aligned to a four-byte word.
+Twenty bytes account for the four restored registers and return PC consumed
+by `core_switch`. Fresh stacks additionally include the trampoline return
+address. The checker does not dereference the saved pointer. It verifies all
+16 marker bytes before resuming and repeats both checks on the scheduler stack
+after yield or exit returns, before clearing `current` or reusing the slot.
+
+Six deliberate fixtures run after the ordinary demo: damaged marker before
+resume; pointer below the usable range; pointer too near the top for the
+switch frame; misaligned pointer; running-task marker damage followed by
+yield; and running-task marker damage followed by exit. Each must panic with
+the designated bounds, alignment, or marker diagnostic. The first four must
+never enter the damaged task; the yield case must never resume it. Cases five
+and six also require a marker proving the task ran before damaging its stack.
+
+These are trusted-code diagnostics, not memory protection or overflow
+prevention. A write that skips the marker, a corrupted return address inside
+an otherwise valid frame, or a task that never returns to the scheduler can
+escape these checks. A broken live task stack may fail before it can switch
+back. The scheduler/boot stack is not guarded by this task-only checker.
+There is no paging, guard page, alternate fault stack, repair, or isolation.
+
+Development validation: ten QEMU 8.2.2 images passed at both `-O0` and `-O2`
+(20 boots), retaining all three CPU exception fixtures. Removing the
+pre-dispatch check in a disposable copy was rejected with `corrupt task
+resumed`; removing the post-return check was rejected with `corrupt task
+accepted`. These observations concern explicit fixture writes, not natural
+stack exhaustion or hardware protection. Classification remains PARTIAL.
+
+The same development checkout's Python suite reported `3461 passed in 22.89s`.
+The updated map validated 5169 nonempty lines with zero rail violations.
+GitHub CI for this extension has not yet run; Windows results are pending.
