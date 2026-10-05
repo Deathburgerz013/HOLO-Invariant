@@ -6,7 +6,7 @@ import ast
 import hashlib
 import json
 from collections.abc import Mapping, Sequence
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 
@@ -537,3 +537,150 @@ def compare_boundary_register_completeness(
         "write_authority": "NONE",
     }
     return {**body, "check_hash": _canonical_hash(body)}
+
+
+def _observation_baseline(value: Any) -> dict[str, str] | None:
+    if value is None:
+        return None
+    if type(value) is not dict:
+        raise GuaranteeRegistryError("baseline must be a plain path-to-raw-sha256 dictionary")
+    result: dict[str, str] = {}
+    for path, digest in value.items():
+        if type(path) is not str or not path or "\\" in path:
+            raise GuaranteeRegistryError("baseline paths must be relative POSIX paths")
+        parsed = PurePosixPath(path)
+        if path == "." or parsed.is_absolute() or ".." in parsed.parts or parsed.as_posix() != path:
+            raise GuaranteeRegistryError("baseline paths must be normalized within the root")
+        result[path] = _require_sha256(digest, "baseline sha256")
+    return dict(sorted(result.items()))
+
+
+def observe_boundary_register(
+    register: Mapping[str, Any], *, root: str | Path,
+    baseline: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """List discovered boundaries, source changes, and exact byte duplicates.
+
+    An optional baseline is a supplied path-to-raw-SHA256 map, not authenticated
+    history. Without it, registered text hashes provide the comparison basis;
+    unregistered sources have UNKNOWN change status. Registration and source
+    changes remain independent. No files or registered entries are rewritten.
+    """
+    checked = validate_boundary_register(register)
+    prior = _observation_baseline(baseline)
+    root_path = Path(root).resolve()
+    completeness = compare_boundary_register_completeness(checked, root=root_path)
+    integrity = verify_boundary_register(checked, root=root_path)
+    registered = {
+        item["implementation_path"]: item for item in checked["boundaries"]
+    }
+    expected_sources: dict[str, str] = {}
+    for item in checked["boundaries"]:
+        for role in ("implementation", "test"):
+            path = item[f"{role}_path"]
+            digest = item[f"{role}_sha256"]
+            if path in expected_sources and expected_sources[path] != digest:
+                raise GuaranteeRegistryError("conflicting registered source hashes")
+            expected_sources[path] = digest
+    paths = set(expected_sources) | set(prior or {}) | {
+        item["implementation_path"] for item in completeness["results"]
+    }
+    artifacts: list[dict[str, Any]] = []
+    for path in sorted(paths):
+        candidate = root_path / path
+        if candidate.is_symlink() or root_path not in candidate.resolve().parents:
+            raise GuaranteeRegistryError("observed artifact must remain within root without symlinks")
+        if candidate.exists() and not candidate.is_file():
+            raise GuaranteeRegistryError("observed artifact must be a regular file")
+        try:
+            content = candidate.read_bytes()
+        except FileNotFoundError:
+            content = None
+        except OSError as exc:
+            raise GuaranteeRegistryError(f"unable to read observed artifact: {path}") from exc
+        raw_hash = None if content is None else hashlib.sha256(content).hexdigest()
+        text_hash = None if content is None else _portable_text_hash(content, path)
+        if prior is not None:
+            comparison = prior.get(path)
+            basis = "PRIOR_RAW_SHA256" if comparison is not None else "NONE"
+            actual = raw_hash
+        else:
+            comparison = expected_sources.get(path)
+            basis = "REGISTERED_TEXT_SHA256" if comparison is not None else "NONE"
+            actual = text_hash
+        change = (
+            "MISSING" if content is None else
+            "UNKNOWN" if comparison is None else
+            "UNCHANGED" if actual == comparison else "EDITED"
+        )
+        artifacts.append({
+            "path": path, "sha256": raw_hash,
+            "registered_text_sha256": text_hash,
+            "size_bytes": None if content is None else len(content),
+            "comparison_basis": basis, "comparison_sha256": comparison,
+            "change_status": change,
+        })
+    by_hash: dict[str, list[str]] = {}
+    for artifact in artifacts:
+        if artifact["sha256"] is not None:
+            by_hash.setdefault(artifact["sha256"], []).append(artifact["path"])
+    for artifact in artifacts:
+        peers = [
+            path for path in by_hash.get(artifact["sha256"], [])
+            if path != artifact["path"]
+        ]
+        artifact["duplicate_paths"] = peers
+        artifact["duplicate_status"] = (
+            "UNAVAILABLE" if artifact["sha256"] is None else
+            "BYTE_IDENTICAL" if peers else "NO_BYTE_IDENTICAL_PEER"
+        )
+    boundaries = []
+    for item in completeness["results"]:
+        slot = registered.get(item["implementation_path"])
+        boundaries.append({
+            **item, "placeholder": item["status"] == "UNREGISTERED",
+            "boundary_id": None if slot is None else slot["boundary_id"],
+            "test_path": None if slot is None else slot["test_path"],
+        })
+    body = {
+        "type": "holo_boundary_register_observation", "version": 1,
+        "register_hash": checked["register_hash"],
+        "baseline": prior,
+        "baseline_hash": None if prior is None else _canonical_hash(prior),
+        "integrity_check": integrity, "completeness_check": completeness,
+        "boundaries": boundaries, "artifacts": artifacts,
+        "accepted": False, "write_authority": "NONE",
+        "interpretation_notice": (
+            "Discovery covers the existing receipt naming convention, not every check. "
+            "Placeholders confer no registration. Hashes identify observed sources; "
+            "supplied baselines do not prove history. Duplicates mean exact bytes within "
+            "the observed set, not equivalent behavior. No tests or receipt verifiers "
+            "are executed, and no files are changed."
+        ),
+    }
+    return {**body, "observation_hash": _canonical_hash(body)}
+
+
+def verify_boundary_register_observation(
+    observation: Mapping[str, Any], register: Mapping[str, Any], *,
+    root: str | Path, baseline: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Reobserve current sources and compare every field, including markers.
+
+    This requires the original register and supplied baseline. A retained
+    report becomes invalid against changed current inputs; that does not erase
+    its value as a historical observation.
+    """
+    if not isinstance(observation, Mapping):
+        raise GuaranteeRegistryError("observation must be a mapping")
+    expected = observe_boundary_register(register, root=root, baseline=baseline)
+    changed = sorted(
+        key for key in set(observation) | set(expected)
+        if key not in observation or key not in expected
+        or _canonical_hash(observation[key]) != _canonical_hash(expected[key])
+    )
+    return {
+        "valid": not changed, "changed_fields": changed,
+        "expected_observation_hash": expected["observation_hash"],
+        "accepted": False, "write_authority": "NONE",
+    }

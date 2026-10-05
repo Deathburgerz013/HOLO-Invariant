@@ -473,3 +473,22 @@
 | |                                                             |
 | | Reconstruct then help construct the rest.                                       |
 | |==============================================================|
+| | }==============================================================|
+| | BOUNDARY_CHECK_NAVIGATION
+| | Existing register: core/verified_boundary_register.json
+| | Implementation: holosim/guarantee_registry.py
+| | Procedure: docs/BOUNDARY_REGISTRY_OBSERVATION.md
+| | Checks: verify_boundary_register and
+| | compare_boundary_register_completeness.
+| | Observation: observe_boundary_register lists discovered
+| | boundaries, unregistered placeholders, source-change markers,
+| | and exact-byte duplicate peers without promoting entries.
+| | Replay: verify_boundary_register_observation reobserves inputs.
+| | Focused tests: tests/test_boundary_registry_observation.py
+| | and tests/test_verified_boundary_register.py.
+| | Registration, current source integrity, completeness, and
+| | runtime test evidence remain separate observations.
+| | Discovery is limited to the declared receipt convention.
+| | This navigation adds no registration, acceptance or authority.
+| | WRITE_AUTHORITY: NONE
+| | }==============================================================|

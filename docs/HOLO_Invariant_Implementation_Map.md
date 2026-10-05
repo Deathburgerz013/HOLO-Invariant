@@ -5253,3 +5253,28 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+
+| | BOUNDARY_REGISTRY_OBSERVATION_MARKERS
+| |}==============================================================|
+| | STATUS: IMPLEMENTED_CANDIDATE_AWAITING_REVIEW
+| | CLASSIFICATION: PARTIAL registry coverage
+| | BASE: main@f7a22eb
+| | CREATED_BY: Canyon Brock Haney
+| | IMPLEMENTATION: holosim/guarantee_registry.py
+| | FOCUSED_TEST: tests/test_boundary_registry_observation.py
+| | DOCUMENTATION: docs/BOUNDARY_REGISTRY_OBSERVATION.md
+| | NAVIGATION: docs/Master_Spine.md
+| | - Existing discovery lists unregistered receipt placeholders.
+| | - Unknown boundary IDs and test links remain null.
+| | - Change markers bind registered text or supplied raw baselines.
+| | - Missing files and unknown baselines remain distinct.
+| | - Exact-byte duplicate peers retain separate paths and entries.
+| | - Replay compares all derived markers against current inputs.
+| | - No entry promotion, file mutation, test or verifier execution.
+| | - No authenticated-history or behavioral-equivalence claim.
+| | - Discovery does not cover every repository check or artifact.
+| | - Registered integrity and discoverable completeness stay separate.
+| | EXTERNAL_REVIEW: PENDING
+| | ACCEPTED: false
+| | WRITE_AUTHORITY: NONE
+| |}==============================================================|
