@@ -287,3 +287,65 @@ Observed result:
 - Full repository suite: 3506 passed, 5 skipped.
 
 This establishes only that the two transition forms already introduced by earlier experiments can share one explicit transition-semantic representation and execution path. It does not establish a general transition algebra, arithmetic system, expression system, or complete programming language.
+
+## Experiment 006: Transition Decision Receipt
+
+### Question
+
+Can INV execution produce a bounded receipt that preserves the semantic transition, candidate state, invariant, decision, and resulting state needed to independently check why a transition was accepted or rejected?
+
+### Required Behavior
+
+Given:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Execute the existing bounded INV semantics.
+2. Produce an explicit receipt containing the previous state.
+3. Preserve the explicit transition semantic that produced the candidate state.
+4. Preserve the candidate state produced by that transition.
+5. Preserve the explicit invariant semantic used to gate the candidate.
+6. Preserve the accept or reject decision.
+7. Preserve the resulting committed state.
+8. Permit a bounded independent verification step to recompute the candidate and invariant decision from the receipt.
+9. Reject a receipt whose recorded candidate, decision, or resulting state does not match recomputation.
+
+### Falsifiable Boundary
+
+The experiment fails if the receipt records only the final decision without the semantics needed to recheck it.
+
+The experiment fails if verification requires hidden execution state or arbitrary host-language callbacks.
+
+The experiment fails if a changed candidate state, decision, or resulting state can pass verification when it contradicts recomputation from the preserved transition and invariant semantics.
+
+The experiment fails if producing the receipt changes the established execution behavior.
+
+### Scope
+
+Experiment 006 tests only a bounded in-memory decision receipt for the existing INV state, invariant, and transition semantics. It does not establish serialization, cryptographic integrity, durable provenance, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Execution can produce an explicit bounded `TransitionDecisionReceipt`.
+- The receipt preserves the previous state, explicit transition semantic, candidate state, explicit invariant semantic, accept or reject decision, and resulting committed state.
+- Receipt production reuses the established INV execution path rather than introducing a second transition executor.
+- `verify_transition_receipt` independently recomputes the candidate state from the preserved transition semantic and previous state.
+- Verification independently reevaluates the preserved invariant against the previous state and candidate state.
+- A valid receipt verifies successfully.
+- A changed candidate state fails verification.
+- A changed accept or reject decision fails verification.
+- A changed resulting state fails verification.
+- A changed transition semantic that contradicts the recorded candidate fails verification.
+- A changed invariant semantic that contradicts the recorded decision fails verification.
+- Unsupported receipt types fail closed.
+- Existing INV execution behavior remains preserved.
+- Targeted INV suite: 36 passed.
+- Full repository suite: 3515 passed, 5 skipped.
+
+This establishes only a bounded in-memory transition decision receipt and independent semantic recomputation for the existing INV semantics. It does not establish serialization, cryptographic integrity, durable provenance, multi-step replay, distributed verification, or a complete programming language.

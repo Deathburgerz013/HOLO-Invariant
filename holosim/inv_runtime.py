@@ -155,3 +155,70 @@ def execute_inv_transition(
         state=candidate_state,
         accepted=True,
     )
+
+
+@dataclass(frozen=True)
+class TransitionDecisionReceipt:
+    """Bounded evidence required to recheck an INV transition decision."""
+
+    previous_state: int
+    transition: INVTransition
+    candidate_state: int
+    invariant: GreaterThanOrEqualInvariant
+    accepted: bool
+    resulting_state: int
+
+
+def execute_inv_transition_with_receipt(
+    state: int,
+    transition: INVTransition,
+    invariant: GreaterThanOrEqualInvariant,
+) -> TransitionDecisionReceipt:
+    """Execute existing INV semantics and preserve a checkable receipt."""
+
+    result = execute_inv_transition(
+        state=state,
+        transition=transition,
+        invariant=invariant,
+    )
+
+    return TransitionDecisionReceipt(
+        previous_state=result.previous_state,
+        transition=transition,
+        candidate_state=result.proposed_state,
+        invariant=invariant,
+        accepted=result.accepted,
+        resulting_state=result.state,
+    )
+
+
+def verify_transition_receipt(receipt: TransitionDecisionReceipt) -> bool:
+    """Recompute and verify every derived decision field in a receipt."""
+
+    if not isinstance(receipt, TransitionDecisionReceipt):
+        raise TypeError("unsupported INV transition receipt")
+
+    candidate_state = evaluate_transition(
+        receipt.transition,
+        receipt.previous_state,
+    )
+
+    if candidate_state != receipt.candidate_state:
+        return False
+
+    if not evaluate_invariant(receipt.invariant, receipt.previous_state):
+        return False
+
+    expected_accepted = evaluate_invariant(
+        receipt.invariant,
+        candidate_state,
+    )
+    expected_state = candidate_state if expected_accepted else receipt.previous_state
+
+    if receipt.accepted != expected_accepted:
+        return False
+
+    if receipt.resulting_state != expected_state:
+        return False
+
+    return True
