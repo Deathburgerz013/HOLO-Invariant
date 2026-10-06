@@ -945,3 +945,62 @@ After correction:
 - Corrected full repository suite: 3654 passed, 5 skipped.
 
 The original Experiment 015 result is retained above as historical evidence of the earlier tested state. This correction records the later falsification and repair rather than rewriting that history.
+
+## Experiment 016: Verification Receipt Reconstruction
+
+### Question
+
+Can an INV bound verification receipt be converted into bounded plain data and reconstructed by a later observer without access to the original in-memory object, while preserving all evidence necessary for its internal verification and without re-verifying the underlying bound record?
+
+### Required Behavior
+
+Given an INV `BoundVerificationReceipt`:
+
+1. The receipt can be converted into a bounded plain-data representation containing only explicitly supported fields and value types.
+2. The representation preserves the expected outer content identifier.
+3. The representation preserves the observed outer content identifier.
+4. The representation preserves the canonical verified transition receipt bytes in a deterministic plain-data form.
+5. The representation preserves the verified transition receipt content identifier.
+6. The representation preserves each bounded verification outcome.
+7. The representation preserves the no-acceptance, no-truth, no-write-authority, and no-execution-authority fields.
+8. A later observer can reconstruct a new `BoundVerificationReceipt` from the plain representation without access to the original in-memory object.
+9. Reconstruction preserves represented evidence exactly and does not silently repair contradictory identifiers, evidence bytes, verification outcomes, or authority fields.
+10. A reconstructed valid receipt continues to pass `verify_bound_verification_receipt`.
+11. A structurally valid but internally contradictory receipt may reconstruct, but must still fail the established verification-receipt verifier.
+12. Missing, extra, malformed, or unsupported representation fields or value types fail closed.
+13. Reconstruction does not re-run Experiment 014 and does not establish current validity of the underlying canonical bound receipt record.
+14. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction requires access to the original in-memory verification receipt.
+
+The experiment fails if reconstruction silently repairs represented evidence or contradictions.
+
+The experiment fails if a valid verification receipt changes meaning across representation and reconstruction.
+
+The experiment fails if malformed, missing, extra, or unsupported representation data is accepted.
+
+The experiment fails if reconstruction itself is treated as verification.
+
+The experiment fails if reconstruction substitutes for re-verification of the underlying canonical bound receipt record.
+
+The experiment fails if reconstructed verification evidence gains acceptance, truth, write, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 016 tests only bounded plain-data representation and reconstruction of Experiment 015 verification receipts. It does not establish canonical encoding of the verification receipt representation, content identity for that representation, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 016 targeted suite: 38 passed.
+- INV receipt and verification chain through Experiment 016: 186 passed.
+- Full repository suite: 3692 passed, 5 skipped.
+
+This establishes only bounded plain-data representation and reconstruction of Experiment 015 verification receipts. Reconstruction preserves represented verification evidence, including structurally valid contradictions, without silently repairing or independently validating that evidence. Verification remains a separate operation, and reconstruction does not substitute for re-verification of the underlying canonical bound receipt record.
