@@ -168,3 +168,59 @@ Observed result:
 - Full repository suite: 3491 passed, 5 skipped.
 
 This establishes only the bounded native invariant semantic required by Experiment 003. It does not establish a general INV expression system or a complete programming language.
+
+## Experiment 004: Native Transition Semantics
+
+### Question
+
+Can INV represent a state transition as an explicit semantic operation, evaluate its proposed consequence, and check that consequence against an INV invariant before state changes?
+
+### Required Behavior
+
+Given an INV program containing:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Parse the transition into an explicit bounded INV semantic representation.
+2. Preserve that transition representation through execution.
+3. Evaluate the transition against the current state to produce a candidate state.
+4. Evaluate the candidate state against the existing INV invariant semantic.
+5. Reject the candidate state `-1` because it violates `state >= 0`.
+6. Preserve the previous valid state as `5`.
+7. Do not require an arbitrary host-language callable to express the transition.
+
+### Falsifiable Boundary
+
+The experiment fails if the parsed transition must be converted into an arbitrary host-language callback before execution.
+
+The experiment fails if unsupported transition semantics are silently accepted or delegated to host-language evaluation.
+
+The experiment fails if the transition mutates committed state before invariant validation.
+
+The experiment fails if rejection does not preserve the previous valid state.
+
+### Scope
+
+Experiment 004 does not require a general expression or arithmetic system. The only required transition semantic is bounded integer subtraction.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- The parser represented bounded integer subtraction as an explicit INV transition semantic object.
+- The transition representation remained non-callable through parsing and execution.
+- INV runtime semantics evaluated the transition against the current state to produce a candidate state.
+- `state 5` with `transition subtract 6` produced candidate state `-1` without mutating the committed state.
+- The existing INV invariant semantic rejected candidate state `-1` against `state >= 0`.
+- Rejection preserved the previous valid state as `5`.
+- A valid subtraction transition was accepted and committed its candidate state.
+- Unsupported transition source failed closed.
+- An unsupported transition semantic failed closed rather than being delegated to host-language evaluation.
+- Targeted INV tests: 19 passed.
+- Full repository suite: 3498 passed, 5 skipped.
+
+This establishes only the bounded native subtraction transition semantic required by Experiment 004. It does not establish a general arithmetic system, expression system, or complete programming language.
