@@ -854,3 +854,68 @@ Observed result:
 - Full repository suite: 3631 passed, 5 skipped.
 
 This establishes only bounded composition of the already established outer content identity, canonical bound record decoding, inner content binding, receipt reconstruction, and receipt semantic verification layers. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 015: Bound Verification Receipt
+
+### Question
+
+Can INV preserve the evidence and bounded outcome of a successful canonical bound receipt record verification as a deterministic verification receipt, without allowing that receipt to substitute for re-verification of the underlying record?
+
+### Required Behavior
+
+Given canonical bound receipt record bytes and an expected outer content identifier:
+
+1. Verification must proceed through the complete verification path established by Experiment 014.
+2. A verification receipt may be produced only when the complete Experiment 014 verification path succeeds.
+3. The receipt must preserve the expected outer content identifier used for verification.
+4. The receipt must preserve the deterministic outer content identifier derived from the exact supplied canonical bound record bytes.
+5. The receipt must preserve bounded outcomes for outer identity, canonical record decoding, inner content binding, receipt reconstruction, and semantic verification.
+6. The receipt must preserve enough information to identify the verified transition decision receipt without claiming that the historical verification remains sufficient for future use.
+7. Equivalent successful verification inputs must produce equivalent deterministic receipt content.
+8. The receipt must carry no acceptance, truth, write, or execution authority.
+9. Verification receipt validation must reject malformed, contradictory, tampered, or authority-bearing receipts.
+10. Verification receipt validation must recompute relationships represented inside the receipt rather than trusting stored verdict fields.
+11. A valid verification receipt establishes only that its represented verification evidence is internally consistent under the receipt verifier.
+12. A valid verification receipt must not substitute for re-verification of the underlying canonical bound record when that record is later used.
+13. Established INV behavior must remain unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if a verification receipt can be produced when Experiment 014 verification fails.
+
+The experiment fails if equivalent successful verification inputs produce contradictory receipt content.
+
+The experiment fails if tampering with represented identifiers, check outcomes, verified receipt identity, or authority fields is accepted.
+
+The experiment fails if stored verification verdicts are trusted without recomputing their represented relationships.
+
+The experiment fails if verification receipt validity is treated as current semantic validity of an underlying record that has not been re-verified.
+
+The experiment fails if the receipt grants acceptance, truth, write, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 015 tests only deterministic preservation and bounded verification of evidence produced by the successful Experiment 014 verification path. It does not establish permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Successful verification proceeds through the complete Experiment 014 verification path before a verification receipt is produced.
+- The verification receipt preserves the expected outer content identifier, observed outer content identifier, verified transition receipt content identifier, and bounded outcomes for each established verification layer.
+- Equivalent successful verification inputs produce equivalent receipt content, including normalization of equivalent uppercase and lowercase outer content identifiers.
+- Failed Experiment 014 verification produces no verification receipt.
+- Invalid inner content binding produces no verification receipt.
+- Tampered represented check outcomes or outer identity relationships are rejected.
+- Malformed represented verified receipt identifiers fail closed.
+- Verification receipts carrying acceptance, truth, write, or execution authority are rejected.
+- Verification receipt validation does not require or silently re-verify an underlying record.
+- A valid historical verification receipt remains only internally consistent evidence of the represented verification event; it does not establish current validity of separately changed underlying bytes.
+- Targeted INV receipt and verification chain: 146 passed.
+- Full repository suite: 3652 passed, 5 skipped.
+
+This establishes only deterministic preservation and bounded internal verification of evidence produced by a successful Experiment 014 verification event. It does not substitute for re-verification of an underlying record and does not establish permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
