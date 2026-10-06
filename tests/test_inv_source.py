@@ -1,6 +1,6 @@
 import pytest
 
-from holosim.inv_runtime import GreaterThanOrEqualInvariant
+from holosim.inv_runtime import GreaterThanOrEqualInvariant, ReplaceTransition
 from holosim.inv_source import INVSourceError, execute, parse
 
 
@@ -15,7 +15,7 @@ def test_parse_native_inv_source():
 
     assert program.state == 5
     assert program.invariant == GreaterThanOrEqualInvariant(minimum=0)
-    assert program.proposed_state == -1
+    assert program.transition == ReplaceTransition(value=-1)
 
 
 def test_execute_rejects_invariant_violation_and_preserves_state():

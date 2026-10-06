@@ -224,3 +224,66 @@ Observed result:
 - Full repository suite: 3498 passed, 5 skipped.
 
 This establishes only the bounded native subtraction transition semantic required by Experiment 004. It does not establish a general arithmetic system, expression system, or complete programming language.
+
+## Experiment 005: Unified Transition Semantics
+
+### Question
+
+Can every accepted INV transition declaration be represented and executed through one explicit transition-semantic path without a separate raw proposed-state execution path?
+
+### Required Behavior
+
+Given the existing INV programs:
+
+    state 5
+    invariant state >= 0
+    transition -1
+
+and:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Parse `transition -1` into an explicit bounded replacement-transition semantic.
+2. Continue parsing `transition subtract 6` into its explicit subtraction-transition semantic.
+3. Represent both declarations through the same transition field in the parsed INV program.
+4. Evaluate both transition semantics through the same bounded transition-evaluation path.
+5. Produce candidate state `-1` for both programs.
+6. Reject both candidates against `state >= 0`.
+7. Preserve the previous valid state as `5`.
+8. Preserve the observable behavior established by the earlier experiments.
+
+### Falsifiable Boundary
+
+The experiment fails if an accepted transition declaration remains represented as a raw proposed state outside the explicit transition-semantic model.
+
+The experiment fails if execution requires separate semantic and raw proposed-state transition paths.
+
+The experiment fails if unifying the representation changes the established accept, reject, candidate-state, or preserved-state behavior.
+
+The experiment fails if unsupported transition semantics are silently accepted or delegated to arbitrary host-language evaluation.
+
+### Scope
+
+Experiment 005 does not add new arithmetic operators or a general expression system. It only tests whether the two transition forms already established by earlier experiments can share one explicit semantic representation and execution path.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- `transition -1` is represented as an explicit `ReplaceTransition` semantic rather than a raw proposed-state field.
+- `transition subtract 6` remains represented as an explicit `SubtractTransition` semantic.
+- Both accepted transition forms are carried through the same `INVProgram.transition` field.
+- Both transition forms are evaluated through the same bounded `evaluate_transition` semantic path.
+- Both forms produce candidate state `-1` from the bounded test programs.
+- Both candidates are rejected against `state >= 0` while preserving previous valid state `5`.
+- Valid replacement transitions remain accepted through the unified native path.
+- Unsupported transition semantics continue to fail closed.
+- The legacy `proposed_state` field is no longer part of `INVProgram`.
+- Targeted INV suite: 27 passed.
+- Full repository suite: 3506 passed, 5 skipped.
+
+This establishes only that the two transition forms already introduced by earlier experiments can share one explicit transition-semantic representation and execution path. It does not establish a general transition algebra, arithmetic system, expression system, or complete programming language.

@@ -9,10 +9,11 @@ from dataclasses import dataclass
 
 from holosim.inv_runtime import (
     GreaterThanOrEqualInvariant,
+    INVTransition,
+    ReplaceTransition,
     SubtractTransition,
     TransitionResult,
     execute_inv_transition,
-    transition_with_inv_invariant,
 )
 
 
@@ -24,8 +25,7 @@ class INVSourceError(ValueError):
 class INVProgram:
     state: int
     invariant: GreaterThanOrEqualInvariant
-    proposed_state: int | None = None
-    transition: SubtractTransition | None = None
+    transition: INVTransition
 
 
 def parse(source: str) -> INVProgram:
@@ -63,14 +63,14 @@ def parse(source: str) -> INVProgram:
 
     if len(transition_parts) == 2:
         try:
-            proposed_state = int(transition_parts[1])
+            value = int(transition_parts[1])
         except ValueError as exc:
             raise INVSourceError("invalid replacement transition") from exc
 
         return INVProgram(
             state=state,
             invariant=invariant,
-            proposed_state=proposed_state,
+            transition=ReplaceTransition(value=value),
         )
 
     if len(transition_parts) == 3 and transition_parts[1] == "subtract":
@@ -92,19 +92,8 @@ def execute(source: str) -> TransitionResult[int]:
     """Parse and execute a bounded INV program."""
 
     program = parse(source)
-
-    if program.transition is not None:
-        return execute_inv_transition(
-            state=program.state,
-            transition=program.transition,
-            invariant=program.invariant,
-        )
-
-    if program.proposed_state is None:
-        raise INVSourceError("program contains no executable transition")
-
-    return transition_with_inv_invariant(
+    return execute_inv_transition(
         state=program.state,
-        proposed_state=program.proposed_state,
+        transition=program.transition,
         invariant=program.invariant,
     )

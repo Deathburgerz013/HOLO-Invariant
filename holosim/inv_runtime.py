@@ -34,10 +34,20 @@ class GreaterThanOrEqualInvariant:
 
 
 @dataclass(frozen=True)
+class ReplaceTransition:
+    """Bounded INV semantic object for replacing state."""
+
+    value: int
+
+
+@dataclass(frozen=True)
 class SubtractTransition:
     """Bounded INV semantic object for subtracting from state."""
 
     amount: int
+
+
+INVTransition = ReplaceTransition | SubtractTransition
 
 
 def evaluate_invariant(
@@ -53,15 +63,18 @@ def evaluate_invariant(
 
 
 def evaluate_transition(
-    transition: SubtractTransition,
+    transition: INVTransition,
     state: int,
 ) -> int:
     """Evaluate a supported INV transition without mutating state."""
 
-    if not isinstance(transition, SubtractTransition):
-        raise TypeError("unsupported INV transition semantic")
+    if isinstance(transition, ReplaceTransition):
+        return transition.value
 
-    return state - transition.amount
+    if isinstance(transition, SubtractTransition):
+        return state - transition.amount
+
+    raise TypeError("unsupported INV transition semantic")
 
 
 def transition(
@@ -118,7 +131,7 @@ def transition_with_inv_invariant(
 
 def execute_inv_transition(
     state: int,
-    transition: SubtractTransition,
+    transition: INVTransition,
     invariant: GreaterThanOrEqualInvariant,
 ) -> TransitionResult[int]:
     """Evaluate a native transition, then gate its candidate state."""
