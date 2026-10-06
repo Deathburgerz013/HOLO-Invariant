@@ -203,3 +203,35 @@ def test_receipt_is_frozen():
 
     with pytest.raises(Exception):
         receipt.accepted = True
+
+
+def test_well_formed_false_verified_receipt_identity_is_rejected():
+    receipt = make_verification_receipt()
+
+    changed = (
+        ("0" if receipt.verified_receipt_content_id[0] != "0" else "1")
+        + receipt.verified_receipt_content_id[1:]
+    )
+
+    tampered = replace(
+        receipt,
+        verified_receipt_content_id=changed,
+    )
+
+    assert verify_bound_verification_receipt(tampered) is False
+
+
+def test_tampered_verified_receipt_bytes_are_rejected():
+    receipt = make_verification_receipt()
+
+    changed = (
+        (b"0" if receipt.verified_receipt_bytes[:1] != b"0" else b"1")
+        + receipt.verified_receipt_bytes[1:]
+    )
+
+    tampered = replace(
+        receipt,
+        verified_receipt_bytes=changed,
+    )
+
+    assert verify_bound_verification_receipt(tampered) is False

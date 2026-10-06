@@ -919,3 +919,29 @@ Observed result:
 - Full repository suite: 3652 passed, 5 skipped.
 
 This establishes only deterministic preservation and bounded internal verification of evidence produced by a successful Experiment 014 verification event. It does not substitute for re-verification of an underlying record and does not establish permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Correction Record
+
+A later adversarial check exposed an uncovered contradiction in the initial Experiment 015 implementation.
+
+The verification receipt preserved `verified_receipt_content_id`, but its verifier checked only that this identifier was syntactically valid. Because the receipt did not preserve the canonical verified receipt bytes from which that identifier had been derived, a well-formed but false 64-hex verified receipt content identifier was accepted.
+
+The contradiction was demonstrated before repair:
+
+- A well-formed false `verified_receipt_content_id` was accepted by `verify_bound_verification_receipt`.
+- The verification receipt did not contain `verified_receipt_bytes`, so the claimed verified receipt identity could not be recomputed from preserved evidence.
+- Targeted result before correction: 2 failed, 21 passed.
+
+The correction preserves the canonical verified transition receipt bytes in `verified_receipt_bytes` and recomputes their relationship to `verified_receipt_content_id` using the established INV receipt content-identity verifier.
+
+After correction:
+
+- A well-formed false verified receipt content identifier is rejected.
+- Tampered verified receipt bytes are rejected.
+- The represented verified receipt identity is recomputed from preserved bytes rather than trusted as a stored verdict.
+- Verification of this historical evidence still does not substitute for re-verification of the underlying canonical bound receipt record.
+- Corrected targeted Experiment 015 suite: 23 passed.
+- Corrected INV receipt and verification chain: 148 passed.
+- Corrected full repository suite: 3654 passed, 5 skipped.
+
+The original Experiment 015 result is retained above as historical evidence of the earlier tested state. This correction records the later falsification and repair rather than rewriting that history.
