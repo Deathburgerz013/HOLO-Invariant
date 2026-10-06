@@ -477,3 +477,64 @@ Observed result:
 - Full repository suite: 3539 passed, 5 skipped.
 
 This establishes only deterministic canonical byte encoding and decoding of the bounded receipt representation established by Experiment 007. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 009: Canonical Receipt Content Identity
+
+### Question
+
+Can INV derive a deterministic content identifier from canonical receipt bytes and use that identifier to detect any change to the canonical receipt representation without treating the identifier as semantic validity or authority?
+
+### Required Behavior
+
+Given canonical receipt bytes established by Experiment 008:
+
+1. Derive a deterministic content identifier from the exact canonical bytes.
+2. Equivalent canonical receipt bytes must produce exactly the same content identifier.
+3. Changed canonical receipt bytes must produce a different content identifier.
+4. Verify canonical receipt bytes against an expected content identifier.
+5. Matching bytes and identifier must verify successfully.
+6. Changed bytes against the prior identifier must fail verification.
+7. A changed identifier against unchanged bytes must fail verification.
+8. Content identity must operate on the canonical bytes established by Experiment 008 rather than independently re-encoding arbitrary structures.
+9. Content-identity verification must remain separate from receipt semantic verification.
+10. A semantically contradictory but structurally valid canonical receipt may have a valid content identifier while still failing the existing semantic verifier.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent canonical bytes can produce different content identifiers.
+
+The experiment fails if changed canonical bytes can verify against the identifier of the prior bytes.
+
+The experiment fails if a changed identifier can verify against unchanged canonical bytes.
+
+The experiment fails if content identity depends on object identity, mapping insertion order, or noncanonical representation.
+
+The experiment fails if matching content identity is treated as proof of semantic validity, authenticity, provenance, authorization, or origin.
+
+The experiment fails if content-identity behavior changes established INV execution, receipt, reconstruction, canonical encoding, or semantic verification behavior.
+
+### Scope
+
+Experiment 009 tests only deterministic content identity and mismatch detection for the canonical receipt bytes established by Experiment 008. It does not establish authenticity, authorization, origin, provenance, durable storage, trusted publication, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Exact canonical receipt bytes can be assigned a deterministic SHA-256 content identifier.
+- Equivalent canonical receipt bytes produce identical content identifiers.
+- Changed canonical receipt bytes produce different content identifiers.
+- Canonical bytes verify successfully against their matching expected content identifier.
+- Changed canonical bytes fail verification against the prior content identifier.
+- A changed content identifier fails verification against unchanged canonical bytes.
+- Malformed content identifiers and unsupported input types fail closed.
+- Content identity operates directly on the exact canonical bytes established by Experiment 008 and does not independently re-encode receipt structures.
+- Content-identity verification remains separate from receipt semantic verification.
+- A semantically contradictory but structurally valid canonical receipt can have a matching content identifier while still failing the existing semantic verifier.
+- Matching content identity therefore establishes only identity of the checked byte content relative to the expected identifier. It does not establish semantic validity, authenticity, provenance, authorization, or origin.
+- Targeted INV receipt chain: 46 passed.
+- Full repository suite: 3552 passed, 5 skipped.
+
+This establishes only deterministic content identity and mismatch detection for the canonical receipt bytes established by Experiment 008. It does not establish authenticity, authorization, origin, provenance, durable storage, trusted publication, schema evolution, multi-step replay, distributed verification, or a complete programming language.
