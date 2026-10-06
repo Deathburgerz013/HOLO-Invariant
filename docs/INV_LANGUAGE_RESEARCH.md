@@ -1004,3 +1004,66 @@ Observed result:
 - Full repository suite: 3692 passed, 5 skipped.
 
 This establishes only bounded plain-data representation and reconstruction of Experiment 015 verification receipts. Reconstruction preserves represented verification evidence, including structurally valid contradictions, without silently repairing or independently validating that evidence. Verification remains a separate operation, and reconstruction does not substitute for re-verification of the underlying canonical bound receipt record.
+
+## Experiment 017: Canonical Verification Receipt Encoding
+
+### Question
+
+Can equivalent INV bound verification receipt representations produce exactly the same canonical byte representation, and can those bytes reconstruct the represented verification receipt without silently repairing or verifying its evidence?
+
+### Required Behavior
+
+Given a bounded Experiment 016 verification receipt representation:
+
+1. Equivalent supported representations produce exactly the same canonical bytes independent of mapping insertion order.
+2. Canonical encoding uses a deterministic bounded format.
+3. Canonical bytes decode only to the exact supported Experiment 016 representation.
+4. Decoded canonical bytes can reconstruct a new `BoundVerificationReceipt`.
+5. Encoding and decoding preserve the represented expected outer content identifier.
+6. Encoding and decoding preserve the represented observed outer content identifier.
+7. Encoding and decoding preserve the represented canonical verified receipt bytes.
+8. Encoding and decoding preserve the represented verified receipt content identifier.
+9. Encoding and decoding preserve all represented verification outcomes and authority fields.
+10. Structurally valid contradictions remain represented exactly and are not silently repaired.
+11. Canonical decoding rejects malformed bytes, unsupported data, extra or missing fields, and noncanonical equivalent encodings.
+12. Decode followed by encode reproduces exactly the original canonical bytes.
+13. Canonical encoding or decoding does not itself verify the represented verification receipt.
+14. A reconstructed contradictory verification receipt continues to fail the established verification-receipt verifier.
+15. Canonical encoding does not re-run Experiment 014 or establish current validity of the underlying canonical bound receipt record.
+16. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent supported representations can produce different canonical bytes.
+
+The experiment fails if mapping insertion order changes canonical output.
+
+The experiment fails if noncanonical equivalent bytes are accepted as canonical.
+
+The experiment fails if encoding or decoding silently repairs represented evidence or contradictions.
+
+The experiment fails if malformed, missing, extra, or unsupported representation data is accepted.
+
+The experiment fails if canonicalization itself is treated as verification.
+
+The experiment fails if a contradictory verification receipt becomes valid merely because it was canonically encoded or decoded.
+
+The experiment fails if canonicalization substitutes for re-verification of the underlying canonical bound receipt record.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 017 tests only deterministic canonical byte encoding and decoding of Experiment 016 verification receipt representations. It does not establish a content identifier for those canonical bytes, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 017 targeted suite: 22 passed.
+- INV receipt and verification chain through Experiment 017: 208 passed.
+- Full repository suite: 3714 passed, 5 skipped.
+
+This establishes only deterministic canonical byte encoding and decoding of Experiment 016 verification receipt representations. Equivalent supported representations produce the same canonical bytes, noncanonical equivalent encodings are rejected, and represented contradictions survive canonicalization without repair. Canonicalization remains separate from verification and does not establish current validity of the underlying canonical bound receipt record.
