@@ -349,3 +349,71 @@ Observed result:
 - Full repository suite: 3515 passed, 5 skipped.
 
 This establishes only a bounded in-memory transition decision receipt and independent semantic recomputation for the existing INV semantics. It does not establish serialization, cryptographic integrity, durable provenance, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 007: Receipt Serialization and Reconstruction
+
+### Question
+
+Can a valid INV transition decision receipt be converted into a bounded, host-independent data representation and reconstructed without losing the semantics required for independent verification?
+
+### Required Behavior
+
+Given a valid transition decision receipt produced from:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Convert the receipt into a bounded data representation containing no live Python semantic objects.
+2. Preserve the previous state.
+3. Preserve the transition kind and its bounded semantic data.
+4. Preserve the candidate state.
+5. Preserve the invariant kind and its bounded semantic data.
+6. Preserve the accept or reject decision.
+7. Preserve the resulting committed state.
+8. Reconstruct a new TransitionDecisionReceipt from that representation.
+9. Verify the reconstructed receipt using the existing independent receipt verifier.
+10. Preserve equivalent verification behavior for the existing replacement and subtraction transition semantics.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction depends on retaining the original in-memory receipt or semantic objects.
+
+The experiment fails if supported transition or invariant semantics cannot be distinguished after representation.
+
+The experiment fails if reconstructed semantics differ from the semantics originally recorded.
+
+The experiment fails if malformed, missing, extra, or unsupported semantic data is silently accepted.
+
+The experiment fails if a reconstructed receipt that contradicts recomputation can pass the existing receipt verifier.
+
+The experiment fails if serialization or reconstruction changes established INV execution behavior.
+
+### Scope
+
+Experiment 007 tests only bounded representation and reconstruction of the existing INV transition decision receipt semantics. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- A bounded transition decision receipt can be converted into plain data containing no live INV semantic objects.
+- Replacement and subtraction transitions preserve distinct explicit transition kinds and bounded semantic values.
+- The existing greater-than-or-equal invariant preserves its explicit kind and minimum value.
+- Previous state, candidate state, decision, and resulting committed state survive representation and reconstruction.
+- Reconstruction creates a new TransitionDecisionReceipt without retaining the original receipt object.
+- Reconstructed receipts preserve the original bounded INV semantics.
+- Reconstructed valid receipts pass the existing independent receipt verifier.
+- Missing receipt fields fail closed.
+- Extra receipt fields fail closed.
+- Missing transition or invariant fields fail closed.
+- Unsupported transition and invariant kinds fail closed.
+- Invalid decision types fail closed.
+- A structurally reconstructable receipt containing a contradictory candidate remains rejected by the existing semantic verifier.
+- Representation and reconstruction do not replace semantic verification or treat reconstructed data as authority.
+- Targeted receipt suite: 20 passed.
+- Full repository suite: 3526 passed, 5 skipped.
+
+This establishes only bounded plain-data representation and reconstruction for the existing INV transition decision receipt semantics. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
