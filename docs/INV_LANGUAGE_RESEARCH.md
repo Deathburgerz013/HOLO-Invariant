@@ -117,3 +117,54 @@ Observed result:
 - Full repository suite: 3486 passed, 5 skipped.
 
 This establishes only the bounded native source behavior required by Experiment 002. The parser currently supports only the deliberately restricted syntax exercised by this experiment. It does not establish INV as a complete programming language.
+
+## Experiment 003: Native Invariant Semantics
+
+### Question
+
+Can an INV invariant remain an explicit INV semantic object through execution rather than being converted into an arbitrary host-language callable?
+
+### Required Behavior
+
+Given an INV program containing:
+
+    state 5
+    invariant state >= 0
+    transition -1
+
+1. Parse the invariant into an explicit bounded INV representation.
+2. Preserve the invariant representation through execution.
+3. Evaluate the invariant using INV runtime semantics.
+4. Reject the proposed transition to `-1`.
+5. Preserve the previous valid state as `5`.
+6. Do not require an arbitrary Python callable to express the invariant.
+
+### Falsifiable Boundary
+
+The experiment fails if execution requires converting the parsed invariant into an arbitrary host-language callback.
+
+The experiment fails if unsupported invariant semantics are silently accepted or delegated to host-language evaluation.
+
+The experiment fails if a violating transition is accepted or alters the previous valid state.
+
+### Scope
+
+Experiment 003 does not require a general expression language. The only required invariant semantic is the bounded greater-than-or-equal comparison already exercised by Experiment 002.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- The parser represented the declared invariant as an explicit INV semantic object.
+- The invariant remained non-callable through parsing and execution.
+- INV runtime semantics evaluated the supported greater-than-or-equal invariant directly.
+- The proposed transition from `5` to `-1` was rejected.
+- Rejection preserved the previous valid state as `5`.
+- An invalid current state failed closed.
+- An unsupported invariant semantic failed closed rather than being delegated to host-language evaluation.
+- Targeted INV tests: 12 passed.
+- Full repository suite: 3491 passed, 5 skipped.
+
+This establishes only the bounded native invariant semantic required by Experiment 003. It does not establish a general INV expression system or a complete programming language.

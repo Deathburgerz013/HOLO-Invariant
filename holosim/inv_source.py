@@ -7,7 +7,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from holosim.inv_runtime import TransitionResult, transition
+from holosim.inv_runtime import (
+    GreaterThanOrEqualInvariant,
+    TransitionResult,
+    transition_with_inv_invariant,
+)
 
 
 class INVSourceError(ValueError):
@@ -17,12 +21,12 @@ class INVSourceError(ValueError):
 @dataclass(frozen=True)
 class INVProgram:
     state: int
-    minimum: int
+    invariant: GreaterThanOrEqualInvariant
     proposed_state: int
 
 
 def parse(source: str) -> INVProgram:
-    """Parse the bounded syntax required by Experiment 002."""
+    """Parse the bounded syntax required by Experiments 002 and 003."""
 
     lines = [line.strip() for line in source.splitlines() if line.strip()]
     if len(lines) != 3:
@@ -51,21 +55,21 @@ def parse(source: str) -> INVProgram:
         minimum = int(invariant_parts[3])
         proposed_state = int(transition_parts[1])
     except ValueError as exc:
-        raise INVSourceError("Experiment 002 supports integer values only") from exc
+        raise INVSourceError("INV currently supports integer values only") from exc
 
     return INVProgram(
         state=state,
-        minimum=minimum,
+        invariant=GreaterThanOrEqualInvariant(minimum=minimum),
         proposed_state=proposed_state,
     )
 
 
 def execute(source: str) -> TransitionResult[int]:
-    """Parse and execute an Experiment 002 INV program."""
+    """Parse and execute a bounded INV program."""
 
     program = parse(source)
-    return transition(
+    return transition_with_inv_invariant(
         state=program.state,
         proposed_state=program.proposed_state,
-        invariant=lambda value: value >= program.minimum,
+        invariant=program.invariant,
     )

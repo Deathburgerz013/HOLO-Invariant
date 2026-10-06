@@ -1,5 +1,6 @@
 import pytest
 
+from holosim.inv_runtime import GreaterThanOrEqualInvariant
 from holosim.inv_source import INVSourceError, execute, parse
 
 
@@ -13,7 +14,7 @@ def test_parse_native_inv_source():
     program = parse(SOURCE)
 
     assert program.state == 5
-    assert program.minimum == 0
+    assert program.invariant == GreaterThanOrEqualInvariant(minimum=0)
     assert program.proposed_state == -1
 
 
