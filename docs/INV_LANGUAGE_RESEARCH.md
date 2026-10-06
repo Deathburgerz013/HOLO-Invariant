@@ -600,3 +600,67 @@ Observed result:
 - Full repository suite: 3562 passed, 5 skipped.
 
 This establishes only bounded preservation and rechecking of the relationship between canonical receipt bytes and their deterministic content identifier. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 011: Bound Receipt Record Reconstruction
+
+### Question
+
+Can an INV content-bound receipt record be converted into bounded plain data and reconstructed by a later observer without access to the original in-memory record, while preserving its content binding?
+
+### Required Behavior
+
+Given the content-bound receipt record established by Experiment 010:
+
+1. Convert a bound receipt record into bounded plain data containing its canonical receipt content and content identifier.
+2. The plain representation must not contain live Python receipt, transition, invariant, or bound-record objects.
+3. Reconstruct a new BoundReceiptRecord using only the bounded plain representation.
+4. Reconstruction must not depend on access to the original in-memory BoundReceiptRecord.
+5. An unchanged reconstructed record must preserve the exact receipt bytes and content identifier.
+6. An unchanged reconstructed record must pass the existing content-binding verifier.
+7. A reconstructed record must remain usable by the existing bound-receipt reconstruction path.
+8. Changed serialized receipt content with the prior serialized content identifier must reconstruct as the stated record but fail the existing content-binding verifier.
+9. A changed serialized content identifier with unchanged serialized receipt content must reconstruct as the stated record but fail the existing content-binding verifier.
+10. Malformed, missing, extra, or unsupported representation fields must fail closed.
+11. Record reconstruction must not confer semantic validity, authenticity, authorization, provenance, origin, or trusted publication.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction requires the original in-memory BoundReceiptRecord or another hidden execution object.
+
+The experiment fails if the bounded representation contains live INV semantic or receipt objects.
+
+The experiment fails if reconstruction silently recomputes or repairs a mismatched stored content identifier instead of preserving the represented claim for verification.
+
+The experiment fails if an unchanged reconstructed record does not preserve the exact content binding established before serialization.
+
+The experiment fails if malformed, missing, extra, or unsupported representation data is silently accepted.
+
+The experiment fails if reconstruction itself is treated as content-binding verification, semantic verification, authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 011 tests only bounded plain-data representation and reconstruction of the content-bound receipt record established by Experiment 010. It does not establish canonical encoding of the bound record, a content identity for the bound record itself, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- A content-bound receipt record can be converted into bounded plain data containing only hexadecimal receipt content and its content identifier.
+- Reconstruction requires only that bounded representation and does not require access to the original in-memory BoundReceiptRecord.
+- An unchanged reconstruction preserves the exact canonical receipt bytes and content identifier.
+- An unchanged reconstructed record passes the existing content-binding verifier.
+- A reconstructed record remains usable by the existing bound-receipt reconstruction path.
+- Changed serialized receipt content with the prior content identifier is preserved as represented and subsequently fails content-binding verification.
+- A changed serialized content identifier with unchanged receipt content is preserved as represented and subsequently fails content-binding verification.
+- Reconstruction does not silently recompute, repair, or replace a mismatched content identifier.
+- Malformed, missing, extra, non-hexadecimal, non-canonical hexadecimal, and unsupported representation data fail closed.
+- Reconstruction remains separate from content-binding verification and semantic receipt verification.
+- A represented contradiction can therefore survive reconstruction without being silently repaired, leaving correction authority downstream of independent verification.
+- Targeted INV receipt chain: 74 passed.
+- Full repository suite: 3580 passed, 5 skipped.
+
+This establishes only bounded plain-data representation and reconstruction of a content-bound receipt record. It does not establish canonical encoding of the bound record, a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
