@@ -789,3 +789,68 @@ Observed result:
 - Full repository suite: 3621 passed, 5 skipped.
 
 This establishes only deterministic content identity for the canonical bound receipt record bytes established by Experiment 012. It does not establish inner content-binding validity, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 014: Canonical Bound Receipt Record Verification
+
+### Question
+
+Can a later observer take canonical bound receipt record bytes plus an expected outer content identifier and independently establish outer content identity, canonical reconstruction, inner content binding, and receipt semantic validity in a bounded verification path without any layer silently repairing or conferring validity on another?
+
+### Required Behavior
+
+Given canonical bound receipt record bytes and an expected outer content identifier:
+
+1. Verify the expected outer content identifier against the exact supplied bound record bytes.
+2. Reject an outer content identity mismatch before treating the supplied bytes as the expected record.
+3. Decode the supplied bytes only through the canonical bound receipt record decoding path established by Experiment 012.
+4. Reject malformed, unsupported, or non-canonical bound record bytes.
+5. Verify the reconstructed BoundReceiptRecord through the inner content-binding verifier established before Experiment 012.
+6. Reject an invalid inner content binding even when the outer content identity is valid.
+7. Reconstruct the underlying transition decision receipt only through the existing bound receipt reconstruction path.
+8. Verify the reconstructed transition decision receipt through the existing semantic receipt verifier.
+9. Reject a semantically contradictory receipt even when outer identity, canonical record representation, and inner content binding are valid.
+10. Preserve the distinction between outer identity, canonicality, inner binding, and semantic validity.
+11. Do not repair mismatched identifiers, malformed representations, invalid bindings, or semantic contradictions.
+12. Established INV behavior must remain unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if an outer identity mismatch is accepted.
+
+The experiment fails if malformed, unsupported, or non-canonical bound record bytes are accepted.
+
+The experiment fails if a valid outer identity causes an invalid inner content binding to be accepted or repaired.
+
+The experiment fails if valid outer identity, canonicality, and inner binding cause a semantically contradictory receipt to be accepted or repaired.
+
+The experiment fails if verification bypasses the established canonical decoding, inner binding, reconstruction, or semantic verification paths.
+
+The experiment fails if one verification layer is treated as proof of another.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 014 tests only bounded composition of the already established outer content identity, canonical bound record decoding, inner content binding, receipt reconstruction, and receipt semantic verification layers. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Exact supplied bound record bytes are checked against the expected outer content identifier before reconstruction.
+- An outer content identity mismatch is rejected.
+- Malformed outer content identity input fails closed.
+- Supplied record bytes are decoded only through the established canonical bound receipt record decoding path.
+- Malformed and non-canonical bound record bytes are rejected even when their exact bytes possess a valid outer content identity.
+- A valid outer content identity does not confer validity on an invalid inner content binding.
+- An invalid inner content binding is rejected without repair.
+- Underlying receipt reconstruction proceeds only through the established bound receipt reconstruction path.
+- A semantically contradictory transition receipt is rejected even when its canonical receipt bytes, inner content binding, canonical bound record bytes, and outer content identity are all valid.
+- Outer identity, canonicality, inner binding, and semantic validity therefore remain independently checkable properties.
+- No verification layer repairs or substitutes for another.
+- Targeted INV receipt verification chain: 125 passed.
+- Full repository suite: 3631 passed, 5 skipped.
+
+This establishes only bounded composition of the already established outer content identity, canonical bound record decoding, inner content binding, receipt reconstruction, and receipt semantic verification layers. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
