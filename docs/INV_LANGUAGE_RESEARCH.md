@@ -538,3 +538,65 @@ Observed result:
 - Full repository suite: 3552 passed, 5 skipped.
 
 This establishes only deterministic content identity and mismatch detection for the canonical receipt bytes established by Experiment 008. It does not establish authenticity, authorization, origin, provenance, durable storage, trusted publication, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 010: Content-Bound Receipt Record
+
+### Question
+
+Can INV preserve canonical receipt bytes together with their derived content identifier as one bounded record, then reject reconstruction when either component no longer agrees with the other?
+
+### Required Behavior
+
+Given canonical receipt bytes and deterministic content identity established by Experiments 008 and 009:
+
+1. Construct a bounded record containing the exact canonical receipt bytes and their derived content identifier.
+2. The stored content identifier must be derived from the stored canonical bytes.
+3. Verify the binding between the stored canonical bytes and stored content identifier.
+4. An unchanged record must pass content-binding verification.
+5. Changed canonical bytes with the prior content identifier must fail verification.
+6. A changed content identifier with unchanged canonical bytes must fail verification.
+7. A valid bound record must reconstruct the receipt through the existing canonical decoding path.
+8. Receipt semantic verification must remain separate from content-binding verification.
+9. A semantically contradictory but structurally valid canonical receipt may form a valid content-bound record while still failing the existing semantic verifier.
+10. The record must not claim authenticity, authorization, provenance, origin, or trusted publication.
+
+### Falsifiable Boundary
+
+The experiment fails if canonical receipt bytes and their content identifier are not preserved together in one bounded record.
+
+The experiment fails if changed bytes can remain valid against the prior stored content identifier.
+
+The experiment fails if a changed stored content identifier can remain valid against unchanged bytes.
+
+The experiment fails if reconstruction bypasses the canonical decoding boundary established by Experiment 008.
+
+The experiment fails if content-binding verification is treated as semantic verification.
+
+The experiment fails if a valid bound record is treated as evidence of authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV execution, receipt, reconstruction, canonical encoding, content identity, or semantic verification behavior changes.
+
+### Scope
+
+Experiment 010 tests only bounded preservation and rechecking of the relationship between canonical receipt bytes and their deterministic content identifier. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Exact canonical receipt bytes and their derived content identifier can be preserved together in one bounded record.
+- The content identifier stored by the binding operation is derived from the exact stored canonical bytes.
+- An unchanged bound record passes content-binding verification.
+- Changed canonical bytes with the prior content identifier fail content-binding verification.
+- A changed content identifier with unchanged canonical bytes fails content-binding verification.
+- A record with a failed content binding is rejected before receipt reconstruction.
+- A valid bound record reconstructs through the canonical decoding path established by Experiment 008.
+- Content-binding verification remains separate from receipt semantic verification.
+- A semantically contradictory but structurally valid canonical receipt can form a valid content-bound record, reconstruct successfully, and still fail the existing semantic verifier.
+- A valid content binding therefore establishes only agreement between the stored canonical bytes and stored content identifier. It does not establish semantic validity, authenticity, authorization, provenance, origin, or trusted publication.
+- Targeted INV receipt chain: 56 passed.
+- Full repository suite: 3562 passed, 5 skipped.
+
+This establishes only bounded preservation and rechecking of the relationship between canonical receipt bytes and their deterministic content identifier. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
