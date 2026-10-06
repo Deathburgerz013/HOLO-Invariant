@@ -726,3 +726,66 @@ Observed result:
 - Full repository suite: 3602 passed, 5 skipped.
 
 This establishes only deterministic canonical byte encoding and decoding of the content-bound receipt record representation established by Experiment 011. It does not establish a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 013: Canonical Bound Receipt Record Content Identity
+
+### Question
+
+Can INV derive a deterministic content identifier from canonical bound receipt record bytes and use that identifier to detect any change to the canonical record representation without treating that identifier as content-binding validity, semantic validity, authenticity, or authority?
+
+### Required Behavior
+
+Given canonical bound receipt record bytes established by Experiment 012:
+
+1. Derive a deterministic content identifier from the exact canonical bound receipt record bytes.
+2. Identical canonical bound receipt record bytes must produce exactly the same content identifier.
+3. Changed canonical bound receipt record bytes must produce a different content identifier.
+4. A matching expected content identifier must verify against unchanged canonical record bytes.
+5. Changed canonical record bytes must fail verification against the prior content identifier.
+6. A changed expected content identifier must fail verification against unchanged canonical record bytes.
+7. Malformed expected content identifiers and unsupported input types must fail closed.
+8. Content identity must apply to the canonical bound record representation as a whole, including both its represented receipt content and represented receipt content identifier.
+9. A canonically encoded bound record containing an invalid inner content binding may still have a valid outer content identity.
+10. Outer content identity must not confer inner content-binding validity, semantic receipt validity, authenticity, authorization, provenance, origin, or trusted publication.
+
+### Falsifiable Boundary
+
+The experiment fails if identical canonical bound receipt record bytes can produce different content identifiers.
+
+The experiment fails if changed canonical bound receipt record bytes can retain the same identifier under the tested identity function.
+
+The experiment fails if changed bytes verify against the prior content identifier.
+
+The experiment fails if malformed identifiers or unsupported input types are silently accepted.
+
+The experiment fails if outer content identity silently repairs or validates the inner receipt content binding.
+
+The experiment fails if outer content identity is treated as semantic validity, authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 013 tests only deterministic content identity for the canonical bound receipt record bytes established by Experiment 012. It does not establish inner content-binding validity, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Identical canonical bound receipt record bytes produce exactly the same deterministic SHA-256 content identifier.
+- A matching expected content identifier verifies against unchanged canonical bound receipt record bytes.
+- Changed canonical bound receipt record bytes produce a different content identifier and fail verification against the prior identifier.
+- A changed expected content identifier fails verification against unchanged canonical record bytes.
+- Uppercase hexadecimal representation of the same expected identifier verifies equivalently.
+- Malformed expected identifiers and unsupported input types fail closed.
+- The outer content identity covers the canonical bound record representation as a whole, including its represented receipt content identifier.
+- Changing the represented inner receipt content identifier changes the canonical bound record bytes and therefore changes the outer content identifier.
+- A bound record with an invalid inner content binding can still possess and verify a valid outer content identity.
+- Valid outer content identity does not repair or confer validity on the invalid inner content binding.
+- Outer content identity therefore establishes identity of the canonical bound record bytes only; it does not establish inner content-binding validity or semantic validity.
+- Targeted INV receipt chain: 115 passed.
+- Full repository suite: 3621 passed, 5 skipped.
+
+This establishes only deterministic content identity for the canonical bound receipt record bytes established by Experiment 012. It does not establish inner content-binding validity, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
