@@ -664,3 +664,65 @@ Observed result:
 - Full repository suite: 3580 passed, 5 skipped.
 
 This establishes only bounded plain-data representation and reconstruction of a content-bound receipt record. It does not establish canonical encoding of the bound record, a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 012: Canonical Bound Receipt Record Encoding
+
+### Question
+
+Can equivalent INV content-bound receipt records produce exactly the same canonical byte representation, and can those bytes reconstruct the represented bound record without silently repairing or verifying its content binding?
+
+### Required Behavior
+
+Given the bounded plain-data representation established by Experiment 011:
+
+1. Encode a supported bound receipt record representation into deterministic canonical bytes.
+2. Equivalent bound receipt records must produce exactly identical canonical bytes.
+3. Canonical encoding must not depend on mapping insertion order.
+4. Canonical bytes must decode into the bounded plain-data representation established by Experiment 011.
+5. Decoded data must reconstruct a new BoundReceiptRecord through the existing Experiment 011 reconstruction path.
+6. Re-encoding decoded canonical data must reproduce the exact original canonical bytes.
+7. Non-canonical byte representations of otherwise equivalent data must fail closed.
+8. Malformed, unsupported, missing, or extra representation data must fail closed.
+9. Canonical encoding and decoding must preserve a represented content-binding mismatch rather than silently repairing it.
+10. Canonical encoding must remain separate from content-binding verification and semantic receipt verification.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent supported bound receipt records can produce different canonical bytes.
+
+The experiment fails if mapping insertion order changes the canonical byte representation.
+
+The experiment fails if decoding bypasses the bounded representation and reconstruction path established by Experiment 011.
+
+The experiment fails if decoding silently recomputes, repairs, or replaces a represented content identifier.
+
+The experiment fails if a non-canonical representation of otherwise equivalent data is accepted as canonical.
+
+The experiment fails if canonical encoding or decoding is treated as content-binding verification, semantic verification, authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 012 tests only deterministic canonical byte encoding and decoding of the content-bound receipt record representation established by Experiment 011. It does not establish a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Equivalent supported content-bound receipt records produce exactly identical canonical byte representations.
+- Mapping insertion order does not change the canonical byte representation.
+- Canonical bytes decode into the bounded plain-data representation established by Experiment 011.
+- Decoded canonical data reconstructs a new BoundReceiptRecord through the existing Experiment 011 reconstruction path.
+- Decoding and re-encoding reproduces the exact original canonical bytes.
+- Non-canonical byte representations of otherwise equivalent supported data fail closed.
+- Malformed, unsupported, missing, and extra representation data fail closed.
+- Canonical encoding and decoding preserve a represented content-binding mismatch rather than silently repairing it.
+- A canonically encoded record with a mismatched content identifier reconstructs with that mismatch intact and subsequently fails the existing content-binding verifier.
+- Canonicalization therefore normalizes representation without conferring content-binding validity or semantic validity.
+- Targeted INV receipt chain: 96 passed.
+- Full repository suite: 3602 passed, 5 skipped.
+
+This establishes only deterministic canonical byte encoding and decoding of the content-bound receipt record representation established by Experiment 011. It does not establish a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
