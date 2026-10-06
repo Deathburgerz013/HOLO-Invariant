@@ -417,3 +417,63 @@ Observed result:
 - Full repository suite: 3526 passed, 5 skipped.
 
 This establishes only bounded plain-data representation and reconstruction for the existing INV transition decision receipt semantics. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 008: Canonical Receipt Encoding
+
+### Question
+
+Can equivalent INV transition decision receipts produce exactly the same canonical byte representation, independent of object identity or mapping insertion order, and can those bytes reconstruct a receipt that still passes semantic verification?
+
+### Required Behavior
+
+Given equivalent valid transition decision receipts:
+
+1. Convert each receipt through the existing bounded plain-data representation.
+2. Encode that representation into a deterministic canonical byte sequence.
+3. Equivalent receipt semantics must produce exactly identical canonical bytes.
+4. Mapping insertion order must not change the canonical bytes.
+5. The encoding must contain only the bounded data established by Experiment 007.
+6. Decode canonical bytes back into bounded plain data.
+7. Reconstruct a new TransitionDecisionReceipt using the existing reconstruction path.
+8. Verify the reconstructed receipt using the existing semantic verifier.
+9. Preserve equivalent behavior for replacement and subtraction transition semantics.
+10. Malformed or unsupported encoded input must fail closed.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent receipt semantics can produce different canonical bytes because of object identity or mapping insertion order.
+
+The experiment fails if decoding requires retaining the original receipt, plain-data object, or live semantic objects.
+
+The experiment fails if encoding or decoding introduces semantic fields not established by the existing bounded representation.
+
+The experiment fails if malformed or unsupported encoded input is silently accepted.
+
+The experiment fails if a decoded and reconstructed valid receipt cannot pass the existing semantic verifier.
+
+The experiment fails if canonical encoding changes established INV execution, receipt, representation, reconstruction, or verification behavior.
+
+### Scope
+
+Experiment 008 tests only deterministic canonical byte encoding and decoding of the bounded receipt representation established by Experiment 007. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Existing bounded receipt data can be encoded as deterministic canonical UTF-8 JSON bytes.
+- Equivalent independently created receipts produce identical canonical bytes.
+- Mapping insertion order does not change the canonical byte representation.
+- Replacement and subtraction transition semantics survive canonical encoding, decoding, reconstruction, and semantic verification.
+- Canonical decoding reconstructs only through the bounded plain-data representation established by Experiment 007.
+- Decoding does not depend on retaining the original receipt, plain-data object, or live semantic objects.
+- Empty, malformed, non-mapping, incomplete, unsupported, and invalid UTF-8 encoded inputs fail closed.
+- Structurally valid but noncanonical JSON bytes fail closed.
+- Changed bounded semantic data produces different canonical bytes.
+- Canonical encoding does not confer semantic validity: a contradictory but structurally valid receipt can be canonically encoded and reconstructed while remaining rejected by the existing semantic verifier.
+- Targeted INV receipt chain: 33 passed.
+- Full repository suite: 3539 passed, 5 skipped.
+
+This establishes only deterministic canonical byte encoding and decoding of the bounded receipt representation established by Experiment 007. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
