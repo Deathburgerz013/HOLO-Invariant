@@ -1189,3 +1189,53 @@ Observed result:
 - Full repository suite: 3758 passed, 5 skipped.
 
 This establishes only a bounded in-memory record containing canonical Experiment 017 verification receipt bytes and their Experiment 018 derived content identifier, plus verification of that bytes-to-identifier relationship. Binding preserves exact bytes and derives identity from those bytes. Changing either bytes or identifier breaks the binding, while successful binding does not validate, repair, or authorize the represented verification evidence.
+## Experiment 020: Verification Receipt Record Reconstruction
+
+### Question
+
+Can an INV content-bound verification receipt record be converted into bounded plain data and reconstructed by a later observer without access to the original in-memory record, while preserving the exact verification receipt bytes and their bound content identifier without silently repairing or verifying the represented evidence?
+
+### Required Behavior
+
+Given an INV content-bound verification receipt record:
+
+1. The record can be converted into a bounded plain-data representation containing only explicitly supported fields and value types.
+2. The representation preserves the exact canonical verification receipt bytes.
+3. The representation preserves the derived verification receipt content identifier.
+4. A later observer can reconstruct a new content-bound verification receipt record from the plain representation without access to the original in-memory object.
+5. Reconstruction preserves the represented verification receipt bytes exactly.
+6. Reconstruction preserves the represented content identifier exactly.
+7. Reconstruction does not silently derive, replace, normalize, or repair a represented identifier.
+8. Reconstruction does not silently modify represented verification receipt bytes.
+9. A structurally valid but internally contradictory record may reconstruct, but must fail the established record content-binding verifier.
+10. Missing, extra, malformed, or unsupported representation fields or value types fail closed.
+11. Reconstruction does not verify the represented verification receipt.
+12. Reconstruction does not re-run Experiment 015 or establish current validity of the underlying canonical bound receipt record.
+13. Reconstruction does not confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+14. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction requires access to the original in-memory record.
+
+The experiment fails if reconstruction silently repairs represented verification receipt bytes or content identifiers.
+
+The experiment fails if a represented contradictory record becomes valid merely because it was reconstructed.
+
+The experiment fails if missing, extra, malformed, or unsupported representation data is accepted.
+
+The experiment fails if reconstruction itself is treated as verification.
+
+The experiment fails if reconstruction substitutes for verification of the represented verification receipt or re-verification of the underlying canonical bound receipt record.
+
+The experiment fails if reconstructed evidence gains truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 020 tests only bounded plain-data representation and reconstruction of the Experiment 019 content-bound verification receipt record. It does not establish canonical encoding of that representation, content identity for the record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+UNIMPLEMENTED
