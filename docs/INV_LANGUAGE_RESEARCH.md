@@ -1,0 +1,1241 @@
+# INV Language Research
+
+> **WORK IN PROGRESS**
+
+INV is an experimental programming-language research project.
+
+Its syntax, semantics, invariants, execution model, and name remain subject to correction as implementation and testing expose contradictions.
+
+Nothing in this document is a finalized language specification. Claims become stable only to the extent that they survive implementation, testing, and independent verification.
+
+## Initial Research Question
+
+Can a programming language make explicit, checkable invariants and justified state transitions first-class parts of execution rather than conventions imposed only by surrounding software?
+
+## Current Status
+
+UNRESOLVED
+
+No implementation claim is established by this document.
+
+## Experiment 001: Invariant-Gated Transition
+
+### Question
+
+Can INV reject a proposed state transition when that transition violates an explicitly declared invariant?
+
+### Minimum Concepts
+
+- `state` — the current value being operated on.
+- `invariant` — a condition that must remain satisfied.
+- `transition` — a proposed change from one state to another.
+
+### Required Behavior
+
+Given a valid current state and a proposed transition:
+
+1. Evaluate the proposed resulting state.
+2. Check the declared invariant against that result.
+3. Accept the transition only if the invariant remains satisfied.
+4. Reject the transition if the invariant would be violated.
+
+### Falsifiable Boundary
+
+The experiment fails if INV accepts a transition that violates the declared invariant.
+
+The experiment also fails if rejection depends on application-specific code rather than the INV execution mechanism itself.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- The minimal INV runtime rejected a proposed state that violated its declared invariant.
+- The rejected transition preserved the previous valid state.
+- An invalid starting state failed closed.
+- `tests/test_inv_runtime.py`: 3 passed.
+- Full repository suite: 3482 passed, 5 skipped.
+
+This establishes only the behavior required by Experiment 001. It does not establish INV as a complete programming language or settle the broader research question.
+
+## Experiment 002: Native INV Source Representation
+
+### Question
+
+Can the behavior established by Experiment 001 be expressed as INV source text without expressing the program in Python syntax?
+
+### Minimum Source Concepts
+
+The source representation must be able to declare:
+
+- an initial `state`
+- an `invariant`
+- a proposed `transition`
+
+### Initial Candidate Form
+
+    state 5
+    invariant state >= 0
+    transition -1
+
+This syntax is provisional and exists only to make the experiment executable. It is not a finalized INV syntax.
+
+### Required Behavior
+
+Given the candidate program above:
+
+1. Parse the INV source into a bounded internal representation.
+2. Establish the initial state as `5`.
+3. Evaluate the declared invariant `state >= 0`.
+4. Evaluate the proposed transition to `-1`.
+5. Reject that transition because the resulting state violates the invariant.
+6. Preserve the previous valid state as `5`.
+
+### Falsifiable Boundary
+
+The experiment fails if the INV source cannot be interpreted without using Python syntax as the source language.
+
+The experiment fails if the proposed transition to `-1` is accepted.
+
+The experiment fails if rejection does not preserve the previous valid state.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- INV source text was parsed without using Python syntax as the source language.
+- The source declared an initial state, invariant, and proposed transition.
+- The proposed transition from `5` to `-1` was rejected because it violated `state >= 0`.
+- Rejection preserved the previous valid state as `5`.
+- A transition preserving the invariant was accepted.
+- Unsupported invariant syntax failed closed.
+- INV runtime and source tests: 7 passed.
+- Repository integration contracts: 33 passed.
+- Full repository suite: 3486 passed, 5 skipped.
+
+This establishes only the bounded native source behavior required by Experiment 002. The parser currently supports only the deliberately restricted syntax exercised by this experiment. It does not establish INV as a complete programming language.
+
+## Experiment 003: Native Invariant Semantics
+
+### Question
+
+Can an INV invariant remain an explicit INV semantic object through execution rather than being converted into an arbitrary host-language callable?
+
+### Required Behavior
+
+Given an INV program containing:
+
+    state 5
+    invariant state >= 0
+    transition -1
+
+1. Parse the invariant into an explicit bounded INV representation.
+2. Preserve the invariant representation through execution.
+3. Evaluate the invariant using INV runtime semantics.
+4. Reject the proposed transition to `-1`.
+5. Preserve the previous valid state as `5`.
+6. Do not require an arbitrary Python callable to express the invariant.
+
+### Falsifiable Boundary
+
+The experiment fails if execution requires converting the parsed invariant into an arbitrary host-language callback.
+
+The experiment fails if unsupported invariant semantics are silently accepted or delegated to host-language evaluation.
+
+The experiment fails if a violating transition is accepted or alters the previous valid state.
+
+### Scope
+
+Experiment 003 does not require a general expression language. The only required invariant semantic is the bounded greater-than-or-equal comparison already exercised by Experiment 002.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- The parser represented the declared invariant as an explicit INV semantic object.
+- The invariant remained non-callable through parsing and execution.
+- INV runtime semantics evaluated the supported greater-than-or-equal invariant directly.
+- The proposed transition from `5` to `-1` was rejected.
+- Rejection preserved the previous valid state as `5`.
+- An invalid current state failed closed.
+- An unsupported invariant semantic failed closed rather than being delegated to host-language evaluation.
+- Targeted INV tests: 12 passed.
+- Full repository suite: 3491 passed, 5 skipped.
+
+This establishes only the bounded native invariant semantic required by Experiment 003. It does not establish a general INV expression system or a complete programming language.
+
+## Experiment 004: Native Transition Semantics
+
+### Question
+
+Can INV represent a state transition as an explicit semantic operation, evaluate its proposed consequence, and check that consequence against an INV invariant before state changes?
+
+### Required Behavior
+
+Given an INV program containing:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Parse the transition into an explicit bounded INV semantic representation.
+2. Preserve that transition representation through execution.
+3. Evaluate the transition against the current state to produce a candidate state.
+4. Evaluate the candidate state against the existing INV invariant semantic.
+5. Reject the candidate state `-1` because it violates `state >= 0`.
+6. Preserve the previous valid state as `5`.
+7. Do not require an arbitrary host-language callable to express the transition.
+
+### Falsifiable Boundary
+
+The experiment fails if the parsed transition must be converted into an arbitrary host-language callback before execution.
+
+The experiment fails if unsupported transition semantics are silently accepted or delegated to host-language evaluation.
+
+The experiment fails if the transition mutates committed state before invariant validation.
+
+The experiment fails if rejection does not preserve the previous valid state.
+
+### Scope
+
+Experiment 004 does not require a general expression or arithmetic system. The only required transition semantic is bounded integer subtraction.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- The parser represented bounded integer subtraction as an explicit INV transition semantic object.
+- The transition representation remained non-callable through parsing and execution.
+- INV runtime semantics evaluated the transition against the current state to produce a candidate state.
+- `state 5` with `transition subtract 6` produced candidate state `-1` without mutating the committed state.
+- The existing INV invariant semantic rejected candidate state `-1` against `state >= 0`.
+- Rejection preserved the previous valid state as `5`.
+- A valid subtraction transition was accepted and committed its candidate state.
+- Unsupported transition source failed closed.
+- An unsupported transition semantic failed closed rather than being delegated to host-language evaluation.
+- Targeted INV tests: 19 passed.
+- Full repository suite: 3498 passed, 5 skipped.
+
+This establishes only the bounded native subtraction transition semantic required by Experiment 004. It does not establish a general arithmetic system, expression system, or complete programming language.
+
+## Experiment 005: Unified Transition Semantics
+
+### Question
+
+Can every accepted INV transition declaration be represented and executed through one explicit transition-semantic path without a separate raw proposed-state execution path?
+
+### Required Behavior
+
+Given the existing INV programs:
+
+    state 5
+    invariant state >= 0
+    transition -1
+
+and:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Parse `transition -1` into an explicit bounded replacement-transition semantic.
+2. Continue parsing `transition subtract 6` into its explicit subtraction-transition semantic.
+3. Represent both declarations through the same transition field in the parsed INV program.
+4. Evaluate both transition semantics through the same bounded transition-evaluation path.
+5. Produce candidate state `-1` for both programs.
+6. Reject both candidates against `state >= 0`.
+7. Preserve the previous valid state as `5`.
+8. Preserve the observable behavior established by the earlier experiments.
+
+### Falsifiable Boundary
+
+The experiment fails if an accepted transition declaration remains represented as a raw proposed state outside the explicit transition-semantic model.
+
+The experiment fails if execution requires separate semantic and raw proposed-state transition paths.
+
+The experiment fails if unifying the representation changes the established accept, reject, candidate-state, or preserved-state behavior.
+
+The experiment fails if unsupported transition semantics are silently accepted or delegated to arbitrary host-language evaluation.
+
+### Scope
+
+Experiment 005 does not add new arithmetic operators or a general expression system. It only tests whether the two transition forms already established by earlier experiments can share one explicit semantic representation and execution path.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- `transition -1` is represented as an explicit `ReplaceTransition` semantic rather than a raw proposed-state field.
+- `transition subtract 6` remains represented as an explicit `SubtractTransition` semantic.
+- Both accepted transition forms are carried through the same `INVProgram.transition` field.
+- Both transition forms are evaluated through the same bounded `evaluate_transition` semantic path.
+- Both forms produce candidate state `-1` from the bounded test programs.
+- Both candidates are rejected against `state >= 0` while preserving previous valid state `5`.
+- Valid replacement transitions remain accepted through the unified native path.
+- Unsupported transition semantics continue to fail closed.
+- The legacy `proposed_state` field is no longer part of `INVProgram`.
+- Targeted INV suite: 27 passed.
+- Full repository suite: 3506 passed, 5 skipped.
+
+This establishes only that the two transition forms already introduced by earlier experiments can share one explicit transition-semantic representation and execution path. It does not establish a general transition algebra, arithmetic system, expression system, or complete programming language.
+
+## Experiment 006: Transition Decision Receipt
+
+### Question
+
+Can INV execution produce a bounded receipt that preserves the semantic transition, candidate state, invariant, decision, and resulting state needed to independently check why a transition was accepted or rejected?
+
+### Required Behavior
+
+Given:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Execute the existing bounded INV semantics.
+2. Produce an explicit receipt containing the previous state.
+3. Preserve the explicit transition semantic that produced the candidate state.
+4. Preserve the candidate state produced by that transition.
+5. Preserve the explicit invariant semantic used to gate the candidate.
+6. Preserve the accept or reject decision.
+7. Preserve the resulting committed state.
+8. Permit a bounded independent verification step to recompute the candidate and invariant decision from the receipt.
+9. Reject a receipt whose recorded candidate, decision, or resulting state does not match recomputation.
+
+### Falsifiable Boundary
+
+The experiment fails if the receipt records only the final decision without the semantics needed to recheck it.
+
+The experiment fails if verification requires hidden execution state or arbitrary host-language callbacks.
+
+The experiment fails if a changed candidate state, decision, or resulting state can pass verification when it contradicts recomputation from the preserved transition and invariant semantics.
+
+The experiment fails if producing the receipt changes the established execution behavior.
+
+### Scope
+
+Experiment 006 tests only a bounded in-memory decision receipt for the existing INV state, invariant, and transition semantics. It does not establish serialization, cryptographic integrity, durable provenance, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Execution can produce an explicit bounded `TransitionDecisionReceipt`.
+- The receipt preserves the previous state, explicit transition semantic, candidate state, explicit invariant semantic, accept or reject decision, and resulting committed state.
+- Receipt production reuses the established INV execution path rather than introducing a second transition executor.
+- `verify_transition_receipt` independently recomputes the candidate state from the preserved transition semantic and previous state.
+- Verification independently reevaluates the preserved invariant against the previous state and candidate state.
+- A valid receipt verifies successfully.
+- A changed candidate state fails verification.
+- A changed accept or reject decision fails verification.
+- A changed resulting state fails verification.
+- A changed transition semantic that contradicts the recorded candidate fails verification.
+- A changed invariant semantic that contradicts the recorded decision fails verification.
+- Unsupported receipt types fail closed.
+- Existing INV execution behavior remains preserved.
+- Targeted INV suite: 36 passed.
+- Full repository suite: 3515 passed, 5 skipped.
+
+This establishes only a bounded in-memory transition decision receipt and independent semantic recomputation for the existing INV semantics. It does not establish serialization, cryptographic integrity, durable provenance, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 007: Receipt Serialization and Reconstruction
+
+### Question
+
+Can a valid INV transition decision receipt be converted into a bounded, host-independent data representation and reconstructed without losing the semantics required for independent verification?
+
+### Required Behavior
+
+Given a valid transition decision receipt produced from:
+
+    state 5
+    invariant state >= 0
+    transition subtract 6
+
+1. Convert the receipt into a bounded data representation containing no live Python semantic objects.
+2. Preserve the previous state.
+3. Preserve the transition kind and its bounded semantic data.
+4. Preserve the candidate state.
+5. Preserve the invariant kind and its bounded semantic data.
+6. Preserve the accept or reject decision.
+7. Preserve the resulting committed state.
+8. Reconstruct a new TransitionDecisionReceipt from that representation.
+9. Verify the reconstructed receipt using the existing independent receipt verifier.
+10. Preserve equivalent verification behavior for the existing replacement and subtraction transition semantics.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction depends on retaining the original in-memory receipt or semantic objects.
+
+The experiment fails if supported transition or invariant semantics cannot be distinguished after representation.
+
+The experiment fails if reconstructed semantics differ from the semantics originally recorded.
+
+The experiment fails if malformed, missing, extra, or unsupported semantic data is silently accepted.
+
+The experiment fails if a reconstructed receipt that contradicts recomputation can pass the existing receipt verifier.
+
+The experiment fails if serialization or reconstruction changes established INV execution behavior.
+
+### Scope
+
+Experiment 007 tests only bounded representation and reconstruction of the existing INV transition decision receipt semantics. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- A bounded transition decision receipt can be converted into plain data containing no live INV semantic objects.
+- Replacement and subtraction transitions preserve distinct explicit transition kinds and bounded semantic values.
+- The existing greater-than-or-equal invariant preserves its explicit kind and minimum value.
+- Previous state, candidate state, decision, and resulting committed state survive representation and reconstruction.
+- Reconstruction creates a new TransitionDecisionReceipt without retaining the original receipt object.
+- Reconstructed receipts preserve the original bounded INV semantics.
+- Reconstructed valid receipts pass the existing independent receipt verifier.
+- Missing receipt fields fail closed.
+- Extra receipt fields fail closed.
+- Missing transition or invariant fields fail closed.
+- Unsupported transition and invariant kinds fail closed.
+- Invalid decision types fail closed.
+- A structurally reconstructable receipt containing a contradictory candidate remains rejected by the existing semantic verifier.
+- Representation and reconstruction do not replace semantic verification or treat reconstructed data as authority.
+- Targeted receipt suite: 20 passed.
+- Full repository suite: 3526 passed, 5 skipped.
+
+This establishes only bounded plain-data representation and reconstruction for the existing INV transition decision receipt semantics. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 008: Canonical Receipt Encoding
+
+### Question
+
+Can equivalent INV transition decision receipts produce exactly the same canonical byte representation, independent of object identity or mapping insertion order, and can those bytes reconstruct a receipt that still passes semantic verification?
+
+### Required Behavior
+
+Given equivalent valid transition decision receipts:
+
+1. Convert each receipt through the existing bounded plain-data representation.
+2. Encode that representation into a deterministic canonical byte sequence.
+3. Equivalent receipt semantics must produce exactly identical canonical bytes.
+4. Mapping insertion order must not change the canonical bytes.
+5. The encoding must contain only the bounded data established by Experiment 007.
+6. Decode canonical bytes back into bounded plain data.
+7. Reconstruct a new TransitionDecisionReceipt using the existing reconstruction path.
+8. Verify the reconstructed receipt using the existing semantic verifier.
+9. Preserve equivalent behavior for replacement and subtraction transition semantics.
+10. Malformed or unsupported encoded input must fail closed.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent receipt semantics can produce different canonical bytes because of object identity or mapping insertion order.
+
+The experiment fails if decoding requires retaining the original receipt, plain-data object, or live semantic objects.
+
+The experiment fails if encoding or decoding introduces semantic fields not established by the existing bounded representation.
+
+The experiment fails if malformed or unsupported encoded input is silently accepted.
+
+The experiment fails if a decoded and reconstructed valid receipt cannot pass the existing semantic verifier.
+
+The experiment fails if canonical encoding changes established INV execution, receipt, representation, reconstruction, or verification behavior.
+
+### Scope
+
+Experiment 008 tests only deterministic canonical byte encoding and decoding of the bounded receipt representation established by Experiment 007. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Existing bounded receipt data can be encoded as deterministic canonical UTF-8 JSON bytes.
+- Equivalent independently created receipts produce identical canonical bytes.
+- Mapping insertion order does not change the canonical byte representation.
+- Replacement and subtraction transition semantics survive canonical encoding, decoding, reconstruction, and semantic verification.
+- Canonical decoding reconstructs only through the bounded plain-data representation established by Experiment 007.
+- Decoding does not depend on retaining the original receipt, plain-data object, or live semantic objects.
+- Empty, malformed, non-mapping, incomplete, unsupported, and invalid UTF-8 encoded inputs fail closed.
+- Structurally valid but noncanonical JSON bytes fail closed.
+- Changed bounded semantic data produces different canonical bytes.
+- Canonical encoding does not confer semantic validity: a contradictory but structurally valid receipt can be canonically encoded and reconstructed while remaining rejected by the existing semantic verifier.
+- Targeted INV receipt chain: 33 passed.
+- Full repository suite: 3539 passed, 5 skipped.
+
+This establishes only deterministic canonical byte encoding and decoding of the bounded receipt representation established by Experiment 007. It does not establish durable storage, cryptographic integrity, authenticity, provenance, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 009: Canonical Receipt Content Identity
+
+### Question
+
+Can INV derive a deterministic content identifier from canonical receipt bytes and use that identifier to detect any change to the canonical receipt representation without treating the identifier as semantic validity or authority?
+
+### Required Behavior
+
+Given canonical receipt bytes established by Experiment 008:
+
+1. Derive a deterministic content identifier from the exact canonical bytes.
+2. Equivalent canonical receipt bytes must produce exactly the same content identifier.
+3. Changed canonical receipt bytes must produce a different content identifier.
+4. Verify canonical receipt bytes against an expected content identifier.
+5. Matching bytes and identifier must verify successfully.
+6. Changed bytes against the prior identifier must fail verification.
+7. A changed identifier against unchanged bytes must fail verification.
+8. Content identity must operate on the canonical bytes established by Experiment 008 rather than independently re-encoding arbitrary structures.
+9. Content-identity verification must remain separate from receipt semantic verification.
+10. A semantically contradictory but structurally valid canonical receipt may have a valid content identifier while still failing the existing semantic verifier.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent canonical bytes can produce different content identifiers.
+
+The experiment fails if changed canonical bytes can verify against the identifier of the prior bytes.
+
+The experiment fails if a changed identifier can verify against unchanged canonical bytes.
+
+The experiment fails if content identity depends on object identity, mapping insertion order, or noncanonical representation.
+
+The experiment fails if matching content identity is treated as proof of semantic validity, authenticity, provenance, authorization, or origin.
+
+The experiment fails if content-identity behavior changes established INV execution, receipt, reconstruction, canonical encoding, or semantic verification behavior.
+
+### Scope
+
+Experiment 009 tests only deterministic content identity and mismatch detection for the canonical receipt bytes established by Experiment 008. It does not establish authenticity, authorization, origin, provenance, durable storage, trusted publication, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Exact canonical receipt bytes can be assigned a deterministic SHA-256 content identifier.
+- Equivalent canonical receipt bytes produce identical content identifiers.
+- Changed canonical receipt bytes produce different content identifiers.
+- Canonical bytes verify successfully against their matching expected content identifier.
+- Changed canonical bytes fail verification against the prior content identifier.
+- A changed content identifier fails verification against unchanged canonical bytes.
+- Malformed content identifiers and unsupported input types fail closed.
+- Content identity operates directly on the exact canonical bytes established by Experiment 008 and does not independently re-encode receipt structures.
+- Content-identity verification remains separate from receipt semantic verification.
+- A semantically contradictory but structurally valid canonical receipt can have a matching content identifier while still failing the existing semantic verifier.
+- Matching content identity therefore establishes only identity of the checked byte content relative to the expected identifier. It does not establish semantic validity, authenticity, provenance, authorization, or origin.
+- Targeted INV receipt chain: 46 passed.
+- Full repository suite: 3552 passed, 5 skipped.
+
+This establishes only deterministic content identity and mismatch detection for the canonical receipt bytes established by Experiment 008. It does not establish authenticity, authorization, origin, provenance, durable storage, trusted publication, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 010: Content-Bound Receipt Record
+
+### Question
+
+Can INV preserve canonical receipt bytes together with their derived content identifier as one bounded record, then reject reconstruction when either component no longer agrees with the other?
+
+### Required Behavior
+
+Given canonical receipt bytes and deterministic content identity established by Experiments 008 and 009:
+
+1. Construct a bounded record containing the exact canonical receipt bytes and their derived content identifier.
+2. The stored content identifier must be derived from the stored canonical bytes.
+3. Verify the binding between the stored canonical bytes and stored content identifier.
+4. An unchanged record must pass content-binding verification.
+5. Changed canonical bytes with the prior content identifier must fail verification.
+6. A changed content identifier with unchanged canonical bytes must fail verification.
+7. A valid bound record must reconstruct the receipt through the existing canonical decoding path.
+8. Receipt semantic verification must remain separate from content-binding verification.
+9. A semantically contradictory but structurally valid canonical receipt may form a valid content-bound record while still failing the existing semantic verifier.
+10. The record must not claim authenticity, authorization, provenance, origin, or trusted publication.
+
+### Falsifiable Boundary
+
+The experiment fails if canonical receipt bytes and their content identifier are not preserved together in one bounded record.
+
+The experiment fails if changed bytes can remain valid against the prior stored content identifier.
+
+The experiment fails if a changed stored content identifier can remain valid against unchanged bytes.
+
+The experiment fails if reconstruction bypasses the canonical decoding boundary established by Experiment 008.
+
+The experiment fails if content-binding verification is treated as semantic verification.
+
+The experiment fails if a valid bound record is treated as evidence of authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV execution, receipt, reconstruction, canonical encoding, content identity, or semantic verification behavior changes.
+
+### Scope
+
+Experiment 010 tests only bounded preservation and rechecking of the relationship between canonical receipt bytes and their deterministic content identifier. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Exact canonical receipt bytes and their derived content identifier can be preserved together in one bounded record.
+- The content identifier stored by the binding operation is derived from the exact stored canonical bytes.
+- An unchanged bound record passes content-binding verification.
+- Changed canonical bytes with the prior content identifier fail content-binding verification.
+- A changed content identifier with unchanged canonical bytes fails content-binding verification.
+- A record with a failed content binding is rejected before receipt reconstruction.
+- A valid bound record reconstructs through the canonical decoding path established by Experiment 008.
+- Content-binding verification remains separate from receipt semantic verification.
+- A semantically contradictory but structurally valid canonical receipt can form a valid content-bound record, reconstruct successfully, and still fail the existing semantic verifier.
+- A valid content binding therefore establishes only agreement between the stored canonical bytes and stored content identifier. It does not establish semantic validity, authenticity, authorization, provenance, origin, or trusted publication.
+- Targeted INV receipt chain: 56 passed.
+- Full repository suite: 3562 passed, 5 skipped.
+
+This establishes only bounded preservation and rechecking of the relationship between canonical receipt bytes and their deterministic content identifier. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 011: Bound Receipt Record Reconstruction
+
+### Question
+
+Can an INV content-bound receipt record be converted into bounded plain data and reconstructed by a later observer without access to the original in-memory record, while preserving its content binding?
+
+### Required Behavior
+
+Given the content-bound receipt record established by Experiment 010:
+
+1. Convert a bound receipt record into bounded plain data containing its canonical receipt content and content identifier.
+2. The plain representation must not contain live Python receipt, transition, invariant, or bound-record objects.
+3. Reconstruct a new BoundReceiptRecord using only the bounded plain representation.
+4. Reconstruction must not depend on access to the original in-memory BoundReceiptRecord.
+5. An unchanged reconstructed record must preserve the exact receipt bytes and content identifier.
+6. An unchanged reconstructed record must pass the existing content-binding verifier.
+7. A reconstructed record must remain usable by the existing bound-receipt reconstruction path.
+8. Changed serialized receipt content with the prior serialized content identifier must reconstruct as the stated record but fail the existing content-binding verifier.
+9. A changed serialized content identifier with unchanged serialized receipt content must reconstruct as the stated record but fail the existing content-binding verifier.
+10. Malformed, missing, extra, or unsupported representation fields must fail closed.
+11. Record reconstruction must not confer semantic validity, authenticity, authorization, provenance, origin, or trusted publication.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction requires the original in-memory BoundReceiptRecord or another hidden execution object.
+
+The experiment fails if the bounded representation contains live INV semantic or receipt objects.
+
+The experiment fails if reconstruction silently recomputes or repairs a mismatched stored content identifier instead of preserving the represented claim for verification.
+
+The experiment fails if an unchanged reconstructed record does not preserve the exact content binding established before serialization.
+
+The experiment fails if malformed, missing, extra, or unsupported representation data is silently accepted.
+
+The experiment fails if reconstruction itself is treated as content-binding verification, semantic verification, authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 011 tests only bounded plain-data representation and reconstruction of the content-bound receipt record established by Experiment 010. It does not establish canonical encoding of the bound record, a content identity for the bound record itself, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- A content-bound receipt record can be converted into bounded plain data containing only hexadecimal receipt content and its content identifier.
+- Reconstruction requires only that bounded representation and does not require access to the original in-memory BoundReceiptRecord.
+- An unchanged reconstruction preserves the exact canonical receipt bytes and content identifier.
+- An unchanged reconstructed record passes the existing content-binding verifier.
+- A reconstructed record remains usable by the existing bound-receipt reconstruction path.
+- Changed serialized receipt content with the prior content identifier is preserved as represented and subsequently fails content-binding verification.
+- A changed serialized content identifier with unchanged receipt content is preserved as represented and subsequently fails content-binding verification.
+- Reconstruction does not silently recompute, repair, or replace a mismatched content identifier.
+- Malformed, missing, extra, non-hexadecimal, non-canonical hexadecimal, and unsupported representation data fail closed.
+- Reconstruction remains separate from content-binding verification and semantic receipt verification.
+- A represented contradiction can therefore survive reconstruction without being silently repaired, leaving correction authority downstream of independent verification.
+- Targeted INV receipt chain: 74 passed.
+- Full repository suite: 3580 passed, 5 skipped.
+
+This establishes only bounded plain-data representation and reconstruction of a content-bound receipt record. It does not establish canonical encoding of the bound record, a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 012: Canonical Bound Receipt Record Encoding
+
+### Question
+
+Can equivalent INV content-bound receipt records produce exactly the same canonical byte representation, and can those bytes reconstruct the represented bound record without silently repairing or verifying its content binding?
+
+### Required Behavior
+
+Given the bounded plain-data representation established by Experiment 011:
+
+1. Encode a supported bound receipt record representation into deterministic canonical bytes.
+2. Equivalent bound receipt records must produce exactly identical canonical bytes.
+3. Canonical encoding must not depend on mapping insertion order.
+4. Canonical bytes must decode into the bounded plain-data representation established by Experiment 011.
+5. Decoded data must reconstruct a new BoundReceiptRecord through the existing Experiment 011 reconstruction path.
+6. Re-encoding decoded canonical data must reproduce the exact original canonical bytes.
+7. Non-canonical byte representations of otherwise equivalent data must fail closed.
+8. Malformed, unsupported, missing, or extra representation data must fail closed.
+9. Canonical encoding and decoding must preserve a represented content-binding mismatch rather than silently repairing it.
+10. Canonical encoding must remain separate from content-binding verification and semantic receipt verification.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent supported bound receipt records can produce different canonical bytes.
+
+The experiment fails if mapping insertion order changes the canonical byte representation.
+
+The experiment fails if decoding bypasses the bounded representation and reconstruction path established by Experiment 011.
+
+The experiment fails if decoding silently recomputes, repairs, or replaces a represented content identifier.
+
+The experiment fails if a non-canonical representation of otherwise equivalent data is accepted as canonical.
+
+The experiment fails if canonical encoding or decoding is treated as content-binding verification, semantic verification, authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 012 tests only deterministic canonical byte encoding and decoding of the content-bound receipt record representation established by Experiment 011. It does not establish a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Equivalent supported content-bound receipt records produce exactly identical canonical byte representations.
+- Mapping insertion order does not change the canonical byte representation.
+- Canonical bytes decode into the bounded plain-data representation established by Experiment 011.
+- Decoded canonical data reconstructs a new BoundReceiptRecord through the existing Experiment 011 reconstruction path.
+- Decoding and re-encoding reproduces the exact original canonical bytes.
+- Non-canonical byte representations of otherwise equivalent supported data fail closed.
+- Malformed, unsupported, missing, and extra representation data fail closed.
+- Canonical encoding and decoding preserve a represented content-binding mismatch rather than silently repairing it.
+- A canonically encoded record with a mismatched content identifier reconstructs with that mismatch intact and subsequently fails the existing content-binding verifier.
+- Canonicalization therefore normalizes representation without conferring content-binding validity or semantic validity.
+- Targeted INV receipt chain: 96 passed.
+- Full repository suite: 3602 passed, 5 skipped.
+
+This establishes only deterministic canonical byte encoding and decoding of the content-bound receipt record representation established by Experiment 011. It does not establish a content identity for the bound record itself, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 013: Canonical Bound Receipt Record Content Identity
+
+### Question
+
+Can INV derive a deterministic content identifier from canonical bound receipt record bytes and use that identifier to detect any change to the canonical record representation without treating that identifier as content-binding validity, semantic validity, authenticity, or authority?
+
+### Required Behavior
+
+Given canonical bound receipt record bytes established by Experiment 012:
+
+1. Derive a deterministic content identifier from the exact canonical bound receipt record bytes.
+2. Identical canonical bound receipt record bytes must produce exactly the same content identifier.
+3. Changed canonical bound receipt record bytes must produce a different content identifier.
+4. A matching expected content identifier must verify against unchanged canonical record bytes.
+5. Changed canonical record bytes must fail verification against the prior content identifier.
+6. A changed expected content identifier must fail verification against unchanged canonical record bytes.
+7. Malformed expected content identifiers and unsupported input types must fail closed.
+8. Content identity must apply to the canonical bound record representation as a whole, including both its represented receipt content and represented receipt content identifier.
+9. A canonically encoded bound record containing an invalid inner content binding may still have a valid outer content identity.
+10. Outer content identity must not confer inner content-binding validity, semantic receipt validity, authenticity, authorization, provenance, origin, or trusted publication.
+
+### Falsifiable Boundary
+
+The experiment fails if identical canonical bound receipt record bytes can produce different content identifiers.
+
+The experiment fails if changed canonical bound receipt record bytes can retain the same identifier under the tested identity function.
+
+The experiment fails if changed bytes verify against the prior content identifier.
+
+The experiment fails if malformed identifiers or unsupported input types are silently accepted.
+
+The experiment fails if outer content identity silently repairs or validates the inner receipt content binding.
+
+The experiment fails if outer content identity is treated as semantic validity, authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 013 tests only deterministic content identity for the canonical bound receipt record bytes established by Experiment 012. It does not establish inner content-binding validity, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Identical canonical bound receipt record bytes produce exactly the same deterministic SHA-256 content identifier.
+- A matching expected content identifier verifies against unchanged canonical bound receipt record bytes.
+- Changed canonical bound receipt record bytes produce a different content identifier and fail verification against the prior identifier.
+- A changed expected content identifier fails verification against unchanged canonical record bytes.
+- Uppercase hexadecimal representation of the same expected identifier verifies equivalently.
+- Malformed expected identifiers and unsupported input types fail closed.
+- The outer content identity covers the canonical bound record representation as a whole, including its represented receipt content identifier.
+- Changing the represented inner receipt content identifier changes the canonical bound record bytes and therefore changes the outer content identifier.
+- A bound record with an invalid inner content binding can still possess and verify a valid outer content identity.
+- Valid outer content identity does not repair or confer validity on the invalid inner content binding.
+- Outer content identity therefore establishes identity of the canonical bound record bytes only; it does not establish inner content-binding validity or semantic validity.
+- Targeted INV receipt chain: 115 passed.
+- Full repository suite: 3621 passed, 5 skipped.
+
+This establishes only deterministic content identity for the canonical bound receipt record bytes established by Experiment 012. It does not establish inner content-binding validity, semantic validity, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 014: Canonical Bound Receipt Record Verification
+
+### Question
+
+Can a later observer take canonical bound receipt record bytes plus an expected outer content identifier and independently establish outer content identity, canonical reconstruction, inner content binding, and receipt semantic validity in a bounded verification path without any layer silently repairing or conferring validity on another?
+
+### Required Behavior
+
+Given canonical bound receipt record bytes and an expected outer content identifier:
+
+1. Verify the expected outer content identifier against the exact supplied bound record bytes.
+2. Reject an outer content identity mismatch before treating the supplied bytes as the expected record.
+3. Decode the supplied bytes only through the canonical bound receipt record decoding path established by Experiment 012.
+4. Reject malformed, unsupported, or non-canonical bound record bytes.
+5. Verify the reconstructed BoundReceiptRecord through the inner content-binding verifier established before Experiment 012.
+6. Reject an invalid inner content binding even when the outer content identity is valid.
+7. Reconstruct the underlying transition decision receipt only through the existing bound receipt reconstruction path.
+8. Verify the reconstructed transition decision receipt through the existing semantic receipt verifier.
+9. Reject a semantically contradictory receipt even when outer identity, canonical record representation, and inner content binding are valid.
+10. Preserve the distinction between outer identity, canonicality, inner binding, and semantic validity.
+11. Do not repair mismatched identifiers, malformed representations, invalid bindings, or semantic contradictions.
+12. Established INV behavior must remain unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if an outer identity mismatch is accepted.
+
+The experiment fails if malformed, unsupported, or non-canonical bound record bytes are accepted.
+
+The experiment fails if a valid outer identity causes an invalid inner content binding to be accepted or repaired.
+
+The experiment fails if valid outer identity, canonicality, and inner binding cause a semantically contradictory receipt to be accepted or repaired.
+
+The experiment fails if verification bypasses the established canonical decoding, inner binding, reconstruction, or semantic verification paths.
+
+The experiment fails if one verification layer is treated as proof of another.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 014 tests only bounded composition of the already established outer content identity, canonical bound record decoding, inner content binding, receipt reconstruction, and receipt semantic verification layers. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Exact supplied bound record bytes are checked against the expected outer content identifier before reconstruction.
+- An outer content identity mismatch is rejected.
+- Malformed outer content identity input fails closed.
+- Supplied record bytes are decoded only through the established canonical bound receipt record decoding path.
+- Malformed and non-canonical bound record bytes are rejected even when their exact bytes possess a valid outer content identity.
+- A valid outer content identity does not confer validity on an invalid inner content binding.
+- An invalid inner content binding is rejected without repair.
+- Underlying receipt reconstruction proceeds only through the established bound receipt reconstruction path.
+- A semantically contradictory transition receipt is rejected even when its canonical receipt bytes, inner content binding, canonical bound record bytes, and outer content identity are all valid.
+- Outer identity, canonicality, inner binding, and semantic validity therefore remain independently checkable properties.
+- No verification layer repairs or substitutes for another.
+- Targeted INV receipt verification chain: 125 passed.
+- Full repository suite: 3631 passed, 5 skipped.
+
+This establishes only bounded composition of the already established outer content identity, canonical bound record decoding, inner content binding, receipt reconstruction, and receipt semantic verification layers. It does not establish authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+## Experiment 015: Bound Verification Receipt
+
+### Question
+
+Can INV preserve the evidence and bounded outcome of a successful canonical bound receipt record verification as a deterministic verification receipt, without allowing that receipt to substitute for re-verification of the underlying record?
+
+### Required Behavior
+
+Given canonical bound receipt record bytes and an expected outer content identifier:
+
+1. Verification must proceed through the complete verification path established by Experiment 014.
+2. A verification receipt may be produced only when the complete Experiment 014 verification path succeeds.
+3. The receipt must preserve the expected outer content identifier used for verification.
+4. The receipt must preserve the deterministic outer content identifier derived from the exact supplied canonical bound record bytes.
+5. The receipt must preserve bounded outcomes for outer identity, canonical record decoding, inner content binding, receipt reconstruction, and semantic verification.
+6. The receipt must preserve enough information to identify the verified transition decision receipt without claiming that the historical verification remains sufficient for future use.
+7. Equivalent successful verification inputs must produce equivalent deterministic receipt content.
+8. The receipt must carry no acceptance, truth, write, or execution authority.
+9. Verification receipt validation must reject malformed, contradictory, tampered, or authority-bearing receipts.
+10. Verification receipt validation must recompute relationships represented inside the receipt rather than trusting stored verdict fields.
+11. A valid verification receipt establishes only that its represented verification evidence is internally consistent under the receipt verifier.
+12. A valid verification receipt must not substitute for re-verification of the underlying canonical bound record when that record is later used.
+13. Established INV behavior must remain unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if a verification receipt can be produced when Experiment 014 verification fails.
+
+The experiment fails if equivalent successful verification inputs produce contradictory receipt content.
+
+The experiment fails if tampering with represented identifiers, check outcomes, verified receipt identity, or authority fields is accepted.
+
+The experiment fails if stored verification verdicts are trusted without recomputing their represented relationships.
+
+The experiment fails if verification receipt validity is treated as current semantic validity of an underlying record that has not been re-verified.
+
+The experiment fails if the receipt grants acceptance, truth, write, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 015 tests only deterministic preservation and bounded verification of evidence produced by the successful Experiment 014 verification path. It does not establish permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Successful verification proceeds through the complete Experiment 014 verification path before a verification receipt is produced.
+- The verification receipt preserves the expected outer content identifier, observed outer content identifier, verified transition receipt content identifier, and bounded outcomes for each established verification layer.
+- Equivalent successful verification inputs produce equivalent receipt content, including normalization of equivalent uppercase and lowercase outer content identifiers.
+- Failed Experiment 014 verification produces no verification receipt.
+- Invalid inner content binding produces no verification receipt.
+- Tampered represented check outcomes or outer identity relationships are rejected.
+- Malformed represented verified receipt identifiers fail closed.
+- Verification receipts carrying acceptance, truth, write, or execution authority are rejected.
+- Verification receipt validation does not require or silently re-verify an underlying record.
+- A valid historical verification receipt remains only internally consistent evidence of the represented verification event; it does not establish current validity of separately changed underlying bytes.
+- Targeted INV receipt and verification chain: 146 passed.
+- Full repository suite: 3652 passed, 5 skipped.
+
+This establishes only deterministic preservation and bounded internal verification of evidence produced by a successful Experiment 014 verification event. It does not substitute for re-verification of an underlying record and does not establish permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, durable storage, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Correction Record
+
+A later adversarial check exposed an uncovered contradiction in the initial Experiment 015 implementation.
+
+The verification receipt preserved `verified_receipt_content_id`, but its verifier checked only that this identifier was syntactically valid. Because the receipt did not preserve the canonical verified receipt bytes from which that identifier had been derived, a well-formed but false 64-hex verified receipt content identifier was accepted.
+
+The contradiction was demonstrated before repair:
+
+- A well-formed false `verified_receipt_content_id` was accepted by `verify_bound_verification_receipt`.
+- The verification receipt did not contain `verified_receipt_bytes`, so the claimed verified receipt identity could not be recomputed from preserved evidence.
+- Targeted result before correction: 2 failed, 21 passed.
+
+The correction preserves the canonical verified transition receipt bytes in `verified_receipt_bytes` and recomputes their relationship to `verified_receipt_content_id` using the established INV receipt content-identity verifier.
+
+After correction:
+
+- A well-formed false verified receipt content identifier is rejected.
+- Tampered verified receipt bytes are rejected.
+- The represented verified receipt identity is recomputed from preserved bytes rather than trusted as a stored verdict.
+- Verification of this historical evidence still does not substitute for re-verification of the underlying canonical bound receipt record.
+- Corrected targeted Experiment 015 suite: 23 passed.
+- Corrected INV receipt and verification chain: 148 passed.
+- Corrected full repository suite: 3654 passed, 5 skipped.
+
+The original Experiment 015 result is retained above as historical evidence of the earlier tested state. This correction records the later falsification and repair rather than rewriting that history.
+
+## Experiment 016: Verification Receipt Reconstruction
+
+### Question
+
+Can an INV bound verification receipt be converted into bounded plain data and reconstructed by a later observer without access to the original in-memory object, while preserving all evidence necessary for its internal verification and without re-verifying the underlying bound record?
+
+### Required Behavior
+
+Given an INV `BoundVerificationReceipt`:
+
+1. The receipt can be converted into a bounded plain-data representation containing only explicitly supported fields and value types.
+2. The representation preserves the expected outer content identifier.
+3. The representation preserves the observed outer content identifier.
+4. The representation preserves the canonical verified transition receipt bytes in a deterministic plain-data form.
+5. The representation preserves the verified transition receipt content identifier.
+6. The representation preserves each bounded verification outcome.
+7. The representation preserves the no-acceptance, no-truth, no-write-authority, and no-execution-authority fields.
+8. A later observer can reconstruct a new `BoundVerificationReceipt` from the plain representation without access to the original in-memory object.
+9. Reconstruction preserves represented evidence exactly and does not silently repair contradictory identifiers, evidence bytes, verification outcomes, or authority fields.
+10. A reconstructed valid receipt continues to pass `verify_bound_verification_receipt`.
+11. A structurally valid but internally contradictory receipt may reconstruct, but must still fail the established verification-receipt verifier.
+12. Missing, extra, malformed, or unsupported representation fields or value types fail closed.
+13. Reconstruction does not re-run Experiment 014 and does not establish current validity of the underlying canonical bound receipt record.
+14. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction requires access to the original in-memory verification receipt.
+
+The experiment fails if reconstruction silently repairs represented evidence or contradictions.
+
+The experiment fails if a valid verification receipt changes meaning across representation and reconstruction.
+
+The experiment fails if malformed, missing, extra, or unsupported representation data is accepted.
+
+The experiment fails if reconstruction itself is treated as verification.
+
+The experiment fails if reconstruction substitutes for re-verification of the underlying canonical bound receipt record.
+
+The experiment fails if reconstructed verification evidence gains acceptance, truth, write, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 016 tests only bounded plain-data representation and reconstruction of Experiment 015 verification receipts. It does not establish canonical encoding of the verification receipt representation, content identity for that representation, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 016 targeted suite: 38 passed.
+- INV receipt and verification chain through Experiment 016: 186 passed.
+- Full repository suite: 3692 passed, 5 skipped.
+
+This establishes only bounded plain-data representation and reconstruction of Experiment 015 verification receipts. Reconstruction preserves represented verification evidence, including structurally valid contradictions, without silently repairing or independently validating that evidence. Verification remains a separate operation, and reconstruction does not substitute for re-verification of the underlying canonical bound receipt record.
+
+## Experiment 017: Canonical Verification Receipt Encoding
+
+### Question
+
+Can equivalent INV bound verification receipt representations produce exactly the same canonical byte representation, and can those bytes reconstruct the represented verification receipt without silently repairing or verifying its evidence?
+
+### Required Behavior
+
+Given a bounded Experiment 016 verification receipt representation:
+
+1. Equivalent supported representations produce exactly the same canonical bytes independent of mapping insertion order.
+2. Canonical encoding uses a deterministic bounded format.
+3. Canonical bytes decode only to the exact supported Experiment 016 representation.
+4. Decoded canonical bytes can reconstruct a new `BoundVerificationReceipt`.
+5. Encoding and decoding preserve the represented expected outer content identifier.
+6. Encoding and decoding preserve the represented observed outer content identifier.
+7. Encoding and decoding preserve the represented canonical verified receipt bytes.
+8. Encoding and decoding preserve the represented verified receipt content identifier.
+9. Encoding and decoding preserve all represented verification outcomes and authority fields.
+10. Structurally valid contradictions remain represented exactly and are not silently repaired.
+11. Canonical decoding rejects malformed bytes, unsupported data, extra or missing fields, and noncanonical equivalent encodings.
+12. Decode followed by encode reproduces exactly the original canonical bytes.
+13. Canonical encoding or decoding does not itself verify the represented verification receipt.
+14. A reconstructed contradictory verification receipt continues to fail the established verification-receipt verifier.
+15. Canonical encoding does not re-run Experiment 014 or establish current validity of the underlying canonical bound receipt record.
+16. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent supported representations can produce different canonical bytes.
+
+The experiment fails if mapping insertion order changes canonical output.
+
+The experiment fails if noncanonical equivalent bytes are accepted as canonical.
+
+The experiment fails if encoding or decoding silently repairs represented evidence or contradictions.
+
+The experiment fails if malformed, missing, extra, or unsupported representation data is accepted.
+
+The experiment fails if canonicalization itself is treated as verification.
+
+The experiment fails if a contradictory verification receipt becomes valid merely because it was canonically encoded or decoded.
+
+The experiment fails if canonicalization substitutes for re-verification of the underlying canonical bound receipt record.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 017 tests only deterministic canonical byte encoding and decoding of Experiment 016 verification receipt representations. It does not establish a content identifier for those canonical bytes, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 017 targeted suite: 22 passed.
+- INV receipt and verification chain through Experiment 017: 208 passed.
+- Full repository suite: 3714 passed, 5 skipped.
+
+This establishes only deterministic canonical byte encoding and decoding of Experiment 016 verification receipt representations. Equivalent supported representations produce the same canonical bytes, noncanonical equivalent encodings are rejected, and represented contradictions survive canonicalization without repair. Canonicalization remains separate from verification and does not establish current validity of the underlying canonical bound receipt record.
+
+## Experiment 018: Canonical Verification Receipt Content Identity
+
+### Question
+
+Can INV derive a deterministic content identifier from canonical bound verification receipt bytes and use that identifier to detect any change to the canonical verification receipt representation without treating that identifier as verification validity, semantic validity, authenticity, or authority?
+
+### Required Behavior
+
+Given canonical Experiment 017 bound verification receipt bytes:
+
+1. Identical canonical verification receipt bytes produce exactly the same content identifier.
+2. The identifier is derived only from the exact canonical bytes supplied.
+3. A matching expected identifier verifies against unchanged canonical bytes.
+4. Any change to the canonical verification receipt bytes produces a different derived identifier.
+5. Changed canonical bytes fail verification against the prior identifier.
+6. A changed expected identifier fails verification against unchanged canonical bytes.
+7. Equivalent hexadecimal identifier case may be normalized for comparison without changing identity semantics.
+8. Malformed expected identifiers fail closed.
+9. Unsupported encoded input or identifier types fail closed.
+10. Content identity does not establish that the represented verification receipt is internally valid.
+11. Content identity does not repair contradictory evidence represented inside the verification receipt.
+12. Content identity does not establish current validity of the underlying canonical bound receipt record.
+13. Content identity does not establish authenticity, authorization, provenance, origin, trusted publication, truth, write authority, or execution authority.
+14. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if identical canonical verification receipt bytes can produce different identifiers.
+
+The experiment fails if changed canonical verification receipt bytes can retain the same derived identifier under the selected identity function.
+
+The experiment fails if changed bytes verify against the prior identifier.
+
+The experiment fails if a changed identifier verifies against unchanged bytes.
+
+The experiment fails if malformed identifiers or unsupported types are accepted.
+
+The experiment fails if outer verification receipt content identity is treated as proof that represented inner evidence is valid.
+
+The experiment fails if outer verification receipt content identity repairs or overrides a represented contradiction.
+
+The experiment fails if content identity substitutes for re-verification of the represented verification receipt or its underlying canonical bound receipt record.
+
+The experiment fails if content identity confers truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 018 tests only deterministic content identity for canonical Experiment 017 bound verification receipt bytes and comparison against an expected identifier. It does not establish a content-bound verification receipt record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 018 targeted suite: 22 passed.
+- INV receipt and verification chain through Experiment 018: 230 passed.
+- Full repository suite: 3736 passed, 5 skipped.
+
+This establishes only deterministic SHA-256 content identity for exact canonical Experiment 017 verification receipt bytes and comparison against an expected identifier. Matching outer content identity does not establish internal verification receipt validity, repair represented contradictions, establish current validity of the underlying canonical bound receipt record, or confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+## Experiment 019: Content-Bound Verification Receipt Record
+
+### Question
+
+Can INV preserve canonical verification receipt bytes together with their derived content identifier as one bounded record, then reject the binding when either component no longer agrees with the other, without treating successful binding as verification of the represented evidence?
+
+### Required Behavior
+
+Given canonical Experiment 017 verification receipt bytes and Experiment 018 content identity:
+
+1. INV can construct one bounded record containing the exact verification receipt bytes and their derived content identifier.
+2. Binding derives the identifier from the exact supplied bytes rather than accepting an independently supplied identifier.
+3. An unchanged bound record passes its content-binding check.
+4. Changed verification receipt bytes with the original identifier fail the binding check.
+5. Changed identifier with the original verification receipt bytes fails the binding check.
+6. Unsupported record or field types fail closed.
+7. Successful content binding does not establish that the represented verification receipt is internally valid.
+8. Successful content binding does not repair contradictory evidence represented inside the verification receipt.
+9. Successful content binding does not establish current validity of the underlying canonical bound receipt record.
+10. Successful content binding does not confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+11. Binding verification does not substitute for Experiment 015 verification of the represented verification receipt.
+12. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if a bound record can be created whose derived identifier does not correspond to its exact verification receipt bytes.
+
+The experiment fails if changed verification receipt bytes continue to pass against the original identifier.
+
+The experiment fails if a changed identifier continues to pass against the original verification receipt bytes.
+
+The experiment fails if unsupported record or field types are accepted.
+
+The experiment fails if successful content binding is treated as proof that the represented verification receipt is internally valid.
+
+The experiment fails if binding repairs or overrides represented contradictory evidence.
+
+The experiment fails if binding substitutes for re-verification of the represented verification receipt or its underlying canonical bound receipt record.
+
+The experiment fails if binding confers truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 019 tests only a bounded in-memory record containing canonical Experiment 017 verification receipt bytes and their Experiment 018 derived content identifier, plus verification of that bytes-to-identifier relationship. It does not establish external representation of the bound record, canonical encoding of that record, an outer identity for that record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 019 targeted suite: 22 passed.
+- INV receipt and verification chain through Experiment 019: 252 passed.
+- Full repository suite: 3758 passed, 5 skipped.
+
+This establishes only a bounded in-memory record containing canonical Experiment 017 verification receipt bytes and their Experiment 018 derived content identifier, plus verification of that bytes-to-identifier relationship. Binding preserves exact bytes and derives identity from those bytes. Changing either bytes or identifier breaks the binding, while successful binding does not validate, repair, or authorize the represented verification evidence.
+## Experiment 020: Verification Receipt Record Reconstruction
+
+### Question
+
+Can an INV content-bound verification receipt record be converted into bounded plain data and reconstructed by a later observer without access to the original in-memory record, while preserving the exact verification receipt bytes and their bound content identifier without silently repairing or verifying the represented evidence?
+
+### Required Behavior
+
+Given an INV content-bound verification receipt record:
+
+1. The record can be converted into a bounded plain-data representation containing only explicitly supported fields and value types.
+2. The representation preserves the exact canonical verification receipt bytes.
+3. The representation preserves the derived verification receipt content identifier.
+4. A later observer can reconstruct a new content-bound verification receipt record from the plain representation without access to the original in-memory object.
+5. Reconstruction preserves the represented verification receipt bytes exactly.
+6. Reconstruction preserves the represented content identifier exactly.
+7. Reconstruction does not silently derive, replace, normalize, or repair a represented identifier.
+8. Reconstruction does not silently modify represented verification receipt bytes.
+9. A structurally valid but internally contradictory record may reconstruct, but must fail the established record content-binding verifier.
+10. Missing, extra, malformed, or unsupported representation fields or value types fail closed.
+11. Reconstruction does not verify the represented verification receipt.
+12. Reconstruction does not re-run Experiment 015 or establish current validity of the underlying canonical bound receipt record.
+13. Reconstruction does not confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+14. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if reconstruction requires access to the original in-memory record.
+
+The experiment fails if reconstruction silently repairs represented verification receipt bytes or content identifiers.
+
+The experiment fails if a represented contradictory record becomes valid merely because it was reconstructed.
+
+The experiment fails if missing, extra, malformed, or unsupported representation data is accepted.
+
+The experiment fails if reconstruction itself is treated as verification.
+
+The experiment fails if reconstruction substitutes for verification of the represented verification receipt or re-verification of the underlying canonical bound receipt record.
+
+The experiment fails if reconstructed evidence gains truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 020 tests only bounded plain-data representation and reconstruction of the Experiment 019 content-bound verification receipt record. It does not establish canonical encoding of that representation, content identity for the record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+UNIMPLEMENTED
