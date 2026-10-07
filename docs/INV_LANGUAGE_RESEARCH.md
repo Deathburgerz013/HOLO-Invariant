@@ -1067,3 +1067,66 @@ Observed result:
 - Full repository suite: 3714 passed, 5 skipped.
 
 This establishes only deterministic canonical byte encoding and decoding of Experiment 016 verification receipt representations. Equivalent supported representations produce the same canonical bytes, noncanonical equivalent encodings are rejected, and represented contradictions survive canonicalization without repair. Canonicalization remains separate from verification and does not establish current validity of the underlying canonical bound receipt record.
+
+## Experiment 018: Canonical Verification Receipt Content Identity
+
+### Question
+
+Can INV derive a deterministic content identifier from canonical bound verification receipt bytes and use that identifier to detect any change to the canonical verification receipt representation without treating that identifier as verification validity, semantic validity, authenticity, or authority?
+
+### Required Behavior
+
+Given canonical Experiment 017 bound verification receipt bytes:
+
+1. Identical canonical verification receipt bytes produce exactly the same content identifier.
+2. The identifier is derived only from the exact canonical bytes supplied.
+3. A matching expected identifier verifies against unchanged canonical bytes.
+4. Any change to the canonical verification receipt bytes produces a different derived identifier.
+5. Changed canonical bytes fail verification against the prior identifier.
+6. A changed expected identifier fails verification against unchanged canonical bytes.
+7. Equivalent hexadecimal identifier case may be normalized for comparison without changing identity semantics.
+8. Malformed expected identifiers fail closed.
+9. Unsupported encoded input or identifier types fail closed.
+10. Content identity does not establish that the represented verification receipt is internally valid.
+11. Content identity does not repair contradictory evidence represented inside the verification receipt.
+12. Content identity does not establish current validity of the underlying canonical bound receipt record.
+13. Content identity does not establish authenticity, authorization, provenance, origin, trusted publication, truth, write authority, or execution authority.
+14. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if identical canonical verification receipt bytes can produce different identifiers.
+
+The experiment fails if changed canonical verification receipt bytes can retain the same derived identifier under the selected identity function.
+
+The experiment fails if changed bytes verify against the prior identifier.
+
+The experiment fails if a changed identifier verifies against unchanged bytes.
+
+The experiment fails if malformed identifiers or unsupported types are accepted.
+
+The experiment fails if outer verification receipt content identity is treated as proof that represented inner evidence is valid.
+
+The experiment fails if outer verification receipt content identity repairs or overrides a represented contradiction.
+
+The experiment fails if content identity substitutes for re-verification of the represented verification receipt or its underlying canonical bound receipt record.
+
+The experiment fails if content identity confers truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 018 tests only deterministic content identity for canonical Experiment 017 bound verification receipt bytes and comparison against an expected identifier. It does not establish a content-bound verification receipt record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 018 targeted suite: 22 passed.
+- INV receipt and verification chain through Experiment 018: 230 passed.
+- Full repository suite: 3736 passed, 5 skipped.
+
+This establishes only deterministic SHA-256 content identity for exact canonical Experiment 017 verification receipt bytes and comparison against an expected identifier. Matching outer content identity does not establish internal verification receipt validity, repair represented contradictions, establish current validity of the underlying canonical bound receipt record, or confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
