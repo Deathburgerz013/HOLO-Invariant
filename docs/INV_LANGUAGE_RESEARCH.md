@@ -1365,3 +1365,93 @@ The full repository suite detected no regression in established behavior.
 ### Status
 
 SUPPORTED
+
+## Experiment 022: Canonical Verification Receipt Record Content Identity
+
+### Question
+
+Can a later observer independently derive and verify a deterministic content
+identifier from the exact canonical bytes of an Experiment 021 verification
+receipt record, without treating that identity as proof of its represented
+content binding or verification evidence?
+
+### Required Behavior
+
+1. Identical canonical record bytes produce identical content identifiers.
+2. The identifier is a lowercase 64-character SHA-256 hexadecimal digest.
+3. Identity is derived from the exact supplied bytes.
+4. Different supported canonical record bytes produce their independently derived identifiers.
+5. An independently supplied expected identifier can be checked against the derived identifier.
+6. An incorrect but well-formed expected identifier is rejected as a mismatch.
+7. Malformed identifiers and unsupported byte inputs fail closed.
+8. Noncanonical or unsupported record bytes fail closed.
+9. A record with an incorrect represented inner content identifier can still have a valid outer content identity.
+10. Outer identity verification does not repair or replace the represented inner identifier.
+11. Outer identity verification does not perform inner content-binding verification.
+12. Outer identity verification does not perform semantic verification of embedded evidence.
+13. Canonical contradictory evidence remains contradictory even when its outer identity is valid.
+14. Outer identity does not establish truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+15. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if identical canonical record bytes produce different
+identifiers or if identifier derivation depends on the original in-memory record.
+
+The experiment fails if identity is computed from reconstructed, repaired, or
+normalized evidence instead of the exact supplied canonical bytes.
+
+The experiment fails if malformed or noncanonical input is accepted.
+
+The experiment fails if an incorrect expected identifier verifies successfully.
+
+The experiment fails if valid outer identity silently validates or repairs an
+incorrect represented inner content identifier.
+
+The experiment fails if valid outer identity converts contradictory embedded
+verification evidence into verified evidence.
+
+The experiment fails if content identity is treated as semantic verification,
+authenticity, authorization, provenance, origin, or trusted publication.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 022 establishes only deterministic SHA-256 content identity for
+canonical Experiment 021 verification receipt record bytes and independent
+comparison against a supplied expected identifier.
+
+It does not establish inner binding validity, semantic truth, durable storage,
+current validity without re-verification, signatures, provenance, origin,
+authorization, trusted publication, write authority, execution authority,
+schema evolution, multi-step replay, distributed verification, or a complete
+programming language.
+
+### Result
+
+Initial test collection failed because the verification receipt record
+identity module did not exist.
+
+A bounded implementation was added to derive SHA-256 identity from exact
+canonical Experiment 021 record bytes.
+
+The implementation rejects unsupported or noncanonical representations and
+malformed expected identifiers.
+
+Changing canonical record content invalidates the previous outer identity.
+
+Valid outer identity does not validate an incorrect represented inner content
+identifier or contradictory embedded verification evidence.
+
+No semantic verification, correction, or authority is granted by identity.
+
+Targeted result: 21 passed.
+
+Full repository result: 3841 passed, 5 skipped.
+
+No regression detected in the established test suite.
+
+### Status
+
+SUPPORTED
