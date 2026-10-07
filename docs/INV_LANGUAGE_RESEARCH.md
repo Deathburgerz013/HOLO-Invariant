@@ -1265,3 +1265,103 @@ machinery already existed when Experiment 020 was tested.
 ### Status
 
 SUPPORTED
+
+## Experiment 021: Canonical Verification Receipt Record Encoding
+
+### Question
+
+Can an Experiment 020 bounded verification receipt record representation be
+encoded into deterministic canonical bytes and reconstructed by a later observer
+without changing, repairing, or verifying the represented verification receipt
+bytes or their represented content identifier?
+
+### Required Behavior
+
+Given an Experiment 020 content-bound verification receipt record:
+
+1. Equivalent supported records produce exactly identical canonical bytes.
+2. Canonical encoding uses a deterministic bounded format.
+3. Mapping insertion order does not change the canonical byte representation.
+4. Canonical bytes decode only to the exact supported Experiment 020 plain-data representation.
+5. Decoded canonical bytes can reconstruct a new content-bound verification receipt record without access to the original in-memory record.
+6. Decode followed by encode reproduces exactly the original canonical bytes.
+7. Noncanonical but semantically equivalent encodings fail closed.
+8. Missing, extra, malformed, or unsupported representation data fails closed.
+9. Canonical encoding and decoding preserve represented verification receipt bytes exactly.
+10. Canonical encoding and decoding preserve the represented content identifier exactly.
+11. A represented content-binding mismatch remains a mismatch after canonical encoding, decoding, and reconstruction.
+12. Canonical encoding does not silently derive, replace, normalize, or repair a represented content identifier.
+13. Canonical encoding does not verify the represented verification receipt.
+14. A canonical record containing contradictory verification evidence may reconstruct while the established verification-receipt verifier continues to reject that evidence.
+15. Canonical encoding or decoding does not confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+16. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if equivalent supported records produce different canonical bytes.
+
+The experiment fails if mapping insertion order changes canonical bytes.
+
+The experiment fails if noncanonical, malformed, missing, extra, or unsupported representation data is accepted.
+
+The experiment fails if canonical decoding requires access to the original in-memory record.
+
+The experiment fails if encoding or decoding silently repairs represented verification receipt bytes or content identifiers.
+
+The experiment fails if a represented content-binding contradiction becomes valid merely because it was canonically encoded or decoded.
+
+The experiment fails if canonical encoding or decoding substitutes for verification of the represented verification receipt.
+
+The experiment fails if canonical encoding or decoding confers truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 021 tests only deterministic canonical encoding and decoding of the
+Experiment 020 content-bound verification receipt record representation. It does
+not establish a content identity for the canonical verification receipt record
+itself, durable storage, permanent truth, current validity without
+re-verification, authenticity, authorization, provenance, origin, trusted
+publication, signatures, schema evolution, multi-step replay, distributed
+verification, or a complete programming language.
+
+### Result
+
+Experiment 021 is supported by the existing canonical verification receipt
+record encoding implementation.
+
+Equivalent supported records produced identical deterministic canonical bytes,
+and mapping insertion order did not change the canonical representation.
+
+Canonical decoding reconstructed through the established Experiment 020 bounded
+representation path without access to the original in-memory record. Decode
+followed by encode reproduced the original canonical bytes exactly.
+
+Noncanonical, malformed, missing, extra, and unsupported representations failed
+closed.
+
+Canonical encoding and decoding preserved represented content-binding
+contradictions rather than repairing them. A record containing a mismatched
+content identifier reconstructed with that mismatch intact and continued to fail
+the established record content-binding verifier.
+
+Canonical contradictory verification evidence also survived record encoding,
+decoding, and reconstruction without gaining verification validity. Canonical
+record encoding therefore remained distinct from both record content-binding
+verification and verification of the represented verification receipt.
+
+No production implementation change was required. The required canonical
+encoding machinery already existed when Experiment 021 was tested.
+
+Initial targeted result: 23 passed.
+
+Experiment 020-021 reconstruction and encoding chain: 62 passed.
+
+Full repository result: 3820 passed, 5 skipped.
+
+The full repository suite detected no regression in established behavior.
+
+### Status
+
+SUPPORTED
