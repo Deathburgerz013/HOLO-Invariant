@@ -1130,3 +1130,62 @@ Observed result:
 - Full repository suite: 3736 passed, 5 skipped.
 
 This establishes only deterministic SHA-256 content identity for exact canonical Experiment 017 verification receipt bytes and comparison against an expected identifier. Matching outer content identity does not establish internal verification receipt validity, repair represented contradictions, establish current validity of the underlying canonical bound receipt record, or confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+## Experiment 019: Content-Bound Verification Receipt Record
+
+### Question
+
+Can INV preserve canonical verification receipt bytes together with their derived content identifier as one bounded record, then reject the binding when either component no longer agrees with the other, without treating successful binding as verification of the represented evidence?
+
+### Required Behavior
+
+Given canonical Experiment 017 verification receipt bytes and Experiment 018 content identity:
+
+1. INV can construct one bounded record containing the exact verification receipt bytes and their derived content identifier.
+2. Binding derives the identifier from the exact supplied bytes rather than accepting an independently supplied identifier.
+3. An unchanged bound record passes its content-binding check.
+4. Changed verification receipt bytes with the original identifier fail the binding check.
+5. Changed identifier with the original verification receipt bytes fails the binding check.
+6. Unsupported record or field types fail closed.
+7. Successful content binding does not establish that the represented verification receipt is internally valid.
+8. Successful content binding does not repair contradictory evidence represented inside the verification receipt.
+9. Successful content binding does not establish current validity of the underlying canonical bound receipt record.
+10. Successful content binding does not confer truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+11. Binding verification does not substitute for Experiment 015 verification of the represented verification receipt.
+12. Established INV behavior remains unchanged.
+
+### Falsifiable Boundary
+
+The experiment fails if a bound record can be created whose derived identifier does not correspond to its exact verification receipt bytes.
+
+The experiment fails if changed verification receipt bytes continue to pass against the original identifier.
+
+The experiment fails if a changed identifier continues to pass against the original verification receipt bytes.
+
+The experiment fails if unsupported record or field types are accepted.
+
+The experiment fails if successful content binding is treated as proof that the represented verification receipt is internally valid.
+
+The experiment fails if binding repairs or overrides represented contradictory evidence.
+
+The experiment fails if binding substitutes for re-verification of the represented verification receipt or its underlying canonical bound receipt record.
+
+The experiment fails if binding confers truth, authenticity, authorization, provenance, origin, trusted publication, write authority, or execution authority.
+
+The experiment fails if established INV behavior changes.
+
+### Scope
+
+Experiment 019 tests only a bounded in-memory record containing canonical Experiment 017 verification receipt bytes and their Experiment 018 derived content identifier, plus verification of that bytes-to-identifier relationship. It does not establish external representation of the bound record, canonical encoding of that record, an outer identity for that record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
+
+### Status
+
+EXPERIMENTAL IMPLEMENTATION PASSED
+
+Observed result:
+
+- Experiment 019 targeted suite: 22 passed.
+- INV receipt and verification chain through Experiment 019: 252 passed.
+- Full repository suite: 3758 passed, 5 skipped.
+
+This establishes only a bounded in-memory record containing canonical Experiment 017 verification receipt bytes and their Experiment 018 derived content identifier, plus verification of that bytes-to-identifier relationship. Binding preserves exact bytes and derives identity from those bytes. Changing either bytes or identifier breaks the binding, while successful binding does not validate, repair, or authorize the represented verification evidence.
