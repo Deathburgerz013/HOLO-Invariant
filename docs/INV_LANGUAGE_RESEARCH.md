@@ -1236,6 +1236,32 @@ The experiment fails if established INV behavior changes.
 
 Experiment 020 tests only bounded plain-data representation and reconstruction of the Experiment 019 content-bound verification receipt record. It does not establish canonical encoding of that representation, content identity for the record, durable storage, permanent truth, current validity without re-verification, authenticity, authorization, provenance, origin, trusted publication, signatures, schema evolution, multi-step replay, distributed verification, or a complete programming language.
 
+### Result
+
+Experiment 020 is supported by the existing bounded verification receipt record
+representation and reconstruction implementation.
+
+Targeted testing demonstrated reconstruction from bounded plain data without the
+original in-memory record while preserving the represented canonical verification
+receipt bytes and content identifier exactly.
+
+Reconstruction did not silently repair contradictory evidence. Canonical
+contradictory verification receipt bytes reconstructed with the previously
+represented record content identifier, and the established content-binding
+verifier rejected the resulting mismatch.
+
+Malformed, missing, extra, and unsupported representation data failed closed.
+Reconstruction remained distinct from verification.
+
+Targeted result: 39 passed.
+
+Full repository result: 3820 passed, 5 skipped.
+
+The full repository suite detected no regression in established behavior.
+
+No production implementation change was required. The required reconstruction
+machinery already existed when Experiment 020 was tested.
+
 ### Status
 
-UNIMPLEMENTED
+SUPPORTED
