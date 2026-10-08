@@ -90,6 +90,13 @@ def run_contrast():
             current_head_idx=current_idx,
         )
 
+        if (
+            head_check.get("truth_claimed") is not False
+            or head_check.get("accepted") is not False
+            or head_check.get("write_authority") != "NONE"
+        ):
+            raise ValueError("head evaluator violated denial contract")
+
         executed_checks["B"]["current_gate"] += 1
         try:
             gate = require_current_continuity(head_check=head_check)
@@ -136,6 +143,15 @@ def run_contrast():
         "decision_time_ns": {
             arm: {"median": median(values), "max": max(values)}
             for arm, values in timings.items()
+        },
+        "interpretation": {
+            "demonstrated": "precommitted symbolic head-currentness classification",
+            "arm_a_continues_by_construction": True,
+            "superseded_claim_detection_demonstrated": False,
+            "claim_lineage_consumed_by_evaluator": False,
+            "latency_scope": "single decision-timer reading per case",
+            "latency_comparison_supported": False,
+            "real_world_error_reduction_demonstrated": False,
         },
         "truth_claimed": False,
         "accepted": False,

@@ -96,3 +96,47 @@ def test_modified_fixture_is_rejected(tmp_path, monkeypatch):
         match="continuity fixture integrity mismatch",
     ):
         contrast.run_contrast()
+
+
+def test_evaluator_authority_violation_is_rejected(monkeypatch):
+    import pytest
+
+    original = contrast.evaluate_continuity_head_binding
+
+    for field, forbidden_value in (
+        ("truth_claimed", True),
+        ("accepted", True),
+        ("write_authority", "WRITE"),
+    ):
+        def violating_evaluator(*, _field=field, _value=forbidden_value, **kwargs):
+            result = dict(original(**kwargs))
+            result[_field] = _value
+            return result
+
+        with monkeypatch.context() as patcher:
+            patcher.setattr(
+                contrast,
+                "evaluate_continuity_head_binding",
+                violating_evaluator,
+            )
+
+            with pytest.raises(
+                ValueError,
+                match="head evaluator violated denial contract",
+            ):
+                contrast.run_contrast()
+
+
+def test_result_does_not_overstate_evidence():
+    result = run_contrast()
+    interpretation = result["interpretation"]
+
+    assert interpretation == {
+        "demonstrated": "precommitted symbolic head-currentness classification",
+        "arm_a_continues_by_construction": True,
+        "superseded_claim_detection_demonstrated": False,
+        "claim_lineage_consumed_by_evaluator": False,
+        "latency_scope": "single decision-timer reading per case",
+        "latency_comparison_supported": False,
+        "real_world_error_reduction_demonstrated": False,
+    }
