@@ -103,3 +103,28 @@ def test_matching_rebirth_head_allows_chain_append(monkeypatch):
     assert result["admission"]["code"] == "IDX_MATCH"
     assert result["rebirth_result"]["hash"] == "frozen-head"
     assert len(chain.entries) == 1
+def test_already_fused_preserves_rebirth_action(monkeypatch):
+    rebirth_result = {
+        "status": "ok",
+        "action": "already_fused",
+        "hash": "frozen-head",
+    }
+    monkeypatch.setattr(
+        idx_manager_module,
+        "run_rebirth",
+        lambda event: rebirth_result,
+    )
+
+    manager, chain = build_manager()
+
+    result = manager.apply_to_engine(
+        spine_version=1,
+        spine_active_hash="frozen-head",
+        slots=(("CORE", "original"),),
+    )
+
+    assert result["status"] == "ok"
+    assert result["fused"] is False
+    assert result["rebirth_result"]["action"] == "already_fused"
+    assert result["admission"]["code"] == "IDX_MATCH"
+    assert len(chain.entries) == 1
