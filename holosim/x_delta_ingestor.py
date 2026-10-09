@@ -31,6 +31,13 @@ except ImportError:
     from holosim.generalizer import get_generalizer
 
 
+from holosim.typed_operational_authorization import (
+    ACTION_X_DELTA_INGEST,
+    OperationalAuthorizationError,
+    validate_operational_authorization,
+)
+
+
 INGESTOR_TYPE = "x_delta_ingestor"
 INGESTOR_VERSION = "0.2"
 
@@ -296,8 +303,9 @@ class XDeltaIngestor:
         *,
         reviewer: str,
         approved: bool = False,
+        authorization: Mapping[str, Any] | None = None,
     ) -> Dict[str, Any]:
-        """Append only after explicit human approval."""
+        """Append only with explicit, target-bound external authorization."""
         if not approved:
             return {
                 "status": "review_pending",
@@ -307,22 +315,75 @@ class XDeltaIngestor:
                 "message": "Explicit approval is required before append.",
             }
 
-        verify_before = self.chain.load_and_verify()
-        payload = self.prepare_commit(
-            review_packet,
-            reviewer=reviewer,
-        )
+        payload = self.prepare_commit(review_packet, reviewer=reviewer)
 
-        append_result = self.chain.append(canonical_json(payload))
+        def blocked(reason: str) -> Dict[str, Any]:
+            return {
+                "status": "blocked",
+                "appended": False,
+                "thread_ref": payload["thread_ref"],
+                "review_hash": payload["review_hash"],
+                "write_authority": "NONE",
+                "reason": reason,
+            }
+
+        try:
+            if authorization is None:
+                raise OperationalAuthorizationError(
+                    "target-bound authorization is required"
+                )
+            validate_operational_authorization(
+                authorization,
+                expected_action=ACTION_X_DELTA_INGEST,
+                expected_target_sha256=payload["review_hash"],
+            )
+            if authorization["actor_id"] != reviewer.strip():
+                raise OperationalAuthorizationError(
+                    "reviewer does not match authorization actor"
+                )
+        except OperationalAuthorizationError as exc:
+            return blocked(str(exc))
+
+        payload["operational_authorization"] = dict(authorization)
+        authorization_id = authorization["authorization_id"]
+        authorization_hash = authorization["authorization_hash"]
+
+        def require_unconsumed(entries: List[Dict]) -> None:
+            decoded = self.chain._decode_entries(entries)
+            if len(decoded) != len(entries):
+                raise OperationalAuthorizationError(
+                    "decoded chain length mismatch"
+                )
+            for previous in decoded:
+                if not isinstance(previous, dict):
+                    continue
+                prior = previous.get("operational_authorization")
+                if not isinstance(prior, dict):
+                    continue
+                if (
+                    prior.get("authorization_id") == authorization_id
+                    or prior.get("authorization_hash") == authorization_hash
+                ):
+                    raise OperationalAuthorizationError(
+                        "authorization has already been consumed"
+                    )
+
+        try:
+            append_result = self.chain.append(
+                canonical_json(payload),
+                precondition=require_unconsumed,
+            )
+        except OperationalAuthorizationError as exc:
+            return blocked(str(exc))
+
         verify_after = self.chain.load_and_verify()
-
         return {
             "status": "committed",
             "appended": True,
             "thread_ref": payload["thread_ref"],
             "review_hash": payload["review_hash"],
             "payload_hash": stable_hash(payload),
-            "entries_before": len(verify_before),
+            "entries_before": len(verify_after) - 1,
             "entries_after": len(verify_after),
             "append": append_result,
         }
@@ -389,7 +450,12 @@ def main() -> None:
     commit_parser.add_argument(
         "--approved",
         action="store_true",
-        help="Explicitly authorize persistence",
+        help="Confirm operator approval",
+    )
+    commit_parser.add_argument(
+        "--authorization-file",
+        required=True,
+        help="JSON file containing target-bound operational authorization",
     )
 
     args = parser.parse_args()
@@ -411,10 +477,14 @@ def main() -> None:
         review_packet = json.loads(
             Path(args.review_file).read_text(encoding="utf-8")
         )
+        authorization = json.loads(
+            Path(args.authorization_file).read_text(encoding="utf-8")
+        )
         result = ingestor.commit_reviewed(
             review_packet,
             reviewer=args.reviewer,
             approved=args.approved,
+            authorization=authorization,
         )
 
     else:
