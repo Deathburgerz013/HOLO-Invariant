@@ -334,7 +334,13 @@ class HoloChain:
                 raise ValueError(f"Invalid correction target at idx {entry['idx']}")
             if target not in by_idx:
                 raise ValueError(f"Correction targets missing idx {target}")
-            if self._is_correction(decoded_by_idx[target]):
+            if (
+                self._is_correction(decoded_by_idx[target])
+                or (
+                    isinstance(decoded_by_idx[target], dict)
+                    and decoded_by_idx[target].get("type") == "service_append"
+                )
+            ):
                 raise ValueError("Corrections must target an original entry")
             if value.get("corrects_hash") != by_idx[target].get("hash"):
                 raise ValueError(f"Correction target hash mismatch at idx {entry['idx']}")
@@ -363,7 +369,14 @@ class HoloChain:
         if target_idx not in positions:
             raise ValueError(f"No entry with idx {target_idx} to correct")
         target = entries[positions[target_idx]]
-        if self._is_correction(decoded[positions[target_idx]]):
+        target_value = decoded[positions[target_idx]]
+        if (
+            self._is_correction(target_value)
+            or (
+                isinstance(target_value, dict)
+                and target_value.get("type") == "service_append"
+            )
+        ):
             raise ValueError("Corrections must target an original entry")
 
         payload = {
@@ -477,7 +490,14 @@ class HoloChain:
             ):
                 raise ValueError(f"Invalid revalidation target at idx {entry['idx']}")
             target_value = decoded[target - 1]
-            if self._is_correction(target_value) or self._is_revalidation(target_value):
+            if (
+                self._is_correction(target_value)
+                or self._is_revalidation(target_value)
+                or (
+                    isinstance(target_value, dict)
+                    and target_value.get("type") == "service_append"
+                )
+            ):
                 raise ValueError("Revalidations must target an original entry")
             if value.get("target_hash") != entries_by_idx[target].get("hash"):
                 raise ValueError(f"Revalidation target hash mismatch at idx {entry['idx']}")
@@ -550,7 +570,14 @@ class HoloChain:
         if target_idx not in entries_by_idx:
             raise ValueError(f"No entry with idx {target_idx} to revalidate")
         target_value = decoded[target_idx - 1]
-        if self._is_correction(target_value) or self._is_revalidation(target_value):
+        if (
+            self._is_correction(target_value)
+            or self._is_revalidation(target_value)
+            or (
+                isinstance(target_value, dict)
+                and target_value.get("type") == "service_append"
+            )
+        ):
             raise ValueError("Revalidations must target an original entry")
         effective_by_idx = {item["idx"]: item for item in self.get_effective_state()}
         subject = effective_by_idx[target_idx]
