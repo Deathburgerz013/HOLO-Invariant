@@ -40,6 +40,14 @@ def build_continuity_checkpoint(chain: HoloChain) -> Dict[str, Any]:
 
     claim_index = chain.get_claim_index()
 
+    # Reject a source change between the initial read and reconstruction.
+    final_entries = chain.load_and_verify()
+    if (
+        len(final_entries) != len(entries)
+        or final_entries[-1]["hash"] != entries[-1]["hash"]
+    ):
+        raise ValueError("Source chain changed during reconstruction")
+
     claims = []
     for claim in claim_index:
         item = {
