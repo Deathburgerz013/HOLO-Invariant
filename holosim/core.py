@@ -365,7 +365,7 @@ class HoloChain:
             raise ValueError("A correction requires a non-empty reason")
 
         entries = self.load_and_verify()
-        decoded = self.get_state()
+        decoded = self._decode_entries(entries)
         positions = {entry["idx"]: pos for pos, entry in enumerate(entries)}
         if target_idx not in positions:
             raise ValueError(f"No entry with idx {target_idx} to correct")
