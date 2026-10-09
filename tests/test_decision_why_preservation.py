@@ -1,4 +1,4 @@
-﻿from copy import deepcopy
+from copy import deepcopy
 
 from holosim.bounded_repository_compression_evaluator import (
     DISTINCTION_LOST,
