@@ -597,7 +597,26 @@ class HoloChain:
             "method": method.strip(),
             "evidence": evidence.strip(),
         }
-        return self.append(payload)
+
+        def require_current_subject(current_entries: List[Dict]) -> None:
+            verified, current_decoded, current_corrections = self._correction_view(
+                current_entries
+            )
+            current_effective = self._effective_state_from_correction_view(
+                verified, current_decoded, current_corrections
+            )
+            current_by_idx = {
+                item["idx"]: item for item in current_effective
+            }
+            current = current_by_idx.get(target_idx)
+            if (
+                current is None
+                or self._content_digest(current["content"]) != payload["subject_hash"]
+                or current.get("corrected_by") != payload["subject_correction_idx"]
+            ):
+                raise ValueError("Revalidation subject changed before append")
+
+        return self.append(payload, precondition=require_current_subject)
 
     def _revalidations_from_view(
         self,
