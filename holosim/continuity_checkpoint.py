@@ -189,3 +189,30 @@ def verify_continuity_checkpoint(checkpoint: Dict[str, Any]) -> Dict[str, Any]:
         "claim_count": len(claims),
         "checkpoint_hash": checkpoint["checkpoint_hash"],
     }
+
+def verify_continuity_checkpoint_against_chain(
+    checkpoint: Dict[str, Any],
+    chain: HoloChain,
+) -> Dict[str, Any]:
+    """
+    Verify a checkpoint against independently loaded source records.
+
+    This establishes source agreement, not semantic truth,
+    observer identity, or acceptance authority.
+    """
+    verify_continuity_checkpoint(checkpoint)
+
+    expected = build_continuity_checkpoint(chain)
+
+    if checkpoint != expected:
+        raise ValueError(
+            "Continuity checkpoint does not match verified source chain"
+        )
+
+    return {
+        "valid": True,
+        "source_verified": True,
+        "checkpoint_hash": expected["checkpoint_hash"],
+        "root_hash": expected["source"]["root_hash"],
+        "claim_count": len(expected["claims"]),
+    }
