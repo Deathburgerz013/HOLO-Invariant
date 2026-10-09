@@ -25,6 +25,17 @@ def _digest(value: Any, field: str) -> str:
     return value
 
 
+MAX_DECLARATION_BYTES = 65536
+
+
+def _declaration(value: Any) -> str:
+    if type(value) is not str or not value.strip():
+        raise ObserverRegistryError("invalid observer declaration")
+    if len(value.encode("utf-8")) > MAX_DECLARATION_BYTES:
+        raise ObserverRegistryError("declaration exceeds size limit")
+    return value
+
+
 def verify_records(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Verify observer-specific succession inside an already verified chain."""
     records: list[dict[str, Any]] = []
@@ -33,7 +44,9 @@ def verify_records(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
             record = json.loads(entry["content"])
         except (KeyError, TypeError, ValueError) as exc:
             raise ObserverRegistryError("registry contains invalid JSON") from exc
-        if type(record) is not dict or set(record) != {
+        if type(record) is not dict or entry["content"] != canonical_json(record):
+            raise ObserverRegistryError("registry contains noncanonical JSON")
+        if set(record) != {
             "type", "version", "sequence", "observer_id", "previous_record_hash",
             "source_checkpoint_hash", "declaration", "record_hash",
         }:
@@ -46,8 +59,7 @@ def verify_records(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 or record["previous_record_hash"] != previous):
             raise ObserverRegistryError("registry succession mismatch")
         _digest(record["source_checkpoint_hash"], "source_checkpoint_hash")
-        if type(record["declaration"]) is not str or not record["declaration"].strip():
-            raise ObserverRegistryError("invalid observer declaration")
+        _declaration(record["declaration"])
         body = {key: value for key, value in record.items() if key != "record_hash"}
         if record["record_hash"] != stable_hash(body):
             raise ObserverRegistryError("registry record hash mismatch")
@@ -73,8 +85,7 @@ class ObserverRegistry:
         """
         _digest(source_checkpoint_hash, "source_checkpoint_hash")
         _digest(expected_previous_record_hash, "expected_previous_record_hash")
-        if type(declaration) is not str or not declaration.strip():
-            raise ObserverRegistryError("declaration must be nonempty")
+        _declaration(declaration)
         records = self.read()
         current = GENESIS if not records else records[-1]["record_hash"]
         if current != expected_previous_record_hash:
