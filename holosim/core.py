@@ -567,7 +567,7 @@ class HoloChain:
         if not isinstance(method, str) or not method.strip():
             raise ValueError("method must be a non-empty string")
 
-        entries, decoded, _ = self._correction_view()
+        entries, decoded, corrections = self._correction_view()
         entries_by_idx = {entry["idx"]: entry for entry in entries}
         if target_idx not in entries_by_idx:
             raise ValueError(f"No entry with idx {target_idx} to revalidate")
@@ -581,7 +581,10 @@ class HoloChain:
             )
         ):
             raise ValueError("Revalidations must target an original entry")
-        effective_by_idx = {item["idx"]: item for item in self.get_effective_state()}
+        effective = self._effective_state_from_correction_view(
+            entries, decoded, corrections
+        )
+        effective_by_idx = {item["idx"]: item for item in effective}
         subject = effective_by_idx[target_idx]
         payload = {
             "_holo_record_type": "holo_revalidation",
