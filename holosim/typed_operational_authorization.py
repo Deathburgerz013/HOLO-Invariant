@@ -16,6 +16,7 @@ from .canonical import stable_hash
 AUTHORIZATION_TYPE = "holo_operational_authorization"
 VERSION = 1
 ACTION_SERVICE_APPEND = "SERVICE_APPEND"
+ACTION_X_DELTA_INGEST = "X_DELTA_INGEST"
 ACTION_BASELINE_PROMOTION = "BASELINE_PROMOTION"
 ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION = (
     "VERIFIED_CLAIM_CORRECTION_PROMOTION"
@@ -65,13 +66,14 @@ def build_operational_authorization(
         )
     if action not in {
         ACTION_SERVICE_APPEND,
+        ACTION_X_DELTA_INGEST,
         ACTION_BASELINE_PROMOTION,
         ACTION_VERIFIED_CLAIM_CORRECTION_PROMOTION,
         ACTION_ENVIRONMENT_EPISODE_REOPEN,
     }:
         raise OperationalAuthorizationError("action is not supported")
 
-    if action == ACTION_SERVICE_APPEND:
+    if action in {ACTION_SERVICE_APPEND, ACTION_X_DELTA_INGEST}:
         write_authority = "EXACT_TARGET_ONLY"
         promotion_authority = "NONE"
     else:
