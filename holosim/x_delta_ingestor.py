@@ -258,6 +258,14 @@ class XDeltaIngestor:
         if not reviewer.strip():
             raise ValueError("reviewer cannot be empty.")
 
+        hashable_packet = {
+            key: value
+            for key, value in review_packet.items()
+            if key not in {"archive_raw", "timestamp", "review_hash"}
+        }
+        if review_packet.get("review_hash") != stable_hash(hashable_packet):
+            raise ValueError("Review packet hash mismatch.")
+
         return {
             "type": "x_delta_ingest",
             "version": INGESTOR_VERSION,
