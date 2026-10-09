@@ -393,7 +393,30 @@ class HoloChain:
             json.dumps(payload, ensure_ascii=False)
         except (TypeError, ValueError) as exc:
             raise TypeError("Correction replacement must be JSON-serializable") from exc
-        return self.append(payload)
+        def require_valid_correction_history(current_entries: List[Dict]) -> None:
+            verified, decoded, _ = self._correction_view(current_entries)
+            positions = {
+                entry["idx"]: pos for pos, entry in enumerate(verified)
+            }
+            pos = positions.get(target_idx)
+            if pos is None:
+                raise ValueError("Correction target disappeared before append")
+
+            current_target = decoded[pos]
+            if (
+                verified[pos]["hash"] != payload["corrects_hash"]
+                or self._is_correction(current_target)
+                or self._is_revalidation(current_target)
+                or (
+                    isinstance(current_target, dict)
+                    and current_target.get("type") == "service_append"
+                )
+            ):
+                raise ValueError("Correction target changed before append")
+
+        return self.append(
+            payload, precondition=require_valid_correction_history
+        )
 
     @staticmethod
     def _effective_state_from_correction_view(
