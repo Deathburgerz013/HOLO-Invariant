@@ -618,6 +618,8 @@ class HoloChain:
         for entry, value in zip(entries, decoded):
             if self._is_correction(value) or self._is_revalidation(value):
                 continue
+            if isinstance(value, dict) and value.get("type") == "service_append":
+                continue
             current = effective_by_idx[entry["idx"]]
             checks = self._revalidations_from_view(
                 entries, effective, receipts, entry["idx"]
