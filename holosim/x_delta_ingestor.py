@@ -266,6 +266,13 @@ class XDeltaIngestor:
         if review_packet.get("review_hash") != stable_hash(hashable_packet):
             raise ValueError("Review packet hash mismatch.")
 
+        if "archive_raw" not in review_packet:
+            raise ValueError("Review packet source archive is missing.")
+        if review_packet.get("source_hash") != stable_hash(
+            review_packet["archive_raw"]
+        ):
+            raise ValueError("Review packet source hash mismatch.")
+
         return {
             "type": "x_delta_ingest",
             "version": INGESTOR_VERSION,
