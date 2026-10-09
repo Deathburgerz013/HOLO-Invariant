@@ -8,6 +8,7 @@ import sys
 import time
 import zlib
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -25,6 +26,14 @@ logger = logging.getLogger(__name__)
 
 WINDOWS_APPEND_LOCK_TIMEOUT_SECONDS = 30.0
 WINDOWS_APPEND_LOCK_RETRY_SECONDS = 0.01
+
+
+@dataclass(frozen=True, eq=False)
+class _VerifiedChainSnapshot:
+    """In-process carrier for entries read and verified by one chain."""
+
+    entries: tuple[Dict, ...]
+    issuer: object
 
 
 class HoloChain:
@@ -46,6 +55,7 @@ class HoloChain:
     ):
         self.file_path = Path(file_path)
         self.genesis_hash = genesis_hash
+        self._snapshot_issuer = object()
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
     def _compute_hash(self, prev_hash: str, content: str, timestamp: str, idx: int) -> str:
@@ -106,6 +116,13 @@ class HoloChain:
                 yield
             finally:
                 self._release_lock(lock_file)
+
+    def _load_verified_snapshot(self) -> _VerifiedChainSnapshot:
+        """Read one verified source snapshot bound to this chain instance."""
+        return _VerifiedChainSnapshot(
+            entries=tuple(self.load_and_verify()),
+            issuer=self._snapshot_issuer,
+        )
 
     def load_and_verify(self) -> List[Dict]:
         """Load and fully verify the entire chain. Fails fast on tampering."""
@@ -230,9 +247,9 @@ class HoloChain:
             print(f"{e['idx']:3} | {e['timestamp']} | [{ctype}] {snippet}")
         return entries
 
-    def get_state(self) -> List[Any]:
-        """Reconstruct current state (decompress if needed)."""
-        entries = self.load_and_verify()
+    @staticmethod
+    def _decode_entries(entries: List[Dict]) -> List[Any]:
+        """Decode an already-verified collection of chain entries."""
         state = []
         for e in entries:
             content = e["content"]
@@ -249,6 +266,10 @@ class HoloChain:
             except Exception:
                 state.append(content)
         return state
+
+    def get_state(self) -> List[Any]:
+        """Reconstruct current state (decompress if needed)."""
+        return self._decode_entries(self.load_and_verify())
 
     def get_density_stats(self) -> Dict:
         """Return compression/density statistics with accurate original size tracking."""
@@ -281,10 +302,13 @@ class HoloChain:
             and value.get("_holo_record_type") == "holo_correction"
         )
 
-    def _correction_view(self) -> tuple[List[Dict], List[Any], List[tuple[Dict, Dict]]]:
-        """Load correction records and fail closed on malformed references."""
-        entries = self.load_and_verify()
-        decoded = self.get_state()
+    def _correction_view(
+        self, entries: Optional[List[Dict]] = None
+    ) -> tuple[List[Dict], List[Any], List[tuple[Dict, Dict]]]:
+        """Validate correction records from one verified entry collection."""
+        if entries is None:
+            entries = self.load_and_verify()
+        decoded = self._decode_entries(entries)
         if len(entries) != len(decoded):
             raise ValueError("Decoded state length does not match raw chain length")
 
@@ -356,9 +380,13 @@ class HoloChain:
             raise TypeError("Correction replacement must be JSON-serializable") from exc
         return self.append(payload)
 
-    def get_effective_state(self) -> List[Dict]:
-        """Return the corrected view while leaving raw history untouched."""
-        entries, decoded, corrections = self._correction_view()
+    @staticmethod
+    def _effective_state_from_correction_view(
+        entries: List[Dict],
+        decoded: List[Any],
+        corrections: List[tuple[Dict, Dict]],
+    ) -> List[Dict]:
+        """Build the corrected view from one validated correction snapshot."""
         correction_ids = {entry["idx"] for entry, _ in corrections}
         effective = {
             entry["idx"]: {"idx": entry["idx"], "content": value}
@@ -377,6 +405,12 @@ class HoloChain:
                 "correction_history": history,
             }
         return [effective[idx] for idx in sorted(effective)]
+
+    def get_effective_state(self) -> List[Dict]:
+        """Return the corrected view while leaving raw history untouched."""
+        return self._effective_state_from_correction_view(
+            *self._correction_view()
+        )
 
     def get_corrections(self, target_idx: int) -> List[Dict]:
         """Return every validated correction for one original entry."""
@@ -416,11 +450,13 @@ class HoloChain:
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def _revalidation_view(
-        self,
+        self, entries: Optional[List[Dict]] = None
     ) -> tuple[List[Dict], List[Any], List[Dict], List[tuple[Dict, Dict]]]:
         """Validate receipts against the effective claim version they checked."""
-        entries, decoded, corrections = self._correction_view()
-        effective = self.get_effective_state()
+        entries, decoded, corrections = self._correction_view(entries)
+        effective = self._effective_state_from_correction_view(
+            entries, decoded, corrections
+        )
         effective_by_idx = {item["idx"]: item for item in effective}
         entries_by_idx = {entry["idx"]: entry for entry in entries}
         receipts: List[tuple[Dict, Dict]] = []
@@ -531,9 +567,14 @@ class HoloChain:
         }
         return self.append(payload)
 
-    def get_revalidations(self, target_idx: int) -> List[Dict]:
-        """Return all checks and whether each still matches the effective claim."""
-        entries, _, effective, receipts = self._revalidation_view()
+    def _revalidations_from_view(
+        self,
+        entries: List[Dict],
+        effective: List[Dict],
+        receipts: List[tuple[Dict, Dict]],
+        target_idx: int,
+    ) -> List[Dict]:
+        """Calculate revalidation history from an already validated view."""
         if not any(entry["idx"] == target_idx for entry in entries):
             raise ValueError(f"No entry with idx {target_idx}")
         effective_by_idx = {item["idx"]: item for item in effective}
@@ -560,16 +601,27 @@ class HoloChain:
             if value["target_idx"] == target_idx
         ]
 
-    def get_claim_index(self) -> List[Dict]:
-        """Index originals, corrections, checks, and current usable status."""
-        entries, decoded, effective, _ = self._revalidation_view()
+    def get_revalidations(self, target_idx: int) -> List[Dict]:
+        """Return all checks and whether each still matches the effective claim."""
+        entries, _, effective, receipts = self._revalidation_view()
+        return self._revalidations_from_view(
+            entries, effective, receipts, target_idx
+        )
+
+    def _get_claim_index_from_verified_entries(
+        self, entries: List[Dict]
+    ) -> List[Dict]:
+        """Index claims using one already verified source snapshot."""
+        entries, decoded, effective, receipts = self._revalidation_view(entries)
         effective_by_idx = {item["idx"]: item for item in effective}
         index = []
         for entry, value in zip(entries, decoded):
             if self._is_correction(value) or self._is_revalidation(value):
                 continue
             current = effective_by_idx[entry["idx"]]
-            checks = self.get_revalidations(entry["idx"])
+            checks = self._revalidations_from_view(
+                entries, effective, receipts, entry["idx"]
+            )
             current_checks = [check for check in checks if check["current"]]
             latest = current_checks[-1] if current_checks else None
             row = {
@@ -593,6 +645,69 @@ class HoloChain:
                 row["revalidated_by"] = latest["idx"]
             index.append(row)
         return index
+
+    def _admit_verified_entries(self, snapshot: _VerifiedChainSnapshot) -> Dict:
+        """Admit a source-bound snapshot for bounded reconstruction.
+
+        Source binding is an in-process contract, not cryptographic provenance.
+        Admission does not establish external truth or operational authority.
+        """
+        if not isinstance(snapshot, _VerifiedChainSnapshot):
+            raise TypeError("Admission requires a verified chain snapshot")
+
+        if snapshot.issuer is not self._snapshot_issuer:
+            raise ValueError("Snapshot was issued by a different chain")
+
+        entries = snapshot.entries
+
+        if not entries:
+            raise ValueError("Cannot admit an empty chain snapshot")
+
+        # Recheck the supplied entries without another file read.
+        # Admission must not trust a caller's claim of prior verification.
+        prev_hash = self.genesis_hash
+
+        for position, entry in enumerate(entries, 1):
+            if not isinstance(entry, dict):
+                raise ValueError("Snapshot entry must be a dictionary")
+
+            if type(entry.get("idx")) is not int or entry["idx"] != position:
+                raise ValueError("Snapshot index is not sequential")
+
+            if entry.get("prev_hash") != prev_hash:
+                raise ValueError("Snapshot predecessor hash mismatch")
+
+            expected_hash = self._compute_hash(
+                prev_hash,
+                entry["content"],
+                entry["timestamp"],
+                entry["idx"],
+            )
+
+            if entry.get("hash") != expected_hash:
+                raise ValueError("Snapshot content hash mismatch")
+
+            prev_hash = expected_hash
+
+        claims = self._get_claim_index_from_verified_entries(entries)
+
+        return {
+            "decision": "ADMITTED",
+            "source": {
+                "root_hash": entries[-1]["hash"],
+                "total_entries": len(entries),
+            },
+            "claims": claims,
+            "accepted_as_truth": False,
+            "write_authority": "NONE",
+            "execution_authority": "NONE",
+        }
+
+    def get_claim_index(self) -> List[Dict]:
+        """Index originals, corrections, checks, and current usable status."""
+        return self._get_claim_index_from_verified_entries(
+            self.load_and_verify()
+        )
 
     # === Relevance & Maintenance Methods ===
     def needs_review(self, days_old: int = 90, min_access: int = 1) -> List[Dict]:

@@ -34,11 +34,16 @@ def build_continuity_checkpoint(chain: HoloChain) -> Dict[str, Any]:
     - correction lineage,
     - current revalidation status.
     """
-    entries = chain.load_and_verify()
+    snapshot = chain._load_verified_snapshot()
+    entries = snapshot.entries
     if not entries:
         raise ValueError("Cannot build a continuity checkpoint from an empty chain")
 
-    claim_index = chain.get_claim_index()
+    admission = chain._admit_verified_entries(snapshot)
+    if admission["decision"] != "ADMITTED":
+        raise ValueError("Source chain was not admitted for reconstruction")
+
+    claim_index = admission["claims"]
 
     # Reject a source change between the initial read and reconstruction.
     final_entries = chain.load_and_verify()

@@ -10,15 +10,15 @@ def test_checkpoint_rejects_source_change_during_reconstruction(
     chain = HoloChain(tmp_path / "memory.jsonl")
     chain.append({"claim": "Original observation"})
 
-    original_get_claim_index = chain.get_claim_index
+    original_admit = chain._admit_verified_entries
 
-    def append_during_reconstruction():
+    def append_during_reconstruction(entries):
         chain.append({"claim": "Concurrent observation"})
-        return original_get_claim_index()
+        return original_admit(entries)
 
     monkeypatch.setattr(
         chain,
-        "get_claim_index",
+        "_admit_verified_entries",
         append_during_reconstruction,
     )
 
