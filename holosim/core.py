@@ -336,6 +336,7 @@ class HoloChain:
                 raise ValueError(f"Correction targets missing idx {target}")
             if (
                 self._is_correction(decoded_by_idx[target])
+                or self._is_revalidation(decoded_by_idx[target])
                 or (
                     isinstance(decoded_by_idx[target], dict)
                     and decoded_by_idx[target].get("type") == "service_append"
@@ -372,6 +373,7 @@ class HoloChain:
         target_value = decoded[positions[target_idx]]
         if (
             self._is_correction(target_value)
+            or self._is_revalidation(target_value)
             or (
                 isinstance(target_value, dict)
                 and target_value.get("type") == "service_append"
