@@ -42,6 +42,8 @@ def evaluate_checkpoint_recoverability(
     if len(transitions) > MAX_DECLARED_STATES:
         raise ValueError("declared graph exceeds state limit")
 
+    validated_transitions = {}
+
     for state, successors in transitions.items():
         if not isinstance(state, str) or not state or len(state) > MAX_IDENTIFIER_LENGTH:
             raise ValueError("invalid state identifier")
@@ -55,6 +57,10 @@ def evaluate_checkpoint_recoverability(
         for successor in successors:
             if not isinstance(successor, str) or not successor or len(successor) > MAX_IDENTIFIER_LENGTH:
                 raise ValueError("invalid successor state")
+
+        validated_transitions[state] = successors
+
+    transitions = validated_transitions
 
     if checkpoint not in transitions or goal not in transitions:
         return RecoverabilityResult("UNKNOWN", (), 0)
