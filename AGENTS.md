@@ -47,6 +47,22 @@
 | | • Do not mass-reformat documents or convert line endings as |
 | |   an incidental part of another change.                      |
 | | }==============================================================|
+| | REPOSITORY_WIDE_INSPECTION                                   |
+| | • Before each task, inspect current repository state.        |
+| | • Inventory tracked files, directories, instructions,        |
+| | • tests, workflows, documentation, and dependencies.         |
+| | • Read the implementation map and relevant contracts.        |
+| | • Trace affected callers, consumers, and invariants.         |
+| | • Search for existing implementations before adding any.     |
+| | • Record the inspected commit and repository scope.          |
+| | • List inspection evidence and relevant file paths.          |
+| | • Identify unread, excluded, or inaccessible material.       |
+| | • Mark unverified coverage UNKNOWN, never complete.          |
+| | • Do not claim whole-repo inspection without evidence.       |
+| | • Reinspect after state changes or scope expansion.          |
+| | • Whole-repo inspection grants no mutation authority.        |
+| | • Keep changes limited to the verified mapped gap.           |
+| | }==============================================================|
 | | IMPLEMENTATION_RULES                                        |
 | | • Start from current main on a narrowly named branch.       |
 | | • Close one mapped gap with the smallest supported change.  |
