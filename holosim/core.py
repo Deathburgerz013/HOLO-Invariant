@@ -254,10 +254,14 @@ class HoloChain:
         for e in entries:
             content = e["content"]
             if e.get("type") == "compressed":
+                from holosim.replay import ReplayEngine, SearchDecodeError
+
                 try:
-                    content = zlib.decompress(bytes.fromhex(content)).decode('utf-8')
-                except Exception:
-                    content = f"[DECOMPRESSION FAILED] {content[:100]}..."
+                    content = ReplayEngine._searchable_content(e)
+                except SearchDecodeError as exc:
+                    raise ValueError(
+                        "HoloChain compressed entry reconstruction failed"
+                    ) from exc
             try:
                 if content.startswith(('{', '[')):
                     state.append(json.loads(content))
