@@ -239,3 +239,25 @@ def test_oversized_state_identifier_is_rejected():
             transitions=transitions,
             max_states=10,
         )
+
+def test_inconsistent_mapping_access_cannot_change_validated_graph():
+    class InconsistentGraph(dict):
+        def get(self, key, default=None):
+            if key == "start":
+                return ()
+            return super().get(key, default)
+
+    graph = InconsistentGraph({
+        "start": ("goal",),
+        "goal": (),
+    })
+
+    result = evaluate_checkpoint_recoverability(
+        checkpoint="start",
+        goal="goal",
+        transitions=graph,
+        max_states=10,
+    )
+
+    assert result.status == "REACHABLE"
+    assert result.path == ("start", "goal")
