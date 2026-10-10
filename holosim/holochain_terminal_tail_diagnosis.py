@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ FAILURE_INVALID_UTF8 = "INVALID_UTF8"
 FAILURE_INVALID_JSON = "INVALID_JSON"
 FAILURE_MISSING_FIELD = "MISSING_FIELD"
 FAILURE_INVALID_ENTRY = "INVALID_ENTRY"
+FAILURE_INVALID_COMPRESSION = "INVALID_COMPRESSION"
 FAILURE_HASH_MISMATCH = "HASH_MISMATCH"
 FAILURE_INDEX_NOT_MONOTONIC = "INDEX_NOT_MONOTONIC"
 
@@ -129,9 +131,21 @@ def diagnose_holochain_terminal_tail(
             elif entry["idx"] != complete_entry_count + 1:
                 failure_kind = FAILURE_INDEX_NOT_MONOTONIC
             else:
-                prev_hash = entry["hash"]
-                complete_entry_count += 1
-                continue
+                if entry.get("type") == "compressed":
+                    try:
+                        zlib.decompress(
+                            bytes.fromhex(entry["content"])
+                        ).decode("utf-8")
+                    except (ValueError, TypeError, KeyError, zlib.error, UnicodeDecodeError):
+                        failure_kind = FAILURE_INVALID_COMPRESSION
+                    else:
+                        prev_hash = entry["hash"]
+                        complete_entry_count += 1
+                        continue
+                else:
+                    prev_hash = entry["hash"]
+                    complete_entry_count += 1
+                    continue
         except Exception as exc:
             failure_kind = _failure_kind(exc)
 
