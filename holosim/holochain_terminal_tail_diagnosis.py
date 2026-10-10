@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import zlib
 from pathlib import Path
 from typing import Any
 
@@ -132,11 +131,11 @@ def diagnose_holochain_terminal_tail(
                 failure_kind = FAILURE_INDEX_NOT_MONOTONIC
             else:
                 if entry.get("type") == "compressed":
+                    from holosim.replay import ReplayEngine, SearchDecodeError
+
                     try:
-                        zlib.decompress(
-                            bytes.fromhex(entry["content"])
-                        ).decode("utf-8")
-                    except (ValueError, TypeError, KeyError, zlib.error, UnicodeDecodeError):
+                        ReplayEngine._searchable_content(entry)
+                    except SearchDecodeError:
                         failure_kind = FAILURE_INVALID_COMPRESSION
                     else:
                         prev_hash = entry["hash"]
