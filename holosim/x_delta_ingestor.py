@@ -349,6 +349,19 @@ class XDeltaIngestor:
         authorization_hash = authorization["authorization_hash"]
 
         def require_unconsumed(entries: List[Dict]) -> None:
+            import zlib
+
+            for entry in entries:
+                if entry.get("type") == "compressed":
+                    try:
+                        zlib.decompress(
+                            bytes.fromhex(entry["content"])
+                        ).decode("utf-8")
+                    except (ValueError, TypeError, KeyError, zlib.error, UnicodeDecodeError) as exc:
+                        raise OperationalAuthorizationError(
+                            "authorization history cannot be reconstructed"
+                        ) from exc
+
             decoded = self.chain._decode_entries(entries)
             if len(decoded) != len(entries):
                 raise OperationalAuthorizationError(
