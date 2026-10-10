@@ -259,8 +259,22 @@ class HoloChain:
                 try:
                     content = ReplayEngine._searchable_content(e)
                 except SearchDecodeError as exc:
+                    reason = str(exc)
+                    investigations = {
+                        "malformed hex": "inspect stored payload encoding",
+                        "invalid zlib": "inspect compression format and payload integrity",
+                        "decoded content exceeds limit": "inspect the 1 MiB reconstruction boundary",
+                        "incomplete zlib stream": "inspect possible payload truncation",
+                        "trailing compressed data": "inspect compressed payload boundaries",
+                        "invalid utf-8": "inspect decoded text encoding",
+                    }
+                    investigation = investigations.get(
+                        reason, "inspect the original record against verified source data"
+                    )
                     raise ValueError(
-                        "HoloChain compressed entry reconstruction failed"
+                        f"HoloChain compressed entry reconstruction failed "
+                        f"at idx={e.get('idx')} hash={e.get('hash')}: {reason}. "
+                        f"Diagnostic action: {investigation}."
                     ) from exc
             try:
                 if content.startswith(('{', '[')):
