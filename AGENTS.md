@@ -100,6 +100,20 @@
 | | • Record exact test and rail counts in the pull request.    |
 | | • Verify reported GitHub state before claiming it passed.   |
 | | }==============================================================|
+| | PARTICIPATION_AND_CORRECTION_LOG                             |
+| | - Log path: docs/AGENT_PARTICIPATION_LOG.md                  |
+| | - Participating assistants must declare their entity ID,     |
+| |   model identity when known, role, and source-state ID.      |
+| | - Record MODEL_CLOCK_IN with the contribution and exact      |
+| |   artifact or PR reference. Use UNKNOWN for missing facts.   |
+| | - Record STATE_FIX as an appended correction referencing     |
+| |   the earlier event. Never silently replace its record.      |
+| | - Keep declarations separate from observed evidence and      |
+| |   independently verified facts.                              |
+| | - Missing clock-in does not prove missing participation.     |
+| | - Log entries do not authenticate identity, prove truth,     |
+| |   establish completeness, or grant acceptance or authority.  |
+| | - Existing review, approval, and mutation rules still apply. |
 | | END_ASSISTANT_CONTRACT                                       |
 | | WRITE_AUTHORITY: NONE                                        |
 | | }==============================================================|
