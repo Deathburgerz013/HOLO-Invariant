@@ -10,6 +10,11 @@ from typing import Any
 
 from holosim.aligned_action_selector import run_aligned_observation
 from holosim.canonical import CanonicalValueError, stable_hash
+from holosim.hook_contract import (
+    HookContractError,
+    validate_hook_request,
+    validate_hook_result,
+)
 
 
 EPISODE_TYPE = "aligned_observation_feedback_episode"
@@ -174,6 +179,320 @@ def validate_observation_episode(episode: Mapping[str, Any]) -> bool:
         raise AlignedObservationFeedbackError("step_count mismatch")
     if len(episode["steps"]) > limit:
         raise AlignedObservationFeedbackError("episode exceeds step budget")
+    replay_state = initial
+    replay_evidence_hashes = []
+    replay_status = "READY"
+
+    for number, step in enumerate(episode["steps"], start=1):
+        if not isinstance(step, Mapping):
+            raise AlignedObservationFeedbackError("step must be an object")
+        if set(step) != {
+            "step_number",
+            "input_state_reference",
+            "run",
+            "evidence_hash",
+            "state_changed",
+            "step_hash",
+        }:
+            raise AlignedObservationFeedbackError("step fields mismatch")
+
+        step_body = deepcopy(dict(step))
+        step_hash = step_body.pop("step_hash")
+        if step_hash != _hash(step_body):
+            raise AlignedObservationFeedbackError("step hash mismatch")
+        if step["step_number"] != number:
+            raise AlignedObservationFeedbackError("step number mismatch")
+        if step["input_state_reference"] != replay_state:
+            raise AlignedObservationFeedbackError("input state mismatch")
+        if replay_status != "READY":
+            raise AlignedObservationFeedbackError(
+                "step recorded after terminal halt"
+            )
+
+        run = step["run"]
+        if not isinstance(run, Mapping):
+            raise AlignedObservationFeedbackError("run must be an object")
+        if not isinstance(run.get("execution_performed"), bool):
+            raise AlignedObservationFeedbackError(
+                "execution_performed must be boolean"
+            )
+
+        observation = run.get("observation_result")
+        if observation is not None and not isinstance(
+            observation, Mapping
+        ):
+            raise AlignedObservationFeedbackError(
+                "observation_result must be an object or null"
+            )
+
+        run_body = {k: v for k, v in run.items() if k != "run_hash"}
+        if run.get("run_hash") != _hash(run_body):
+            raise AlignedObservationFeedbackError("run hash mismatch")
+
+        selection = run.get("selection")
+        if not isinstance(selection, Mapping):
+            raise AlignedObservationFeedbackError(
+                "selection must be an object"
+            )
+        if selection.get("reference_state") != replay_state:
+            raise AlignedObservationFeedbackError(
+                "selection reference state mismatch"
+            )
+        selection_body = {
+            k: v for k, v in selection.items()
+            if k != "selection_hash"
+        }
+        if selection.get("selection_hash") != _hash(selection_body):
+            raise AlignedObservationFeedbackError(
+                "selection hash mismatch"
+            )
+
+        evaluations = selection.get("evaluations")
+        if not isinstance(evaluations, list):
+            raise AlignedObservationFeedbackError(
+                "selection evaluations must be a list"
+            )
+
+        eligible = []
+        candidate_ids = set()
+        for evaluation in evaluations:
+            candidate_id = evaluation.get("candidate_id")
+            if not isinstance(candidate_id, str) or not candidate_id.strip():
+                raise AlignedObservationFeedbackError(
+                    "selection candidate identity invalid"
+                )
+            if candidate_id in candidate_ids:
+                raise AlignedObservationFeedbackError(
+                    "duplicate selection candidate identity"
+                )
+            candidate_ids.add(candidate_id)
+            if not isinstance(evaluation, Mapping):
+                raise AlignedObservationFeedbackError(
+                    "selection evaluation must be an object"
+                )
+            judgment = evaluation.get("judgment")
+            attention = evaluation.get("attention")
+            if not isinstance(judgment, Mapping) or not isinstance(
+                attention, Mapping
+            ):
+                raise AlignedObservationFeedbackError(
+                    "selection evaluation contracts missing"
+                )
+
+            from holosim.judgment_justifier import (
+                JudgmentJustifierError,
+                evaluate_judgment_justification,
+            )
+
+            try:
+                expected_judgment = evaluate_judgment_justification(
+                    judgment_id=judgment["judgment_id"],
+                    conclusion=judgment["conclusion"],
+                    reference_state=judgment["reference_state"],
+                    evidence_references=judgment["evidence_references"],
+                    rule_references=judgment["rule_references"],
+                    comparison_status=judgment["comparison_status"],
+                    uncertainty=judgment["uncertainty"],
+                    unresolved_conflicts=judgment["unresolved_conflicts"],
+                )
+            except (JudgmentJustifierError, KeyError, TypeError) as exc:
+                raise AlignedObservationFeedbackError(
+                    "selection judgment mismatch"
+                ) from exc
+
+            if judgment != expected_judgment:
+                raise AlignedObservationFeedbackError(
+                    "selection judgment mismatch"
+                )
+
+            if judgment.get("judgment_id") != (
+                f"alignment:{evaluation.get('candidate_id')}"
+            ):
+                raise AlignedObservationFeedbackError(
+                    "selection judgment identity mismatch"
+                )
+
+            if judgment.get("reference_state") != replay_state:
+                raise AlignedObservationFeedbackError(
+                    "selection judgment reference state mismatch"
+                )
+
+            candidate_request = evaluation.get("request")
+            if not isinstance(candidate_request, Mapping):
+                raise AlignedObservationFeedbackError(
+                    "selection judgment conclusion mismatch"
+                )
+            try:
+                validate_hook_request(candidate_request)
+            except HookContractError as exc:
+                raise AlignedObservationFeedbackError(
+                    "selection candidate request invalid"
+                ) from exc
+
+            expected_conclusion = {
+                "goal_reference": selection.get("goal_reference"),
+                "request_hash": candidate_request.get("request_hash"),
+                "action": candidate_request.get("action"),
+                "reference": candidate_request.get("reference"),
+            }
+            if judgment.get("conclusion") != expected_conclusion:
+                raise AlignedObservationFeedbackError(
+                    "selection judgment conclusion mismatch"
+                )
+
+            from holosim.attention_cost_value import (
+                AttentionCostValueError,
+                evaluate_attention_candidate,
+            )
+
+            try:
+                expected_attention = evaluate_attention_candidate(
+                    candidate_id=attention["candidate_id"],
+                    value=attention["value"],
+                    cost=attention["cost"],
+                    urgency=attention["urgency"],
+                    dependency_impact=attention["dependency_impact"],
+                )
+            except (
+                AttentionCostValueError,
+                KeyError,
+                TypeError,
+                ValueError,
+            ) as exc:
+                raise AlignedObservationFeedbackError(
+                    "selection attention mismatch"
+                ) from exc
+
+            if attention != expected_attention:
+                raise AlignedObservationFeedbackError(
+                    "selection attention mismatch"
+                )
+
+            if attention.get("candidate_id") != evaluation.get("candidate_id"):
+                raise AlignedObservationFeedbackError(
+                    "selection attention candidate mismatch"
+                )
+
+            from holosim.computer_observer import ALLOWED_ACTIONS
+
+            candidate_request = evaluation.get("request")
+            expected_capable = (
+                isinstance(candidate_request, Mapping)
+                and candidate_request.get("action") in ALLOWED_ACTIONS
+            )
+            if evaluation.get("capable") is not expected_capable:
+                raise AlignedObservationFeedbackError(
+                    "selection capability mismatch"
+                )
+
+            expected_eligible = (
+                evaluation.get("capable") is True
+                and judgment.get("status") == "JUSTIFIED"
+                and attention.get("decision") == "EARN_CYCLES"
+            )
+            if evaluation.get("eligible") is not expected_eligible:
+                raise AlignedObservationFeedbackError(
+                    "selection eligibility mismatch"
+                )
+            if expected_eligible:
+                eligible.append(evaluation)
+
+        eligible.sort(
+            key=lambda item: (
+                -item["attention"]["score"],
+                item["candidate_id"],
+                item["request"]["request_hash"],
+            )
+        )
+        winner = eligible[0] if eligible else None
+
+        if selection.get("selected_candidate_id") != (
+            winner["candidate_id"] if winner else None
+        ):
+            raise AlignedObservationFeedbackError(
+                "selection candidate mismatch"
+            )
+        if selection.get("selected_request") != (
+            winner["request"] if winner else None
+        ):
+            raise AlignedObservationFeedbackError(
+                "selection request mismatch"
+            )
+        if selection.get("decision") != (
+            "SELECTED" if winner else "HALT"
+        ):
+            raise AlignedObservationFeedbackError(
+                "selection decision mismatch"
+            )
+
+        request = selection.get("selected_request")
+        try:
+            if request is not None:
+                validate_hook_request(request)
+            if observation is not None:
+                if request is None:
+                    raise AlignedObservationFeedbackError(
+                        "observation has no selected request"
+                    )
+                validate_hook_result(observation, request=request)
+        except HookContractError as exc:
+            raise AlignedObservationFeedbackError(
+                f"observation {exc}"
+            ) from exc
+        if run["execution_performed"] != (observation is not None):
+            raise AlignedObservationFeedbackError(
+                "observation execution mismatch"
+            )
+
+        if observation is None:
+            expected_evidence_hash = None
+        else:
+            if "evidence" not in observation:
+                raise AlignedObservationFeedbackError(
+                    "observation evidence missing"
+                )
+            expected_evidence_hash = _hash(observation["evidence"])
+
+        if step["evidence_hash"] != expected_evidence_hash:
+            raise AlignedObservationFeedbackError(
+                "evidence hash mismatch"
+            )
+
+        expected_change = (
+            expected_evidence_hash is not None
+            and expected_evidence_hash not in replay_evidence_hashes
+        )
+        if step["state_changed"] is not expected_change:
+            raise AlignedObservationFeedbackError(
+                "state change mismatch"
+            )
+
+        if not run["execution_performed"]:
+            replay_status = "HALT_UNALIGNED"
+        elif not expected_change:
+            replay_status = "HALT_NO_CHANGE"
+        else:
+            result_hash = observation.get("result_hash")
+            if not isinstance(result_hash, str) or not re.fullmatch(
+                r"[0-9a-f]{64}", result_hash
+            ):
+                raise AlignedObservationFeedbackError(
+                    "observation result hash invalid"
+                )
+            replay_evidence_hashes.append(expected_evidence_hash)
+            replay_state = f"observation:{result_hash}"
+            replay_status = (
+                "HALT_BUDGET" if number >= limit else "READY"
+            )
+
+    if episode["current_state_reference"] != replay_state:
+        raise AlignedObservationFeedbackError("current state mismatch")
+    if episode["observed_evidence_hashes"] != replay_evidence_hashes:
+        raise AlignedObservationFeedbackError(
+            "observed evidence history mismatch"
+        )
+    if episode["status"] != replay_status:
+        raise AlignedObservationFeedbackError("episode status mismatch")
 
     evidence_hashes = episode["observed_evidence_hashes"]
     if len(evidence_hashes) != len(set(evidence_hashes)):
