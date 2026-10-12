@@ -271,30 +271,30 @@ def build_engine(
     routing_safety: Optional[Dict[str, bool]] = None,
     active_hash: str = ACTIVE_HASH,
 ) -> RebirthEngine:
-    """Build a RebirthEngine with safe default providers."""
+    """Build a RebirthEngine; unavailable checks must fail closed."""
     if providers is None:
 
-        def _true() -> bool:
-            return True
+        def _unverified() -> bool:
+            return False
 
         def _zero() -> int:
             return 0
 
-        def _age() -> int:
-            return 0
+        def _stale() -> int:
+            return 2**63 - 1
 
-        def _hash(key: str) -> bool:
-            return key in HASH_GUARD_KEYS
+        def _unverified_key(_key: str) -> bool:
+            return False
 
-        def _blood(tag: str) -> bool:
-            return tag == BLOODSTREAM_SENTINEL
+        def _unverified_tag(_tag: str) -> bool:
+            return False
 
         providers = Providers(
-            check_heartbeat=_true,
-            check_core_intact=_true,
-            status_age_seconds=_age,
-            hash_check=_hash,
-            read_bloodstream=_blood,
+            check_heartbeat=_unverified,
+            check_core_intact=_unverified,
+            status_age_seconds=_stale,
+            hash_check=_unverified_key,
+            read_bloodstream=_unverified_tag,
             token_used=_zero,
         )
 
