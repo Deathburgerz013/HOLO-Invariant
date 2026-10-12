@@ -66,6 +66,9 @@
 | | IMPLEMENTATION_RULES                                        |
 | | • Start from current main on a narrowly named branch.       |
 | | • Close one mapped gap with the smallest supported change.  |
+| | • Check existing mechanisms and past corrections first.     |
+| | • If an existing solution suffices, stop and cite evidence. |
+| | • Reopen only for a reproducible gap.                       |
 | | • Do not bundle later invariants, cleanup, or speculative    |
 | |   refactors into the same pull request.                      |
 | | • Extend the evaluator that owns a boundary; do not create  |
