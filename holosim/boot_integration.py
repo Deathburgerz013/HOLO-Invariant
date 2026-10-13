@@ -33,18 +33,9 @@ IMPORTANT_SPINES = [
 
 
 def load_idx_spine(idx_path: str | Path = REPO_ROOT / "idx_spine.txt") -> Dict[str, Any]:
-    """Load IDX spine JSON or return a safe fallback."""
+    """Load IDX spine JSON; reject missing or invalid input."""
     path = Path(idx_path)
-
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {
-            "IDX": {
-                "v": 1,
-                "ACTIVE_HASH": ACTIVE_HASH,
-            }
-        }
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def load_and_append_spine(
