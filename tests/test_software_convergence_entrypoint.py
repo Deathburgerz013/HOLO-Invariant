@@ -50,6 +50,7 @@ def _comparator(capability, workspace: Path):
         satisfied = "return a + b" in source
 
     return {
+        "verified": True,
         "relevant_difference": not satisfied,
         "description": capability,
         "reason": "NO_RELEVANT_DIFFERENCE",
@@ -119,7 +120,7 @@ def test_invalid_plan_stops_before_generation(tmp_path):
 
     def comparator(*args):
         calls["comparator"] += 1
-        return {"relevant_difference": False}
+        return {"verified": True, "relevant_difference": False}
 
     def project_verifier(*args):
         calls["project_verifier"] += 1
@@ -147,7 +148,7 @@ def test_failed_capability_stops_later_dependencies_and_reports_blocker(tmp_path
 
     def comparator(capability, workspace):
         comparator_calls.append(capability["id"])
-        return {"relevant_difference": True, "description": capability}
+        return {"verified": True, "relevant_difference": True, "description": capability}
 
     def bad_proposer(task, observed_state, constraints, feedback):
         return {"files": {"calculator.py": "broken = True\n"}}

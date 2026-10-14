@@ -30,6 +30,7 @@ def test_already_converged_stops_without_builder(tmp_path: Path) -> None:
         )
 
         return {
+            "verified": True,
             "relevant_difference": "return a + b" not in source,
             "reason": "NO_RELEVANT_DIFFERENCE",
         }
@@ -96,11 +97,13 @@ def test_one_real_difference_builds_then_converges(
 
         if "return a + b" in source:
             return {
+                "verified": True,
                 "relevant_difference": False,
                 "reason": "NO_RELEVANT_DIFFERENCE",
             }
 
         return {
+            "verified": True,
             "relevant_difference": True,
             "description": "Fix add so it returns the sum",
         }
@@ -173,6 +176,7 @@ def test_builder_failure_stops_convergence(tmp_path: Path) -> None:
 
     def comparator(goal, workspace: Path):
         return {
+            "verified": True,
             "relevant_difference": True,
             "description": "Fix add so it returns the sum",
         }

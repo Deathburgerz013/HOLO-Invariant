@@ -29,6 +29,7 @@ def _comparator(capability, workspace: Path):
     )
 
     return {
+        "verified": True,
         "relevant_difference": "def add" not in source,
         "reason": (
             "NO_RELEVANT_DIFFERENCE"

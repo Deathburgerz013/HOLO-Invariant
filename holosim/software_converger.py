@@ -62,7 +62,7 @@ def run_software_converger(
 
         comparison_record = deepcopy(dict(comparison))
 
-        if comparison_record.get("verified") is False:
+        if comparison_record.get("verified") is not True:
             terminal_reason = (
                 "UNVERIFIED_MODEL_COMPARISON"
                 if comparison_record.get("model_generated") is True

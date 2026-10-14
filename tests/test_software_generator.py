@@ -21,11 +21,13 @@ def _comparator(goal, workspace: Path):
 
     if "return a + b" in source:
         return {
+            "verified": True,
             "relevant_difference": False,
             "reason": "NO_RELEVANT_DIFFERENCE",
         }
 
     return {
+        "verified": True,
         "relevant_difference": True,
         "description": "Fix add so it returns the sum",
     }
