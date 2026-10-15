@@ -160,15 +160,96 @@ class SlotMerkleDB:
     def __init__(
         self,
         db_path: str | Path = DEFAULT_DB_FILE,
+        *,
+        read_only: bool = False,
+        immutable_snapshot: bool = False,
     ) -> None:
         self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        self.conn = sqlite3.connect(str(self.db_path))
-        self.conn.row_factory = sqlite3.Row
+        if immutable_snapshot:
+            if not read_only:
+                raise ValueError(
+                    "immutable_snapshot requires read_only=True"
+                )
+            if self.db_path.is_symlink() or not self.db_path.is_file():
+                raise ValueError(
+                    "immutable snapshot must be an existing regular file"
+                )
+            source_identity = self.db_path.stat()
 
-        self._configure_connection()
-        self._init_db()
+        self._snapshot_directory = None
+
+        if immutable_snapshot:
+            import tempfile
+            from contextlib import closing
+
+            directory = tempfile.TemporaryDirectory(
+                prefix="holo-slot-snapshot-"
+            )
+            try:
+                snapshot_path = Path(directory.name) / "snapshot.db"
+                uri = self.db_path.resolve().as_uri() + "?mode=ro"
+
+                with closing(sqlite3.connect(uri, uri=True)) as source:
+                    opened = source.execute("PRAGMA database_list").fetchall()
+                    main_paths = [
+                        Path(row[2])
+                        for row in opened
+                        if row[1] == "main" and row[2]
+                    ]
+                    if (
+                        len(main_paths) != 1
+                        or main_paths[0] != self.db_path.resolve()
+                    ):
+                        raise ValueError(
+                            "immutable snapshot source path mismatch"
+                        )
+
+                    current_identity = self.db_path.stat()
+                    if (
+                        current_identity.st_dev != source_identity.st_dev
+                        or current_identity.st_ino != source_identity.st_ino
+                    ):
+                        raise ValueError(
+                            "immutable snapshot source changed during opening"
+                        )
+                    source.execute("PRAGMA query_only = ON")
+                    with closing(sqlite3.connect(str(snapshot_path))) as backup:
+                        source.backup(backup)
+                        final_identity = self.db_path.stat()
+                        if (
+                            final_identity.st_dev != source_identity.st_dev
+                            or final_identity.st_ino != source_identity.st_ino
+                        ):
+                            raise ValueError(
+                                "immutable snapshot source changed during backup"
+                            )
+
+                snapshot_uri = snapshot_path.resolve().as_uri()
+                snapshot_uri += "?mode=ro&immutable=1"
+                self.conn = sqlite3.connect(snapshot_uri, uri=True)
+                self._snapshot_directory = directory
+            except BaseException:
+                directory.cleanup()
+                raise
+        elif read_only:
+            uri = self.db_path.resolve().as_uri() + "?mode=ro"
+            self.conn = sqlite3.connect(uri, uri=True)
+        else:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self.conn = sqlite3.connect(str(self.db_path))
+
+        try:
+            self.conn.row_factory = sqlite3.Row
+
+            if read_only:
+                self.conn.execute("PRAGMA query_only = ON")
+            else:
+                self._configure_connection()
+                self._init_db()
+        except BaseException:
+            self.close()
+            raise
 
     def _configure_connection(self) -> None:
         """Configure SQLite for safe local persistence."""
@@ -476,6 +557,7 @@ class SlotMerkleDB:
             """
             SELECT
                 idx,
+                content,
                 content_hash,
                 prev_root,
                 merkle_root
@@ -493,6 +575,17 @@ class SlotMerkleDB:
             content_hash = str(row["content_hash"])
             stored_previous_root = str(row["prev_root"])
             stored_root = str(row["merkle_root"])
+
+            if row["content"] is not None and (
+                not isinstance(row["content"], str)
+                or sha256(row["content"]) != content_hash
+            ):
+                violations.append(
+                    {
+                        "idx": actual_idx,
+                        "type": "content_hash_mismatch",
+                    }
+                )
 
             if actual_idx != expected_idx:
                 violations.append(
@@ -564,8 +657,14 @@ class SlotMerkleDB:
         }
 
     def close(self) -> None:
-        """Close the SQLite connection."""
-        self.conn.close()
+        """Close the connection and release any private snapshot."""
+        try:
+            self.conn.close()
+        finally:
+            if self._snapshot_directory is not None:
+                directory = self._snapshot_directory
+                self._snapshot_directory = None
+                directory.cleanup()
 
     def __enter__(self) -> "SlotMerkleDB":
         return self
@@ -577,6 +676,56 @@ class SlotMerkleDB:
         traceback: Any,
     ) -> None:
         self.close()
+
+
+def create_slot_snapshot(
+    source_path: str | Path,
+    destination_path: str | Path,
+) -> Path:
+    """Create a SQLite-consistent backup without overwriting the destination.
+
+    This does not establish independent provenance, freshness, or authority.
+    """
+    import os
+    import tempfile
+    from contextlib import closing
+
+    source = Path(source_path)
+    destination = Path(destination_path)
+
+    if source.is_symlink() or not source.is_file():
+        raise ValueError("snapshot source must be an existing regular file")
+    if source.resolve() == destination.resolve():
+        raise ValueError("snapshot destination must differ from source")
+
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(destination)
+
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=".slot-snapshot-",
+        suffix=".db",
+        dir=destination.parent,
+    )
+    temporary = Path(temporary_name)
+    os.close(fd)
+
+    try:
+        uri = source.resolve().as_uri() + "?mode=ro"
+
+        with closing(sqlite3.connect(uri, uri=True)) as reader:
+            reader.execute("PRAGMA query_only = ON")
+
+            with closing(sqlite3.connect(str(temporary))) as backup:
+                reader.backup(backup)
+
+        # Same-directory hard link: publish without replacing an existing path.
+        # Unsupported filesystems fail closed.
+        os.link(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+    return destination
+
 
 
 def get_slot_db(
@@ -647,7 +796,8 @@ def main() -> None:
 
     subparsers.add_parser(
         "verify",
-        help="Verify every slot and root",
+        help="Verify slots and roots using a private snapshot; source WAL/SHM files may be created",
+        description="Verification uses a private snapshot, but opening the source database may create WAL/SHM sidecar files.",
     )
 
     args = parser.parse_args()
@@ -664,7 +814,11 @@ def main() -> None:
     if not isinstance(metadata, dict):
         raise SystemExit("--metadata must decode to a JSON object.")
 
-    with get_slot_db(args.db) as database:
+    with (
+        SlotMerkleDB(args.db, read_only=True, immutable_snapshot=True)
+        if args.command == "verify"
+        else get_slot_db(args.db)
+    ) as database:
         if args.command == "identity":
             result = database.identity()
 
