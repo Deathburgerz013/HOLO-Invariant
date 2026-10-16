@@ -1,17 +1,24 @@
-"""Read-only IDX coherence gate for cycle-state projection research.
+"""Read-only declared-identity coherence gate for cycle-state research.
 
-This gate checks declared snapshot relationships only. It does not
-authenticate receipts or establish completion, truth, or authority.
+This checks only snapshot IDX identity and receipt-hash membership.
+
+Non-goals: Frozen IDX active-hash/slot/order validation, frame and episode
+coherence, cryptographic receipt verification, source-receipt attribution,
+completion determination, and authorization.
+
+A coherent result is not sufficient to advance a cycle-state projection.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 
 
-def check_idx_coherence(
-    snapshot: Mapping,
-    receipts: Sequence[Mapping],
-) -> dict:
-    """Return a bounded coherence observation, never an authorization."""
+def _identity(value):
+    """Accept only nonempty, whitespace-canonical strings."""
+    return isinstance(value, str) and bool(value) and value == value.strip()
+
+
+def check_idx_coherence(snapshot: Mapping, receipts) -> dict:
+    """Observe declared relationships without establishing integrity or authority."""
     reasons = []
 
     if not isinstance(snapshot, Mapping):
@@ -25,14 +32,16 @@ def check_idx_coherence(
     idx = snapshot.get("idx_identity")
     hashes = snapshot.get("receipt_hashes")
 
-    if not isinstance(idx, str) or not idx:
+    if not _identity(idx):
         reasons.append("IDX_IDENTITY_REQUIRED")
 
     if (
-        not isinstance(hashes, list)
-        or not hashes
-        or any(not isinstance(h, str) or not h for h in hashes)
-        or len(hashes) != len(set(hashes))
+        not isinstance(hashes, (list, tuple))
+        or any(not _identity(h) for h in hashes)
+        or (
+            isinstance(hashes, (list, tuple))
+            and len(hashes) != len(set(h for h in hashes if _identity(h)))
+        )
     ):
         reasons.append("INVALID_RECEIPT_MANIFEST")
         hashes = []
@@ -44,15 +53,15 @@ def check_idx_coherence(
             continue
 
         receipt_hash = receipt.get("receipt_hash")
-        if not isinstance(receipt_hash, str) or not receipt_hash:
+        if not _identity(receipt_hash):
             reasons.append("RECEIPT_HASH_REQUIRED")
         else:
             observed.append(receipt_hash)
 
         receipt_idx = receipt.get("idx_identity")
-        if not isinstance(receipt_idx, str) or not receipt_idx:
+        if not _identity(receipt_idx):
             reasons.append("IDX_IDENTITY_REQUIRED")
-        elif isinstance(idx, str) and receipt_idx != idx:
+        elif _identity(idx) and receipt_idx != idx:
             reasons.append("IDX_IDENTITY_MISMATCH")
 
     if len(observed) != len(set(observed)):
