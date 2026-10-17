@@ -154,6 +154,96 @@ def verify_merkle_proof(
     return current == expected_root
 
 
+def _verify_chain_connection(conn: sqlite3.Connection) -> Dict[str, Any]:
+    """Verify slot order, previous-root links, and every prefix root."""
+    cursor = conn.execute(
+        """
+        SELECT
+            idx,
+            content,
+            content_hash,
+            prev_root,
+            merkle_root
+        FROM slots
+        ORDER BY idx
+        """
+    )
+    columns = [column[0] for column in cursor.description]
+    rows = [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+    violations: List[Dict[str, Any]] = []
+    prefix_hashes: List[str] = []
+    expected_previous_root = ZERO_HASH
+
+    for expected_idx, row in enumerate(rows, start=1):
+        actual_idx = int(row["idx"])
+        content_hash = str(row["content_hash"])
+        stored_previous_root = str(row["prev_root"])
+        stored_root = str(row["merkle_root"])
+
+        if row["content"] is not None and (
+            not isinstance(row["content"], str)
+            or sha256(row["content"]) != content_hash
+        ):
+            violations.append(
+                {
+                    "idx": actual_idx,
+                    "type": "content_hash_mismatch",
+                }
+            )
+
+        if actual_idx != expected_idx:
+            violations.append(
+                {
+                    "idx": actual_idx,
+                    "type": "index_gap",
+                    "expected": expected_idx,
+                    "actual": actual_idx,
+                }
+            )
+
+        if stored_previous_root != expected_previous_root:
+            violations.append(
+                {
+                    "idx": actual_idx,
+                    "type": "previous_root_mismatch",
+                    "expected": expected_previous_root,
+                    "actual": stored_previous_root,
+                }
+            )
+
+        prefix_hashes.append(content_hash)
+        expected_root = build_merkle_root(prefix_hashes)
+
+        if stored_root != expected_root:
+            violations.append(
+                {
+                    "idx": actual_idx,
+                    "type": "merkle_root_mismatch",
+                    "expected": expected_root,
+                    "actual": stored_root,
+                }
+            )
+
+        expected_previous_root = expected_root
+
+    valid = not violations
+
+    return {
+        "status": "PASS" if valid else "FAIL",
+        "valid": valid,
+        "entries": len(rows),
+        "current_root": (
+            expected_previous_root if rows else ZERO_HASH
+        ),
+        "violations": violations,
+    }
+
+
+
 class SlotMerkleDB:
     """Append-only SQLite slot store with Merkle prefix roots."""
 
@@ -553,86 +643,7 @@ class SlotMerkleDB:
 
     def verify_chain(self) -> Dict[str, Any]:
         """Verify slot order, previous-root links, and every prefix root."""
-        rows = self.conn.execute(
-            """
-            SELECT
-                idx,
-                content,
-                content_hash,
-                prev_root,
-                merkle_root
-            FROM slots
-            ORDER BY idx
-            """
-        ).fetchall()
-
-        violations: List[Dict[str, Any]] = []
-        prefix_hashes: List[str] = []
-        expected_previous_root = ZERO_HASH
-
-        for expected_idx, row in enumerate(rows, start=1):
-            actual_idx = int(row["idx"])
-            content_hash = str(row["content_hash"])
-            stored_previous_root = str(row["prev_root"])
-            stored_root = str(row["merkle_root"])
-
-            if row["content"] is not None and (
-                not isinstance(row["content"], str)
-                or sha256(row["content"]) != content_hash
-            ):
-                violations.append(
-                    {
-                        "idx": actual_idx,
-                        "type": "content_hash_mismatch",
-                    }
-                )
-
-            if actual_idx != expected_idx:
-                violations.append(
-                    {
-                        "idx": actual_idx,
-                        "type": "index_gap",
-                        "expected": expected_idx,
-                        "actual": actual_idx,
-                    }
-                )
-
-            if stored_previous_root != expected_previous_root:
-                violations.append(
-                    {
-                        "idx": actual_idx,
-                        "type": "previous_root_mismatch",
-                        "expected": expected_previous_root,
-                        "actual": stored_previous_root,
-                    }
-                )
-
-            prefix_hashes.append(content_hash)
-            expected_root = build_merkle_root(prefix_hashes)
-
-            if stored_root != expected_root:
-                violations.append(
-                    {
-                        "idx": actual_idx,
-                        "type": "merkle_root_mismatch",
-                        "expected": expected_root,
-                        "actual": stored_root,
-                    }
-                )
-
-            expected_previous_root = expected_root
-
-        valid = not violations
-
-        return {
-            "status": "PASS" if valid else "FAIL",
-            "valid": valid,
-            "entries": len(rows),
-            "current_root": (
-                expected_previous_root if rows else ZERO_HASH
-            ),
-            "violations": violations,
-        }
+        return _verify_chain_connection(self.conn)
 
     @staticmethod
     def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
@@ -713,10 +724,38 @@ def create_slot_snapshot(
         uri = source.resolve().as_uri() + "?mode=ro"
 
         with closing(sqlite3.connect(uri, uri=True)) as reader:
+            reader.row_factory = sqlite3.Row
             reader.execute("PRAGMA query_only = ON")
+            reader.execute("BEGIN")
+
+            # Pin and verify the source state before copying.
+            source_result = _verify_chain_connection(reader)
+            if source_result["status"] != "PASS":
+                raise ValueError("snapshot source Merkle chain verification failed")
 
             with closing(sqlite3.connect(str(temporary))) as backup:
                 reader.backup(backup)
+
+        # Validate the completed private backup without WAL sidecars.
+        # Matching the pinned chain does not establish provenance or authority.
+        validation_uri = temporary.resolve().as_uri() + "?mode=ro&immutable=1"
+        with closing(sqlite3.connect(validation_uri, uri=True)) as validation:
+            validation.row_factory = sqlite3.Row
+
+            integrity = validation.execute("PRAGMA integrity_check").fetchone()
+            if integrity is None or integrity[0] != "ok":
+                raise ValueError("snapshot SQLite integrity check failed")
+
+            snapshot_result = _verify_chain_connection(validation)
+            if snapshot_result["status"] != "PASS":
+                raise ValueError("snapshot Merkle chain verification failed")
+
+            if (
+                snapshot_result["entries"] != source_result["entries"]
+                or snapshot_result["current_root"] != source_result["current_root"]
+            ):
+                raise ValueError("snapshot incomplete or Merkle state mismatch")
+
 
         # Same-directory hard link: publish without replacing an existing path.
         # Unsupported filesystems fail closed.

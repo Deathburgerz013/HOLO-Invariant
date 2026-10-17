@@ -872,3 +872,109 @@ def test_immutable_snapshot_rejects_identity_change_after_backup(
             pass
 
     assert backup_completed
+def test_create_slot_snapshot_rejects_successful_invalid_backup(tmp_path, monkeypatch):
+    import sqlite3
+
+    import pytest
+
+    from holosim import slot_merkle_sqlite as module
+
+    source_path = tmp_path / "source.db"
+    snapshot_path = tmp_path / "snapshot.db"
+
+    with module.SlotMerkleDB(source_path) as writer:
+        writer.append_slot("preserve source", retain_content=True)
+
+    original_connect = sqlite3.connect
+
+    class InvalidBackup:
+        def __init__(self, connection):
+            self.connection = connection
+
+        def execute(self, *args, **kwargs):
+            return self.connection.execute(*args, **kwargs)
+
+        def backup(self, destination):
+            # Simulate a broken backup provider reporting success
+            # without copying the source database.
+            return None
+
+        def close(self):
+            self.connection.close()
+
+    def invalid_connect(database, *args, **kwargs):
+        connection = original_connect(database, *args, **kwargs)
+        if kwargs.get("uri") and "mode=ro" in str(database):
+            return InvalidBackup(connection)
+        return connection
+
+    monkeypatch.setattr(module.sqlite3, "connect", invalid_connect)
+
+    with pytest.raises(Exception):
+        module.create_slot_snapshot(source_path, snapshot_path)
+
+    assert not snapshot_path.exists()
+
+    monkeypatch.setattr(module.sqlite3, "connect", original_connect)
+
+    with module.SlotMerkleDB(source_path, read_only=True) as reader:
+        assert reader.verify_chain()["status"] == "PASS"
+
+def test_create_slot_snapshot_rejects_successful_valid_prefix_backup(
+    tmp_path, monkeypatch
+):
+    import sqlite3
+
+    import pytest
+
+    from holosim import slot_merkle_sqlite as module
+
+    source_path = tmp_path / "source.db"
+    prefix_path = tmp_path / "valid-prefix.db"
+    snapshot_path = tmp_path / "snapshot.db"
+
+    # Construct a valid one-slot prefix independently.
+    with module.SlotMerkleDB(prefix_path) as prefix:
+        prefix.append_slot("first", retain_content=True)
+        assert prefix.verify_chain()["status"] == "PASS"
+
+    # The actual source has two committed slots.
+    with module.SlotMerkleDB(source_path) as writer:
+        writer.append_slot("first", retain_content=True)
+        writer.append_slot("second", retain_content=True)
+        assert writer.count() == 2
+        assert writer.verify_chain()["status"] == "PASS"
+
+    original_connect = sqlite3.connect
+
+    class PrefixBackup:
+        def __init__(self, connection):
+            self.connection = connection
+
+        def execute(self, *args, **kwargs):
+            return self.connection.execute(*args, **kwargs)
+
+        def backup(self, destination):
+            # Fault injection: return success after copying an
+            # internally valid but incomplete database.
+            with original_connect(str(prefix_path)) as prefix:
+                prefix.backup(destination)
+
+        def close(self):
+            self.connection.close()
+
+    def intercepted_connect(database, *args, **kwargs):
+        connection = original_connect(database, *args, **kwargs)
+        if (
+            kwargs.get("uri")
+            and str(database) == source_path.resolve().as_uri() + "?mode=ro"
+        ):
+            return PrefixBackup(connection)
+        return connection
+
+    monkeypatch.setattr(module.sqlite3, "connect", intercepted_connect)
+
+    with pytest.raises(ValueError, match="incomplete|mismatch"):
+        module.create_slot_snapshot(source_path, snapshot_path)
+
+    assert not snapshot_path.exists()
