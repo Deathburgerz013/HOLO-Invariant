@@ -325,6 +325,18 @@ def test_recheck_rejects_rehashed_existing_path(
     altered["matched_paths"].append("unrelated.md")
     altered["matched_paths"].sort()
 
+    altered["match_classifications"] = [
+        {
+            "path": path,
+            "classification": (
+                "FILENAME_BONUS_ONLY"
+                if path == "unrelated.md"
+                else "CONTENT_MATCH"
+            ),
+        }
+        for path in altered["matched_paths"]
+    ]
+
     altered["observation_hash"] = stable_hash({
         key: value
         for key, value in altered.items()
@@ -333,3 +345,121 @@ def test_recheck_rejects_rehashed_existing_path(
 
     assert verify_retrieval_observation(altered) is True
     assert recheck_retrieval_observation(runtime, altered) is False
+
+
+def test_match_classification_structure_rejects_tampering(
+    tmp_path: Path,
+) -> None:
+    from copy import deepcopy
+
+    from holosim.canonical import stable_hash
+
+    (tmp_path / "spine-notes.md").write_text(
+        "unrelated material", encoding="utf-8"
+    )
+    (tmp_path / "raw-source.md").write_text(
+        "evidence from an observed event", encoding="utf-8"
+    )
+
+    runtime = _Source(tmp_path)
+    original = observe_retrieval(runtime, "evidence")
+
+    assert verify_retrieval_observation(original) is True
+    assert len(original["match_classifications"]) == 2
+
+    def rehash(record):
+        record["observation_hash"] = stable_hash({
+            key: value
+            for key, value in record.items()
+            if key != "observation_hash"
+        })
+        return record
+
+    mutations = []
+
+    missing = deepcopy(original)
+    missing.pop("match_classifications")
+    mutations.append(missing)
+
+    duplicate = deepcopy(original)
+    duplicate["match_classifications"][1] = deepcopy(
+        duplicate["match_classifications"][0]
+    )
+    mutations.append(duplicate)
+
+    invented = deepcopy(original)
+    invented["match_classifications"][0]["path"] = "fabricated.md"
+    mutations.append(invented)
+
+    invalid = deepcopy(original)
+    invalid["match_classifications"][0]["classification"] = "TRUTH"
+    mutations.append(invalid)
+
+    extra = deepcopy(original)
+    extra["match_classifications"][0]["accepted"] = True
+    mutations.append(extra)
+
+    for altered in mutations:
+        assert verify_retrieval_observation(rehash(altered)) is False
+
+    changed_label = deepcopy(original)
+    changed_label["match_classifications"][0]["classification"] = (
+        "FILENAME_QUERY_MATCH"
+    )
+    rehash(changed_label)
+
+    assert verify_retrieval_observation(changed_label) is True
+    assert recheck_retrieval_observation(runtime, changed_label) is False
+
+
+def test_retrieval_observation_version_compatibility(
+    tmp_path: Path,
+) -> None:
+    from copy import deepcopy
+
+    import pytest
+
+    from holosim.canonical import stable_hash
+
+    (tmp_path / "spine-notes.md").write_text(
+        "unrelated material", encoding="utf-8"
+    )
+    (tmp_path / "raw-source.md").write_text(
+        "evidence from an observed event", encoding="utf-8"
+    )
+
+    runtime = _Source(tmp_path)
+
+    old = observe_retrieval(runtime, "evidence", version=1)
+    new = observe_retrieval(runtime, "evidence", version=2)
+
+    assert old["version"] == 1
+    assert "match_classifications" not in old
+    assert new["version"] == 2
+    assert len(new["match_classifications"]) == 2
+
+    for observation in (old, new):
+        assert verify_retrieval_observation(observation) is True
+        assert recheck_retrieval_observation(runtime, observation) is True
+
+    def rehash(record):
+        record["observation_hash"] = stable_hash({
+            key: value
+            for key, value in record.items()
+            if key != "observation_hash"
+        })
+        return record
+
+    disguised_old = deepcopy(old)
+    disguised_old["version"] = 2
+    assert verify_retrieval_observation(rehash(disguised_old)) is False
+
+    disguised_new = deepcopy(new)
+    disguised_new["version"] = 1
+    assert verify_retrieval_observation(rehash(disguised_new)) is False
+
+    for invalid_version in (0, 3, True, "2"):
+        with pytest.raises(ValueError):
+            observe_retrieval(
+                runtime, "evidence", version=invalid_version
+            )
