@@ -458,8 +458,64 @@ def test_retrieval_observation_version_compatibility(
     disguised_new["version"] = 1
     assert verify_retrieval_observation(rehash(disguised_new)) is False
 
-    for invalid_version in (0, 3, True, "2"):
+    for invalid_version in (0, 4, True, "2"):
         with pytest.raises(ValueError):
             observe_retrieval(
                 runtime, "evidence", version=invalid_version
             )
+
+
+def test_version3_rehashed_tampering_is_rejected(tmp_path):
+    from copy import deepcopy
+
+    from holosim.canonical import stable_hash
+
+    (tmp_path / "raw-source.md").write_text(
+        "evidence", encoding="utf-8"
+    )
+    (tmp_path / "evidence-name.md").write_text(
+        "", encoding="utf-8"
+    )
+    (tmp_path / "spine-unrelated.md").write_text(
+        "", encoding="utf-8"
+    )
+
+    source = _Source(tmp_path)
+    original = observe_retrieval(source, "evidence", version=3)
+
+    assert verify_retrieval_observation(original) is True
+    assert recheck_retrieval_observation(source, original) is True
+
+    cases = {}
+
+    record = deepcopy(original)
+    record["candidate_matches"] += 1
+    cases["false candidate count"] = record
+
+    record = deepcopy(original)
+    record["eligible_matches"] += 1
+    cases["false eligible count"] = record
+
+    record = deepcopy(original)
+    record["candidate_paths"].pop()
+    cases["omitted candidate"] = record
+
+    record = deepcopy(original)
+    record["match_classifications"][0]["classification"] = (
+        "FILENAME_BONUS_ONLY"
+    )
+    cases["changed classification"] = record
+
+    record = deepcopy(original)
+    record["matched_paths"].pop()
+    cases["omitted eligible match"] = record
+
+    for name, record in cases.items():
+        record["observation_hash"] = stable_hash({
+            key: value
+            for key, value in record.items()
+            if key != "observation_hash"
+        })
+
+        assert verify_retrieval_observation(record) is False, name
+        assert recheck_retrieval_observation(source, record) is False, name
