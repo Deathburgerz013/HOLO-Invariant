@@ -17,8 +17,11 @@ def observe_retrieval(
     query: str,
     *,
     limit: int = 5,
+    version: int = 2,
 ) -> dict[str, Any]:
     """Observe one refreshed document snapshot and its bounded search result."""
+    if type(version) is not int or version not in (1, 2):
+        raise ValueError("unsupported retrieval observation version")
     clean_query = query.strip()
     if not clean_query:
         raise ValueError("query cannot be empty")
@@ -46,12 +49,33 @@ def observe_retrieval(
     }
 
     matched_paths = []
+    match_classifications = []
+
     for document in documents:
-        score, _, _ = score_retrieval_document(
+        score, token_hits, phrase_hit = score_retrieval_document(
             document, clean_query, query_tokens
         )
-        if score > 0:
-            matched_paths.append(document["path"])
+        if score <= 0:
+            continue
+
+        matched_paths.append(document["path"])
+
+        content = str(document["content"]).lower()
+        name = str(document["name"]).lower()
+
+        if phrase_hit or any(token in content for token in token_hits):
+            classification = "CONTENT_MATCH"
+        elif any(token in name for token in token_hits):
+            classification = "FILENAME_QUERY_MATCH"
+        else:
+            classification = "FILENAME_BONUS_ONLY"
+
+        match_classifications.append({
+            "path": document["path"],
+            "classification": classification,
+        })
+
+    match_classifications.sort(key=lambda item: item["path"])
 
     matched_paths = sorted(matched_paths)
     total_matches = len(matched_paths)
@@ -59,7 +83,7 @@ def observe_retrieval(
 
     observation = {
         "type": "evidence_bound_retrieval_observation",
-        "version": 1,
+        "version": version,
         "query": clean_query,
         "limit": limit,
         "snapshot_hash": snapshot_hash,
@@ -78,6 +102,9 @@ def observe_retrieval(
         "write_authority": "NONE",
         "execution_authority": "NONE",
     }
+    if version == 2:
+        observation["match_classifications"] = match_classifications
+
     observation["observation_hash"] = stable_hash(observation)
     return observation
 
@@ -90,7 +117,8 @@ def verify_retrieval_observation(observation: Any) -> bool:
 
         if observation.get("type") != "evidence_bound_retrieval_observation":
             return False
-        if type(observation.get("version")) is not int or observation["version"] != 1:
+        version = observation.get("version")
+        if type(version) is not int or version not in (1, 2):
             return False
 
         manifest = observation["document_manifest"]
@@ -132,6 +160,34 @@ def verify_retrieval_observation(observation: Any) -> bool:
             return False
         if not set(matches).issubset(hashes):
             return False
+
+        if version == 1:
+            if "match_classifications" in observation:
+                return False
+        else:
+            classifications = observation["match_classifications"]
+            allowed = {
+                "CONTENT_MATCH",
+                "FILENAME_QUERY_MATCH",
+                "FILENAME_BONUS_ONLY",
+            }
+
+            if not isinstance(classifications, list):
+                return False
+            if len(classifications) != len(matches):
+                return False
+
+            for index, entry in enumerate(classifications):
+                if not isinstance(entry, dict):
+                    return False
+                if set(entry) != {"path", "classification"}:
+                    return False
+                if entry["path"] != matches[index]:
+                    return False
+                if type(entry["classification"]) is not str:
+                    return False
+                if entry["classification"] not in allowed:
+                    return False
 
         if type(observation["discovered_documents"]) is not int:
             return False
@@ -226,6 +282,7 @@ def recheck_retrieval_observation(
             source,
             observation["query"],
             limit=observation["limit"],
+            version=observation["version"],
         )
     except (OSError, ValueError, TypeError, KeyError):
         return False
