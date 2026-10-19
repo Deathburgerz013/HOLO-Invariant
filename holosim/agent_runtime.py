@@ -224,6 +224,31 @@ class ReadOnlyViolation(RuntimeError):
     """Raised when a request attempts to cross the write boundary."""
 
 
+def score_retrieval_document(
+    document: Dict[str, Any],
+    clean_query: str,
+    query_tokens: set[str],
+) -> tuple[int, list[str], bool]:
+    """Apply the runtime's deterministic lexical scoring rules."""
+    lowered = str(document["content"]).lower()
+    name_lower = str(document["name"]).lower()
+
+    token_hits = sorted(
+        token
+        for token in query_tokens
+        if token in lowered or token in name_lower
+    )
+    phrase_hit = clean_query.lower() in lowered
+
+    score = len(token_hits)
+    if phrase_hit:
+        score += 3
+    if "spine" in name_lower:
+        score += 1
+
+    return score, token_hits, phrase_hit
+
+
 class HoloAgentRuntime:
     """Read-only observation and proposal engine."""
 
@@ -377,6 +402,7 @@ class HoloAgentRuntime:
         query: str,
         *,
         limit: int = 5,
+        documents: List[Dict[str, Any]] | None = None,
     ) -> Dict[str, Any]:
         """Search project documents using deterministic lexical scoring."""
         clean_query = query.strip()
@@ -395,25 +421,19 @@ class HoloAgentRuntime:
 
         results: List[Dict[str, Any]] = []
 
-        for document in self.discover_documents():
+        search_documents = (
+            self.discover_documents()
+            if documents is None
+            else documents
+        )
+        for document in search_documents:
             content = str(document["content"])
             lowered = content.lower()
             name_lower = str(document["name"]).lower()
 
-            token_hits = sorted(
-                token
-                for token in query_tokens
-                if token in lowered or token in name_lower
+            score, token_hits, phrase_hit = score_retrieval_document(
+                document, clean_query, query_tokens
             )
-
-            phrase_hit = clean_query.lower() in lowered
-            score = len(token_hits)
-
-            if phrase_hit:
-                score += 3
-
-            if "spine" in name_lower:
-                score += 1
 
             if score <= 0:
                 continue

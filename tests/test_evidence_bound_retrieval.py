@@ -1,0 +1,335 @@
+"""Regression tests for bounded, non-authoritative retrieval observation."""
+
+from copy import deepcopy
+from pathlib import Path
+
+from holosim.agent_runtime import HoloAgentRuntime
+from holosim.evidence_bound_retrieval import observe_retrieval, recheck_retrieval_observation, verify_retrieval_observation
+
+
+class _Source:
+    discover_documents = HoloAgentRuntime.discover_documents
+
+    def __init__(self, root: Path) -> None:
+        self.repo_root = root
+        self._documents = None
+
+
+def test_excluded_document_change_updates_snapshot(tmp_path: Path) -> None:
+    for index in range(5):
+        (tmp_path / f"top{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    excluded = tmp_path / "excluded.md"
+    excluded.write_text("evidence", encoding="utf-8")
+
+    source = _Source(tmp_path)
+    before = observe_retrieval(source, "evidence recall", limit=5)
+
+    excluded.write_text("evidence correction updated", encoding="utf-8")
+    after = observe_retrieval(source, "evidence recall", limit=5)
+
+    assert before["query_hash"] == after["query_hash"]
+    assert before["snapshot_hash"] != after["snapshot_hash"]
+
+
+def test_reused_source_observes_changed_document(tmp_path: Path) -> None:
+    document = tmp_path / "evidence.md"
+    document.write_text("recall original", encoding="utf-8")
+
+    source = _Source(tmp_path)
+    before = observe_retrieval(source, "recall", limit=5)
+
+    document.write_text("recall corrected", encoding="utf-8")
+    after = observe_retrieval(source, "recall", limit=5)
+
+    assert before["snapshot_hash"] != after["snapshot_hash"]
+    assert before["query_hash"] != after["query_hash"]
+
+
+def test_truncation_is_explicit_and_non_authoritative(tmp_path: Path) -> None:
+    for index in range(6):
+        (tmp_path / f"doc{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    result = observe_retrieval(
+        _Source(tmp_path), "evidence recall", limit=5
+    )
+
+    assert result["total_matches"] == 6
+    assert result["returned_matches"] == 5
+    assert result["truncated"] is True
+    assert result["truth_claimed"] is False
+    assert result["accepted"] is False
+    assert result["write_authority"] == "NONE"
+    assert result["execution_authority"] == "NONE"
+
+
+def test_observation_uses_exactly_one_discovery_snapshot(
+    tmp_path: Path,
+) -> None:
+    document = tmp_path / "evidence.md"
+    document.write_text("recall original", encoding="utf-8")
+
+    class CountingSource(_Source):
+        def __init__(self, root: Path) -> None:
+            super().__init__(root)
+            self.discovery_calls = 0
+
+        def discover_documents(self, refresh: bool = False):
+            self.discovery_calls += 1
+            return HoloAgentRuntime.discover_documents(
+                self, refresh=refresh
+            )
+
+    source = CountingSource(tmp_path)
+
+    result = observe_retrieval(source, "recall")
+
+    assert source.discovery_calls == 1
+    assert result["returned_matches"] == 1
+    assert result["results"][0]["snippet"] == "recall original"
+
+
+
+def test_retrieval_observation_rejects_tampering(tmp_path: Path) -> None:
+    for index in range(6):
+        (tmp_path / f"doc{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    original = observe_retrieval(
+        _Source(tmp_path), "evidence recall", limit=5
+    )
+
+    assert verify_retrieval_observation(original) is True
+
+    changes = [
+        ("snapshot_hash", "0" * 64),
+        ("total_matches", 999),
+        ("returned_matches", 999),
+        ("truncated", False),
+        ("discovered_documents", 999),
+    ]
+
+    for field, value in changes:
+        altered = deepcopy(original)
+        altered[field] = value
+        assert verify_retrieval_observation(altered) is False, field
+
+    altered = deepcopy(original)
+    altered["document_manifest"][0][1] = "0" * 64
+    assert verify_retrieval_observation(altered) is False
+
+    altered = deepcopy(original)
+    altered["results"][0]["content_hash"] = "0" * 64
+    assert verify_retrieval_observation(altered) is False
+
+
+def test_omitted_match_requires_independent_recheck(
+    tmp_path: Path,
+) -> None:
+    from copy import deepcopy
+
+    from holosim.evidence_bound_retrieval import (
+        recheck_retrieval_observation,
+    )
+
+    for index in range(6):
+        (tmp_path / f"doc{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    source = _Source(tmp_path)
+    original = observe_retrieval(
+        source, "evidence recall", limit=5
+    )
+
+    altered = deepcopy(original)
+    altered["matched_paths"].pop()
+    altered["total_matches"] = 5
+    altered["truncated"] = False
+
+    assert recheck_retrieval_observation(
+        source, original
+    ) is True
+
+    assert recheck_retrieval_observation(
+        source, altered
+    ) is False
+
+
+def test_recheck_rejects_changed_source(tmp_path: Path) -> None:
+    from holosim.evidence_bound_retrieval import (
+        recheck_retrieval_observation,
+    )
+
+    document = tmp_path / "evidence.md"
+    document.write_text("recall original", encoding="utf-8")
+
+    runtime = _Source(tmp_path)
+    original = observe_retrieval(runtime, "recall")
+
+    document.write_text("recall corrected", encoding="utf-8")
+
+    assert recheck_retrieval_observation(runtime, original) is False
+
+
+def test_recheck_rejects_unavailable_source(tmp_path: Path) -> None:
+    from holosim.evidence_bound_retrieval import (
+        recheck_retrieval_observation,
+    )
+
+    document = tmp_path / "evidence.md"
+    document.write_text("recall original", encoding="utf-8")
+
+    runtime = _Source(tmp_path)
+    original = observe_retrieval(runtime, "recall")
+
+    document.unlink()
+
+    assert recheck_retrieval_observation(runtime, original) is False
+
+
+def test_verifier_rejects_altered_query_hash(tmp_path: Path) -> None:
+    from copy import deepcopy
+
+    from holosim.evidence_bound_retrieval import (
+        verify_retrieval_observation,
+    )
+
+    (tmp_path / "evidence.md").write_text(
+        "evidence recall", encoding="utf-8"
+    )
+
+    original = observe_retrieval(
+        _Source(tmp_path), "evidence recall"
+    )
+
+    altered = deepcopy(original)
+    altered["query_hash"] = "0" * 64
+
+    assert verify_retrieval_observation(original) is True
+    assert verify_retrieval_observation(altered) is False
+
+
+def test_unrelated_spine_filename_is_not_a_match(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "spine-notes.md").write_text(
+        "unrelated text",
+        encoding="utf-8",
+    )
+
+    observation = observe_retrieval(
+        _Source(tmp_path),
+        "evidence",
+        limit=5,
+    )
+
+    assert len(observation["results"]) == 1
+    assert observation["results"][0]["path"] == "spine-notes.md"
+    assert observation["results"][0]["score"] == 1
+    assert observation["matched_paths"] == ["spine-notes.md"]
+    assert observation["total_matches"] == 1
+    assert observation["returned_matches"] == 1
+    assert observation["truncated"] is False
+
+
+def test_observation_hash_binds_complete_retrieval(
+    tmp_path: Path,
+) -> None:
+    from copy import deepcopy
+
+    for index in range(6):
+        (tmp_path / f"doc{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    original = observe_retrieval(
+        _Source(tmp_path), "evidence recall", limit=5
+    )
+
+    assert isinstance(original["observation_hash"], str)
+
+    altered = deepcopy(original)
+    altered["matched_paths"][-1] = "fabricated.md"
+
+    assert verify_retrieval_observation(altered) is False
+
+    altered = deepcopy(original)
+    altered["limit"] = 6
+
+    assert verify_retrieval_observation(altered) is False
+
+
+def test_recheck_rejects_rehashed_fabricated_match(
+    tmp_path: Path,
+) -> None:
+    from copy import deepcopy
+
+    from holosim.canonical import stable_hash
+
+    for index in range(6):
+        (tmp_path / f"doc{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    source = _Source(tmp_path)
+    original = observe_retrieval(
+        source, "evidence recall", limit=5
+    )
+
+    altered = deepcopy(original)
+    altered["matched_paths"][-1] = "fabricated.md"
+    altered["observation_hash"] = stable_hash({
+        key: value
+        for key, value in altered.items()
+        if key != "observation_hash"
+    })
+
+    assert verify_retrieval_observation(altered) is False
+    assert recheck_retrieval_observation(source, altered) is False
+
+
+def test_recheck_rejects_rehashed_existing_path(
+    tmp_path: Path,
+) -> None:
+    from copy import deepcopy
+
+    from holosim.canonical import stable_hash
+
+    for index in range(6):
+        (tmp_path / f"match{index}.md").write_text(
+            "evidence recall", encoding="utf-8"
+        )
+
+    (tmp_path / "unrelated.md").write_text(
+        "completely different content", encoding="utf-8"
+    )
+
+    runtime = _Source(tmp_path)
+    original = observe_retrieval(
+        runtime, "evidence recall", limit=5
+    )
+
+    altered = deepcopy(original)
+    omitted = set(altered["matched_paths"]) - {
+        result["path"] for result in altered["results"]
+    }
+    assert len(omitted) == 1
+
+    altered["matched_paths"].remove(omitted.pop())
+    altered["matched_paths"].append("unrelated.md")
+    altered["matched_paths"].sort()
+
+    altered["observation_hash"] = stable_hash({
+        key: value
+        for key, value in altered.items()
+        if key != "observation_hash"
+    })
+
+    assert verify_retrieval_observation(altered) is True
+    assert recheck_retrieval_observation(runtime, altered) is False
