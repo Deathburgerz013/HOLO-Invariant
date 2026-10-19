@@ -117,3 +117,54 @@ def test_filename_bonus_only_matches_fill_remaining_result_slots(
     assert observation["accepted"] is False
     assert observation["write_authority"] == "NONE"
     assert observation["execution_authority"] == "NONE"
+
+
+def test_filename_bonus_requires_independent_query_match(tmp_path):
+    from holosim.agent_runtime import HoloAgentRuntime
+    from holosim.evidence_bound_retrieval import observe_retrieval
+
+    class Source:
+        discover_documents = HoloAgentRuntime.discover_documents
+
+        def __init__(self, root):
+            self.repo_root = root
+            self._documents = None
+
+    for index in range(10):
+        (tmp_path / f"spine-unrelated-{index}.md").write_text(
+            "", encoding="utf-8"
+        )
+
+    (tmp_path / "raw-source.md").write_text(
+        "evidence", encoding="utf-8"
+    )
+    (tmp_path / "evidence-filename.md").write_text(
+        "", encoding="utf-8"
+    )
+    (tmp_path / "spine-evidence.md").write_text(
+        "", encoding="utf-8"
+    )
+
+    observation = observe_retrieval(
+        Source(tmp_path), "evidence", limit=5, version=3
+    )
+
+    returned = [
+        item["path"] for item in observation["results"]
+    ]
+
+    assert returned == [
+        "raw-source.md",
+        "spine-evidence.md",
+        "evidence-filename.md",
+    ]
+
+    assert observation["version"] == 3
+    assert observation["discovered_documents"] == 13
+    assert observation["candidate_matches"] == 13
+    assert observation["eligible_matches"] == 3
+    assert observation["returned_matches"] == 3
+    assert observation["total_matches"] == 3
+    assert len(observation["candidate_paths"]) == 13
+    assert len(observation["matched_paths"]) == 3
+    assert observation["truncated"] is False

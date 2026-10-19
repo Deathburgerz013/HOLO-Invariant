@@ -20,7 +20,7 @@ def observe_retrieval(
     version: int = 2,
 ) -> dict[str, Any]:
     """Observe one refreshed document snapshot and its bounded search result."""
-    if type(version) is not int or version not in (1, 2):
+    if type(version) is not int or version not in (1, 2, 3):
         raise ValueError("unsupported retrieval observation version")
     clean_query = query.strip()
     if not clean_query:
@@ -38,10 +38,6 @@ def observe_retrieval(
     )
     snapshot_hash = stable_hash(document_manifest)
 
-    result = HoloAgentRuntime.query_spines(
-        source, clean_query, limit=limit, documents=documents
-    )
-
     query_tokens = {
         token
         for token in tokenize(clean_query)
@@ -50,6 +46,7 @@ def observe_retrieval(
 
     matched_paths = []
     match_classifications = []
+    eligible_documents = []
 
     for document in documents:
         score, token_hits, phrase_hit = score_retrieval_document(
@@ -75,9 +72,30 @@ def observe_retrieval(
             "classification": classification,
         })
 
+        if classification != "FILENAME_BONUS_ONLY":
+            eligible_documents.append(document)
+
     match_classifications.sort(key=lambda item: item["path"])
 
     matched_paths = sorted(matched_paths)
+
+    if version != 3:
+        result = HoloAgentRuntime.query_spines(
+            source, clean_query, limit=limit, documents=documents
+        )
+
+    if version == 3:
+        candidate_paths = matched_paths
+        matched_paths = sorted(
+            document["path"] for document in eligible_documents
+        )
+        result = HoloAgentRuntime.query_spines(
+            source,
+            clean_query,
+            limit=limit,
+            documents=eligible_documents,
+        )
+
     total_matches = len(matched_paths)
     returned_matches = len(result["results"])
 
@@ -104,6 +122,11 @@ def observe_retrieval(
     }
     if version == 2:
         observation["match_classifications"] = match_classifications
+    elif version == 3:
+        observation["candidate_paths"] = candidate_paths
+        observation["candidate_matches"] = len(candidate_paths)
+        observation["eligible_matches"] = total_matches
+        observation["match_classifications"] = match_classifications
 
     observation["observation_hash"] = stable_hash(observation)
     return observation
@@ -118,7 +141,7 @@ def verify_retrieval_observation(observation: Any) -> bool:
         if observation.get("type") != "evidence_bound_retrieval_observation":
             return False
         version = observation.get("version")
-        if type(version) is not int or version not in (1, 2):
+        if type(version) is not int or version not in (1, 2, 3):
             return False
 
         manifest = observation["document_manifest"]
@@ -166,6 +189,30 @@ def verify_retrieval_observation(observation: Any) -> bool:
                 return False
         else:
             classifications = observation["match_classifications"]
+            classification_paths = matches
+
+            if version == 3:
+                candidates = observation["candidate_paths"]
+
+                if not isinstance(candidates, list):
+                    return False
+                if any(type(path) is not str for path in candidates):
+                    return False
+                if candidates != sorted(set(candidates)):
+                    return False
+                if not set(candidates).issubset(hashes):
+                    return False
+                if type(observation["candidate_matches"]) is not int:
+                    return False
+                if observation["candidate_matches"] != len(candidates):
+                    return False
+                if type(observation["eligible_matches"]) is not int:
+                    return False
+                if observation["eligible_matches"] != len(matches):
+                    return False
+
+                classification_paths = candidates
+
             allowed = {
                 "CONTENT_MATCH",
                 "FILENAME_QUERY_MATCH",
@@ -174,7 +221,7 @@ def verify_retrieval_observation(observation: Any) -> bool:
 
             if not isinstance(classifications, list):
                 return False
-            if len(classifications) != len(matches):
+            if len(classifications) != len(classification_paths):
                 return False
 
             for index, entry in enumerate(classifications):
@@ -182,11 +229,20 @@ def verify_retrieval_observation(observation: Any) -> bool:
                     return False
                 if set(entry) != {"path", "classification"}:
                     return False
-                if entry["path"] != matches[index]:
+                if entry["path"] != classification_paths[index]:
                     return False
                 if type(entry["classification"]) is not str:
                     return False
                 if entry["classification"] not in allowed:
+                    return False
+
+            if version == 3:
+                expected_eligible = [
+                    entry["path"]
+                    for entry in classifications
+                    if entry["classification"] != "FILENAME_BONUS_ONLY"
+                ]
+                if matches != expected_eligible:
                     return False
 
         if type(observation["discovered_documents"]) is not int:
