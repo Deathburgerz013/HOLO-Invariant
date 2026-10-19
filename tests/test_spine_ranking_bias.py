@@ -56,3 +56,64 @@ def test_content_match_outranks_filename_only_match():
     assert unrelated_score == 1
     assert relevant_score == 4
     assert relevant_score > unrelated_score
+
+
+def test_filename_bonus_only_matches_fill_remaining_result_slots(
+    tmp_path,
+):
+    from pathlib import Path
+
+    from holosim.agent_runtime import HoloAgentRuntime
+    from holosim.evidence_bound_retrieval import (
+        observe_retrieval,
+        recheck_retrieval_observation,
+        verify_retrieval_observation,
+    )
+
+    class IsolatedSource:
+        discover_documents = HoloAgentRuntime.discover_documents
+
+        def __init__(self, root):
+            self.repo_root = Path(root)
+            self._documents = None
+
+    for index in range(10):
+        (tmp_path / f"spine-unrelated-{index}.md").write_text(
+            "", encoding="utf-8"
+        )
+
+    (tmp_path / "raw-source.md").write_text(
+        "evidence", encoding="utf-8"
+    )
+
+    source = IsolatedSource(tmp_path)
+    observation = observe_retrieval(source, "evidence", limit=5)
+
+    returned = [
+        result["path"] for result in observation["results"]
+    ]
+
+    classifications = {
+        entry["path"]: entry["classification"]
+        for entry in observation["match_classifications"]
+    }
+
+    assert observation["version"] == 2
+    assert observation["discovered_documents"] == 11
+    assert observation["total_matches"] == 11
+    assert observation["returned_matches"] == 5
+
+    assert returned[0] == "raw-source.md"
+    assert classifications[returned[0]] == "CONTENT_MATCH"
+
+    assert all(
+        classifications[path] == "FILENAME_BONUS_ONLY"
+        for path in returned[1:]
+    )
+
+    assert verify_retrieval_observation(observation)
+    assert recheck_retrieval_observation(source, observation)
+
+    assert observation["accepted"] is False
+    assert observation["write_authority"] == "NONE"
+    assert observation["execution_authority"] == "NONE"
