@@ -145,3 +145,43 @@ def test_authority_injection_rejected(tmp_path: Path) -> None:
             candidate=candidate, checkpoint=checkpoint,
             allowed_signers_path=signers,
         )
+def test_attacker_controlled_policy_can_self_authorize(tmp_path: Path) -> None:
+    """Expose signature validity without independent trust provenance."""
+    candidate = _candidate()
+
+    legitimate_key, legitimate_policy = _key(tmp_path, "legitimate")
+    legitimate_checkpoint = sign_origin_checkpoint(
+        candidate=candidate,
+        validator_id="idx:v1",
+        contributor_id=None,
+        signer_identity="anchor",
+        private_key_path=legitimate_key,
+    )
+
+    attacker_key, attacker_policy = _key(tmp_path, "attacker")
+    attacker_checkpoint = sign_origin_checkpoint(
+        candidate=candidate,
+        validator_id="idx:v1",
+        contributor_id=None,
+        signer_identity="anchor",
+        private_key_path=attacker_key,
+    )
+
+    rejected = verify_origin_checkpoint(
+        candidate=candidate,
+        checkpoint=attacker_checkpoint,
+        allowed_signers_path=legitimate_policy,
+    )
+    assert rejected["status"] == "REJECTED_SIGNATURE"
+
+    substituted = verify_origin_checkpoint(
+        candidate=candidate,
+        checkpoint=attacker_checkpoint,
+        allowed_signers_path=attacker_policy,
+    )
+    assert substituted["status"] == "VERIFIED"
+    assert substituted["verified"] is True
+    assert substituted["accepted"] is False
+    assert substituted["truth_claimed"] is False
+    assert substituted["write_authority"] == "NONE"
+    assert substituted["execution_authority"] == "NONE"
