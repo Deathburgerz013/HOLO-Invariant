@@ -180,3 +180,56 @@ def test_deep_malformed_witness(setup):
     args, _, _ = setup
     args["witness_path"].write_bytes(b"[" * 2000 + b"0" + b"]" * 2000)
     assert recover_witnessed_history(**args)["status"] == "REJECTED_WITNESS"
+def test_replaced_signer_policy_can_self_authorize(setup, tmp_path):
+    args, _, _ = setup
+
+    attacker = tmp_path / "replacement"
+    attacker.mkdir()
+    key = attacker / "key"
+
+    subprocess.run(
+        ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
+        check=True,
+        capture_output=True,
+    )
+
+    chain = attacker / "chain.jsonl"
+    HoloChain(chain).append("replacement history")
+
+    witness = attacker / "witness.json"
+    obj = sign_history_witness(
+        chain_path=chain,
+        chain_id="fixture-chain",
+        signer_identity="fixture",
+        private_key_path=key,
+    )
+    witness.write_bytes(canonical_bytes(obj))
+
+    # The original trusted policy must reject the replacement signer.
+    original_policy = recover_witnessed_history(
+        **{**args, "chain_path": chain, "witness_path": witness}
+    )
+    assert original_policy["status"] == "REJECTED_SIGNATURE"
+
+    # The replacement signer supplies its own allowed-signers policy.
+    replacement_policy = attacker / "allowed"
+    replacement_policy.write_text(
+        "fixture " + Path(str(key) + ".pub").read_text(),
+        encoding="utf-8",
+    )
+
+    replaced = recover_witnessed_history(
+        **{
+            **args,
+            "chain_path": chain,
+            "witness_path": witness,
+            "allowed_signers_path": replacement_policy,
+        }
+    )
+
+    assert replaced["status"] == "MATCHED"
+    assert replaced["matched"] is True
+    assert replaced["accepted"] is False
+    assert replaced["truth_claimed"] is False
+    assert replaced["write_authority"] == "NONE"
+    assert replaced["execution_authority"] == "NONE"
