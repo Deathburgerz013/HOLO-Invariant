@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,6 +26,13 @@ jobs:
 
       - name: Check generated README status
         run: python -m holosim.readme_status --check
+
+      - name: Verify PR pytest collection continuity
+        if: github.event_name == 'pull_request'
+        env:
+          HOLO_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python -m holosim.pytest_collection_ci_gate --base-sha "$HOLO_BASE_SHA"
 
       - name: Run full test suite
         run: python -m pytest -q --ignore=Holo
