@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
+import venv
 from pathlib import Path
 
 from holosim.pytest_collection_continuity import (
@@ -76,11 +78,12 @@ def bounded_identity(value: str) -> str:
     return "sha256:" + digest
 
 
-def collect_revision(directory: Path) -> dict:
+def collect_revision(directory: Path, *, python_executable: Path | None = None) -> dict:
     """Collect identities in a separate Python process."""
     process = subprocess.run(
-        [sys.executable, "-c", COLLECTOR],
+        [str(python_executable or sys.executable), "-c", COLLECTOR],
         cwd=directory,
+        env=clean_collection_environment(),
         capture_output=True,
         text=True,
         timeout=180,
@@ -149,6 +152,44 @@ def git(*args: str, cwd: Path) -> str:
     return process.stdout.strip()
 
 
+def clean_collection_environment() -> dict[str, str]:
+    """Prevent caller-controlled Python paths from crossing revision boundaries."""
+    return {key: value for key, value in os.environ.items()
+            if key.upper() not in {"PYTHONPATH", "PYTHONHOME", "PYTEST_ADDOPTS", "PYTEST_PLUGINS"}}
+
+
+def isolated_python(revision: Path, environment: Path) -> Path:
+    """Install a revision in its own non-inheriting virtual environment."""
+    if not (revision / "pyproject.toml").is_file():
+        raise CollectionGateError("revision has no pyproject.toml")
+
+    try:
+        venv.EnvBuilder(with_pip=True, system_site_packages=False).create(environment)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise CollectionGateError("could not create isolated collection environment") from exc
+
+    executable = environment / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+    try:
+        process = subprocess.run(
+            [str(executable), "-m", "pip", "install", "--disable-pip-version-check", "-e", ".[dev]"],
+            cwd=revision,
+            env=clean_collection_environment(),
+            capture_output=True,
+            text=True,
+            timeout=600,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise CollectionGateError("isolated collection installation failed") from exc
+
+    if process.returncode != 0:
+        raise CollectionGateError(
+            "isolated collection installation failed\n"
+            + process.stdout[-1500:] + process.stderr[-1500:]
+        )
+    return executable
+
+
 def compare_revisions(repository: Path, base_sha: str) -> dict:
     """Compare a supplied base commit with the checked-out candidate."""
     repository = repository.resolve()
@@ -179,8 +220,12 @@ def compare_revisions(repository: Path, base_sha: str) -> dict:
         )
 
         try:
-            previous = collect_revision(base_directory)
-            current = collect_revision(repository)
+            # Separate environments prevent candidate-installed packages from
+            # supplying imports to the historical pytest collection.
+            base_python = isolated_python(base_directory, Path(temp) / "base-venv")
+            head_python = isolated_python(repository, Path(temp) / "head-venv")
+            previous = collect_revision(base_directory, python_executable=base_python)
+            current = collect_revision(repository, python_executable=head_python)
 
             return compare_pytest_collections(
                 previous=previous,
