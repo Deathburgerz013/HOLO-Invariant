@@ -100,6 +100,14 @@ def test_deleted_test_is_detected_across_commits(tmp_path):
     _git(repo, "config", "user.name", "HOLO Test")
     _git(repo, "config", "user.email", "holo@example.invalid")
 
+    # Disposable revisions must be installable for isolated collection.
+    (repo / "pyproject.toml").write_text(
+        '[build-system]\nrequires = ["setuptools>=45"]\n'
+        'build-backend = "setuptools.build_meta"\n'
+        '[project]\nname = "holo-collection-fixture"\nversion = "0.0.1"\n'
+        '[project.optional-dependencies]\ndev = ["pytest>=8"]\n',
+        encoding="utf-8",
+    )
     tests = repo / "tests"
     tests.mkdir()
 
@@ -129,5 +137,68 @@ def test_deleted_test_is_detected_across_commits(tmp_path):
     assert result["current_count"] == 1
     assert len(result["missing"]) == 1
     assert result["missing"][0].endswith("::test_beta")
+    assert result["accepted"] is False
+    assert result["write_authority"] == "NONE"
+
+
+def test_historical_collection_uses_historical_package(tmp_path, monkeypatch):
+    """A candidate package rename must not break historical collection."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+
+    _git(repo, "init")
+    _git(repo, "config", "user.name", "HOLO Test")
+    _git(repo, "config", "user.email", "holo@example.invalid")
+
+    (repo / "pyproject.toml").write_text(
+        '[build-system]\nrequires = ["setuptools>=45"]\n'
+        'build-backend = "setuptools.build_meta"\n'
+        '[project]\nname = "holo-import-boundary-fixture"\n'
+        'version = "0.0.1"\n'
+        '[tool.setuptools.packages.find]\nwhere = ["."]\n'
+        '[project.optional-dependencies]\ndev = ["pytest>=8"]\n',
+        encoding="utf-8",
+    )
+
+    package = repo / "boundary_fixture"
+    package.mkdir()
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "old_module.py").write_text("VALUE = 42\n", encoding="utf-8")
+
+    tests = repo / "tests"
+    tests.mkdir()
+    test_file = tests / "test_boundary.py"
+    test_file.write_text(
+        "from boundary_fixture.old_module import VALUE\n"
+        "def test_identity():\n"
+        "    assert VALUE == 42\n",
+        encoding="utf-8",
+    )
+
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "historical module")
+    base = _git(repo, "rev-parse", "HEAD")
+
+    (package / "old_module.py").unlink()
+    (package / "new_module.py").write_text("VALUE = 42\n", encoding="utf-8")
+    test_file.write_text(
+        "from boundary_fixture.new_module import VALUE\n"
+        "def test_identity():\n"
+        "    assert VALUE == 42\n",
+        encoding="utf-8",
+    )
+
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "rename module without losing test")
+
+    # Attempt to contaminate both collection processes.
+    monkeypatch.setenv("PYTHONPATH", str(repo))
+
+    result = compare_revisions(repo, base)
+
+    assert result["status"] == "PRESERVED"
+    assert result["missing"] == []
+    assert result["previous_count"] == 1
+    assert result["current_count"] == 1
     assert result["accepted"] is False
     assert result["write_authority"] == "NONE"
