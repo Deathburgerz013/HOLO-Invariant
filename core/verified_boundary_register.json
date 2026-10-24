@@ -81,7 +81,7 @@
       "boundary_id": "detection-receipts",
       "module": "holosim.detection_receipts",
       "implementation_path": "holosim/detection_receipts.py",
-      "implementation_sha256": "2a8cfa31d4ff0decc6d5a5d4d57f317e5cab0e5a857d6cf68a015081c4a33919",
+      "implementation_sha256": "bace69a9c17b3f96006947be13b6376a80f71c67fc5adc1bd6381d3d28d527fc",
       "receipts": [
         {
           "type_constant": "RECEIPT_TYPE",
@@ -257,5 +257,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "cee616468350153747ddd6c9a7553fb34015585e8e2a7e920273f486164709b1"
+  "register_hash": "6f0ed28161d454cfb34ed0f6634ff5880b5d885ccfed2bdc77ac282f4fa9ff41"
 }

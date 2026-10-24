@@ -15,6 +15,8 @@ from holosim.canonical import CanonicalValueError, stable_hash
 RECEIPT_TYPE = "detection_receipt"
 RECEIPT_VERSION = 1
 
+_NOT_SUPPLIED = object()
+
 _ALLOWED_DISCREPANCY_CLASSES = {
     "CORRECTION",
     "CONFLICT",
@@ -196,8 +198,10 @@ def verify_detection_receipt(
     receipt: Mapping[str, Any],
     *,
     comparison: Mapping[str, Any],
+    left_observation: Any = _NOT_SUPPLIED,
+    right_observation: Any = _NOT_SUPPLIED,
 ) -> bool:
-    """Verify a detection receipt against its exact source comparison."""
+    """Verify a receipt, optionally reconstructing its source comparison."""
     if type(receipt) is not dict:
         raise DetectionReceiptError("receipt must be a plain dictionary")
 
@@ -224,6 +228,35 @@ def verify_detection_receipt(
 
     checked = _validate_comparison(comparison)
     checked = _rebuild_comparison(checked)
+
+    supplied_left = left_observation is not _NOT_SUPPLIED
+    supplied_right = right_observation is not _NOT_SUPPLIED
+
+    if supplied_left != supplied_right:
+        raise DetectionReceiptError(
+            "both source observations must be supplied together"
+        )
+
+    if supplied_left:
+        try:
+            reconstructed = compare_baseline_observations(
+                left_observation,
+                right_observation,
+            )
+        except (BaselineObservationError, CanonicalValueError) as exc:
+            raise DetectionReceiptError(
+                "source observation reconstruction failed"
+            ) from exc
+
+        # Historical comparisons may omit comparison_id.
+        # The supplied comparison must otherwise match reconstruction exactly.
+        expected_comparison = dict(reconstructed)
+        expected_comparison.pop("comparison_id")
+
+        if checked != expected_comparison:
+            raise DetectionReceiptError(
+                "comparison does not match supplied source observations"
+            )
 
     expected = build_detection_receipt(comparison=checked)
 
