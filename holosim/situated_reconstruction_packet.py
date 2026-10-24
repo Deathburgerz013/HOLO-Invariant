@@ -442,3 +442,83 @@ def consume_situated_reconstruction_packet(
         "write_authority": "NONE",
         "execution_authority": "NONE",
     }
+
+
+def consume_verified_situated_reconstruction_packet(
+    packet: Mapping[str, Any],
+    *,
+    history: Sequence[Mapping[str, Any]],
+    bindings: Sequence[Mapping[str, Any]],
+    current_environment_fingerprint: str,
+) -> dict[str, Any]:
+    """Consume a packet consistent with bounded, caller-supplied records.
+
+    This checks record consistency, not independent source authenticity.
+    The caller must supply a separately determined environment fingerprint.
+    Objective, unresolved items, and required checks are packet-authored text;
+    their hash integrity does not authenticate their author or intent.
+    A ready reconstruction grants no truth, write, or execution authority.
+    """
+    from holosim.invariant_validity_lifecycle import (
+        InvariantValidityLifecycleError,
+        project_active_invariants,
+    )
+
+    verify_situated_reconstruction_packet(packet)
+
+    max_source_records = 1000
+    for label, records in (("history", history), ("bindings", bindings)):
+        if not isinstance(records, (list, tuple)):
+            raise SituatedReconstructionPacketError(
+                f"{label} must be a list or tuple"
+            )
+        if len(records) > max_source_records:
+            raise SituatedReconstructionPacketError(
+                f"{label} exceeds maximum source records"
+            )
+
+    if (
+        not isinstance(current_environment_fingerprint, str)
+        or not current_environment_fingerprint.strip()
+        or packet["environment_fingerprint"]
+        != current_environment_fingerprint
+    ):
+        raise SituatedReconstructionPacketError(
+            "current environment fingerprint mismatch"
+        )
+
+    try:
+        projection = project_active_invariants(
+            history,
+            current_environment_fingerprint=current_environment_fingerprint,
+        )
+    except InvariantValidityLifecycleError as exc:
+        raise SituatedReconstructionPacketError(
+            f"invalid validity history: {exc}"
+        ) from exc
+    except Exception as exc:
+        raise SituatedReconstructionPacketError(
+            "unexpected validity history verification failure"
+        ) from exc
+
+    try:
+        expected = build_situated_reconstruction_packet(
+            projection=projection,
+            bindings=bindings,
+            objective=packet["objective"],
+            unresolved=packet["unresolved"],
+            required_checks=packet["required_checks"],
+        )
+    except SituatedReconstructionPacketError:
+        raise
+    except Exception as exc:
+        raise SituatedReconstructionPacketError(
+            "unexpected reconstruction verification failure"
+        ) from exc
+
+    if expected != packet:
+        raise SituatedReconstructionPacketError(
+            "packet provenance does not match supplied records"
+        )
+
+    return consume_situated_reconstruction_packet(packet)
