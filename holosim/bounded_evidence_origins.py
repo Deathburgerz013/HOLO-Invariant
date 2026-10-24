@@ -21,23 +21,14 @@ class EvidenceOriginError(ValueError):
     """Invalid or unbounded evidence-origin graph."""
 
 
-def classify_evidence_origins(
+def validate_evidence_origin_graph(
     receipts: Sequence[Mapping[str, Any]],
-    left_hash: str,
-    right_hash: str,
-) -> dict[str, Any]:
-    """Compare declared ancestry without inferring truth or independence."""
+) -> dict[str, dict[str, Any]]:
+    """Validate the entire bounded declared graph, including disconnected cycles."""
     if type(receipts) not in (list, tuple):
         raise EvidenceOriginError("receipts must be a list or tuple")
     if not 1 <= len(receipts) <= MAX_RECEIPTS:
         raise EvidenceOriginError("receipt budget exceeded")
-
-    for label, value in (("left_hash", left_hash), ("right_hash", right_hash)):
-        if type(value) is not str or _HASH.fullmatch(value) is None:
-            raise EvidenceOriginError(f"invalid {label}")
-
-    if left_hash == right_hash:
-        raise EvidenceOriginError("reports must have distinct hashes")
 
     # Validate raw input before the shared graph builder normalizes it.
     # Never let deduplication hide oversized or malformed input.
@@ -93,9 +84,6 @@ def classify_evidence_origins(
     except (ValueError, TypeError, KeyError) as exc:
         raise EvidenceOriginError("invalid receipt graph") from exc
 
-    if left_hash not in graph or right_hash not in graph:
-        raise EvidenceOriginError("report receipt missing")
-
     edges = sum(len(node["dependencies"]) for node in graph.values())
     if edges > MAX_EDGES:
         raise EvidenceOriginError("dependency budget exceeded")
@@ -136,6 +124,35 @@ def classify_evidence_origins(
             stack.append(
                 (dependency, iter(graph[dependency]["dependencies"]))
             )
+
+    return graph
+
+
+def classify_evidence_origins(
+    receipts: Sequence[Mapping[str, Any]],
+    left_hash: str,
+    right_hash: str,
+) -> dict[str, Any]:
+    """Compare declared ancestry without inferring truth or independence."""
+    graph = validate_evidence_origin_graph(receipts)
+    return _classify_validated_evidence_origins(graph, left_hash, right_hash)
+
+
+def _classify_validated_evidence_origins(
+    graph: Mapping[str, Mapping[str, Any]],
+    left_hash: str,
+    right_hash: str,
+) -> dict[str, Any]:
+    """Compare receipt ancestry in a graph already validated by this module."""
+    for label, value in (("left_hash", left_hash), ("right_hash", right_hash)):
+        if type(value) is not str or _HASH.fullmatch(value) is None:
+            raise EvidenceOriginError(f"invalid {label}")
+
+    if left_hash == right_hash:
+        raise EvidenceOriginError("reports must have distinct hashes")
+
+    if left_hash not in graph or right_hash not in graph:
+        raise EvidenceOriginError("report receipt missing")
 
     def ancestry(start: str) -> tuple[set[str], set[str]]:
         visited: set[str] = set()

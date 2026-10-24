@@ -11,6 +11,11 @@ from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from typing import Any
 
+from holosim.bounded_evidence_origins import (
+    EvidenceOriginError,
+    _classify_validated_evidence_origins,
+    validate_evidence_origin_graph,
+)
 from holosim.canonical import CanonicalValueError, stable_hash
 from holosim.guarantee_review_eligibility import (
     evaluate_guarantee_review_eligibility,
@@ -125,6 +130,7 @@ def evaluate_bound_guarantee_evidence(
     occurrences: Sequence[Mapping[str, Any]],
     source_secrets: Mapping[str, bytes],
     duplicate_of: str | None = None,
+    evidence_receipts: Sequence[Mapping[str, Any]] | None = None,
     minimum_confidence: float = 0.8,
     minimum_reinforcements: int = 2,
     minimum_evidence_refs: int = 2,
@@ -223,6 +229,73 @@ def evaluate_bound_guarantee_evidence(
         minimum_sessions=minimum_sessions,
     )
 
+    ancestry_results = []
+    if evidence_receipts is not None:
+        if len(payloads) > 32:
+            raise GuaranteeEvidenceBindingError(
+                "ancestry evaluation exceeds 32 occurrences"
+            )
+        if type(evidence_receipts) not in (list, tuple):
+            raise GuaranteeEvidenceBindingError(
+                "evidence_receipts must be a list or tuple"
+            )
+
+        try:
+            validated_graph = validate_evidence_origin_graph(evidence_receipts)
+        except EvidenceOriginError as exc:
+            raise GuaranteeEvidenceBindingError(
+                f"evidence ancestry is invalid: {exc}"
+            ) from exc
+
+        for payload in payloads:
+            if payload["evidence_reference"] not in validated_graph:
+                raise GuaranteeEvidenceBindingError(
+                    "evidence ancestry is invalid: report receipt missing"
+                )
+
+        references = [
+            payload["evidence_reference"]
+            for payload in payloads
+            if payload["stance"] == "SUPPORT"
+        ]
+
+        for left_index in range(len(references)):
+            for right_index in range(left_index + 1, len(references)):
+                try:
+                    classification = _classify_validated_evidence_origins(
+                        validated_graph,
+                        references[left_index],
+                        references[right_index],
+                    )
+                except EvidenceOriginError as exc:
+                    raise GuaranteeEvidenceBindingError(
+                        f"evidence ancestry is invalid: {exc}"
+                    ) from exc
+
+                ancestry_results.append(classification)
+
+        shared_ancestry = any(
+            item["status"] == "SHARED_DEPENDENCY"
+            for item in ancestry_results
+        )
+        ancestry_assessment = {
+            "status": (
+                "INSUFFICIENT_SUPPORT"
+                if len(references) < 2
+                else (
+                    "SHARED_DEPENDENCY"
+                    if shared_ancestry
+                    else "UNKNOWN"
+                )
+            ),
+            "independence_established": False,
+            "independent_corroboration_established": False,
+            "truth_claimed": False,
+            "accepted": False,
+            "write_authority": "NONE",
+            "execution_authority": "NONE",
+        }
+
     body = {
         "type": GUARANTEE_EVIDENCE_BINDING_TYPE,
         "version": GUARANTEE_EVIDENCE_BINDING_VERSION,
@@ -245,4 +318,8 @@ def evaluate_bound_guarantee_evidence(
             "acceptance, or authority."
         ),
     }
+    if evidence_receipts is not None:
+        body["ancestry_results"] = ancestry_results
+        body["ancestry_assessment"] = ancestry_assessment
+
     return {**body, "binding_hash": _hash(body)}
