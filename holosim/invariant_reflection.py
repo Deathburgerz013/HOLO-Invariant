@@ -232,7 +232,15 @@ def build_invariant_reflection_receipt(
     return {**body, "receipt_hash": stable_hash(body)}
 
 
-def verify_invariant_reflection_receipt(receipt: Mapping[str, Any]) -> bool:
+_NOT_SUPPLIED = object()
+
+
+def verify_invariant_reflection_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    invariant_state: Any = _NOT_SUPPLIED,
+    reflected_state: Any = _NOT_SUPPLIED,
+) -> bool:
     """Validate closed structure, derived relations, identity, and boundaries."""
     if type(receipt) is not dict or set(receipt) != _RECEIPT_FIELDS:
         raise InvariantReflectionError("receipt fields mismatch")
@@ -298,5 +306,36 @@ def verify_invariant_reflection_receipt(receipt: Mapping[str, Any]) -> bool:
     }
     if any(receipt[key] != value for key, value in fixed.items()):
         raise InvariantReflectionError("forbidden claim or authority")
+
+    supplied_invariant = invariant_state is not _NOT_SUPPLIED
+    supplied_reflected = reflected_state is not _NOT_SUPPLIED
+
+    if supplied_invariant or supplied_reflected:
+        if not supplied_invariant or not supplied_reflected:
+            raise InvariantReflectionError(
+                "independent comparison requires both states"
+            )
+
+        invariant = _canonical(invariant_state, label="invariant_state")
+
+        if stable_hash(invariant) != receipt["invariant_hash"]:
+            raise InvariantReflectionError("invariant state hash mismatch")
+
+        if status == "VERIFIED":
+            reflected = _canonical(reflected_state, label="reflected_state")
+
+            if stable_hash(reflected) != receipt["reflected_state_hash"]:
+                raise InvariantReflectionError("reflected state hash mismatch")
+
+            expected_paths = sorted(set(_residual_paths(invariant, reflected)))
+
+            if receipt["residual_paths"] != expected_paths:
+                raise InvariantReflectionError(
+                    "residual paths do not match supplied states"
+                )
+        elif reflected_state is not None:
+            raise InvariantReflectionError(
+                "unverified reflected_state must be null"
+            )
 
     return True
