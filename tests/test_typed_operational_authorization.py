@@ -9,6 +9,7 @@ from holosim.collector import Collector
 from holosim.core import HoloChain
 from holosim.service import HoloService
 from holosim.typed_operational_authorization import (
+    ACTION_NEURAL_WEIGHT_CORRECTION,
     ACTION_SERVICE_APPEND,
     OperationalAuthorizationError,
     build_operational_authorization,
@@ -176,3 +177,63 @@ def test_concurrent_replay_commits_exactly_once(tmp_path):
     assert payload["operational_authorization"]["authorization_hash"] == (
         authorization["authorization_hash"]
     )
+
+
+def test_neural_authorization_is_exact_target_only():
+    authorization = _authorization(
+        action=ACTION_NEURAL_WEIGHT_CORRECTION,
+    )
+
+    assert validate_operational_authorization(
+        authorization,
+        expected_action=ACTION_NEURAL_WEIGHT_CORRECTION,
+        expected_target_sha256=TARGET,
+    )
+    assert authorization["write_authority"] == "EXACT_TARGET_ONLY"
+    assert authorization["execution_authority"] == "NONE"
+    assert authorization["promotion_authority"] == "NONE"
+    assert authorization["truth_claimed"] is False
+
+
+def test_neural_authorization_cannot_substitute_for_service_append():
+    authorization = _authorization(
+        action=ACTION_NEURAL_WEIGHT_CORRECTION,
+    )
+
+    with pytest.raises(
+        OperationalAuthorizationError,
+        match="action does not match",
+    ):
+        validate_operational_authorization(
+            authorization,
+            expected_action=ACTION_SERVICE_APPEND,
+            expected_target_sha256=TARGET,
+        )
+
+
+def test_neural_authorization_rejects_wrong_target_and_tampering():
+    authorization = _authorization(
+        action=ACTION_NEURAL_WEIGHT_CORRECTION,
+    )
+
+    with pytest.raises(
+        OperationalAuthorizationError,
+        match="target does not match",
+    ):
+        validate_operational_authorization(
+            authorization,
+            expected_action=ACTION_NEURAL_WEIGHT_CORRECTION,
+            expected_target_sha256="b" * 64,
+        )
+
+    authorization["execution_authority"] = "EXACT_TARGET_ONLY"
+
+    with pytest.raises(
+        OperationalAuthorizationError,
+        match="identity is invalid",
+    ):
+        validate_operational_authorization(
+            authorization,
+            expected_action=ACTION_NEURAL_WEIGHT_CORRECTION,
+            expected_target_sha256=TARGET,
+        )
