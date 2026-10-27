@@ -53,13 +53,15 @@ def _required_text(value: Any, field: str) -> str:
 
 
 def _finite_number(value: Any) -> float | int:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, (int, float))
-        or not math.isfinite(value)
-    ):
-        raise MetricEvidenceError("value must be a finite number")
-    return value
+    if type(value) is int:
+        if value.bit_length() > 4096:
+            raise MetricEvidenceError("value exceeds numeric bound")
+        return value
+
+    if type(value) is float and math.isfinite(value):
+        return value
+
+    raise MetricEvidenceError("value must be a finite number")
 
 
 def _metric_hash(value: Any) -> str:
