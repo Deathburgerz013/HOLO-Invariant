@@ -163,6 +163,23 @@
       "test_sha256": "1c19b11bf44af87d23fedf7496e967d9a086d7d02d43c5a1a58aff4609212090"
     },
     {
+      "boundary_id": "objective-average",
+      "module": "holosim.objective_average",
+      "implementation_path": "holosim/objective_average.py",
+      "implementation_sha256": "d3b5be1fd584aa31068b8e76b6e9ed818e54eaf9e2f35b1c90cdb81f30d9dd26",
+      "receipts": [
+        {
+          "type_constant": "RECEIPT_TYPE",
+          "type": "bounded_objective_average",
+          "version_constant": "RECEIPT_VERSION",
+          "version": 1,
+          "verifier": "verify_objective_average"
+        }
+      ],
+      "test_path": "tests/test_objective_average.py",
+      "test_sha256": "0fdcc4be8134371f682015a0504f001d240a9fe81f7285f9fafaeb7119d952e1"
+    },
+    {
       "boundary_id": "provider-neutral-observer-transport",
       "module": "holosim.provider_neutral_observer_transport",
       "implementation_path": "holosim/provider_neutral_observer_transport.py",
@@ -257,5 +274,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "6f0ed28161d454cfb34ed0f6634ff5880b5d885ccfed2bdc77ac282f4fa9ff41"
+  "register_hash": "4723a112b238908a37c96a94df8454c2d9253f4285fa59ef82616978b6ecb64f"
 }
