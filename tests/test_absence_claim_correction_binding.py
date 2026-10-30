@@ -149,3 +149,28 @@ def test_binding_tampering_fails_validation():
             external_evidence=evidence,
             transition_candidate=transition,
         )
+
+@pytest.mark.parametrize("field", [
+    "type",
+    "version",
+    "binding_hash",
+    "continuity_receipt_hash",
+    "transition_binding_hash",
+    "write_authority",
+])
+def test_missing_binding_fields_fail_with_domain_error(field):
+    receipt, evidence, transition = _inputs()
+    binding = build_absence_claim_correction_binding(
+        continuity_receipt=receipt,
+        external_evidence=evidence,
+        transition_candidate=transition,
+    )
+    broken = deepcopy(binding)
+    del broken[field]
+    with pytest.raises(AbsenceClaimCorrectionBindingError):
+        validate_absence_claim_correction_binding(
+            broken,
+            continuity_receipt=receipt,
+            external_evidence=evidence,
+            transition_candidate=transition,
+        )
