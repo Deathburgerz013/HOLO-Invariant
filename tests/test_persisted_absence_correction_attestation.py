@@ -311,3 +311,19 @@ def test_historical_attestation_survives_valid_successor_commit(tmp_path):
         external_evidence=evidence,
         absence_binding=binding,
     )
+
+@pytest.mark.parametrize("record_id", [None, "", 123, [], {}])
+def test_malformed_attestation_record_id_fails_with_domain_error(tmp_path, record_id):
+    from holosim.persisted_absence_correction_attestation import (
+        PersistedAbsenceCorrectionAttestationError,
+        validate_persisted_absence_correction_attestation,
+    )
+
+    with pytest.raises(PersistedAbsenceCorrectionAttestationError):
+        validate_persisted_absence_correction_attestation(
+            {"record_id": record_id},
+            store=None,
+            continuity_receipt={},
+            external_evidence={},
+            absence_binding={},
+        )

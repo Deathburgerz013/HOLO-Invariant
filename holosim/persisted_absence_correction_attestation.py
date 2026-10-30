@@ -124,9 +124,15 @@ def validate_persisted_absence_correction_attestation(
             "attestation must be a plain dictionary"
         )
 
+    record_id = attestation.get("record_id")
+    if type(record_id) is not str or not record_id.strip():
+        raise PersistedAbsenceCorrectionAttestationError(
+            "attestation record_id must be a nonempty string"
+        )
+
     expected = build_persisted_absence_correction_attestation(
         store=store,
-        record_id=attestation.get("record_id"),
+        record_id=record_id,
         continuity_receipt=continuity_receipt,
         external_evidence=external_evidence,
         absence_binding=absence_binding,
