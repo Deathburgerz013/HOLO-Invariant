@@ -1,4 +1,4 @@
-﻿"""Tests for read-only absence-to-correction identity binding."""
+"""Tests for read-only absence-to-correction identity binding."""
 
 from copy import deepcopy
 

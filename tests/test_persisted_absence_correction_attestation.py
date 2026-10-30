@@ -1,4 +1,4 @@
-﻿"""Tests for read-only persisted absence-correction attestation."""
+"""Tests for read-only persisted absence-correction attestation."""
 
 from copy import deepcopy
 

@@ -1,4 +1,4 @@
-﻿"""Read-only association of absence evidence with a persisted correction."""
+"""Read-only association of absence evidence with a persisted correction."""
 
 from __future__ import annotations
 
