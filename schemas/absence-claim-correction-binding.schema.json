@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Deathburgerz013/HOLO-Invariant/main/schemas/absence-claim-correction-binding.schema.json",
+  "title": "HOLO Absence Claim Correction Binding",
+  "description": "Version 1 read-only evidence association. Fixed false and NONE fields are permanent denials, not dynamically measured statuses. The receipt grants no write, execution, or acceptance authority. A persisted attestation is post-commit only and does not prove that absence evidence was checked before persistence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "version",
+    "continuity_receipt_hash",
+    "external_evidence_hash",
+    "transition_binding_hash",
+    "prior_state_hash",
+    "current_state_hash",
+    "absence_interval_observed",
+    "absence_interval_reconstructed",
+    "continuity_claimed",
+    "truth_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "canonical_mutation",
+    "binding_hash"
+  ],
+  "properties": {
+    "type": {
+      "const": "absence_claim_correction_binding"
+    },
+    "version": {
+      "const": 1
+    },
+    "continuity_receipt_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "external_evidence_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "transition_binding_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "prior_state_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "current_state_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "absence_interval_observed": {
+      "const": false
+    },
+    "absence_interval_reconstructed": {
+      "const": false
+    },
+    "continuity_claimed": {
+      "const": false
+    },
+    "truth_claimed": {
+      "const": false
+    },
+    "accepted": {
+      "const": false
+    },
+    "write_authority": {
+      "const": "NONE"
+    },
+    "execution_authority": {
+      "const": "NONE"
+    },
+    "canonical_mutation": {
+      "const": false
+    },
+    "binding_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
