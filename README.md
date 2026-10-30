@@ -153,13 +153,13 @@ Research is not authority.
 |---|---:|
 | Package version | `0.4.9` |
 | CLI commands | 18 |
-| Public schemas | 3 |
+| Public schemas | 5 |
 | MCP tools | 1 |
 | MCP resources | 2 |
 
 **CLI:** `append`, `benchmark`, `check-spines`, `demo`, `doctor`, `health`, `idx-check`, `index`, `local-converge`, `lucidity`, `operator-summary`, `replay`, `resume`, `review`, `serve`, `service-status`, `test`, `verify`
 
-**Schemas:** `continuity-condition.schema.json`, `idx-check-receipt.schema.json`, `idx-spine-packet.schema.json`
+**Schemas:** `absence-claim-correction-binding.schema.json`, `continuity-condition.schema.json`, `idx-check-receipt.schema.json`, `idx-spine-packet.schema.json`, `persisted-absence-correction-attestation.schema.json`
 
 **MCP tools:** `idx_check`
 
