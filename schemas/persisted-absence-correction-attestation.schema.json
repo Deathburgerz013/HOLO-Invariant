@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Deathburgerz013/HOLO-Invariant/main/schemas/persisted-absence-correction-attestation.schema.json",
+  "title": "HOLO Persisted Absence Correction Attestation",
+  "description": "Version 1 read-only evidence association. Fixed false and NONE fields are permanent denials, not dynamically measured statuses. The receipt grants no write, execution, or acceptance authority. A persisted attestation is post-commit only and does not prove that absence evidence was checked before persistence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "version",
+    "record_id",
+    "chain_entry_hash",
+    "transition_binding_hash",
+    "absence_binding_hash",
+    "continuity_receipt_hash",
+    "external_evidence_hash",
+    "previous_baseline_state_hash",
+    "next_baseline_state_hash",
+    "post_persistence_association",
+    "precommit_evidence_checked",
+    "absence_interval_observed",
+    "absence_interval_reconstructed",
+    "truth_claimed",
+    "accepted",
+    "write_authority",
+    "execution_authority",
+    "canonical_mutation",
+    "attestation_hash"
+  ],
+  "properties": {
+    "type": {
+      "const": "persisted_absence_correction_attestation"
+    },
+    "version": {
+      "const": 1
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "chain_entry_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "transition_binding_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "absence_binding_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "continuity_receipt_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "external_evidence_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "previous_baseline_state_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "next_baseline_state_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "post_persistence_association": {
+      "const": true
+    },
+    "precommit_evidence_checked": {
+      "const": false
+    },
+    "absence_interval_observed": {
+      "const": false
+    },
+    "absence_interval_reconstructed": {
+      "const": false
+    },
+    "truth_claimed": {
+      "const": false
+    },
+    "accepted": {
+      "const": false
+    },
+    "write_authority": {
+      "const": "NONE"
+    },
+    "execution_authority": {
+      "const": "NONE"
+    },
+    "canonical_mutation": {
+      "const": false
+    },
+    "attestation_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
