@@ -174,3 +174,67 @@ def test_missing_binding_fields_fail_with_domain_error(field):
             external_evidence=evidence,
             transition_candidate=transition,
         )
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid"),
+    [
+        ("continuity_receipt", None),
+        ("continuity_receipt", []),
+        ("continuity_receipt", 123),
+        ("continuity_receipt", dict),
+        ("external_evidence", None),
+        ("external_evidence", []),
+        ("external_evidence", 123),
+        ("external_evidence", dict),
+        ("transition_candidate", None),
+        ("transition_candidate", []),
+        ("transition_candidate", 123),
+        ("transition_candidate", dict),
+    ],
+)
+def test_invalid_source_types_fail_with_specific_domain_error(field, invalid):
+    receipt, evidence, transition = _inputs()
+    sources = {
+        "continuity_receipt": receipt,
+        "external_evidence": evidence,
+        "transition_candidate": transition,
+    }
+    sources[field] = invalid
+
+    with pytest.raises(
+        AbsenceClaimCorrectionBindingError,
+        match=f"{field} must be a plain dictionary",
+    ):
+        build_absence_claim_correction_binding(**sources)
+
+
+@pytest.mark.parametrize(
+    ("source_name", "field"),
+    [
+        ("continuity_receipt", "receipt_hash"),
+        ("external_evidence", "receipt_hash"),
+        ("transition_candidate", "verification"),
+        ("transition_candidate", "binding_hash"),
+        ("transition_candidate", "previous_baseline_state_hash"),
+        ("transition_candidate", "next_baseline_state_hash"),
+    ],
+)
+def test_missing_source_fields_fail_with_domain_error(source_name, field):
+    receipt, evidence, transition = _inputs()
+    sources = {
+        "continuity_receipt": receipt,
+        "external_evidence": evidence,
+        "transition_candidate": transition,
+    }
+
+    broken = deepcopy(sources[source_name])
+    del broken[field]
+    sources[source_name] = broken
+
+    with pytest.raises(AbsenceClaimCorrectionBindingError) as exc:
+        build_absence_claim_correction_binding(**sources)
+
+    message = str(exc.value)
+    assert field in message
+    assert isinstance(exc.value, AbsenceClaimCorrectionBindingError)

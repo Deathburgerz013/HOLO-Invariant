@@ -37,6 +37,11 @@ def build_persisted_absence_correction_attestation(
     This is a post-persistence association. It does not establish that absence
     evidence was checked before commit or that events during absence are known.
     """
+    if type(record_id) is not str or not record_id.strip():
+        raise PersistedAbsenceCorrectionAttestationError(
+            "record_id must be a nonempty string"
+        )
+
     try:
         read = store.read_verified_claim_correction(record_id=record_id)
         validate_persisted_verified_claim_correction_read(read)

@@ -327,3 +327,22 @@ def test_malformed_attestation_record_id_fails_with_domain_error(tmp_path, recor
             external_evidence={},
             absence_binding={},
         )
+
+
+@pytest.mark.parametrize("record_id", [None, "", "   ", 123, [], {}, True])
+def test_malformed_builder_record_id_fails_before_store_access(record_id):
+    class StoreMustNotBeRead:
+        def read_verified_claim_correction(self, **kwargs):
+            pytest.fail("store accessed before record_id validation")
+
+    with pytest.raises(
+        PersistedAbsenceCorrectionAttestationError,
+        match="record_id must be a nonempty string",
+    ):
+        build_persisted_absence_correction_attestation(
+            store=StoreMustNotBeRead(),
+            record_id=record_id,
+            continuity_receipt={},
+            external_evidence={},
+            absence_binding={},
+        )

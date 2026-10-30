@@ -33,6 +33,43 @@ def build_absence_claim_correction_binding(
     This establishes state identity only. It does not establish events during
     observer absence, authenticate observers, authorize correction, or mutate state.
     """
+    for name, value in (
+        ("continuity_receipt", continuity_receipt),
+        ("external_evidence", external_evidence),
+        ("transition_candidate", transition_candidate),
+    ):
+        if type(value) is not dict:
+            raise AbsenceClaimCorrectionBindingError(
+                f"{name} must be a plain dictionary"
+            )
+
+    verification = transition_candidate.get("verification")
+    if type(verification) is not dict:
+        raise AbsenceClaimCorrectionBindingError(
+            "transition_candidate.verification must be a plain dictionary"
+        )
+
+    proposal = verification.get("proposal")
+    if type(proposal) is not dict:
+        raise AbsenceClaimCorrectionBindingError(
+            "transition_candidate.verification.proposal must be a plain dictionary"
+        )
+
+    required = (
+        (proposal, "current_claims", "verification.proposal"),
+        (proposal, "candidate_claims", "verification.proposal"),
+        (transition_candidate, "previous_baseline_state_hash", "transition_candidate"),
+        (transition_candidate, "next_baseline_state_hash", "transition_candidate"),
+        (transition_candidate, "binding_hash", "transition_candidate"),
+        (continuity_receipt, "receipt_hash", "continuity_receipt"),
+        (external_evidence, "receipt_hash", "external_evidence"),
+    )
+    for mapping, field, location in required:
+        if field not in mapping:
+            raise AbsenceClaimCorrectionBindingError(
+                f"missing required field: {location}.{field}"
+            )
+
     try:
         reconstruction = reconstruct_continuity(
             continuity_receipt,
@@ -53,9 +90,6 @@ def build_absence_claim_correction_binding(
         raise AbsenceClaimCorrectionBindingError(
             f"source verification failed: {exc}"
         ) from exc
-
-    verification = transition_candidate["verification"]
-    proposal = verification["proposal"]
 
     if (
         reconstruction["prior_state"] != proposal["current_claims"]
