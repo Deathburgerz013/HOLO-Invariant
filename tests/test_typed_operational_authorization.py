@@ -237,3 +237,34 @@ def test_neural_authorization_rejects_wrong_target_and_tampering():
             expected_action=ACTION_NEURAL_WEIGHT_CORRECTION,
             expected_target_sha256=TARGET,
         )
+
+
+
+def test_envpath_note_import_authorization_is_exact_target_only():
+    from holosim.typed_operational_authorization import (
+        ACTION_ENVPATH_NOTE_IMPORT,
+    )
+
+    authorization = _authorization(
+        action=ACTION_ENVPATH_NOTE_IMPORT,
+    )
+
+    assert validate_operational_authorization(
+        authorization,
+        expected_action=ACTION_ENVPATH_NOTE_IMPORT,
+        expected_target_sha256=TARGET,
+    )
+    assert authorization["write_authority"] == "EXACT_TARGET_ONLY"
+    assert authorization["promotion_authority"] == "NONE"
+    assert authorization["execution_authority"] == "NONE"
+    assert authorization["truth_claimed"] is False
+
+    with pytest.raises(
+        OperationalAuthorizationError,
+        match="action does not match",
+    ):
+        validate_operational_authorization(
+            authorization,
+            expected_action=ACTION_SERVICE_APPEND,
+            expected_target_sha256=TARGET,
+        )
