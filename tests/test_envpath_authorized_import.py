@@ -577,7 +577,58 @@ def test_compressed_history_decode_failure_blocks_without_writing(tmp_path, monk
     def fail_decompression(*args, **kwargs):
         raise zlib.error("simulated decompression failure")
 
-    monkeypatch.setattr(zlib, "decompress", fail_decompression)
+    monkeypatch.setattr(zlib, "decompressobj", fail_decompression)
+
+    result = import_note_draft(
+        path,
+        draft=draft,
+        authorization=authorization,
+    )
+
+    assert result["status"] == "BLOCKED"
+    assert result["commit_performed"] is False
+    assert result["accepted"] is False
+    assert result["truth_claimed"] is False
+    assert path.read_bytes() == before
+
+def test_oversized_compressed_history_blocks_without_writing(tmp_path):
+    import hashlib
+
+    from holosim.envpath_authorized_import import import_note_draft
+    from holosim.replay import MAX_SEARCH_DECODED_BYTES
+
+    path = tmp_path / "memory.jsonl"
+    chain = HoloChain(path)
+
+    chain.append(
+        {"observation": "A" * (MAX_SEARCH_DECODED_BYTES + 1)},
+        compress=True,
+    )
+
+    entries = chain.load_and_verify()
+    assert len(entries) == 1
+    assert entries[0]["type"] == "compressed"
+
+    before = path.read_bytes()
+
+    supplied_snapshot = {
+        "head_hash": entries[-1]["hash"],
+        "source_sha256": hashlib.sha256(before).hexdigest(),
+    }
+
+    draft = EnvPathWorkspace(path).draft(
+        "note",
+        "Oversized compressed history regression",
+        snapshot=supplied_snapshot,
+    )
+
+    authorization = build_operational_authorization(
+        authorization_id="oversized-compressed-history",
+        actor_id="external-reviewer",
+        action=ACTION_ENVPATH_NOTE_IMPORT,
+        target_sha256=draft["draft_hash"],
+        approval_reference="review:oversized-compressed-history",
+    )
 
     result = import_note_draft(
         path,

@@ -2,11 +2,11 @@
 
 import hashlib
 import json
-import zlib
 from pathlib import Path
 from typing import Any, Mapping
 
 from .core import HoloChain
+from .replay import ReplayEngine, SearchDecodeError
 from .typed_operational_authorization import (
     ACTION_ENVPATH_NOTE_IMPORT,
     OperationalAuthorizationError,
@@ -121,9 +121,12 @@ def import_note_draft(
             for entry in entries:
                 stored = entry.get("content")
                 if entry.get("type") == "compressed":
-                    stored = zlib.decompress(
-                        bytes.fromhex(stored)
-                    ).decode("utf-8")
+                    try:
+                        stored = ReplayEngine._searchable_content(entry)
+                    except SearchDecodeError as exc:
+                        raise EnvPathImportError(
+                            f"historical compressed entry rejected: {exc}"
+                        ) from exc
 
                 try:
                     previous = json.loads(stored)
@@ -266,6 +269,5 @@ def import_note_draft(
         KeyError,
         OSError,
         UnicodeError,
-        zlib.error,
     ) as exc:
         return _blocked(str(exc))
