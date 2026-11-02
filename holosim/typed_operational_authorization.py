@@ -15,6 +15,7 @@ from .canonical import stable_hash
 
 AUTHORIZATION_TYPE = "holo_operational_authorization"
 VERSION = 1
+ACTION_ENVPATH_NOTE_IMPORT = "ENVPATH_NOTE_IMPORT"
 ACTION_SERVICE_APPEND = "SERVICE_APPEND"
 ACTION_X_DELTA_INGEST = "X_DELTA_INGEST"
 ACTION_BASELINE_PROMOTION = "BASELINE_PROMOTION"
@@ -66,6 +67,7 @@ def build_operational_authorization(
             "approval_reference cannot be a bare proof or artifact digest"
         )
     if action not in {
+        ACTION_ENVPATH_NOTE_IMPORT,
         ACTION_SERVICE_APPEND,
         ACTION_X_DELTA_INGEST,
         ACTION_BASELINE_PROMOTION,
@@ -79,6 +81,7 @@ def build_operational_authorization(
         ACTION_SERVICE_APPEND,
         ACTION_X_DELTA_INGEST,
         ACTION_NEURAL_WEIGHT_CORRECTION,
+        ACTION_ENVPATH_NOTE_IMPORT,
     }:
         write_authority = "EXACT_TARGET_ONLY"
         promotion_authority = "NONE"
