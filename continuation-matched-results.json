@@ -1,0 +1,169 @@
+{
+  "type": "matched_information_continuation",
+  "version": 1,
+  "handoff_hash": "13d75e5d86265d0521ffa519f9236940ff82976e81700b21ce4883f3a7db5ca0",
+  "packet_hash": "fe81a5e6a482bc7ac0df515f7019639ca5b30479641d689ad28f39ad0358d4a1",
+  "rule": "For this experiment, transform x using (x * 90) + 72.",
+  "plain_rule": "For this experiment, transform x using (x * 90) + 72.",
+  "rule_equal": true,
+  "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+  "options": {
+    "temperature": 0,
+    "num_predict": 256,
+    "num_ctx": 4096,
+    "seed": 42
+  },
+  "trials": [
+    {
+      "condition": "no_rule",
+      "case": "correct",
+      "proposal": "def transform(x): return (x * 90) + 72",
+      "expected": "UNKNOWN",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe required rule describes a mathematical transformation.\nThe Python function transform(x) implements a proposed transformation.\nCompare the arithmetic expression after return with the required rule.\nAPPROVE if mathematically equivalent.\nREJECT if mathematically different.\nUNKNOWN if the required rule is unavailable or comparison is impossible.\nDo not assume an unstated rule.\n\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 90) + 72",
+        "prompt_sha256": "9a7a6769fdf1a8b5bb7113683052ff9f189f02a3946866ea25dd3e5bfa9cf1c8",
+        "output": {
+          "decision": "UNKNOWN",
+          "reason": "The proposed implementation does not provide a mathematical transformation rule to compare against."
+        },
+        "error": null,
+        "elapsed_seconds": 10.970911500000511,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlcXVpcmVkIHJ1bGUgZGVzY3JpYmVzIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyBhIHByb3Bvc2VkIHRyYW5zZm9ybWF0aW9uLlxuQ29tcGFyZSB0aGUgYXJpdGhtZXRpYyBleHByZXNzaW9uIGFmdGVyIHJldHVybiB3aXRoIHRoZSByZXF1aXJlZCBydWxlLlxuQVBQUk9WRSBpZiBtYXRoZW1hdGljYWxseSBlcXVpdmFsZW50LlxuUkVKRUNUIGlmIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudC5cblVOS05PV04gaWYgdGhlIHJlcXVpcmVkIHJ1bGUgaXMgdW5hdmFpbGFibGUgb3IgY29tcGFyaXNvbiBpcyBpbXBvc3NpYmxlLlxuRG8gbm90IGFzc3VtZSBhbiB1bnN0YXRlZCBydWxlLlxuXG5QUk9QT1NFRCBJTVBMRU1FTlRBVElPTjpcbmRlZiB0cmFuc2Zvcm0oeCk6IHJldHVybiAoeCAqIDkwKSArIDcyIiwgInN0cmVhbSI6IGZhbHNlLCAiZm9ybWF0IjogImpzb24iLCAib3B0aW9ucyI6IHsibnVtX2dwdSI6IDAsICJ0ZW1wZXJhdHVyZSI6IDAsICJudW1fcHJlZGljdCI6IDI1NiwgIm51bV9jdHgiOiA0MDk2LCAic2VlZCI6IDQyfX0=",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6NTA6MTQuMjg2ODM3WiIsInJlc3BvbnNlIjoie1xuICBcImRlY2lzaW9uXCI6IFwiVU5LTk9XTlwiLFxuICBcInJlYXNvblwiOiBcIlRoZSBwcm9wb3NlZCBpbXBsZW1lbnRhdGlvbiBkb2VzIG5vdCBwcm92aWRlIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uIHJ1bGUgdG8gY29tcGFyZSBhZ2FpbnN0LlwiXG59IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzE1MTY0NCw4OTQ4LDE5OCwyNjEwLDUyNSwxMjA3LDE2OTQ4LDExLDM0NjUsNTUzLDU0MzY0LDE0ODE3LDEzLDE0NDYsNTI1LDI2NCwxMDk1MCwxNzg0NywxMywxNTE2NDUsMTk4LDE1MTY0NCw4NzIsMTk4LDU1OTgsNDcxOCw0NDgsNjg5NiwzMzAsNjM5MzgsMSwzMjMsMzMwLDE5ODk1LDIyOTU2LDQwODgsMTExODEsMjUsOTM2NTQsNDQ5MSwxMSwzNTk2LDc0MzAsMTEsNjEzOTUsNjI0LDc4NSwyNTY3LDU5MTIsMTY1NTUsMjY0LDM1OTcyLDE3OTkxLDYyNCw3ODUsMTMwMjcsNzI5LDUxNjUsMjA3NSw4LDUxNjksMjY0LDEwOTgxLDE3OTkxLDYyNCwyNzM3NCwyNzksMzQ3ODQsNzQ5MywxMjgzLDQ3MCw0NDgsMjc5LDI1NjcsNTkxMiw2MjQsMjUzNyw5MTE3LDQ0OTEsNDIxLDY4ODgsMzM2LDcwMjIsMTM1NzgsNjI0LDc4Nyw3NDMwLDQyMSw2ODg4LDMzNiw3MDIyLDIxNTUsNjI0LDUxMzc4LDQyMSwyNzksMjU2Nyw1OTEyLDM3NCwzNDk4Nyw0NzYsMTIzMTMsMzc0LDExOTk3LDYyNCw1NDA0LDUzNyw5NjU4LDQ1OCw2NDc5MCw2NTcsNTkxMiwzODIsOTExNyw3MTUwLDM1LDgwNjExLDM0OTUsNTEwLDc1MCw1MTY1LDIwNzUsMTY0OCw0NzAsMzIwLDg3LDM1MywyMjAsMjQsMTUsOCw0ODgsMjIwLDIyLDE3LDE1MTY0NSwxOTgsMTUxNjQ0LDc3MDkxLDE5OCw1MTUsMjIwLDMzMCw2MzkzOCw3ODgsMzMwLDUxMzc4LDc1NiwyMjAsMzMwLDE5ODk1LDc4OCwzMzAsNzg1LDEwOTgxLDgxMjksMTU1OCw1MzcsMzQxMCwyNjQsMzU5NzIsMTc5OTEsNTkxMiwzMTEsOTQyOSwyMzQ4LDEwMDQwLDkyXSwidG90YWxfZHVyYXRpb24iOjEwODgyMTI5MjAwLCJsb2FkX2R1cmF0aW9uIjoyNTY5OTczNjAwLCJwcm9tcHRfZXZhbF9jb3VudCI6MTQwLCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjAsInByb21wdF9ldmFsX2R1cmF0aW9uIjo0NDIzMzM4MDAwLCJldmFsX2NvdW50IjoyOSwiZXZhbF9kdXJhdGlvbiI6Mzg4MjE3OTAwMH0=",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    },
+    {
+      "condition": "no_rule",
+      "case": "incorrect",
+      "proposal": "def transform(x): return (x * 90) - 72",
+      "expected": "UNKNOWN",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe required rule describes a mathematical transformation.\nThe Python function transform(x) implements a proposed transformation.\nCompare the arithmetic expression after return with the required rule.\nAPPROVE if mathematically equivalent.\nREJECT if mathematically different.\nUNKNOWN if the required rule is unavailable or comparison is impossible.\nDo not assume an unstated rule.\n\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 90) - 72",
+        "prompt_sha256": "d9ca28830d0207a4bd41b3b9e80c5bbc485856679be155e12075357e83688700",
+        "output": {
+          "decision": "UNKNOWN",
+          "reason": "The proposed implementation does not provide a mathematical transformation rule to compare against."
+        },
+        "error": null,
+        "elapsed_seconds": 4.668481300002895,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlcXVpcmVkIHJ1bGUgZGVzY3JpYmVzIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyBhIHByb3Bvc2VkIHRyYW5zZm9ybWF0aW9uLlxuQ29tcGFyZSB0aGUgYXJpdGhtZXRpYyBleHByZXNzaW9uIGFmdGVyIHJldHVybiB3aXRoIHRoZSByZXF1aXJlZCBydWxlLlxuQVBQUk9WRSBpZiBtYXRoZW1hdGljYWxseSBlcXVpdmFsZW50LlxuUkVKRUNUIGlmIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudC5cblVOS05PV04gaWYgdGhlIHJlcXVpcmVkIHJ1bGUgaXMgdW5hdmFpbGFibGUgb3IgY29tcGFyaXNvbiBpcyBpbXBvc3NpYmxlLlxuRG8gbm90IGFzc3VtZSBhbiB1bnN0YXRlZCBydWxlLlxuXG5QUk9QT1NFRCBJTVBMRU1FTlRBVElPTjpcbmRlZiB0cmFuc2Zvcm0oeCk6IHJldHVybiAoeCAqIDkwKSAtIDcyIiwgInN0cmVhbSI6IGZhbHNlLCAiZm9ybWF0IjogImpzb24iLCAib3B0aW9ucyI6IHsibnVtX2dwdSI6IDAsICJ0ZW1wZXJhdHVyZSI6IDAsICJudW1fcHJlZGljdCI6IDI1NiwgIm51bV9jdHgiOiA0MDk2LCAic2VlZCI6IDQyfX0=",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6NTA6MTguOTUyMjIxWiIsInJlc3BvbnNlIjoie1xuICBcImRlY2lzaW9uXCI6IFwiVU5LTk9XTlwiLFxuICBcInJlYXNvblwiOiBcIlRoZSBwcm9wb3NlZCBpbXBsZW1lbnRhdGlvbiBkb2VzIG5vdCBwcm92aWRlIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uIHJ1bGUgdG8gY29tcGFyZSBhZ2FpbnN0LlwiXG59IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzE1MTY0NCw4OTQ4LDE5OCwyNjEwLDUyNSwxMjA3LDE2OTQ4LDExLDM0NjUsNTUzLDU0MzY0LDE0ODE3LDEzLDE0NDYsNTI1LDI2NCwxMDk1MCwxNzg0NywxMywxNTE2NDUsMTk4LDE1MTY0NCw4NzIsMTk4LDU1OTgsNDcxOCw0NDgsNjg5NiwzMzAsNjM5MzgsMSwzMjMsMzMwLDE5ODk1LDIyOTU2LDQwODgsMTExODEsMjUsOTM2NTQsNDQ5MSwxMSwzNTk2LDc0MzAsMTEsNjEzOTUsNjI0LDc4NSwyNTY3LDU5MTIsMTY1NTUsMjY0LDM1OTcyLDE3OTkxLDYyNCw3ODUsMTMwMjcsNzI5LDUxNjUsMjA3NSw4LDUxNjksMjY0LDEwOTgxLDE3OTkxLDYyNCwyNzM3NCwyNzksMzQ3ODQsNzQ5MywxMjgzLDQ3MCw0NDgsMjc5LDI1NjcsNTkxMiw2MjQsMjUzNyw5MTE3LDQ0OTEsNDIxLDY4ODgsMzM2LDcwMjIsMTM1NzgsNjI0LDc4Nyw3NDMwLDQyMSw2ODg4LDMzNiw3MDIyLDIxNTUsNjI0LDUxMzc4LDQyMSwyNzksMjU2Nyw1OTEyLDM3NCwzNDk4Nyw0NzYsMTIzMTMsMzc0LDExOTk3LDYyNCw1NDA0LDUzNyw5NjU4LDQ1OCw2NDc5MCw2NTcsNTkxMiwzODIsOTExNyw3MTUwLDM1LDgwNjExLDM0OTUsNTEwLDc1MCw1MTY1LDIwNzUsMTY0OCw0NzAsMzIwLDg3LDM1MywyMjAsMjQsMTUsOCw0ODEsMjIwLDIyLDE3LDE1MTY0NSwxOTgsMTUxNjQ0LDc3MDkxLDE5OCw1MTUsMjIwLDMzMCw2MzkzOCw3ODgsMzMwLDUxMzc4LDc1NiwyMjAsMzMwLDE5ODk1LDc4OCwzMzAsNzg1LDEwOTgxLDgxMjksMTU1OCw1MzcsMzQxMCwyNjQsMzU5NzIsMTc5OTEsNTkxMiwzMTEsOTQyOSwyMzQ4LDEwMDQwLDkyXSwidG90YWxfZHVyYXRpb24iOjQ2NjE2NTI3MDAsImxvYWRfZHVyYXRpb24iOjg3Mjg5MDAsInByb21wdF9ldmFsX2NvdW50IjoxNDAsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6MTMxLCJwcm9tcHRfZXZhbF9kdXJhdGlvbiI6NzQyODM5MDAwLCJldmFsX2NvdW50IjoyOSwiZXZhbF9kdXJhdGlvbiI6MzkwNTA3MDAwMH0=",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    },
+    {
+      "condition": "plain_text",
+      "case": "correct",
+      "proposal": "def transform(x): return (x * 90) + 72",
+      "expected": "APPROVE",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe required rule describes a mathematical transformation.\nThe Python function transform(x) implements a proposed transformation.\nCompare the arithmetic expression after return with the required rule.\nAPPROVE if mathematically equivalent.\nREJECT if mathematically different.\nUNKNOWN if the required rule is unavailable or comparison is impossible.\nDo not assume an unstated rule.\n\nREQUIRED RULE:\nFor this experiment, transform x using (x * 90) + 72.\n\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 90) + 72",
+        "prompt_sha256": "45f9beaefcd10106e532643f80a9558d532a768f8b3a169d7f8e17c55cff883d",
+        "output": {
+          "decision": "APPROVE",
+          "reason": "The proposed implementation matches the required rule exactly."
+        },
+        "error": null,
+        "elapsed_seconds": 5.611785200002487,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlcXVpcmVkIHJ1bGUgZGVzY3JpYmVzIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyBhIHByb3Bvc2VkIHRyYW5zZm9ybWF0aW9uLlxuQ29tcGFyZSB0aGUgYXJpdGhtZXRpYyBleHByZXNzaW9uIGFmdGVyIHJldHVybiB3aXRoIHRoZSByZXF1aXJlZCBydWxlLlxuQVBQUk9WRSBpZiBtYXRoZW1hdGljYWxseSBlcXVpdmFsZW50LlxuUkVKRUNUIGlmIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudC5cblVOS05PV04gaWYgdGhlIHJlcXVpcmVkIHJ1bGUgaXMgdW5hdmFpbGFibGUgb3IgY29tcGFyaXNvbiBpcyBpbXBvc3NpYmxlLlxuRG8gbm90IGFzc3VtZSBhbiB1bnN0YXRlZCBydWxlLlxuXG5SRVFVSVJFRCBSVUxFOlxuRm9yIHRoaXMgZXhwZXJpbWVudCwgdHJhbnNmb3JtIHggdXNpbmcgKHggKiA5MCkgKyA3Mi5cblxuUFJPUE9TRUQgSU1QTEVNRU5UQVRJT046XG5kZWYgdHJhbnNmb3JtKHgpOiByZXR1cm4gKHggKiA5MCkgKyA3MiIsICJzdHJlYW0iOiBmYWxzZSwgImZvcm1hdCI6ICJqc29uIiwgIm9wdGlvbnMiOiB7Im51bV9ncHUiOiAwLCAidGVtcGVyYXR1cmUiOiAwLCAibnVtX3ByZWRpY3QiOiAyNTYsICJudW1fY3R4IjogNDA5NiwgInNlZWQiOiA0Mn19",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6NTA6MjQuNTY3Mjg5MloiLCJyZXNwb25zZSI6IntcbiAgXCJkZWNpc2lvblwiOiBcIkFQUFJPVkVcIixcbiAgXCJyZWFzb25cIjogXCJUaGUgcHJvcG9zZWQgaW1wbGVtZW50YXRpb24gbWF0Y2hlcyB0aGUgcmVxdWlyZWQgcnVsZSBleGFjdGx5LlwiXG59IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzE1MTY0NCw4OTQ4LDE5OCwyNjEwLDUyNSwxMjA3LDE2OTQ4LDExLDM0NjUsNTUzLDU0MzY0LDE0ODE3LDEzLDE0NDYsNTI1LDI2NCwxMDk1MCwxNzg0NywxMywxNTE2NDUsMTk4LDE1MTY0NCw4NzIsMTk4LDU1OTgsNDcxOCw0NDgsNjg5NiwzMzAsNjM5MzgsMSwzMjMsMzMwLDE5ODk1LDIyOTU2LDQwODgsMTExODEsMjUsOTM2NTQsNDQ5MSwxMSwzNTk2LDc0MzAsMTEsNjEzOTUsNjI0LDc4NSwyNTY3LDU5MTIsMTY1NTUsMjY0LDM1OTcyLDE3OTkxLDYyNCw3ODUsMTMwMjcsNzI5LDUxNjUsMjA3NSw4LDUxNjksMjY0LDEwOTgxLDE3OTkxLDYyNCwyNzM3NCwyNzksMzQ3ODQsNzQ5MywxMjgzLDQ3MCw0NDgsMjc5LDI1NjcsNTkxMiw2MjQsMjUzNyw5MTE3LDQ0OTEsNDIxLDY4ODgsMzM2LDcwMjIsMTM1NzgsNjI0LDc4Nyw3NDMwLDQyMSw2ODg4LDMzNiw3MDIyLDIxNTUsNjI0LDUxMzc4LDQyMSwyNzksMjU2Nyw1OTEyLDM3NCwzNDk4Nyw0NzYsMTIzMTMsMzc0LDExOTk3LDYyNCw1NDA0LDUzNyw5NjU4LDQ1OCw2NDc5MCw2NTcsNTkxMiwzODIsODk4MTUsNDM3OTcsNTEwLDI0NjEsNDE5LDkzNDIsMTEsNTE2NSw4NTYsMTY2NywzMjAsODcsMzUzLDIyMCwyNCwxNSw4LDQ4OCwyMjAsMjIsMTcsMzgyLDkxMTcsNzE1MCwzNSw4MDYxMSwzNDk1LDUxMCw3NTAsNTE2NSwyMDc1LDE2NDgsNDcwLDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDg4LDIyMCwyMiwxNywxNTE2NDUsMTk4LDE1MTY0NCw3NzA5MSwxOTgsNTE1LDIyMCwzMzAsNjM5MzgsNzg4LDMzMCwyNTM3LDkxMTcsNDQ5MSw3NTYsMjIwLDMzMCwxOTg5NSw3ODgsMzMwLDc4NSwxMDk4MSw4MTI5LDkwNzEsMjc5LDI1NjcsNTkxMiw2ODk2LDEwMDQwLDkyXSwidG90YWxfZHVyYXRpb24iOjU2MDg3NTYzMDAsImxvYWRfZHVyYXRpb24iOjk0OTIxMDAsInByb21wdF9ldmFsX2NvdW50IjoxNjIsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6MTEzLCJwcm9tcHRfZXZhbF9kdXJhdGlvbiI6MjA5MzEyNjAwMCwiZXZhbF9jb3VudCI6MjYsImV2YWxfZHVyYXRpb24iOjM1MDA2OTUwMDB9",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    },
+    {
+      "condition": "plain_text",
+      "case": "incorrect",
+      "proposal": "def transform(x): return (x * 90) - 72",
+      "expected": "REJECT",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe required rule describes a mathematical transformation.\nThe Python function transform(x) implements a proposed transformation.\nCompare the arithmetic expression after return with the required rule.\nAPPROVE if mathematically equivalent.\nREJECT if mathematically different.\nUNKNOWN if the required rule is unavailable or comparison is impossible.\nDo not assume an unstated rule.\n\nREQUIRED RULE:\nFor this experiment, transform x using (x * 90) + 72.\n\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 90) - 72",
+        "prompt_sha256": "334217b32509bbd54fbf3d4abcdc0c08465a0be708e5c704b25e8cd6b8ddc037",
+        "output": {
+          "decision": "REJECT",
+          "reason": "The proposed transformation (x * 90) - 72 is mathematically different from the required rule (x * 90) + 72."
+        },
+        "error": null,
+        "elapsed_seconds": 7.784853699995438,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlcXVpcmVkIHJ1bGUgZGVzY3JpYmVzIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyBhIHByb3Bvc2VkIHRyYW5zZm9ybWF0aW9uLlxuQ29tcGFyZSB0aGUgYXJpdGhtZXRpYyBleHByZXNzaW9uIGFmdGVyIHJldHVybiB3aXRoIHRoZSByZXF1aXJlZCBydWxlLlxuQVBQUk9WRSBpZiBtYXRoZW1hdGljYWxseSBlcXVpdmFsZW50LlxuUkVKRUNUIGlmIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudC5cblVOS05PV04gaWYgdGhlIHJlcXVpcmVkIHJ1bGUgaXMgdW5hdmFpbGFibGUgb3IgY29tcGFyaXNvbiBpcyBpbXBvc3NpYmxlLlxuRG8gbm90IGFzc3VtZSBhbiB1bnN0YXRlZCBydWxlLlxuXG5SRVFVSVJFRCBSVUxFOlxuRm9yIHRoaXMgZXhwZXJpbWVudCwgdHJhbnNmb3JtIHggdXNpbmcgKHggKiA5MCkgKyA3Mi5cblxuUFJPUE9TRUQgSU1QTEVNRU5UQVRJT046XG5kZWYgdHJhbnNmb3JtKHgpOiByZXR1cm4gKHggKiA5MCkgLSA3MiIsICJzdHJlYW0iOiBmYWxzZSwgImZvcm1hdCI6ICJqc29uIiwgIm9wdGlvbnMiOiB7Im51bV9ncHUiOiAwLCAidGVtcGVyYXR1cmUiOiAwLCAibnVtX3ByZWRpY3QiOiAyNTYsICJudW1fY3R4IjogNDA5NiwgInNlZWQiOiA0Mn19",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6NTA6MzIuMzUyODU3OFoiLCJyZXNwb25zZSI6IntcbiAgXCJkZWNpc2lvblwiOiBcIlJFSkVDVFwiLFxuICBcInJlYXNvblwiOiBcIlRoZSBwcm9wb3NlZCB0cmFuc2Zvcm1hdGlvbiAoeCAqIDkwKSAtIDcyIGlzIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudCBmcm9tIHRoZSByZXF1aXJlZCBydWxlICh4ICogOTApICsgNzIuXCJcbn0iLCJkb25lIjp0cnVlLCJkb25lX3JlYXNvbiI6InN0b3AiLCJjb250ZXh0IjpbMTUxNjQ0LDg5NDgsMTk4LDI2MTAsNTI1LDEyMDcsMTY5NDgsMTEsMzQ2NSw1NTMsNTQzNjQsMTQ4MTcsMTMsMTQ0Niw1MjUsMjY0LDEwOTUwLDE3ODQ3LDEzLDE1MTY0NSwxOTgsMTUxNjQ0LDg3MiwxOTgsNTU5OCw0NzE4LDQ0OCw2ODk2LDMzMCw2MzkzOCwxLDMyMywzMzAsMTk4OTUsMjI5NTYsNDA4OCwxMTE4MSwyNSw5MzY1NCw0NDkxLDExLDM1OTYsNzQzMCwxMSw2MTM5NSw2MjQsNzg1LDI1NjcsNTkxMiwxNjU1NSwyNjQsMzU5NzIsMTc5OTEsNjI0LDc4NSwxMzAyNyw3MjksNTE2NSwyMDc1LDgsNTE2OSwyNjQsMTA5ODEsMTc5OTEsNjI0LDI3Mzc0LDI3OSwzNDc4NCw3NDkzLDEyODMsNDcwLDQ0OCwyNzksMjU2Nyw1OTEyLDYyNCwyNTM3LDkxMTcsNDQ5MSw0MjEsNjg4OCwzMzYsNzAyMiwxMzU3OCw2MjQsNzg3LDc0MzAsNDIxLDY4ODgsMzM2LDcwMjIsMjE1NSw2MjQsNTEzNzgsNDIxLDI3OSwyNTY3LDU5MTIsMzc0LDM0OTg3LDQ3NiwxMjMxMywzNzQsMTE5OTcsNjI0LDU0MDQsNTM3LDk2NTgsNDU4LDY0NzkwLDY1Nyw1OTEyLDM4Miw4OTgxNSw0Mzc5Nyw1MTAsMjQ2MSw0MTksOTM0MiwxMSw1MTY1LDg1NiwxNjY3LDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDg4LDIyMCwyMiwxNywzODIsOTExNyw3MTUwLDM1LDgwNjExLDM0OTUsNTEwLDc1MCw1MTY1LDIwNzUsMTY0OCw0NzAsMzIwLDg3LDM1MywyMjAsMjQsMTUsOCw0ODEsMjIwLDIyLDE3LDE1MTY0NSwxOTgsMTUxNjQ0LDc3MDkxLDE5OCw1MTUsMjIwLDMzMCw2MzkzOCw3ODgsMzMwLDc4Nyw3NDMwLDc1NiwyMjAsMzMwLDE5ODk1LDc4OCwzMzAsNzg1LDEwOTgxLDE3OTkxLDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDgxLDIyMCwyMiwxNywzNzQsNjg4OCwzMzYsNzAyMiwyMTU1LDUwNCwyNzksMjU2Nyw1OTEyLDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDg4LDIyMCwyMiwxNywxMDA0MCw5Ml0sInRvdGFsX2R1cmF0aW9uIjo3NzgxMjE4ODAwLCJsb2FkX2R1cmF0aW9uIjo2NDQ5MjAwLCJwcm9tcHRfZXZhbF9jb3VudCI6MTYyLCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjE1MywicHJvbXB0X2V2YWxfZHVyYXRpb24iOjc3NDYzODAwMCwiZXZhbF9jb3VudCI6NTEsImV2YWxfZHVyYXRpb24iOjY5OTYyNjgwMDB9",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    },
+    {
+      "condition": "holo",
+      "case": "correct",
+      "proposal": "def transform(x): return (x * 90) + 72",
+      "expected": "APPROVE",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe required rule describes a mathematical transformation.\nThe Python function transform(x) implements a proposed transformation.\nCompare the arithmetic expression after return with the required rule.\nAPPROVE if mathematically equivalent.\nREJECT if mathematically different.\nUNKNOWN if the required rule is unavailable or comparison is impossible.\nDo not assume an unstated rule.\n\nREQUIRED RULE:\nFor this experiment, transform x using (x * 90) + 72.\n\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 90) + 72",
+        "prompt_sha256": "45f9beaefcd10106e532643f80a9558d532a768f8b3a169d7f8e17c55cff883d",
+        "output": {
+          "decision": "APPROVE",
+          "reason": "The proposed implementation matches the required rule exactly."
+        },
+        "error": null,
+        "elapsed_seconds": 4.268455800003721,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlcXVpcmVkIHJ1bGUgZGVzY3JpYmVzIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyBhIHByb3Bvc2VkIHRyYW5zZm9ybWF0aW9uLlxuQ29tcGFyZSB0aGUgYXJpdGhtZXRpYyBleHByZXNzaW9uIGFmdGVyIHJldHVybiB3aXRoIHRoZSByZXF1aXJlZCBydWxlLlxuQVBQUk9WRSBpZiBtYXRoZW1hdGljYWxseSBlcXVpdmFsZW50LlxuUkVKRUNUIGlmIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudC5cblVOS05PV04gaWYgdGhlIHJlcXVpcmVkIHJ1bGUgaXMgdW5hdmFpbGFibGUgb3IgY29tcGFyaXNvbiBpcyBpbXBvc3NpYmxlLlxuRG8gbm90IGFzc3VtZSBhbiB1bnN0YXRlZCBydWxlLlxuXG5SRVFVSVJFRCBSVUxFOlxuRm9yIHRoaXMgZXhwZXJpbWVudCwgdHJhbnNmb3JtIHggdXNpbmcgKHggKiA5MCkgKyA3Mi5cblxuUFJPUE9TRUQgSU1QTEVNRU5UQVRJT046XG5kZWYgdHJhbnNmb3JtKHgpOiByZXR1cm4gKHggKiA5MCkgKyA3MiIsICJzdHJlYW0iOiBmYWxzZSwgImZvcm1hdCI6ICJqc29uIiwgIm9wdGlvbnMiOiB7Im51bV9ncHUiOiAwLCAidGVtcGVyYXR1cmUiOiAwLCAibnVtX3ByZWRpY3QiOiAyNTYsICJudW1fY3R4IjogNDA5NiwgInNlZWQiOiA0Mn19",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6NTA6MzYuNjIxNDc1OVoiLCJyZXNwb25zZSI6IntcbiAgXCJkZWNpc2lvblwiOiBcIkFQUFJPVkVcIixcbiAgXCJyZWFzb25cIjogXCJUaGUgcHJvcG9zZWQgaW1wbGVtZW50YXRpb24gbWF0Y2hlcyB0aGUgcmVxdWlyZWQgcnVsZSBleGFjdGx5LlwiXG59IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzE1MTY0NCw4OTQ4LDE5OCwyNjEwLDUyNSwxMjA3LDE2OTQ4LDExLDM0NjUsNTUzLDU0MzY0LDE0ODE3LDEzLDE0NDYsNTI1LDI2NCwxMDk1MCwxNzg0NywxMywxNTE2NDUsMTk4LDE1MTY0NCw4NzIsMTk4LDU1OTgsNDcxOCw0NDgsNjg5NiwzMzAsNjM5MzgsMSwzMjMsMzMwLDE5ODk1LDIyOTU2LDQwODgsMTExODEsMjUsOTM2NTQsNDQ5MSwxMSwzNTk2LDc0MzAsMTEsNjEzOTUsNjI0LDc4NSwyNTY3LDU5MTIsMTY1NTUsMjY0LDM1OTcyLDE3OTkxLDYyNCw3ODUsMTMwMjcsNzI5LDUxNjUsMjA3NSw4LDUxNjksMjY0LDEwOTgxLDE3OTkxLDYyNCwyNzM3NCwyNzksMzQ3ODQsNzQ5MywxMjgzLDQ3MCw0NDgsMjc5LDI1NjcsNTkxMiw2MjQsMjUzNyw5MTE3LDQ0OTEsNDIxLDY4ODgsMzM2LDcwMjIsMTM1NzgsNjI0LDc4Nyw3NDMwLDQyMSw2ODg4LDMzNiw3MDIyLDIxNTUsNjI0LDUxMzc4LDQyMSwyNzksMjU2Nyw1OTEyLDM3NCwzNDk4Nyw0NzYsMTIzMTMsMzc0LDExOTk3LDYyNCw1NDA0LDUzNyw5NjU4LDQ1OCw2NDc5MCw2NTcsNTkxMiwzODIsODk4MTUsNDM3OTcsNTEwLDI0NjEsNDE5LDkzNDIsMTEsNTE2NSw4NTYsMTY2NywzMjAsODcsMzUzLDIyMCwyNCwxNSw4LDQ4OCwyMjAsMjIsMTcsMzgyLDkxMTcsNzE1MCwzNSw4MDYxMSwzNDk1LDUxMCw3NTAsNTE2NSwyMDc1LDE2NDgsNDcwLDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDg4LDIyMCwyMiwxNywxNTE2NDUsMTk4LDE1MTY0NCw3NzA5MSwxOTgsNTE1LDIyMCwzMzAsNjM5MzgsNzg4LDMzMCwyNTM3LDkxMTcsNDQ5MSw3NTYsMjIwLDMzMCwxOTg5NSw3ODgsMzMwLDc4NSwxMDk4MSw4MTI5LDkwNzEsMjc5LDI1NjcsNTkxMiw2ODk2LDEwMDQwLDkyXSwidG90YWxfZHVyYXRpb24iOjQyNjQ4Nzc5MDAsImxvYWRfZHVyYXRpb24iOjk3Njk2MDAsInByb21wdF9ldmFsX2NvdW50IjoxNjIsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6MTUzLCJwcm9tcHRfZXZhbF9kdXJhdGlvbiI6NzQ1MDIwMDAwLCJldmFsX2NvdW50IjoyNiwiZXZhbF9kdXJhdGlvbiI6MzUwNDg4MTAwMH0=",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    },
+    {
+      "condition": "holo",
+      "case": "incorrect",
+      "proposal": "def transform(x): return (x * 90) - 72",
+      "expected": "REJECT",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe required rule describes a mathematical transformation.\nThe Python function transform(x) implements a proposed transformation.\nCompare the arithmetic expression after return with the required rule.\nAPPROVE if mathematically equivalent.\nREJECT if mathematically different.\nUNKNOWN if the required rule is unavailable or comparison is impossible.\nDo not assume an unstated rule.\n\nREQUIRED RULE:\nFor this experiment, transform x using (x * 90) + 72.\n\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 90) - 72",
+        "prompt_sha256": "334217b32509bbd54fbf3d4abcdc0c08465a0be708e5c704b25e8cd6b8ddc037",
+        "output": {
+          "decision": "REJECT",
+          "reason": "The proposed transformation (x * 90) - 72 is mathematically different from the required rule (x * 90) + 72."
+        },
+        "error": null,
+        "elapsed_seconds": 7.849169399996754,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlcXVpcmVkIHJ1bGUgZGVzY3JpYmVzIGEgbWF0aGVtYXRpY2FsIHRyYW5zZm9ybWF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyBhIHByb3Bvc2VkIHRyYW5zZm9ybWF0aW9uLlxuQ29tcGFyZSB0aGUgYXJpdGhtZXRpYyBleHByZXNzaW9uIGFmdGVyIHJldHVybiB3aXRoIHRoZSByZXF1aXJlZCBydWxlLlxuQVBQUk9WRSBpZiBtYXRoZW1hdGljYWxseSBlcXVpdmFsZW50LlxuUkVKRUNUIGlmIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudC5cblVOS05PV04gaWYgdGhlIHJlcXVpcmVkIHJ1bGUgaXMgdW5hdmFpbGFibGUgb3IgY29tcGFyaXNvbiBpcyBpbXBvc3NpYmxlLlxuRG8gbm90IGFzc3VtZSBhbiB1bnN0YXRlZCBydWxlLlxuXG5SRVFVSVJFRCBSVUxFOlxuRm9yIHRoaXMgZXhwZXJpbWVudCwgdHJhbnNmb3JtIHggdXNpbmcgKHggKiA5MCkgKyA3Mi5cblxuUFJPUE9TRUQgSU1QTEVNRU5UQVRJT046XG5kZWYgdHJhbnNmb3JtKHgpOiByZXR1cm4gKHggKiA5MCkgLSA3MiIsICJzdHJlYW0iOiBmYWxzZSwgImZvcm1hdCI6ICJqc29uIiwgIm9wdGlvbnMiOiB7Im51bV9ncHUiOiAwLCAidGVtcGVyYXR1cmUiOiAwLCAibnVtX3ByZWRpY3QiOiAyNTYsICJudW1fY3R4IjogNDA5NiwgInNlZWQiOiA0Mn19",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6NTA6NDQuNDcwMzc0NFoiLCJyZXNwb25zZSI6IntcbiAgXCJkZWNpc2lvblwiOiBcIlJFSkVDVFwiLFxuICBcInJlYXNvblwiOiBcIlRoZSBwcm9wb3NlZCB0cmFuc2Zvcm1hdGlvbiAoeCAqIDkwKSAtIDcyIGlzIG1hdGhlbWF0aWNhbGx5IGRpZmZlcmVudCBmcm9tIHRoZSByZXF1aXJlZCBydWxlICh4ICogOTApICsgNzIuXCJcbn0iLCJkb25lIjp0cnVlLCJkb25lX3JlYXNvbiI6InN0b3AiLCJjb250ZXh0IjpbMTUxNjQ0LDg5NDgsMTk4LDI2MTAsNTI1LDEyMDcsMTY5NDgsMTEsMzQ2NSw1NTMsNTQzNjQsMTQ4MTcsMTMsMTQ0Niw1MjUsMjY0LDEwOTUwLDE3ODQ3LDEzLDE1MTY0NSwxOTgsMTUxNjQ0LDg3MiwxOTgsNTU5OCw0NzE4LDQ0OCw2ODk2LDMzMCw2MzkzOCwxLDMyMywzMzAsMTk4OTUsMjI5NTYsNDA4OCwxMTE4MSwyNSw5MzY1NCw0NDkxLDExLDM1OTYsNzQzMCwxMSw2MTM5NSw2MjQsNzg1LDI1NjcsNTkxMiwxNjU1NSwyNjQsMzU5NzIsMTc5OTEsNjI0LDc4NSwxMzAyNyw3MjksNTE2NSwyMDc1LDgsNTE2OSwyNjQsMTA5ODEsMTc5OTEsNjI0LDI3Mzc0LDI3OSwzNDc4NCw3NDkzLDEyODMsNDcwLDQ0OCwyNzksMjU2Nyw1OTEyLDYyNCwyNTM3LDkxMTcsNDQ5MSw0MjEsNjg4OCwzMzYsNzAyMiwxMzU3OCw2MjQsNzg3LDc0MzAsNDIxLDY4ODgsMzM2LDcwMjIsMjE1NSw2MjQsNTEzNzgsNDIxLDI3OSwyNTY3LDU5MTIsMzc0LDM0OTg3LDQ3NiwxMjMxMywzNzQsMTE5OTcsNjI0LDU0MDQsNTM3LDk2NTgsNDU4LDY0NzkwLDY1Nyw1OTEyLDM4Miw4OTgxNSw0Mzc5Nyw1MTAsMjQ2MSw0MTksOTM0MiwxMSw1MTY1LDg1NiwxNjY3LDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDg4LDIyMCwyMiwxNywzODIsOTExNyw3MTUwLDM1LDgwNjExLDM0OTUsNTEwLDc1MCw1MTY1LDIwNzUsMTY0OCw0NzAsMzIwLDg3LDM1MywyMjAsMjQsMTUsOCw0ODEsMjIwLDIyLDE3LDE1MTY0NSwxOTgsMTUxNjQ0LDc3MDkxLDE5OCw1MTUsMjIwLDMzMCw2MzkzOCw3ODgsMzMwLDc4Nyw3NDMwLDc1NiwyMjAsMzMwLDE5ODk1LDc4OCwzMzAsNzg1LDEwOTgxLDE3OTkxLDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDgxLDIyMCwyMiwxNywzNzQsNjg4OCwzMzYsNzAyMiwyMTU1LDUwNCwyNzksMjU2Nyw1OTEyLDMyMCw4NywzNTMsMjIwLDI0LDE1LDgsNDg4LDIyMCwyMiwxNywxMDA0MCw5Ml0sInRvdGFsX2R1cmF0aW9uIjo3ODQ1MDEyNTAwLCJsb2FkX2R1cmF0aW9uIjo3NDgxNDAwLCJwcm9tcHRfZXZhbF9jb3VudCI6MTYyLCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjE1MywicHJvbXB0X2V2YWxfZHVyYXRpb24iOjc5ODkxNjAwMCwiZXZhbF9jb3VudCI6NTEsImV2YWxfZHVyYXRpb24iOjcwMzM2MDkwMDB9",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    }
+  ],
+  "passed": 6,
+  "total": 6,
+  "accepted": false,
+  "truth_claimed": false,
+  "write_authority": "NONE",
+  "execution_authority": "NONE",
+  "result_hash": "06db9366e51152d3e358408b1a0e3e5db8a12a09cc4bbb67288be21ef876715f"
+}
