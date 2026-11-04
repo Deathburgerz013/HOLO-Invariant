@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "retrieval_passed": true,
+    "decision_passed": 1,
+    "decision_total": 2,
+    "accepted": false,
+    "execution_authority": "NONE"
+  },
+  "retrieval": {
+    "rule": "For this experiment, transform x using (x * 17) + 29.",
+    "status": "FOUND"
+  },
+  "decisions": {
+    "correct": {
+      "expected": "APPROVE",
+      "output": {
+        "decision": "UNKNOWN",
+        "reason": "The proposal does not provide enough context to determine if it preserves the recorded rule. The recorded rule is a string, while the proposal is a Python function. Without additional information about the context or the intended use of the rule, it is not possible to determine if the proposal preserves the recorded rule."
+      },
+      "passed": false
+    },
+    "incorrect": {
+      "expected": "REJECT",
+      "output": {
+        "decision": "REJECT",
+        "reason": "The proposal changes the recorded rule. The recorded rule is (x * 17) + 29, while the proposal is (x * 17) - 29."
+      },
+      "passed": true
+    }
+  }
+}

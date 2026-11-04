@@ -1,0 +1,40 @@
+{
+  "results": {
+    "correct_control": {
+      "expected": "UNKNOWN",
+      "output": {
+        "decision": "UNKNOWN",
+        "reason": "The previous transformation rule is unavailable."
+      },
+      "passed": true
+    },
+    "correct_holo_reentry": {
+      "expected": "APPROVE",
+      "output": {
+        "decision": "UNKNOWN",
+        "reason": "The previous rule is unavailable."
+      },
+      "passed": false
+    },
+    "incorrect_control": {
+      "expected": "UNKNOWN",
+      "output": {
+        "decision": "UNKNOWN",
+        "reason": "The previous transformation rule is unavailable."
+      },
+      "passed": true
+    },
+    "incorrect_holo_reentry": {
+      "expected": "REJECT",
+      "output": {
+        "decision": "UNKNOWN",
+        "reason": "The previous rule is unavailable."
+      },
+      "passed": false
+    }
+  },
+  "passed": 2,
+  "total": 4,
+  "accepted": false,
+  "execution_authority": "NONE"
+}

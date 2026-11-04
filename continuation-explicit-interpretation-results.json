@@ -1,0 +1,23 @@
+{
+  "experiment": "explicit_interpretation_continuation",
+  "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+  "source_handoff": "continuation-handoff.json",
+  "method": "Recovered rule supplied to fresh model requests with explicit instructions for comparing Python implementations",
+  "results": {
+    "correct": {
+      "expected": "APPROVE",
+      "observed": "APPROVE",
+      "passed": true
+    },
+    "incorrect": {
+      "expected": "REJECT",
+      "observed": "REJECT",
+      "passed": true
+    }
+  },
+  "passed": 2,
+  "total": 2,
+  "accepted": false,
+  "execution_authority": "NONE",
+  "evidence_note": "Transcribed from observed console output; not an authenticated model execution receipt."
+}

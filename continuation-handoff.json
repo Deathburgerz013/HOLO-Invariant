@@ -1,0 +1,127 @@
+{
+  "type": "operator_resume_handoff",
+  "version": 1,
+  "handoff_id": "continuation-handoff",
+  "portable_bundle": {
+    "type": "portable_verified_reentry_bundle",
+    "version": 1,
+    "bundle_id": "continuation-bundle",
+    "packet": {
+      "type": "verified_cold_start_reentry_packet",
+      "version": 1,
+      "packet_id": "continuation-packet",
+      "reconstructed_state": {
+        "type": "holo_reconstructed_state",
+        "version": 1,
+        "reference": "continuation-state",
+        "target_ids": [
+          "task"
+        ],
+        "path_hash": "41b1e4edcc95974f43299db2e99dd201d5331f412bc1f569ce152a2f61077aa4",
+        "reachable_ids": [
+          "rule",
+          "task"
+        ],
+        "missing_ids": [],
+        "carried_items": [
+          {
+            "id": "rule",
+            "requires": [],
+            "value": "For this experiment, transform x using (x * 17) + 29."
+          },
+          {
+            "id": "task",
+            "requires": [
+              "rule"
+            ],
+            "value": "Continue the calculation using the verified transformation rule."
+          }
+        ],
+        "status": "COMPLETE",
+        "accepted": false,
+        "write_authority": "NONE",
+        "interpretation_notice": "Reconstructed state carries exact reachable items from an explicit dependency path only. It does not infer truth, memory, acceptance, or authority.",
+        "state_hash": "f57b04f00c41c92340071d8f1634231a34d544c1a17b327136949c91488d4669"
+      },
+      "reconstructed_state_hash": "f57b04f00c41c92340071d8f1634231a34d544c1a17b327136949c91488d4669",
+      "carried_item_ids": [
+        "rule",
+        "task"
+      ],
+      "head_check": {
+        "type": "continuity_head_binding_check",
+        "version": 1,
+        "binding_id": "continuation-binding",
+        "binding_hash": "6cf27ba84faf06a01b3a6c5c2b12fc67d7b87dfbb4221a2a673e4fb67049aa5e",
+        "contract_id": "continuation-contract",
+        "contract_hash": "0bd436f7c7f0bcf83ef6a6e6a491206c0346a179d6714835a33547ef792c607f",
+        "status": "CURRENT",
+        "originating_head_hash": "experiment-head-1",
+        "originating_head_idx": 1,
+        "current_head_hash": "experiment-head-1",
+        "current_head_idx": 1,
+        "reasons": [],
+        "truth_claimed": false,
+        "accepted": false,
+        "write_authority": "NONE",
+        "check_hash": "da9fa44702c270d7c068c6ea56101ad7d2c65c2401c6270bb9b8f049d7fba06e"
+      },
+      "head_check_hash": "da9fa44702c270d7c068c6ea56101ad7d2c65c2401c6270bb9b8f049d7fba06e",
+      "head_status": "CURRENT",
+      "conflicts": [],
+      "status": "READY_FOR_REENTRY",
+      "gate_decision": "ALLOW",
+      "reasons": [],
+      "truth_claimed": false,
+      "accepted": false,
+      "write_authority": "NONE",
+      "execution_authority": "NONE",
+      "packet_hash": "3968da0c5ab782e17e4369b716cb55635344ea87d613acbb53d9718360362c3a"
+    },
+    "packet_hash": "3968da0c5ab782e17e4369b716cb55635344ea87d613acbb53d9718360362c3a",
+    "source_items": [
+      {
+        "id": "task",
+        "requires": [
+          "rule"
+        ],
+        "value": "Continue the calculation using the verified transformation rule."
+      },
+      {
+        "id": "rule",
+        "requires": [],
+        "value": "For this experiment, transform x using (x * 17) + 29."
+      }
+    ],
+    "source_items_hash": "a020397bab6e76879aff7b729b51e752fcfb5d56ee5805a69dfe769f5ca11f77",
+    "truth_claimed": false,
+    "accepted": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE",
+    "bundle_hash": "ad34593ada76b0f3137bd4a45307dda825c759a29fbd3b22c760c6a4740020c1"
+  },
+  "portable_bundle_hash": "ad34593ada76b0f3137bd4a45307dda825c759a29fbd3b22c760c6a4740020c1",
+  "objective": "Continue a calculation from a transferred rule.",
+  "completed": [
+    "Transformation rule recorded"
+  ],
+  "constraints": [
+    "Do not invent a missing rule",
+    "No execution authority"
+  ],
+  "unresolved": [
+    "Receiver continuation not yet measured"
+  ],
+  "next_action": "Calculate the transformed value for x = 23.",
+  "restart_cost": {
+    "baseline_operator_steps": 3,
+    "handoff_operator_steps": 1,
+    "claimed_steps_avoided": 2,
+    "measured": false
+  },
+  "truth_claimed": false,
+  "accepted": false,
+  "write_authority": "NONE",
+  "execution_authority": "NONE",
+  "handoff_hash": "afd3548f79588eae5986c54eabbf331323ac08b5a27b6fe029bd50b54c6b1264"
+}

@@ -1,0 +1,127 @@
+{
+  "type": "operator_resume_handoff",
+  "version": 1,
+  "handoff_id": "fresh-continuation-handoff",
+  "portable_bundle": {
+    "type": "portable_verified_reentry_bundle",
+    "version": 1,
+    "bundle_id": "fresh-continuation-bundle",
+    "packet": {
+      "type": "verified_cold_start_reentry_packet",
+      "version": 1,
+      "packet_id": "fresh-continuation-packet",
+      "reconstructed_state": {
+        "type": "holo_reconstructed_state",
+        "version": 1,
+        "reference": "fresh-continuation",
+        "target_ids": [
+          "task"
+        ],
+        "path_hash": "2840d889c5ad37b1a87c113954dec58e023c98addadfb863270beaaa0f9154c9",
+        "reachable_ids": [
+          "rule",
+          "task"
+        ],
+        "missing_ids": [],
+        "carried_items": [
+          {
+            "id": "rule",
+            "requires": [],
+            "value": "For this experiment, transform x using (x * 90) + 72."
+          },
+          {
+            "id": "task",
+            "requires": [
+              "rule"
+            ],
+            "value": "Evaluate proposed implementations against the carried rule."
+          }
+        ],
+        "status": "COMPLETE",
+        "accepted": false,
+        "write_authority": "NONE",
+        "interpretation_notice": "Reconstructed state carries exact reachable items from an explicit dependency path only. It does not infer truth, memory, acceptance, or authority.",
+        "state_hash": "0e2278a64b32f5d498ed7688a7b75a1102300d198477ea2ce411e33d5a0e8701"
+      },
+      "reconstructed_state_hash": "0e2278a64b32f5d498ed7688a7b75a1102300d198477ea2ce411e33d5a0e8701",
+      "carried_item_ids": [
+        "rule",
+        "task"
+      ],
+      "head_check": {
+        "type": "continuity_head_binding_check",
+        "version": 1,
+        "binding_id": "fresh-continuation-binding",
+        "binding_hash": "d8c193548890e888533e1da13db061dfe775bab03844c1eb1c38ab5d14d2b528",
+        "contract_id": "fresh-continuation-contract",
+        "contract_hash": "b043b657f62a4e68f7bf917e9b6fb67d0e712cccdded1d7de5a17c16a142b11a",
+        "status": "CURRENT",
+        "originating_head_hash": "fresh-head-1",
+        "originating_head_idx": 1,
+        "current_head_hash": "fresh-head-1",
+        "current_head_idx": 1,
+        "reasons": [],
+        "truth_claimed": false,
+        "accepted": false,
+        "write_authority": "NONE",
+        "check_hash": "fcd99f73528eacdbe8f65d6e28131447e42ab58aa87e3aacb7f5bbf032c8b97b"
+      },
+      "head_check_hash": "fcd99f73528eacdbe8f65d6e28131447e42ab58aa87e3aacb7f5bbf032c8b97b",
+      "head_status": "CURRENT",
+      "conflicts": [],
+      "status": "READY_FOR_REENTRY",
+      "gate_decision": "ALLOW",
+      "reasons": [],
+      "truth_claimed": false,
+      "accepted": false,
+      "write_authority": "NONE",
+      "execution_authority": "NONE",
+      "packet_hash": "fe81a5e6a482bc7ac0df515f7019639ca5b30479641d689ad28f39ad0358d4a1"
+    },
+    "packet_hash": "fe81a5e6a482bc7ac0df515f7019639ca5b30479641d689ad28f39ad0358d4a1",
+    "source_items": [
+      {
+        "id": "rule",
+        "requires": [],
+        "value": "For this experiment, transform x using (x * 90) + 72."
+      },
+      {
+        "id": "task",
+        "requires": [
+          "rule"
+        ],
+        "value": "Evaluate proposed implementations against the carried rule."
+      }
+    ],
+    "source_items_hash": "ac02b9e43f91cf16670c73eb13cad064405fef9f92a809cc1befc79be625a440",
+    "truth_claimed": false,
+    "accepted": false,
+    "write_authority": "NONE",
+    "execution_authority": "NONE",
+    "bundle_hash": "f488e33168b2d1e84cc3e898e7863ef64c54fd3bf4e141ddfc123e85235f1fe7"
+  },
+  "portable_bundle_hash": "f488e33168b2d1e84cc3e898e7863ef64c54fd3bf4e141ddfc123e85235f1fe7",
+  "objective": "Evaluate implementation proposals using reconstructed information.",
+  "completed": [
+    "Transformation rule recorded"
+  ],
+  "constraints": [
+    "No execution authority",
+    "No automatic acceptance"
+  ],
+  "unresolved": [
+    "Model continuation not yet measured"
+  ],
+  "next_action": "Compare control and reconstructed-rule decisions.",
+  "restart_cost": {
+    "baseline_operator_steps": 3,
+    "handoff_operator_steps": 1,
+    "claimed_steps_avoided": 2,
+    "measured": false
+  },
+  "truth_claimed": false,
+  "accepted": false,
+  "write_authority": "NONE",
+  "execution_authority": "NONE",
+  "handoff_hash": "13d75e5d86265d0521ffa519f9236940ff82976e81700b21ce4883f3a7db5ca0"
+}
