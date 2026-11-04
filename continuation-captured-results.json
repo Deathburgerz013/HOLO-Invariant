@@ -1,0 +1,68 @@
+{
+  "type": "captured_model_continuation",
+  "version": 1,
+  "handoff_hash": "afd3548f79588eae5986c54eabbf331323ac08b5a27b6fe029bd50b54c6b1264",
+  "packet_hash": "3968da0c5ab782e17e4369b716cb55635344ea87d613acbb53d9718360362c3a",
+  "rule": "For this experiment, transform x using (x * 17) + 29.",
+  "options": {
+    "temperature": 0,
+    "num_predict": 256,
+    "num_ctx": 4096,
+    "seed": 42
+  },
+  "trials": [
+    {
+      "case": "correct",
+      "proposal": "def transform(x): return (x * 17) + 29",
+      "expected": "APPROVE",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe recorded rule describes the required mathematical operation.\nThe Python function transform(x) implements that operation.\nCompare the arithmetic expression after return with the recorded rule.\nAPPROVE if they are mathematically equivalent.\nREJECT if they differ.\nUNKNOWN only if comparison is impossible.\n\nRECORDED RULE:\nFor this experiment, transform x using (x * 17) + 29.\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 17) + 29",
+        "prompt_sha256": "a8b561ceb2925e8324fafeb91f22c7637c5406243bb643c1874f094f8058f911",
+        "output": {
+          "decision": "APPROVE",
+          "reason": "The proposed implementation matches the recorded rule exactly."
+        },
+        "error": null,
+        "elapsed_seconds": 18.807621500003734,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlY29yZGVkIHJ1bGUgZGVzY3JpYmVzIHRoZSByZXF1aXJlZCBtYXRoZW1hdGljYWwgb3BlcmF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyB0aGF0IG9wZXJhdGlvbi5cbkNvbXBhcmUgdGhlIGFyaXRobWV0aWMgZXhwcmVzc2lvbiBhZnRlciByZXR1cm4gd2l0aCB0aGUgcmVjb3JkZWQgcnVsZS5cbkFQUFJPVkUgaWYgdGhleSBhcmUgbWF0aGVtYXRpY2FsbHkgZXF1aXZhbGVudC5cblJFSkVDVCBpZiB0aGV5IGRpZmZlci5cblVOS05PV04gb25seSBpZiBjb21wYXJpc29uIGlzIGltcG9zc2libGUuXG5cblJFQ09SREVEIFJVTEU6XG5Gb3IgdGhpcyBleHBlcmltZW50LCB0cmFuc2Zvcm0geCB1c2luZyAoeCAqIDE3KSArIDI5LlxuUFJPUE9TRUQgSU1QTEVNRU5UQVRJT046XG5kZWYgdHJhbnNmb3JtKHgpOiByZXR1cm4gKHggKiAxNykgKyAyOSIsICJzdHJlYW0iOiBmYWxzZSwgImZvcm1hdCI6ICJqc29uIiwgIm9wdGlvbnMiOiB7Im51bV9ncHUiOiAwLCAidGVtcGVyYXR1cmUiOiAwLCAibnVtX3ByZWRpY3QiOiAyNTYsICJudW1fY3R4IjogNDA5NiwgInNlZWQiOiA0Mn19",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6Mzk6MzEuODE3MzU5M1oiLCJyZXNwb25zZSI6IntcbiAgXCJkZWNpc2lvblwiOiBcIkFQUFJPVkVcIixcbiAgXCJyZWFzb25cIjogXCJUaGUgcHJvcG9zZWQgaW1wbGVtZW50YXRpb24gbWF0Y2hlcyB0aGUgcmVjb3JkZWQgcnVsZSBleGFjdGx5LlwiXG59IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzE1MTY0NCw4OTQ4LDE5OCwyNjEwLDUyNSwxMjA3LDE2OTQ4LDExLDM0NjUsNTUzLDU0MzY0LDE0ODE3LDEzLDE0NDYsNTI1LDI2NCwxMDk1MCwxNzg0NywxMywxNTE2NDUsMTk4LDE1MTY0NCw4NzIsMTk4LDU1OTgsNDcxOCw0NDgsNjg5NiwzMzAsNjM5MzgsMSwzMjMsMzMwLDE5ODk1LDIyOTU2LDQwODgsMTExODEsMjUsOTM2NTQsNDQ5MSwxMSwzNTk2LDc0MzAsMTEsNjEzOTUsNjI0LDc4NSwxMjQzMyw1OTEyLDE2NTU1LDI3OSwyNTY3LDM1OTcyLDU2NjYsNjI0LDc4NSwxMzAyNyw3MjksNTE2NSwyMDc1LDgsNTE2OSw0MjksNTY2Niw2MjQsMjczNzQsMjc5LDM0Nzg0LDc0OTMsMTI4Myw0NzAsNDQ4LDI3OSwxMjQzMyw1OTEyLDYyNCwyNTM3LDkxMTcsNDQ5MSw0MjEsODA3LDUyNSw2ODg4LDMzNiw3MDIyLDEzNTc4LDYyNCw3ODcsNzQzMCw0MjEsODA3LDE3NDUsNjI0LDUxMzc4LDExNzIsNDIxLDEyMzEzLDM3NCwxMTk5NywzODIsNzg3LDUyMzIwLDExNDkwLDQzNzk3LDUxMCwyNDYxLDQxOSw5MzQyLDExLDUxNjUsODU2LDE2NjcsMzIwLDg3LDM1MywyMjAsMTYsMjIsOCw0ODgsMjIwLDE3LDI0LDYyNCw5MTE3LDcxNTAsMzUsODA2MTEsMzQ5NSw1MTAsNzUwLDUxNjUsMjA3NSwxNjQ4LDQ3MCwzMjAsODcsMzUzLDIyMCwxNiwyMiw4LDQ4OCwyMjAsMTcsMjQsMTUxNjQ1LDE5OCwxNTE2NDQsNzcwOTEsMTk4LDUxNSwyMjAsMzMwLDYzOTM4LDc4OCwzMzAsMjUzNyw5MTE3LDQ0OTEsNzU2LDIyMCwzMzAsMTk4OTUsNzg4LDMzMCw3ODUsMTA5ODEsODEyOSw5MDcxLDI3OSwxMjQzMyw1OTEyLDY4OTYsMTAwNDAsOTJdLCJ0b3RhbF9kdXJhdGlvbiI6MTg3Mzk4NDQxMDAsImxvYWRfZHVyYXRpb24iOjk4NzYyMzkyMDAsInByb21wdF9ldmFsX2NvdW50IjoxNTEsInByb21wdF9ldmFsX2NhY2hlZF9jb3VudCI6MCwicHJvbXB0X2V2YWxfZHVyYXRpb24iOjUxODk3MjEwMDAsImV2YWxfY291bnQiOjI2LCJldmFsX2R1cmF0aW9uIjozNjY3MDg3MDAwfQ==",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    },
+    {
+      "case": "incorrect",
+      "proposal": "def transform(x): return (x * 17) - 29",
+      "expected": "REJECT",
+      "call": {
+        "model": "qwen2.5-coder:7b-instruct-q3_K_S",
+        "prompt": "Return JSON with exactly \"decision\" and \"reason\".\nValid decisions: APPROVE, REJECT, UNKNOWN.\nThe recorded rule describes the required mathematical operation.\nThe Python function transform(x) implements that operation.\nCompare the arithmetic expression after return with the recorded rule.\nAPPROVE if they are mathematically equivalent.\nREJECT if they differ.\nUNKNOWN only if comparison is impossible.\n\nRECORDED RULE:\nFor this experiment, transform x using (x * 17) + 29.\nPROPOSED IMPLEMENTATION:\ndef transform(x): return (x * 17) - 29",
+        "prompt_sha256": "8525f063c2c2b0304916b4e278c861dce55251119ed081c8f2993bec0ba8b392",
+        "output": {
+          "decision": "REJECT",
+          "reason": "The proposed implementation (x * 17) - 29 differs from the recorded rule (x * 17) + 29."
+        },
+        "error": null,
+        "elapsed_seconds": 7.344279600001755,
+        "request_bytes_b64": "eyJtb2RlbCI6ICJxd2VuMi41LWNvZGVyOjdiLWluc3RydWN0LXEzX0tfUyIsICJwcm9tcHQiOiAiUmV0dXJuIEpTT04gd2l0aCBleGFjdGx5IFwiZGVjaXNpb25cIiBhbmQgXCJyZWFzb25cIi5cblZhbGlkIGRlY2lzaW9uczogQVBQUk9WRSwgUkVKRUNULCBVTktOT1dOLlxuVGhlIHJlY29yZGVkIHJ1bGUgZGVzY3JpYmVzIHRoZSByZXF1aXJlZCBtYXRoZW1hdGljYWwgb3BlcmF0aW9uLlxuVGhlIFB5dGhvbiBmdW5jdGlvbiB0cmFuc2Zvcm0oeCkgaW1wbGVtZW50cyB0aGF0IG9wZXJhdGlvbi5cbkNvbXBhcmUgdGhlIGFyaXRobWV0aWMgZXhwcmVzc2lvbiBhZnRlciByZXR1cm4gd2l0aCB0aGUgcmVjb3JkZWQgcnVsZS5cbkFQUFJPVkUgaWYgdGhleSBhcmUgbWF0aGVtYXRpY2FsbHkgZXF1aXZhbGVudC5cblJFSkVDVCBpZiB0aGV5IGRpZmZlci5cblVOS05PV04gb25seSBpZiBjb21wYXJpc29uIGlzIGltcG9zc2libGUuXG5cblJFQ09SREVEIFJVTEU6XG5Gb3IgdGhpcyBleHBlcmltZW50LCB0cmFuc2Zvcm0geCB1c2luZyAoeCAqIDE3KSArIDI5LlxuUFJPUE9TRUQgSU1QTEVNRU5UQVRJT046XG5kZWYgdHJhbnNmb3JtKHgpOiByZXR1cm4gKHggKiAxNykgLSAyOSIsICJzdHJlYW0iOiBmYWxzZSwgImZvcm1hdCI6ICJqc29uIiwgIm9wdGlvbnMiOiB7Im51bV9ncHUiOiAwLCAidGVtcGVyYXR1cmUiOiAwLCAibnVtX3ByZWRpY3QiOiAyNTYsICJudW1fY3R4IjogNDA5NiwgInNlZWQiOiA0Mn19",
+        "response_bytes_b64": "eyJtb2RlbCI6InF3ZW4yLjUtY29kZXI6N2ItaW5zdHJ1Y3QtcTNfS19TIiwiY3JlYXRlZF9hdCI6IjIwMjYtMTEtMDRUMTg6Mzk6MzkuMTY0Njk0NFoiLCJyZXNwb25zZSI6IntcbiAgXCJkZWNpc2lvblwiOiBcIlJFSkVDVFwiLFxuICBcInJlYXNvblwiOiBcIlRoZSBwcm9wb3NlZCBpbXBsZW1lbnRhdGlvbiAoeCAqIDE3KSAtIDI5IGRpZmZlcnMgZnJvbSB0aGUgcmVjb3JkZWQgcnVsZSAoeCAqIDE3KSArIDI5LlwiXG59IiwiZG9uZSI6dHJ1ZSwiZG9uZV9yZWFzb24iOiJzdG9wIiwiY29udGV4dCI6WzE1MTY0NCw4OTQ4LDE5OCwyNjEwLDUyNSwxMjA3LDE2OTQ4LDExLDM0NjUsNTUzLDU0MzY0LDE0ODE3LDEzLDE0NDYsNTI1LDI2NCwxMDk1MCwxNzg0NywxMywxNTE2NDUsMTk4LDE1MTY0NCw4NzIsMTk4LDU1OTgsNDcxOCw0NDgsNjg5NiwzMzAsNjM5MzgsMSwzMjMsMzMwLDE5ODk1LDIyOTU2LDQwODgsMTExODEsMjUsOTM2NTQsNDQ5MSwxMSwzNTk2LDc0MzAsMTEsNjEzOTUsNjI0LDc4NSwxMjQzMyw1OTEyLDE2NTU1LDI3OSwyNTY3LDM1OTcyLDU2NjYsNjI0LDc4NSwxMzAyNyw3MjksNTE2NSwyMDc1LDgsNTE2OSw0MjksNTY2Niw2MjQsMjczNzQsMjc5LDM0Nzg0LDc0OTMsMTI4Myw0NzAsNDQ4LDI3OSwxMjQzMyw1OTEyLDYyNCwyNTM3LDkxMTcsNDQ5MSw0MjEsODA3LDUyNSw2ODg4LDMzNiw3MDIyLDEzNTc4LDYyNCw3ODcsNzQzMCw0MjEsODA3LDE3NDUsNjI0LDUxMzc4LDExNzIsNDIxLDEyMzEzLDM3NCwxMTk5NywzODIsNzg3LDUyMzIwLDExNDkwLDQzNzk3LDUxMCwyNDYxLDQxOSw5MzQyLDExLDUxNjUsODU2LDE2NjcsMzIwLDg3LDM1MywyMjAsMTYsMjIsOCw0ODgsMjIwLDE3LDI0LDYyNCw5MTE3LDcxNTAsMzUsODA2MTEsMzQ5NSw1MTAsNzUwLDUxNjUsMjA3NSwxNjQ4LDQ3MCwzMjAsODcsMzUzLDIyMCwxNiwyMiw4LDQ4MSwyMjAsMTcsMjQsMTUxNjQ1LDE5OCwxNTE2NDQsNzcwOTEsMTk4LDUxNSwyMjAsMzMwLDYzOTM4LDc4OCwzMzAsNzg3LDc0MzAsNzU2LDIyMCwzMzAsMTk4OTUsNzg4LDMzMCw3ODUsMTA5ODEsODEyOSwzMjAsODcsMzUzLDIyMCwxNiwyMiw4LDQ4MSwyMjAsMTcsMjQsNDM1NDIsNTA0LDI3OSwxMjQzMyw1OTEyLDMyMCw4NywzNTMsMjIwLDE2LDIyLDgsNDg4LDIyMCwxNywyNCwxMDA0MCw5Ml0sInRvdGFsX2R1cmF0aW9uIjo3MzQwNzg0MjAwLCJsb2FkX2R1cmF0aW9uIjo5NDcwODAwLCJwcm9tcHRfZXZhbF9jb3VudCI6MTUxLCJwcm9tcHRfZXZhbF9jYWNoZWRfY291bnQiOjE0MiwicHJvbXB0X2V2YWxfZHVyYXRpb24iOjgxNTc3MTAwMCwiZXZhbF9jb3VudCI6NDcsImV2YWxfZHVyYXRpb24iOjY1MTA5NTQwMDB9",
+        "accepted": false,
+        "truth_claimed": false,
+        "write_authority": "NONE",
+        "execution_authority": "NONE"
+      },
+      "passed": true
+    }
+  ],
+  "passed": 2,
+  "total": 2,
+  "accepted": false,
+  "truth_claimed": false,
+  "write_authority": "NONE",
+  "execution_authority": "NONE",
+  "result_hash": "ca155f083a3a917f190dbaa4cdf871dfd491acfa6adbc7ba37d138ba0737dc22"
+}
