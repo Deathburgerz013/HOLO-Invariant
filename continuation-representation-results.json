@@ -1,0 +1,39 @@
+{
+  "expected": 420,
+  "results": {
+    "natural_language": {
+      "output": {
+        "answer": 416
+      },
+      "passed": false
+    },
+    "mathematical": {
+      "output": {
+        "answer": 424
+      },
+      "passed": false
+    },
+    "expression": {
+      "output": {
+        "answer": 406
+      },
+      "passed": false
+    },
+    "extracted_rule": {
+      "output": {
+        "answer": 494
+      },
+      "passed": false
+    },
+    "full_reentry": {
+      "output": {
+        "answer": 446
+      },
+      "passed": false
+    }
+  },
+  "passed": 0,
+  "total": 5,
+  "accepted": false,
+  "execution_authority": "NONE"
+}

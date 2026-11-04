@@ -1,0 +1,23 @@
+{
+  "control": {
+    "output": {
+      "answer": null,
+      "status": "INSUFFICIENT_INFORMATION"
+    },
+    "accepted": false,
+    "execution_authority": "NONE"
+  },
+  "holo_reentry": {
+    "output": {
+      "answer": 524,
+      "status": "SOLVED"
+    },
+    "accepted": false,
+    "execution_authority": "NONE"
+  },
+  "independent_checks": {
+    "expected_answer": 420,
+    "control_abstained": true,
+    "reentry_solved": false
+  }
+}
