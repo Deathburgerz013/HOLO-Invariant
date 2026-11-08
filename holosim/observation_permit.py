@@ -16,6 +16,10 @@ from typing import Any
 from holosim.aligned_action_selector import select_aligned_action
 from holosim.canonical import CanonicalValueError, stable_hash
 from holosim.computer_observer import execute_observation
+from holosim.permit_consumption import (
+    PermitConsumptionError,
+    consume_permit,
+)
 from holosim.signed_occurrence import (
     SignedOccurrenceError,
     verify_signed_occurrence,
@@ -122,6 +126,7 @@ def run_permitted_aligned_observation(
     permit_occurrence: Mapping[str, Any],
     permit_source_secrets: Mapping[str, bytes],
     seen_occurrence_ids: Collection[str],
+    permit_registry_path: str | Path,
 ) -> dict[str, Any]:
     """Execute one selected read only when its signed permit is currently valid."""
     selection = select_aligned_action(
@@ -203,6 +208,28 @@ def run_permitted_aligned_observation(
             permit_verification=verification,
             decision="HALT_UNPERMITTED",
             reason="permit has expired",
+        )
+
+    try:
+        claimed = consume_permit(
+            permit_registry_path,
+            source_id=permit_occurrence["source_id"],
+            occurrence_id=permit_occurrence["occurrence_id"],
+        )
+    except (PermitConsumptionError, ValueError, TypeError, OSError) as exc:
+        return _result(
+            selection=selection,
+            permit_verification=verification,
+            decision="HALT_UNPERMITTED",
+            reason="permit consumption could not be established",
+        )
+
+    if not claimed:
+        return _result(
+            selection=selection,
+            permit_verification=verification,
+            decision="HALT_UNPERMITTED",
+            reason="permit occurrence has already been consumed",
         )
 
     observation = execute_observation(

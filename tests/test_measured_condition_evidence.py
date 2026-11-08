@@ -71,6 +71,7 @@ def test_matching_measured_file_condition_uses_permitted_observation(tmp_path):
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+              permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     assert run["decision"] == "OBSERVED"
@@ -163,6 +164,7 @@ def test_mismatched_measured_file_condition_is_false(tmp_path):
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+              permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     receipt = derive_measured_condition_evidence(
@@ -234,6 +236,7 @@ def test_rehashed_source_content_cannot_preserve_original_derivation(tmp_path):
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+              permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     original = derive_measured_condition_evidence(
@@ -337,6 +340,7 @@ def test_inconsistent_observation_content_fails_closed(tmp_path):
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+              permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     tampered = deepcopy(run)
@@ -410,6 +414,7 @@ def test_measured_condition_receipt_reconstructs_and_rejects_tampering(tmp_path)
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+              permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     receipt = derive_measured_condition_evidence(

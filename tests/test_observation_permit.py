@@ -80,6 +80,7 @@ def _run(tmp_path, request: dict, permit: dict, **overrides) -> dict:
         "permit_occurrence": permit,
         "permit_source_secrets": {"operator": SECRET},
         "seen_occurrence_ids": set(),
+        "permit_registry_path": tmp_path / "permits.sqlite3",
     }
     arguments.update(overrides)
     return run_permitted_aligned_observation(**arguments)
@@ -228,6 +229,7 @@ def test_unaligned_selection_halts_before_permit_use(tmp_path):
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+        permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     assert result["decision"] == "HALT_UNALIGNED"
@@ -252,7 +254,55 @@ def test_inputs_are_not_mutated(tmp_path):
         permit_occurrence=permit,
         permit_source_secrets={"operator": SECRET},
         seen_occurrence_ids=set(),
+        permit_registry_path=tmp_path / "permits.sqlite3",
     )
 
     assert candidate == candidate_before
     assert permit == permit_before
+
+
+def test_same_permit_cannot_authorize_two_observations(tmp_path):
+    (tmp_path / "state.txt").write_bytes(b"state")
+    request = _request()
+    permit = _permit(tmp_path, request)
+    seen = set()
+
+    first = _run(
+        tmp_path,
+        request,
+        permit,
+        seen_occurrence_ids=seen,
+    )
+    second = _run(
+        tmp_path,
+        request,
+        permit,
+        seen_occurrence_ids=seen,
+    )
+
+    assert first["decision"] == "OBSERVED"
+    assert second["decision"] == "HALT_UNPERMITTED"
+    assert second["observation_performed"] is False
+
+
+def test_unavailable_registry_prevents_observation(tmp_path):
+    target = tmp_path / "state.txt"
+    target.write_bytes(b"state")
+
+    request = _request()
+    permit = _permit(tmp_path, request)
+
+    result = _run(
+        tmp_path,
+        request,
+        permit,
+        permit_registry_path=tmp_path / "missing" / "permits.sqlite3",
+    )
+
+    assert result["decision"] == "HALT_UNPERMITTED"
+    assert result["observation_performed"] is False
+    assert result["observation_result"] is None
+    assert result["accepted"] is False
+    assert result["write_authority"] == "NONE"
+    assert result["execution_authority"] == "NONE"
+    assert not (tmp_path / "missing").exists()
