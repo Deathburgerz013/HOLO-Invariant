@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holo/Sim | Mechanical Continuity</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#05070d;color:#e6eaf5;--line:#364057;--muted:#9ba9c2;--cyan:#79e7f2;--violet:#bd9cff;--rose:#f4a5d3}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 52% -12%,#263050 0,transparent 48%),radial-gradient(ellipse at 90% 80%,#21122d 0,transparent 38%),#05070d;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.24;background-image:radial-gradient(#dbe6ff 0.65px,transparent 1px),radial-gradient(#a5bfff .65px,transparent 1px);background-size:89px 89px,137px 137px;background-position:7px 13px,50px 70px}
+button{font:inherit}button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}main{position:relative;max-width:1390px;margin:0 auto;padding:32px clamp(14px,3vw,44px) 56px}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px;color:var(--muted);font-size:11px;letter-spacing:.19em;text-transform:uppercase}.topline strong{color:#f0f3fc;font-weight:600}.topline .signal{display:flex;align-items:center;gap:10px}.signal:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 13px var(--cyan)}
+.book{display:grid;grid-template-columns:minmax(260px,35%) minmax(0,1fr);min-height:730px;border:1px solid #43506b;border-radius:7px 18px 18px 7px;background:#0b101b;box-shadow:0 28px 95px #000c,0 0 70px #6477d412;overflow:hidden;position:relative}
+.cover{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 28px 35px;background:radial-gradient(circle at 50% 43%,#20223c 0,#101426 35%,#080d18 73%);border-right:9px ridge #3c4260;min-width:0}
+.cover:before{content:"";position:absolute;inset:16px;border:1px solid #6b71904f;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);pointer-events:none}
+.cover:after{content:"";position:absolute;inset:28px 26px;pointer-events:none;border:1px solid #56648740;border-radius:48% 48% 3px 3px / 18% 18% 3px 3px}
+.cover .eyebrow{position:relative;z-index:1;font-size:10px;letter-spacing:.32em;color:var(--cyan);text-transform:uppercase}
+.emblem{position:relative;width:min(100%,295px);aspect-ratio:1;margin:65px auto 42px;filter:drop-shadow(0 0 26px #8b67d54d)}
+.emblem svg{width:100%;height:100%;overflow:visible}.emblem .spin{transform-origin:150px 150px;animation:orbit 100s linear infinite}.emblem .reverse{animation-direction:reverse;animation-duration:130s}@keyframes orbit{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.emblem .spin{animation:none}}
+.cover h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,3.5vw,51px);font-weight:normal;letter-spacing:.025em;margin:0;color:#f1edf9;text-shadow:0 0 24px #bb9af250}.cover h2{font-family:Georgia,serif;font-size:22px;font-weight:normal;color:#c5c7e1;margin:8px 0 0}.cover .subtitle{font-size:10px;letter-spacing:.26em;line-height:1.9;color:#9db8d2;margin:20px 0 0}.cover .foot{margin-top:auto;padding-top:35px;font-size:10px;letter-spacing:.17em;color:#8894b2;text-transform:uppercase}
+.page{position:relative;padding:clamp(23px,4vw,54px);background:linear-gradient(145deg,#111827,#0d1321 52%,#111324);min-width:0;overflow-wrap:anywhere}.page:before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(transparent,var(--cyan),var(--violet),transparent);opacity:.7}.page-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:34px}.section-tag{font-size:10px;text-transform:uppercase;letter-spacing:.24em;color:var(--cyan)}.page-number{font:12px Consolas,monospace;color:#8596b2}.page h2{font-family:Georgia,"Times New Roman",serif;font-weight:normal;font-size:clamp(27px,3.3vw,42px);letter-spacing:.01em;margin:0 0 11px;color:#f3effc}.intro{color:var(--muted);font-size:13px;line-height:1.8;margin:0 0 27px}.rule{height:1px;background:linear-gradient(90deg,#85e6f2a8,#a18be34d,transparent);margin-bottom:25px}
+.identity{padding:17px 18px;background:#0a1120;border:1px solid #36465f;border-left:2px solid var(--cyan);border-radius:4px;margin-bottom:25px}.identity .label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9eafc9;margin-bottom:9px}.hash{font:12px/1.7 Consolas,"Cascadia Mono",monospace;overflow-wrap:anywhere;color:#b8eaf0;user-select:text}
+.group-heading{font-size:11px;letter-spacing:.17em;color:#9caecc;text-transform:uppercase;margin:25px 0 11px}.entry{display:flex;align-items:center;gap:16px;width:100%;margin:9px 0;padding:17px 18px;text-align:left;color:#e8ecfa;background:linear-gradient(100deg,#172033,#121a2a);border:1px solid #354158;border-radius:5px;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}.entry:hover{background:#202b43;border-color:#7c93b5;transform:translateX(3px)}.entry .number{font:11px Consolas,monospace;color:var(--cyan);width:30px;flex-shrink:0}.entry .entry-main{min-width:0;flex:1}.entry .entry-title{display:block;font-size:15px;overflow-wrap:anywhere}.entry .entry-kind{display:block;color:#94a6c2;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:5px}.entry .arrow{color:var(--rose);font-size:19px}
+.back{width:auto;margin:0 0 22px;padding:9px 12px;border:1px solid #455575;border-radius:4px;background:#182238;color:#cceaf4;cursor:pointer}.back:hover{background:#24324e}.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px;margin:20px 0 28px}.field{padding:15px;background:#121b2c;border:1px solid #303d55;border-radius:4px;min-width:0}.field-name{display:block;color:#91a7c5;font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:10px}.field-value{font:13px/1.6 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#e4eaf8}.raw-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:26px 0 10px}.raw-head h3{margin:0;color:#b6c4df;font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:500}.raw-head button{border:1px solid #44516b;border-radius:4px;padding:6px 10px;background:#182238;color:#d4e4f3;cursor:pointer;font-size:11px}.raw-head button:hover{background:#24324e}pre{margin:0;padding:18px;border:1px solid #354158;background:#080e19;border-radius:4px;color:#cbd8ef;font:12px/1.7 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:440px;overflow-y:auto}.empty{color:#a8b5cd;padding:16px;border:1px dashed #45516b}.error{color:#ffb9c8;padding:16px;border:1px solid #7b4058;background:#281725;border-radius:4px}
+.bottomline{display:flex;justify-content:space-between;gap:20px;margin-top:18px;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#7887a4}
+@media(max-width:800px){main{padding:15px 12px 28px}.book{grid-template-columns:1fr}.cover{border-right:0;border-bottom:7px ridge #3c4260;padding:28px 20px}.emblem{width:150px;margin:20px auto 15px}.cover .foot{padding-top:18px}.page{min-height:520px}.bottomline{flex-direction:column;gap:6px}}
+.cover .subtitle{max-width:125px;margin-left:auto;margin-right:auto;text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <div class="topline"><strong>HOLO / SIM</strong><span class="signal">Local continuity reader</span></div>
+  <div class="book">
+    <aside class="cover" aria-label="Mechanical Continuity book cover">
+      <span class="eyebrow">An invariant record</span>
+      <div class="emblem" aria-hidden="true">
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="spectrum" x1="20" y1="30" x2="270" y2="260" gradientUnits="userSpaceOnUse"><stop stop-color="#69e8f5"/><stop offset=".35" stop-color="#ae92ff"/><stop offset=".7" stop-color="#f59bcf"/><stop offset="1" stop-color="#f5c68d"/></linearGradient></defs>
+          <circle cx="150" cy="150" r="120" stroke="#6d7d9b" stroke-opacity=".55"/><circle cx="150" cy="150" r="109" stroke="url(#spectrum)" stroke-opacity=".85" stroke-width="1.5"/>
+          <g class="spin" stroke="url(#spectrum)" stroke-opacity=".8"><path d="M150 28L272 150 150 272 28 150Z"/><path d="M150 45L255 150 150 255 45 150Z"/><path d="M150 28V272M28 150H272M64 64L236 236M236 64L64 236"/></g>
+          <g class="spin reverse" stroke="#a9c6ff" stroke-opacity=".55"><path d="M150 58L242 96 242 204 150 242 58 204 58 96Z"/><path d="M150 58L204 58 242 150 204 242 96 242 58 150 96 58Z"/></g>
+          <circle cx="150" cy="150" r="63" stroke="url(#spectrum)" stroke-width="2"/><circle cx="150" cy="150" r="43" stroke="#a5d7ed" stroke-opacity=".8"/><path d="M150 88L212 150 150 212 88 150Z" stroke="url(#spectrum)" stroke-width="2"/><circle cx="150" cy="150" r="9" fill="#c2f5fc"/><circle cx="150" cy="150" r="17" stroke="#d9a4f8"/>
+          <g fill="#c6f6ff"><circle cx="150" cy="28" r="2.5"/><circle cx="272" cy="150" r="2.5"/><circle cx="150" cy="272" r="2.5"/><circle cx="28" cy="150" r="2.5"/></g>
+        </svg>
+      </div>
+      <h1>Holo/Sim</h1><h2>Invariants</h2>
+      <p class="subtitle">MECHANICAL CONTINUITY</p>
+      <p class="foot">Bound by record · Open to correction</p>
+    </aside>
+    <section class="page" aria-label="Book pages">
+      <div class="page-head"><span class="section-tag" id="section-tag">Record index</span><span class="page-number" id="page-number">00 / INDEX</span></div>
+      <h2 id="heading">Contents</h2>
+      <p class="intro" id="intro">A navigable view of the retained lineage. Record identity remains visible and the original data remains accessible.</p>
+      <div class="rule"></div>
+      <div id="content" aria-live="polite">Loading verified records...</div>
+    </section>
+  </div>
+  <div class="bottomline"><span>Read-only interface</span><span>Structure is not independent authentication</span></div>
+</main>
+<script>
+"use strict";
+const heading = document.getElementById("heading");
+const content = document.getElementById("content");
+const intro = document.getElementById("intro");
+const sectionTag = document.getElementById("section-tag");
+const pageNumber = document.getElementById("page-number");
+let navigationVersion = 0;
+
+async function getJSON(url) {
+  const response = await fetch(url, {cache: "no-store"});
+  const value = await response.json();
+  if (!response.ok) throw new Error(value.reason || value.status || "Request failed");
+  return value;
+}
+function clear() { content.replaceChildren(); }
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = String(text);
+  return node;
+}
+function identity(label, value) {
+  const box = element("div", "identity");
+  box.appendChild(element("span", "label", label));
+  box.appendChild(element("div", "hash", value));
+  content.appendChild(box);
+}
+function errorMessage(message) { content.appendChild(element("p", "error", message)); }
+function addButton(label, callback, index, kind) {
+  const button = element("button", "entry");
+  button.type = "button";
+  button.appendChild(element("span", "number", String(index).padStart(2, "0")));
+  const main = element("span", "entry-main");
+  main.appendChild(element("span", "entry-title", label));
+  main.appendChild(element("span", "entry-kind", kind));
+  button.appendChild(main);
+  button.appendChild(element("span", "arrow", "›"));
+  button.addEventListener("click", callback);
+  content.appendChild(button);
+}
+async function showContents() {
+  const request = ++navigationVersion;
+  heading.textContent = "Contents";
+  intro.textContent = "Explore the retained lineage. Each page exposes its record identity and source fields.";
+  sectionTag.textContent = "Record index";
+  pageNumber.textContent = "00 / INDEX";
+  clear();
+  content.appendChild(element("p", "empty", "Loading records…"));
+  try {
+    const data = await getJSON("/api/contents");
+    if (request !== navigationVersion) return;
+    clear();
+    identity("Retained lineage hash", data.lineage_hash);
+    if (!Array.isArray(data.contents) || data.contents.length === 0) {
+      content.appendChild(element("p", "empty", "No records in this lineage."));
+      return;
+    }
+    content.appendChild(element("div", "group-heading", "Available record pages · " + data.contents.length));
+    data.contents.forEach((entry, index) => {
+      addButton(entry.id, () => showPage(entry.kind, entry.id), index + 1, entry.kind);
+    });
+  } catch (error) {
+    if (request !== navigationVersion) return;
+    clear();
+    errorMessage("Cannot load book: " + error.message);
+  }
+}
+async function showPage(kind, id) {
+  const request = ++navigationVersion;
+  heading.textContent = kind + " / " + id;
+  intro.textContent = "A retained record with its original fields and record hash.";
+  sectionTag.textContent = "Record detail";
+  pageNumber.textContent = "01 / RECORD";
+  clear();
+  const back = element("button", "back", "← Back to contents");
+  back.type = "button";
+  back.addEventListener("click", showContents);
+  content.appendChild(back);
+  content.appendChild(element("p", "empty", "Loading record…"));
+  try {
+    const query = new URLSearchParams({kind, id});
+    const page = await getJSON("/api/page?" + query.toString());
+    if (request !== navigationVersion) return;
+    clear();
+    content.appendChild(back);
+    identity("Record hash", page.record_hash);
+    const record = page.record;
+    if (record && typeof record === "object" && !Array.isArray(record)) {
+      content.appendChild(element("div", "group-heading", "Record fields"));
+      const grid = element("div", "field-grid");
+      for (const [key, value] of Object.entries(record)) {
+        const field = element("div", "field");
+        field.appendChild(element("span", "field-name", key.replaceAll("_", " ")));
+        field.appendChild(element("div", "field-value", typeof value === "string" ? value : JSON.stringify(value, null, 2)));
+        grid.appendChild(field);
+      }
+      content.appendChild(grid);
+    }
+    const rawHead = element("div", "raw-head");
+    rawHead.appendChild(element("h3", "", "Original record · JSON"));
+    const toggle = element("button", "", "Show raw JSON");
+    toggle.type = "button";
+    const body = element("pre", "", JSON.stringify(record, null, 2));
+    body.hidden = true;
+    toggle.addEventListener("click", () => {
+      body.hidden = !body.hidden;
+      toggle.textContent = body.hidden ? "Show raw JSON" : "Hide raw JSON";
+    });
+    rawHead.appendChild(toggle);
+    content.appendChild(rawHead);
+    content.appendChild(body);
+  } catch (error) {
+    if (request !== navigationVersion) return;
+    clear();
+    content.appendChild(back);
+    errorMessage("Cannot open page: " + error.message);
+  }
+}
+showContents();
+</script>
+</body>
+</html>
