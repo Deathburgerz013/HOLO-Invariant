@@ -1,33 +1,47 @@
 
-"""Tests for controller-restricted permitted observations."""
+"""Tests for controller-restricted, host-owned permitted observations."""
+
+from datetime import datetime, timezone
 
 import pytest
 
+from holosim.controller_permitted_observation import (
+    ControllerPermittedObservation,
+)
 from holosim.functional_consciousness_experiment import (
     FunctionalConsciousnessExperimentError,
     build_absence_model_receipt,
     build_causal_controller_receipt,
 )
-from holosim.controller_permitted_observation import (
-    ControllerPermittedObservation,
-)
+from holosim.hook_contract import build_hook_request
+from holosim.observation_permit import observation_root_sha256
+from holosim.permitted_observation_host import PermittedObservationHost
+from holosim.signed_occurrence import build_signed_occurrence
 
 
-@pytest.mark.parametrize(
-    ("world_available", "self_available", "connected"),
-    [
-        (True, True, False),
-        (True, False, True),
-        (False, True, True),
-        (False, False, True),
-    ],
-)
-def test_controller_blocks_without_invoking_executor(
-    monkeypatch,
-    tmp_path,
-    world_available,
-    self_available,
-    connected,
+SECRET = b"p" * 32
+NOW = datetime(2026, 8, 4, 19, 30, tzinfo=timezone.utc)
+
+
+def make_adapter(tmp_path, *, secret=SECRET, clock=None):
+    root = tmp_path / "observation-root"
+    root.mkdir(exist_ok=True)
+
+    host = PermittedObservationHost(
+        permit_registry_path=tmp_path / "permits.sqlite3",
+        allowed_root=root,
+        source_secrets={"operator": secret},
+        clock=clock if clock is not None else lambda: NOW,
+    )
+
+    return ControllerPermittedObservation(host=host), host, root
+
+
+def make_controller(
+    *,
+    world_available=True,
+    self_available=True,
+    connected=True,
 ):
     absence = build_absence_model_receipt(
         experiment_id="experiment:controller-gate",
@@ -45,108 +59,10 @@ def test_controller_blocks_without_invoking_executor(
         controller_connected=connected,
     )
 
-    def forbidden_observe(*args, **kwargs):
-        raise AssertionError("Blocked controller reached executor")
-
-    monkeypatch.setattr(
-        "holosim.controller_permitted_observation."
-        "PermittedObservationExecutor.observe",
-        forbidden_observe,
-    )
-
-    adapter = ControllerPermittedObservation(
-        permit_registry_path=tmp_path / "permits.sqlite3",
-    )
-
-    result = adapter.observe(
-        absence_receipt=absence,
-        controller_receipt=controller,
-        goal_reference="goal:observation",
-        reference_state="state:before",
-        candidates=[],
-        allowed_root=tmp_path,
-        observed_at="2026-08-04T12:30:00-07:00",
-        permit_occurrence=None,
-        permit_source_secrets={},
-        seen_occurrence_ids=set(),
-        expected_content="5",
-    )
-
-    assert result.decision == "HALT_CONTROLLER"
-    assert result.classification == "UNAVAILABLE"
-    assert result.evidence_valid is False
-    assert result.permit_verified is False
-    assert result.observation_performed is False
-    assert result.request_hash is None
-    assert result.result_hash is None
-    assert result.accepted is False
-    assert result.write_authority == "NONE"
-    assert result.execution_authority == "NONE"
+    return absence, controller
 
 
-def test_tampered_controller_cannot_reach_executor(monkeypatch, tmp_path):
-    absence = build_absence_model_receipt(
-        experiment_id="experiment:controller-gate",
-        condition_id="condition:bounded-observation",
-        world_source_id="source:world",
-        self_source_id="source:self",
-        world_channel_available=True,
-        self_channel_available=True,
-    )
-
-    controller = build_causal_controller_receipt(
-        experiment_id="experiment:controller-gate",
-        condition_id="condition:bounded-observation",
-        absence_receipt=absence,
-        controller_connected=True,
-    )
-
-    controller["declared_action"] = "HALT"
-
-    def forbidden_observe(*args, **kwargs):
-        raise AssertionError("Invalid evidence reached executor")
-
-    monkeypatch.setattr(
-        "holosim.controller_permitted_observation."
-        "PermittedObservationExecutor.observe",
-        forbidden_observe,
-    )
-
-    adapter = ControllerPermittedObservation(
-        permit_registry_path=tmp_path / "permits.sqlite3",
-    )
-
-    with pytest.raises(FunctionalConsciousnessExperimentError):
-        adapter.observe(
-            absence_receipt=absence,
-            controller_receipt=controller,
-            goal_reference="goal:observation",
-            reference_state="state:before",
-            candidates=[],
-            allowed_root=tmp_path,
-            observed_at="2026-08-04T12:30:00-07:00",
-            permit_occurrence=None,
-            permit_source_secrets={},
-            seen_occurrence_ids=set(),
-            expected_content="5",
-        )
-
-
-def test_controller_blocks_then_permits_once_then_rejects_replay(tmp_path):
-    from holosim.hook_contract import build_hook_request
-    from holosim.observation_permit import observation_root_sha256
-    from holosim.signed_occurrence import build_signed_occurrence
-
-    secret = b"p" * 32
-    observed_at = "2026-08-04T12:30:00-07:00"
-    registry = tmp_path / "permits.sqlite3"
-
-    adapter = ControllerPermittedObservation(
-        permit_registry_path=registry,
-    )
-
-    (tmp_path / "state.txt").write_bytes(b"5")
-
+def make_candidate():
     request = build_hook_request(
         hook_id="local-computer",
         action="read_text",
@@ -168,64 +84,130 @@ def test_controller_blocks_then_permits_once_then_rejects_replay(tmp_path):
         "dependency_impact": 0,
     }
 
-    permit = build_signed_occurrence(
+    return request, candidate
+
+
+def make_permit(
+    root,
+    request,
+    *,
+    secret=SECRET,
+    occurrence_id="controller-gate-permit",
+):
+    return build_signed_occurrence(
         source_id="operator",
-        occurrence_id="controller-gate-permit",
+        occurrence_id=occurrence_id,
         payload={
             "type": "bounded_observation_permit",
             "version": 1,
             "request_hash": request["request_hash"],
-            "allowed_root_sha256": observation_root_sha256(tmp_path),
-            "not_before": "2026-08-04T12:00:00-07:00",
-            "not_after": "2026-08-04T13:00:00-07:00",
+            "allowed_root_sha256": observation_root_sha256(root),
+            "not_before": "2026-08-04T19:00:00+00:00",
+            "not_after": "2026-08-04T20:00:00+00:00",
         },
-        observed_at="2026-08-04T11:59:00-07:00",
+        observed_at="2026-08-04T18:59:00+00:00",
         sequence=1,
-        nonce="nonce:controller-gate-permit",
+        nonce=f"nonce:{occurrence_id}",
         secret=secret,
     )
 
-    def controller_for(*, world_available, self_available):
-        absence = build_absence_model_receipt(
-            experiment_id="experiment:controller-gate",
-            condition_id="condition:bounded-observation",
-            world_source_id="source:world",
-            self_source_id="source:self",
-            world_channel_available=world_available,
-            self_channel_available=self_available,
-        )
 
-        controller = build_causal_controller_receipt(
-            experiment_id="experiment:controller-gate",
-            condition_id="condition:bounded-observation",
-            absence_receipt=absence,
-            controller_connected=True,
-        )
+def observe(
+    adapter,
+    absence,
+    controller,
+    *,
+    candidates=None,
+    permit=None,
+):
+    return adapter.observe(
+        absence_receipt=absence,
+        controller_receipt=controller,
+        goal_reference="goal:observe-current-state",
+        reference_state="state:before-observation",
+        candidates=[] if candidates is None else candidates,
+        permit_occurrence=permit,
+        expected_content="5",
+    )
 
-        return absence, controller
 
-    def observe(absence, controller):
-        return adapter.observe(
-            absence_receipt=absence,
-            controller_receipt=controller,
-            goal_reference="goal:observe-current-state",
-            reference_state="state:before-observation",
-            candidates=[candidate],
-            allowed_root=tmp_path,
-            observed_at=observed_at,
-            permit_occurrence=permit,
-            permit_source_secrets={"operator": secret},
-            seen_occurrence_ids=set(),
-            expected_content="5",
-        )
+@pytest.mark.parametrize(
+    ("world_available", "self_available", "connected"),
+    [
+        (True, True, False),
+        (True, False, True),
+        (False, True, True),
+        (False, False, True),
+    ],
+)
+def test_controller_blocks_without_invoking_host(
+    monkeypatch,
+    tmp_path,
+    world_available,
+    self_available,
+    connected,
+):
+    adapter, host, _ = make_adapter(tmp_path)
 
-    # Both channels unavailable: controller blocks observation.
-    halted_absence, halted_controller = controller_for(
+    absence, controller = make_controller(
+        world_available=world_available,
+        self_available=self_available,
+        connected=connected,
+    )
+
+    def forbidden_observe(*args, **kwargs):
+        raise AssertionError("Blocked controller reached host")
+
+    monkeypatch.setattr(host, "observe", forbidden_observe)
+
+    result = observe(adapter, absence, controller)
+
+    assert result.decision == "HALT_CONTROLLER"
+    assert result.classification == "UNAVAILABLE"
+    assert result.evidence_valid is False
+    assert result.permit_verified is False
+    assert result.observation_performed is False
+    assert result.request_hash is None
+    assert result.result_hash is None
+    assert result.accepted is False
+    assert result.write_authority == "NONE"
+    assert result.execution_authority == "NONE"
+
+
+def test_tampered_controller_cannot_reach_host(monkeypatch, tmp_path):
+    adapter, host, _ = make_adapter(tmp_path)
+
+    absence, controller = make_controller()
+    controller["declared_action"] = "HALT"
+
+    def forbidden_observe(*args, **kwargs):
+        raise AssertionError("Invalid evidence reached host")
+
+    monkeypatch.setattr(host, "observe", forbidden_observe)
+
+    with pytest.raises(FunctionalConsciousnessExperimentError):
+        observe(adapter, absence, controller)
+
+
+def test_controller_blocks_then_permits_once_then_rejects_replay(tmp_path):
+    adapter, _, root = make_adapter(tmp_path)
+    (root / "state.txt").write_bytes(b"5")
+
+    request, candidate = make_candidate()
+    permit = make_permit(root, request)
+
+    halted_absence, halted_controller = make_controller(
         world_available=False,
         self_available=False,
     )
 
-    blocked = observe(halted_absence, halted_controller)
+    blocked = observe(
+        adapter,
+        halted_absence,
+        halted_controller,
+        candidates=[candidate],
+        permit=permit,
+    )
 
     assert blocked.decision == "HALT_CONTROLLER"
     assert blocked.observation_performed is False
@@ -234,13 +216,15 @@ def test_controller_blocks_then_permits_once_then_rejects_replay(tmp_path):
     assert blocked.request_hash is None
     assert blocked.result_hash is None
 
-    # Both channels reported available: the independent permit is required.
-    ready_absence, ready_controller = controller_for(
-        world_available=True,
-        self_available=True,
-    )
+    ready_absence, ready_controller = make_controller()
 
-    first = observe(ready_absence, ready_controller)
+    first = observe(
+        adapter,
+        ready_absence,
+        ready_controller,
+        candidates=[candidate],
+        permit=permit,
+    )
 
     assert first.decision == "OBSERVED"
     assert first.classification == "SUPPORTED"
@@ -250,8 +234,13 @@ def test_controller_blocks_then_permits_once_then_rejects_replay(tmp_path):
     assert first.request_hash is not None
     assert first.result_hash is not None
 
-    # The consumed signed permit cannot authorize another observation.
-    replay = observe(ready_absence, ready_controller)
+    replay = observe(
+        adapter,
+        ready_absence,
+        ready_controller,
+        candidates=[candidate],
+        permit=permit,
+    )
 
     assert replay.decision == "HALT_UNPERMITTED"
     assert replay.classification == "UNAVAILABLE"
@@ -267,11 +256,104 @@ def test_controller_blocks_then_permits_once_then_rejects_replay(tmp_path):
 
 
 def test_registry_cannot_be_overridden_per_observation(tmp_path):
-    adapter = ControllerPermittedObservation(
-        permit_registry_path=tmp_path / "trusted.sqlite3",
-    )
+    adapter, _, _ = make_adapter(tmp_path)
 
     with pytest.raises(TypeError):
         adapter.observe(
             permit_registry_path=tmp_path / "alternate.sqlite3",
         )
+
+
+def test_controller_cannot_override_host_root(tmp_path):
+    adapter, _, root = make_adapter(tmp_path)
+    (root / "state.txt").write_text("5", encoding="utf-8")
+
+    request, candidate = make_candidate()
+    other_root = tmp_path / "untrusted-root"
+    other_root.mkdir()
+    (other_root / "state.txt").write_text("5", encoding="utf-8")
+
+    permit = make_permit(
+        other_root,
+        request,
+        occurrence_id="wrong-root",
+    )
+    absence, controller = make_controller()
+
+    result = observe(
+        adapter,
+        absence,
+        controller,
+        candidates=[candidate],
+        permit=permit,
+    )
+
+    assert result.decision == "HALT_UNPERMITTED"
+    assert result.classification == "UNAVAILABLE"
+    assert result.observation_performed is False
+    assert result.permit_verified is True
+    assert result.evidence_valid is False
+    assert result.request_hash is None
+    assert result.result_hash is None
+    assert result.accepted is False
+    assert result.write_authority == "NONE"
+    assert result.execution_authority == "NONE"
+
+
+
+def test_controller_cannot_override_host_signing_secret(tmp_path):
+    adapter, _, root = make_adapter(tmp_path)
+    (root / "state.txt").write_text("5", encoding="utf-8")
+
+    request, candidate = make_candidate()
+    forged = make_permit(
+        root,
+        request,
+        secret=b"f" * 32,
+        occurrence_id="forged-controller-permit",
+    )
+    absence, controller = make_controller()
+
+    result = observe(
+        adapter,
+        absence,
+        controller,
+        candidates=[candidate],
+        permit=forged,
+    )
+
+    assert result.decision == "HALT_UNPERMITTED"
+    assert result.observation_performed is False
+    assert result.permit_verified is False
+
+
+def test_controller_cannot_override_host_clock(tmp_path):
+    future = datetime(2026, 8, 5, 19, 30, tzinfo=timezone.utc)
+    adapter, _, root = make_adapter(
+        tmp_path,
+        clock=lambda: future,
+    )
+    (root / "state.txt").write_text("5", encoding="utf-8")
+
+    request, candidate = make_candidate()
+    expired = make_permit(
+        root,
+        request,
+        occurrence_id="expired-controller-permit",
+    )
+    absence, controller = make_controller()
+
+    result = observe(
+        adapter,
+        absence,
+        controller,
+        candidates=[candidate],
+        permit=expired,
+    )
+
+    assert result.decision == "HALT_UNPERMITTED"
+    assert result.observation_performed is False
+    assert result.permit_verified is True
+    assert result.evidence_valid is False
+    assert result.request_hash is None
+    assert result.result_hash is None

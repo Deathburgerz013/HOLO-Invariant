@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Mapping
 
 from holosim.functional_consciousness_experiment import (
@@ -12,9 +11,7 @@ from holosim.functional_consciousness_experiment import (
     verify_absence_model_receipt,
     verify_causal_controller_receipt,
 )
-from holosim.permitted_observation_executor import (
-    PermittedObservationExecutor,
-)
+from holosim.permitted_observation_host import PermittedObservationHost
 
 
 @dataclass(frozen=True)
@@ -33,12 +30,13 @@ class ControllerObservationResult:
 
 
 class ControllerPermittedObservation:
-    """Restrict observations using controller evidence and a fixed executor."""
+    """Restrict host-owned observations using verified controller evidence."""
 
-    def __init__(self, *, permit_registry_path: str | Path):
-        self._executor = PermittedObservationExecutor(
-            permit_registry_path=permit_registry_path,
-        )
+    def __init__(self, *, host: PermittedObservationHost):
+        if not isinstance(host, PermittedObservationHost):
+            raise TypeError("host must be a PermittedObservationHost")
+
+        self._host = host
 
     def observe(
         self,
@@ -48,11 +46,7 @@ class ControllerPermittedObservation:
         goal_reference: str,
         reference_state: str,
         candidates: Any,
-        allowed_root: str | Path,
-        observed_at: str,
         permit_occurrence: Any,
-        permit_source_secrets: Any,
-        seen_occurrence_ids: Any,
         expected_content: str,
     ) -> ControllerObservationResult:
         """A controller can restrict observation, never authorize it."""
@@ -80,15 +74,11 @@ class ControllerPermittedObservation:
                 observation_performed=False,
             )
 
-        result = self._executor.observe(
+        result = self._host.observe(
             goal_reference=goal_reference,
             reference_state=reference_state,
             candidates=candidates,
-            allowed_root=allowed_root,
-            observed_at=observed_at,
             permit_occurrence=permit_occurrence,
-            permit_source_secrets=permit_source_secrets,
-            seen_occurrence_ids=seen_occurrence_ids,
             expected_content=expected_content,
         )
 
