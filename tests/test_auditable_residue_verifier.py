@@ -116,3 +116,14 @@ def test_reconstruction_verifies_when_contradictions_survive_unchanged():
     assert result["reason"] == "AUDITABLE_RESIDUE_VERIFIED"
     assert result["omitted_contradiction_ids"] == []
     assert result["rewritten_contradiction_ids"] == []
+
+def test_matching_fabricated_records_do_not_establish_provenance():
+    verifier = build_auditable_residue_verifier()
+    fabricated = {"contradictions": [{"id": "invented-event", "observed": "success"}]}
+    result = verifier(preserved_record=fabricated, reconstructed_state=fabricated)
+    assert result["verified"] is True
+    assert result["continuity_claimed"] is False
+    assert result["truth_claimed"] is False
+    assert result["accepted"] is False
+    assert result["write_authority"] == "NONE"
+    assert result["execution_authority"] == "NONE"
