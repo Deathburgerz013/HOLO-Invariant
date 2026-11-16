@@ -36,7 +36,7 @@ def _read(path, limit):
     return data
 
 
-def _snapshot(path):
+def _snapshot_with_entries(path):
     # Verify the captured bytes, rather than rereading a moving source file.
     data = _read(path, MAX_CHAIN_BYTES)
     lines = [line for line in data.splitlines() if line.strip()]
@@ -52,8 +52,12 @@ def _snapshot(path):
         copy = Path(folder) / "chain.jsonl"
         copy.write_bytes(data)
         entries = HoloChain(copy).load_and_verify()
-    return len(entries), entries[-1]["hash"] if entries else "0" * 64
+    return len(entries), entries[-1]["hash"] if entries else "0" * 64, tuple(entries)
 
+
+def _snapshot(path):
+    count, head, _entries = _snapshot_with_entries(path)
+    return count, head
 
 def _run(args, data, tool):
     try:
@@ -92,12 +96,13 @@ def _witness(data):
     return obj, signature
 
 
-def recover_witnessed_history(*, chain_path, witness_path, expected_chain_id, allowed_signers_path, ssh_keygen="ssh-keygen"):
+def _recover_witnessed_history_with_entries(*, chain_path, witness_path, expected_chain_id, allowed_signers_path, ssh_keygen="ssh-keygen"):
     """Observe a match or explicit refusal. Does not authorize resume."""
     _text(expected_chain_id)
     status = "REJECTED_WITNESS"
     observed = None
     witness_hash = None
+    entries = None
     try:
         if Path(chain_path).resolve() == Path(witness_path).resolve():
             raise HistoryWitnessError("chain and witness paths must differ")
@@ -116,7 +121,7 @@ def recover_witnessed_history(*, chain_path, witness_path, expected_chain_id, al
             status = "REJECTED_CHAIN_ID"
         else:
             status = "REJECTED_CHAIN"
-            count, head = _snapshot(chain_path)
+            count, head, entries = _snapshot_with_entries(chain_path)
             observed = {"entry_count": count, "head_hash": head}
             if count != witness["entry_count"]:
                 status = "REJECTED_COUNT"
@@ -133,4 +138,11 @@ def recover_witnessed_history(*, chain_path, witness_path, expected_chain_id, al
             "expected_chain_id": expected_chain_id, "status": status, "matched": status == "MATCHED",
             "observed": observed, "witness_hash": witness_hash, "accepted": False,
             "truth_claimed": False, "write_authority": "NONE", "execution_authority": "NONE"}
-    return {**body, "receipt_hash": stable_hash(body)}
+    receipt = {**body, "receipt_hash": stable_hash(body)}
+    return receipt, entries if status == "MATCHED" else None
+
+
+def recover_witnessed_history(*, chain_path, witness_path, expected_chain_id, allowed_signers_path, ssh_keygen="ssh-keygen"):
+    """Observe a match or explicit refusal. Does not authorize resume."""
+    receipt, _entries = _recover_witnessed_history_with_entries(chain_path=chain_path, witness_path=witness_path, expected_chain_id=expected_chain_id, allowed_signers_path=allowed_signers_path, ssh_keygen=ssh_keygen)
+    return receipt

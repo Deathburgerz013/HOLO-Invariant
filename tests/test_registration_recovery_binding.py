@@ -970,3 +970,18 @@ def test_history_recovery_exception_returns_structured_rejection(
     assert module.verify_witnessed_registration_recovery_receipt(
         receipt
     ) is True
+
+def test_witnessed_registration_does_not_authenticate_extra_source_items(monkeypatch, tmp_path):
+    from holosim import registration_recovery_binding as module
+    from holosim.reconstructor import build_reconstructed_state
+    a = {"id": "registration-a", "requires": [], "observation": "a", "registered": True}
+    b = {"id": "contradiction-b", "requires": [], "observation": "invented"}
+    items = [a, b]
+    state = build_reconstructed_state("test-reference", ["registration-a", "contradiction-b"], items)
+    monkeypatch.setattr(module, "evaluate_witnessed_registration_recovery", lambda **kwargs: {"status": "VERIFIED_REGISTRATION", "recognized": True, "receipt_hash": "simulated"})
+    result = module.evaluate_witnessed_reconstructed_registration(reconstructed_state=state, source_items=items, chain_path=tmp_path / "chain.jsonl", witness_path=tmp_path / "witness.json", expected_chain_id="test-chain", allowed_signers_path=tmp_path / "allowed_signers", registration_entry_idx=1, registration_item=a, observation="a")
+    assert result["recognized"] is True
+    assert result["reconstruction_valid"] is True
+    assert {item["id"] for item in state["carried_items"]} == {"registration-a", "contradiction-b"}
+    assert result["accepted"] is False
+    assert result["execution_authority"] == "NONE"
