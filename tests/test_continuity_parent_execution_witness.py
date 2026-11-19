@@ -74,28 +74,33 @@ expected_hash = sys.argv[2]
 check_path = Path(sys.argv[3])
 target_path = Path(sys.argv[4])
 
+def require(condition):
+    if not condition:
+        raise ValueError("evidence mismatch")
+
 try:
     record = json.loads(record_path.read_text(encoding="utf-8"))
     recorded_hash = record.pop("record_hash")
-    assert recorded_hash == expected_hash
-    assert stable_hash(record) == expected_hash
-    assert record["check_sha256"] == hashlib.sha256(check_path.read_bytes()).hexdigest()
-    assert record["after"] == (
+    require(recorded_hash == expected_hash)
+    require(stable_hash(record) == expected_hash)
+    require(record["check_sha256"] == hashlib.sha256(check_path.read_bytes()).hexdigest())
+    observed_after = (
         {"exists": True, "sha256": hashlib.sha256(target_path.read_bytes()).hexdigest()}
         if target_path.is_file() else {"exists": False, "sha256": None}
     )
-    assert record["before"] == {"exists": False, "sha256": None}
-    assert record["pid"] > 0
-    assert record["returncode"] == 0
-    assert record["timed_out"] is False
-    assert record["child_script_sha256"] == hashlib.sha256(
-        record["command"][2].encode("utf-8")
-    ).hexdigest()
-    assert record["command"][1] == "-c"
-    assert record["command"][3:] == [
-        str(check_path), str(target_path), record["scenario"]
-    ]
-except (OSError, ValueError, KeyError, TypeError, AssertionError, IndexError) as exc:
+    require(record["after"] == observed_after)
+    require(record["before"] == {"exists": False, "sha256": None})
+    require(type(record["pid"]) is int and record["pid"] > 0)
+    require(type(record["returncode"]) is int and record["returncode"] == 0)
+    require(record["timed_out"] is False)
+    command = record["command"]
+    require(type(command) is list and len(command) == 6)
+    require(command[1] == "-c")
+    require(record["child_script_sha256"] == hashlib.sha256(
+        command[2].encode("utf-8")
+    ).hexdigest())
+    require(command[3:] == [str(check_path), str(target_path), record["scenario"]])
+except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
     print(json.dumps({"status": "REJECTED", "reason": type(exc).__name__}))
 else:
     print(json.dumps({"status": "CONSISTENT", "truth_claimed": False,
@@ -278,3 +283,20 @@ def test_fresh_observer_rejects_changed_check(tmp_path):
     )
     check_path.write_text("{}", encoding="utf-8")
     assert observe(record_path, identity, check_path, target)["status"] == "REJECTED"
+
+
+def test_optimized_observer_rejects_modified_record(tmp_path):
+    record_path, identity, check_path, target, _ = produce(
+        tmp_path, current_hash="head-hash-10", current_idx=10, mode="gate"
+    )
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    record["pid"] += 1
+    record_path.write_text(json.dumps(record), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-O", "-c", OBSERVER,
+         str(record_path), identity, str(check_path), str(target)],
+        capture_output=True, text=True, encoding="utf-8", timeout=15,
+        check=False, cwd=Path(__file__).resolve().parents[1],
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["status"] == "REJECTED"
