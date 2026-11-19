@@ -1,4 +1,4 @@
-﻿
+
 import pytest
 
 from holosim.continuity_effect_observation import evaluate_continuity_effect

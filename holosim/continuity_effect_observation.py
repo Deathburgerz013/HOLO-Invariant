@@ -1,4 +1,4 @@
-﻿
+
 """Bounded classification of reported decisions and supplied observations.
 
 Inputs are caller-supplied. This module does not independently witness
