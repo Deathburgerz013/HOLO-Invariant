@@ -6,6 +6,9 @@ Tests cooperating gate invocation and an intentional bypass.
 The parent independently observes filesystem effects, but gate invocation
 and reported decisions come from the child process.
 
+The parent controls subprocess launch but does not independently witness
+the child's attempted protected operation.
+
 This does not establish independent head authority, authenticated
 attempt provenance, or a security boundary against arbitrary code.
 """
@@ -126,7 +129,7 @@ print(json.dumps({
             False,
             "BLOCK",
             False,
-            "BLOCK_REPORTED_NO_EFFECT",
+            "BLOCK_REPORTED_EFFECT_UNOBSERVED",
         ),
         (
             "head-hash-10",
@@ -169,7 +172,8 @@ def test_subprocess_continuation_effect(
 
     target = tmp_path / "continuation-effect.txt"
 
-    # Execute the candidate behavior in a separate process.
+    # The parent controls subprocess launch.
+    # This does not authenticate internal child operations.
     completed = subprocess.run(
         [
             sys.executable,
@@ -186,7 +190,7 @@ def test_subprocess_continuation_effect(
         cwd=Path(__file__).resolve().parents[1],
     )
 
-    # The child supplies the reported decision.
+    # These values are reported by the child process.
     report = json.loads(completed.stdout)
 
     assert report["reported_decision"] == expected_decision
@@ -202,19 +206,19 @@ def test_subprocess_continuation_effect(
             encoding="utf-8"
         ) == "continuation effect"
 
-    # Classify the reported decision against the observed effect.
+    # The parent did not independently witness the protected
+    # operation being attempted.
     #
-    # action_attempted=True describes the configured test scenario.
-    # It is not independently authenticated attempt provenance.
+    # Therefore action_attempted remains unknown.
     classification = evaluate_continuity_effect(
         reported_decision=report["reported_decision"],
-        action_attempted=True,
+        action_attempted=None,
         effect_observed=effect_observed,
     )
 
     assert classification["classification"] == expected_classification
     assert classification["reported_decision"] == expected_decision
-    assert classification["action_attempted"] is True
+    assert classification["action_attempted"] is None
     assert classification["effect_observed"] is expected_effect
 
     # Classification must not grant authority or claim truth.
