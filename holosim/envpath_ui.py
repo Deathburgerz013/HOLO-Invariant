@@ -73,6 +73,8 @@ body.background-view {overflow:hidden}
 .workspace-layout-options{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
 #workspace-resize-controls{display:flex;align-items:center;gap:6px;margin-bottom:8px}
 #workspace-resize-controls select{flex:1;min-width:0;margin:0}
+.workspace-layout-options button,#workspace-resize-controls select{min-height:44px}
+#workspace-resize-controls button{min-width:44px}
 .workspace-divider{display:grid;place-items:center;min-width:0;cursor:col-resize;touch-action:none}
 .workspace-divider::before{content:"";height:100%;width:2px;border-radius:2px;background:var(--line)}
 .workspace-divider:hover::before,.workspace-divider:focus-visible::before{background:var(--green)}
@@ -82,13 +84,12 @@ body.background-view {overflow:hidden}
   .layout{display:block;padding:0 12px 16px;min-height:0}
   .workspace-controls{padding:0 12px 12px}
   .workspace-controls button{min-height:44px}
-  .workspace-divider{display:none}
 }
 </style></head><body><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
 <button id="workspace-reveal" type="button" aria-label="Show workspace" hidden>Show UI</button>
 <header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
 <aside id="appearance-panel" class="appearance-panel" aria-label="Options" hidden>
-<h2>Options</h2>
+<h2 id="options-heading" tabindex="-1">Options</h2>
 <section class="workspace-layout-options" aria-labelledby="workspace-layout-heading">
 <h3 id="workspace-layout-heading">Workspace layout</h3>
 <div id="workspace-resize-controls" role="group" aria-label="Resize panes">
@@ -244,7 +245,12 @@ function applyAppearance(p){
 }
 function saveAppearance(p){applyAppearance(p);try{localStorage.setItem(appearanceKey,JSON.stringify(p))}catch(_){/* UI remains usable without storage */}}
 function updateAppearance(changes){saveAppearance({...appearance,...changes})}
-function toggleAppearance(open){$('appearance-panel').hidden=!open;$('appearance-toggle').setAttribute('aria-expanded',String(open))}
+function toggleAppearance(open) {
+  $('appearance-toggle').setAttribute('aria-expanded', String(open));
+  if (!open && $('appearance-panel').contains(document.activeElement)) $('appearance-toggle').focus();
+  $('appearance-panel').hidden = !open;
+  if (open) $('options-heading').focus();
+}
 $('appearance-toggle').onclick=()=>toggleAppearance($('appearance-panel').hidden);
 $('appearance-close').onclick=()=>toggleAppearance(false);
 $('appearance-theme').onchange=()=>updateAppearance({theme:$('appearance-theme').value});
@@ -260,10 +266,19 @@ if(reducedMotion.addEventListener)reducedMotion.addEventListener('change',syncMo
 else if(reducedMotion.addListener)reducedMotion.addListener(syncMotion);
 
 function setBackgroundView(hidden){
-  document.body.classList.toggle('background-view',hidden);
-  $('workspace-reveal').hidden=!hidden;
-  $('workspace-hide').setAttribute('aria-pressed',String(hidden));
-  if(hidden)toggleAppearance(false);
+  const workspaceRegions = document.querySelectorAll('body > header, body > .intro, body > #notice, body > main, body > .footer');
+  if (hidden) {
+    toggleAppearance(false);
+    $('workspace-reveal').hidden = false;
+    $('workspace-reveal').focus();
+  }
+  for (const region of workspaceRegions) region.inert = hidden;
+  document.body.classList.toggle('background-view', hidden);
+  $('workspace-hide').setAttribute('aria-pressed', String(hidden));
+  if (!hidden) {
+    $('workspace-hide').focus();
+    $('workspace-reveal').hidden = true;
+  }
 }
 $('workspace-hide').onclick=()=>setBackgroundView(true);
 $('workspace-reveal').onclick=()=>setBackgroundView(false);
@@ -332,8 +347,11 @@ function updateWorkspaceSizes() {
   });
   const left = resizeEdge.value;
   const right = visible[visible.indexOf(left) + 1];
-  $('workspace-smaller').disabled = !left || workspace.sizes[left] <= minimumShare + 0.001;
-  $('workspace-larger').disabled = !left || workspace.sizes[right] <= minimumShare + 0.001;
+  for (const [button, pane] of [[$('workspace-smaller'), left], [$('workspace-larger'), right]]) {
+    const disabled = !left || workspace.sizes[pane] <= minimumShare + 0.001;
+    if (disabled && document.activeElement === button) resizeEdge.focus();
+    button.disabled = disabled;
+  }
 }
 
 function renderWorkspace() {
@@ -353,8 +371,13 @@ function renderWorkspace() {
   workspaceDividers.forEach((divider, index) => {
     const left = workspacePanes[index];
     const right = shown[shown.indexOf(left) + 1];
-    divider.hidden = compact || !shown.includes(left) || !right;
-    if (divider.hidden) return;
+    const hideDivider = compact || !shown.includes(left) || !right;
+    if (hideDivider && document.activeElement === divider) {
+      const fallback = shown.includes(left) ? left : shown[0];
+      workspaceButtons.find(button => button.dataset.workspacePane === fallback).focus();
+    }
+    divider.hidden = hideDivider;
+    if (hideDivider) return;
     const label = workspaceLabels[left] + ' / ' + workspaceLabels[right];
     divider.setAttribute('aria-label', label);
     divider.setAttribute('aria-controls', 'workspace-' + left);
@@ -363,7 +386,9 @@ function renderWorkspace() {
     resizeEdge.append(option);
   });
   if ([...resizeEdge.options].some(option => option.value === selectedEdge)) resizeEdge.value = selectedEdge;
-  $('workspace-resize-controls').hidden = !resizeEdge.options.length;
+  const resizeControls = $('workspace-resize-controls');
+  if (!resizeEdge.options.length && resizeControls.contains(document.activeElement)) $('workspace-reset').focus();
+  resizeControls.hidden = !resizeEdge.options.length;
   updateWorkspaceSizes();
 }
 

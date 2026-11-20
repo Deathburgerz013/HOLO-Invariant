@@ -228,3 +228,49 @@ def test_workspace_invalid_layout_recovers(page, saved):
     page.reload()
     assert page.get_by_role('separator', name='Evidence / Chat').get_attribute('aria-valuenow') == '25'
     assert page.locator('#workspace-draft').is_visible()
+
+
+def test_options_and_background_view_restore_keyboard_focus(page):
+    options = page.locator('#appearance-toggle')
+    options.press('Enter')
+    assert page.locator('#options-heading').evaluate('(el) => el === document.activeElement')
+    page.locator('#workspace-resize-edge').press('Escape')
+    assert options.evaluate('(el) => el === document.activeElement')
+
+    page.locator('#workspace-hide').press('Enter')
+    reveal = page.locator('#workspace-reveal')
+    assert reveal.evaluate('(el) => el === document.activeElement')
+    assert page.locator('main').evaluate('(el) => el.inert')
+    reveal.press('Enter')
+    assert page.locator('#workspace-hide').evaluate('(el) => el === document.activeElement')
+    assert not page.locator('main').evaluate('(el) => el.inert')
+
+
+@pytest.mark.parametrize('focused, fallback', [
+    ('#query', '[data-workspace-pane="evidence"]'),
+    ('.workspace-divider', '[data-workspace-pane="chat"]'),
+    ('#workspace-resize-edge', '#workspace-reset'),
+])
+def test_narrow_workspace_moves_focus_to_visible_control(page, focused, fallback):
+    if focused == '#workspace-resize-edge':
+        open_options(page)
+    page.locator(focused).first.focus()
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.wait_for_function('(selector) => document.activeElement.matches(selector)', arg=fallback)
+    assert page.locator(fallback).is_visible()
+
+
+def test_touch_workspace_switches_panes_and_resizes(page, ui_url):
+    browser = page.context.browser
+    with browser.new_context(has_touch=True, viewport={'width': 390, 'height': 844}) as context:
+        touch_page = context.new_page()
+        touch_page.goto(ui_url)
+        touch_page.get_by_role('button', name='Evidence', exact=True).tap()
+        assert touch_page.locator('#workspace-evidence').is_visible()
+        assert touch_page.locator('#workspace-chat').is_hidden()
+
+        touch_page.set_viewport_size({'width': 1280, 'height': 800})
+        touch_page.locator('#appearance-toggle').tap()
+        touch_page.get_by_role('button', name='Move divider right').tap()
+        divider = touch_page.get_by_role('separator', name='Evidence / Chat')
+        assert divider.get_attribute('aria-valuenow') == '27'
