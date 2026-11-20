@@ -41,6 +41,13 @@ button:hover:not(:disabled) {background:var(--surface-hover)}
 /* A quiet, fixed light field. Never covers the controls or catches clicks. */
 body::before {content:"";position:fixed;inset:-45vmax;z-index:0;pointer-events:none;opacity:0;visibility:hidden;background:conic-gradient(from 0deg,transparent 0deg,#ff2d550d 22deg,transparent 45deg,#31e9ff14 68deg,transparent 90deg,#b26aff12 112deg,transparent 135deg,#ffb12b0c 158deg,transparent 180deg,#ff2d550d 202deg,transparent 225deg,#31e9ff14 248deg,transparent 270deg,#b26aff12 292deg,transparent 315deg,#ffb12b0c 338deg,transparent 360deg);mask-image:radial-gradient(ellipse at center,black 0%,transparent 65%);transform-origin:center;transition:opacity .25s}
 :root[data-theme="space"][data-effect="kaleidoscope"] body::before {visibility:visible;opacity:.85;animation:holo-orbit var(--motion-period,24s) linear infinite}
+/* RGB uses the same animated accent as the controls, over the theme's base color. */
+:root[data-effect="rgb"] body {
+  background-image:radial-gradient(ellipse at 50% 35%,
+    color-mix(in srgb,var(--accent) 32%,var(--paper)),
+    color-mix(in srgb,var(--accent) 12%,var(--paper)) 72%,var(--paper));
+  background-attachment:fixed;
+}
 @keyframes holo-orbit {to {transform:rotate(360deg)}}
 /* Keep foreground surfaces above the atmospheric effect. */
 body>header,body>.intro,body>#notice,body>main,body>.footer,body>.appearance-panel {position:relative;z-index:1}
@@ -223,7 +230,7 @@ function animateFractal(time){
 function syncMotion(){
   if(motionFrame){cancelAnimationFrame(motionFrame);motionFrame=0}
   if(fractalFrame){cancelAnimationFrame(fractalFrame);fractalFrame=0}
-  const active=appearance.effect!=='off'&&!reducedMotion.matches;
+  const active=appearance.effect!=='off'&&!reducedMotion.matches&&!document.hidden;
   document.documentElement.dataset.effect=active?appearance.effect:'off';
   document.documentElement.style.setProperty('--motion-period',(50-appearance.speed*4)+'s');
   setAccent(appearance.accent);

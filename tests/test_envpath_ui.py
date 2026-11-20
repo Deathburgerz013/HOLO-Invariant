@@ -274,3 +274,25 @@ def test_touch_workspace_switches_panes_and_resizes(page, ui_url):
         touch_page.get_by_role('button', name='Move divider right').tap()
         divider = touch_page.get_by_role('separator', name='Evidence / Chat')
         assert divider.get_attribute('aria-valuenow') == '27'
+
+
+def test_rgb_cycles_background_with_workspace_hidden(page):
+    page.emulate_media(reduced_motion='no-preference')
+    open_options(page)
+    page.locator('#appearance-effect').select_option('rgb')
+    page.locator('#appearance-close').click()
+    page.locator('#workspace-hide').click()
+
+    read_background = '() => getComputedStyle(document.body).backgroundImage'
+    first = page.evaluate(read_background)
+    assert first.startswith('radial-gradient(')
+    page.wait_for_function(
+        'first => getComputedStyle(document.body).backgroundImage !== first',
+        arg=first,
+    )
+
+    page.emulate_media(reduced_motion='reduce')
+    page.wait_for_function("() => getComputedStyle(document.body).backgroundImage === 'none'")
+    page.locator('#workspace-reveal').click()
+    open_options(page)
+    assert page.locator('#appearance-effect').input_value() == 'rgb'
