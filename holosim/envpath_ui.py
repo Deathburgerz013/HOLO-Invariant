@@ -287,23 +287,34 @@ function drawMatrix(ctx, width, height, time, hue, glyphs) {
   ctx.globalAlpha = 1;
 }
 
-function drawBinaryTitle(ctx, width, height, time, hue) {
-  const title = ['Holo/Sim', 'Continuity Engine'];
-  const fontSize = Math.max(10, Math.min(27, width / 13));
-  const lineHeight = fontSize * 1.4;
-  const phase = time % 10;
-  const characters = reducedMotion.matches ? Infinity : Math.floor(phase * 10);
+const continuityBytes = Array.from(new TextEncoder().encode('Holo/Sim Continuity Engine'),
+  byte => byte.toString(2).padStart(8, '0'));
+
+function drawBinaryPayload(ctx, width, height, time, hue) {
+  const bytesPerLine = width < 480 ? 4 : 8;
+  const rows = [];
+  for (let start = 0; start < continuityBytes.length; start += bytesPerLine) {
+    rows.push(continuityBytes.slice(start, start + bytesPerLine).join(' '));
+  }
+  const fontSize = Math.min(17, width / (bytesPerLine * 6), height / (rows.length * 2));
+  const lineHeight = fontSize * 1.45;
+  const top = (height - rows.length * lineHeight) / 2;
+  const phase = time % 15;
+  let remaining = reducedMotion.matches ? Infinity : Math.floor(phase * 42);
+
   ctx.save();
   ctx.font = '500 ' + fontSize + 'px ui-monospace, monospace';
-  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const panelWidth = Math.min(width, ctx.measureText(title[1]).width + fontSize * 2);
-  ctx.fillStyle = 'rgba(2,9,5,.87)';
-  ctx.fillRect((width - panelWidth) / 2, height / 2 - lineHeight, panelWidth, lineHeight * 2);
+  const lineWidth = ctx.measureText(rows[0]).width;
+  const left = (width - lineWidth) / 2;
+  ctx.fillStyle = 'rgba(2,9,5,.88)';
+  ctx.fillRect(left - fontSize, top, lineWidth + 2 * fontSize, rows.length * lineHeight);
   ctx.fillStyle = hue === null ? '#a6ffc6' : 'hsl(' + hue + ' 90% 82%)';
-  ctx.globalAlpha = reducedMotion.matches ? 1 : Math.min(1, (10 - phase) * 2);
-  ctx.fillText(title[0].slice(0, characters), width / 2, (height - lineHeight) / 2);
-  ctx.fillText(title[1].slice(0, Math.max(0, characters - title[0].length)), width / 2, (height + lineHeight) / 2);
+  rows.forEach((row, index) => {
+    const visible = row.slice(0, Math.max(0, remaining));
+    if (visible) ctx.fillText(visible, left, top + (index + .5) * lineHeight);
+    remaining -= row.length;
+  });
   ctx.restore();
 }
 
@@ -321,7 +332,7 @@ function drawScene(time, accent, hue = null) {
   else if (appearance.background === 'matrix' || appearance.background === 'binary-matrix') {
     const binary = appearance.background === 'binary-matrix';
     drawMatrix(sceneContext, width, height, seconds, hue, binary ? '01' : sceneGlyphs);
-    if (binary) drawBinaryTitle(sceneContext, width, height, seconds, hue);
+    if (binary) drawBinaryPayload(sceneContext, width, height, seconds, hue);
   }
   else {
     drawStars(sceneContext, width, height, seconds);

@@ -360,7 +360,7 @@ def test_matrix_rain_uses_slim_glyphs_and_rgb_streams(page):
     page.wait_for_function('() => window.rainColors.size > 4')
 
 
-def test_binary_matrix_renders_bits_and_title_with_reduced_motion(page):
+def test_binary_matrix_payload_decodes_with_reduced_motion(page):
     open_options(page)
     page.evaluate('''() => {
         const ctx = document.getElementById('workspace-scene').getContext('2d');
@@ -373,8 +373,12 @@ def test_binary_matrix_renders_bits_and_title_with_reduced_motion(page):
     }''')
     page.locator('#appearance-background').select_option('binary-matrix')
     rendered = page.evaluate('window.binaryText')
-    assert set(rendered[:-2]) == {'0', '1'}
-    assert rendered[-2:] == ['Holo/Sim', 'Continuity Engine']
+    rain = [glyph for glyph in rendered if len(glyph) == 1]
+    payload = [row for row in rendered if len(row) > 1]
+    assert set(rain) == {'0', '1'}
+    groups = ' '.join(payload).split()
+    assert all(len(group) == 8 and set(group) <= {'0', '1'} for group in groups)
+    assert bytes(int(group, 2) for group in groups).decode('ascii') == 'Holo/Sim Continuity Engine'
 
     page.reload()
     assert page.locator('html').get_attribute('data-background') == 'binary-matrix'
