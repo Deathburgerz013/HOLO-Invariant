@@ -266,57 +266,43 @@ function drawElectric(ctx, width, height, time, accent) {
   ctx.shadowBlur = 0;
 }
 
-function drawMatrix(ctx, width, height, time, hue, glyphs) {
+function drawMatrix(ctx, width, height, time, hue, binary) {
+  ctx.save();
   ctx.fillStyle = '#020905';
   ctx.fillRect(0, 0, width, height);
-  ctx.font = '300 12px ui-monospace, monospace';
-  const columnWidth = 16;
+  const columnWidth = binary ? Math.min(16, width / continuityBytes.length) : 16;
+  const rowHeight = binary ? Math.min(17, height / 9) : 17;
+  if (binary) ctx.textBaseline = 'top';
+  ctx.font = '300 ' + Math.min(12, rowHeight, columnWidth) + 'px ui-monospace, monospace';
   for (let column = 0; column * columnWidth < width; column++) {
     const [seed, phase] = sceneStars[column];
     const head = (Math.floor(time * (4 + seed * 8) + phase * 100) % (Math.ceil(height / 17) + 15));
     const streamHue = hue === null ? 143 : (hue + phase * 150) % 360;
     const headColor = 'hsl(' + streamHue + ' 92% 88%)';
     const tailColor = 'hsl(' + streamHue + ' 90% 55%)';
+    if (binary) {
+      const bits = continuityBytes[column % continuityBytes.length];
+      const travel = height - rowHeight * bits.length;
+      const top = ((phase + time * (.13 + seed * .13)) % 1) * travel;
+      for (let row = 0; row < bits.length; row++) {
+        ctx.fillStyle = row === bits.length - 1 ? headColor : tailColor;
+        ctx.globalAlpha = .48 + row * .055;
+        ctx.fillText(bits[row], column * columnWidth, top + row * rowHeight, Math.min(8, columnWidth));
+      }
+      continue;
+    }
     for (let trail = 0; trail < 15; trail++) {
       ctx.fillStyle = trail === 0 ? headColor : tailColor;
       ctx.globalAlpha = (1 - trail / 15) * .8;
-      const glyph = (column * 7 + head * 3 + trail * 5) % glyphs.length;
-      ctx.fillText(glyphs[glyph], column * columnWidth, (head - trail) * 17, 8);
+      const glyph = (column * 7 + head * 3 + trail * 5) % sceneGlyphs.length;
+      ctx.fillText(sceneGlyphs[glyph], column * columnWidth, (head - trail) * 17, 8);
     }
   }
-  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 const continuityBytes = Array.from(new TextEncoder().encode('Holo/Sim Continuity Engine'),
   byte => byte.toString(2).padStart(8, '0'));
-
-function drawBinaryPayload(ctx, width, height, time, hue) {
-  const bytesPerLine = width < 480 ? 4 : 8;
-  const rows = [];
-  for (let start = 0; start < continuityBytes.length; start += bytesPerLine) {
-    rows.push(continuityBytes.slice(start, start + bytesPerLine).join(' '));
-  }
-  const fontSize = Math.min(17, width / (bytesPerLine * 6), height / (rows.length * 2));
-  const lineHeight = fontSize * 1.45;
-  const top = (height - rows.length * lineHeight) / 2;
-  const phase = time % 15;
-  let remaining = reducedMotion.matches ? Infinity : Math.floor(phase * 42);
-
-  ctx.save();
-  ctx.font = '500 ' + fontSize + 'px ui-monospace, monospace';
-  ctx.textBaseline = 'middle';
-  const lineWidth = ctx.measureText(rows[0]).width;
-  const left = (width - lineWidth) / 2;
-  ctx.fillStyle = 'rgba(2,9,5,.88)';
-  ctx.fillRect(left - fontSize, top, lineWidth + 2 * fontSize, rows.length * lineHeight);
-  ctx.fillStyle = hue === null ? '#a6ffc6' : 'hsl(' + hue + ' 90% 82%)';
-  rows.forEach((row, index) => {
-    const visible = row.slice(0, Math.max(0, remaining));
-    if (visible) ctx.fillText(visible, left, top + (index + .5) * lineHeight);
-    remaining -= row.length;
-  });
-  ctx.restore();
-}
 
 function drawScene(time, accent, hue = null) {
   if (!sceneContext || appearance.background === 'default') return;
@@ -330,9 +316,7 @@ function drawScene(time, accent, hue = null) {
   const seconds = time * (.35 + appearance.speed * .16) / 1000;
   if (appearance.background === 'electric') drawElectric(sceneContext, width, height, seconds, accent);
   else if (appearance.background === 'matrix' || appearance.background === 'binary-matrix') {
-    const binary = appearance.background === 'binary-matrix';
-    drawMatrix(sceneContext, width, height, seconds, hue, binary ? '01' : sceneGlyphs);
-    if (binary) drawBinaryPayload(sceneContext, width, height, seconds, hue);
+    drawMatrix(sceneContext, width, height, seconds, hue, appearance.background === 'binary-matrix');
   }
   else {
     drawStars(sceneContext, width, height, seconds);

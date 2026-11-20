@@ -360,25 +360,31 @@ def test_matrix_rain_uses_slim_glyphs_and_rgb_streams(page):
     page.wait_for_function('() => window.rainColors.size > 4')
 
 
-def test_binary_matrix_payload_decodes_with_reduced_motion(page):
+@pytest.mark.parametrize('width', [390, 1280])
+def test_binary_matrix_streams_decode_with_reduced_motion(page, width):
+    page.set_viewport_size({'width': width, 'height': 800})
     open_options(page)
     page.evaluate('''() => {
         const ctx = document.getElementById('workspace-scene').getContext('2d');
         const fillText = ctx.fillText.bind(ctx);
         window.binaryText = [];
-        ctx.fillText = (text, ...args) => {
-            window.binaryText.push(text);
-            return fillText(text, ...args);
+        ctx.fillText = (text, x, y, maxWidth) => {
+            window.binaryText.push([text, x, y]);
+            return fillText(text, x, y, maxWidth);
         };
     }''')
     page.locator('#appearance-background').select_option('binary-matrix')
     rendered = page.evaluate('window.binaryText')
-    rain = [glyph for glyph in rendered if len(glyph) == 1]
-    payload = [row for row in rendered if len(row) > 1]
-    assert set(rain) == {'0', '1'}
-    groups = ' '.join(payload).split()
-    assert all(len(group) == 8 and set(group) <= {'0', '1'} for group in groups)
-    assert bytes(int(group, 2) for group in groups).decode('ascii') == 'Holo/Sim Continuity Engine'
+    columns = {}
+    for bit, x, y in rendered:
+        assert bit in {'0', '1'}
+        columns.setdefault(x, []).append((y, bit))
+    message = 'Holo/Sim Continuity Engine'
+    groups = [''.join(bit for _, bit in sorted(rows)) for _, rows in sorted(columns.items())]
+    assert all(len(group) == 8 for group in groups)
+    decoded = bytes(int(group, 2) for group in groups).decode('ascii')
+    assert decoded[:len(message)] == message
+    assert decoded == (message * (len(decoded) // len(message) + 1))[:len(decoded)]
 
     page.reload()
     assert page.locator('html').get_attribute('data-background') == 'binary-matrix'
