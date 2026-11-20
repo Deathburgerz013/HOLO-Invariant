@@ -112,7 +112,7 @@ body.background-view {overflow:hidden}
 <button id="workspace-reset" type="button">Reset layout</button>
 </section>
 <h3>Appearance</h3>
-<label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-background">Background<select id="appearance-background"><option value="default">Theme default</option><option value="stars">Starfield</option><option value="black-hole">Black hole</option><option value="electric">Electric</option><option value="matrix">Matrix-style rain</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
+<label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-background">Background<select id="appearance-background"><option value="default">Theme default</option><option value="stars">Starfield</option><option value="black-hole">Black hole</option><option value="electric">Electric</option><option value="matrix">Matrix-style rain</option><option value="binary-matrix">Binary Matrix</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
 
 <section class="intro"><div><h1>A place to continue.</h1><p class="sub">Find what was retained. Explore what comes next.</p></div><div id="status" role="status">Checking selected evidence…</div></section>
 <div id="notice" role="alert"></div>
@@ -168,7 +168,7 @@ try{const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type
 // Appearance preferences are local presentation state, never retained HOLO evidence.
 const appearanceKey='envpath.appearance.v1';
 const appearanceDefaults={theme:'space',accent:'#b8c7d5',effect:'off',speed:4,brightness:4,complexity:4,background:'default'};
-const backgroundScenes=['default','stars','black-hole','electric','matrix'];
+const backgroundScenes=['default','stars','black-hole','electric','matrix','binary-matrix'];
 const motionEffects=['off','rgb','kaleidoscope','fractal','fractal-kaleidoscope'];
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let appearance={...appearanceDefaults},motionFrame=0,lastMotionFrame=0,fractalFrame=0,lastFractalFrame=0;
@@ -266,7 +266,7 @@ function drawElectric(ctx, width, height, time, accent) {
   ctx.shadowBlur = 0;
 }
 
-function drawMatrix(ctx, width, height, time, hue) {
+function drawMatrix(ctx, width, height, time, hue, glyphs) {
   ctx.fillStyle = '#020905';
   ctx.fillRect(0, 0, width, height);
   ctx.font = '300 12px ui-monospace, monospace';
@@ -280,11 +280,31 @@ function drawMatrix(ctx, width, height, time, hue) {
     for (let trail = 0; trail < 15; trail++) {
       ctx.fillStyle = trail === 0 ? headColor : tailColor;
       ctx.globalAlpha = (1 - trail / 15) * .8;
-      const glyph = (column * 7 + head * 3 + trail * 5) % sceneGlyphs.length;
-      ctx.fillText(sceneGlyphs[glyph], column * columnWidth, (head - trail) * 17, 8);
+      const glyph = (column * 7 + head * 3 + trail * 5) % glyphs.length;
+      ctx.fillText(glyphs[glyph], column * columnWidth, (head - trail) * 17, 8);
     }
   }
   ctx.globalAlpha = 1;
+}
+
+function drawBinaryTitle(ctx, width, height, time, hue) {
+  const title = ['Holo/Sim', 'Continuity Engine'];
+  const fontSize = Math.max(10, Math.min(27, width / 13));
+  const lineHeight = fontSize * 1.4;
+  const phase = time % 10;
+  const characters = reducedMotion.matches ? Infinity : Math.floor(phase * 10);
+  ctx.save();
+  ctx.font = '500 ' + fontSize + 'px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const panelWidth = Math.min(width, ctx.measureText(title[1]).width + fontSize * 2);
+  ctx.fillStyle = 'rgba(2,9,5,.87)';
+  ctx.fillRect((width - panelWidth) / 2, height / 2 - lineHeight, panelWidth, lineHeight * 2);
+  ctx.fillStyle = hue === null ? '#a6ffc6' : 'hsl(' + hue + ' 90% 82%)';
+  ctx.globalAlpha = reducedMotion.matches ? 1 : Math.min(1, (10 - phase) * 2);
+  ctx.fillText(title[0].slice(0, characters), width / 2, (height - lineHeight) / 2);
+  ctx.fillText(title[1].slice(0, Math.max(0, characters - title[0].length)), width / 2, (height + lineHeight) / 2);
+  ctx.restore();
 }
 
 function drawScene(time, accent, hue = null) {
@@ -298,7 +318,11 @@ function drawScene(time, accent, hue = null) {
   }
   const seconds = time * (.35 + appearance.speed * .16) / 1000;
   if (appearance.background === 'electric') drawElectric(sceneContext, width, height, seconds, accent);
-  else if (appearance.background === 'matrix') drawMatrix(sceneContext, width, height, seconds, hue);
+  else if (appearance.background === 'matrix' || appearance.background === 'binary-matrix') {
+    const binary = appearance.background === 'binary-matrix';
+    drawMatrix(sceneContext, width, height, seconds, hue, binary ? '01' : sceneGlyphs);
+    if (binary) drawBinaryTitle(sceneContext, width, height, seconds, hue);
+  }
   else {
     drawStars(sceneContext, width, height, seconds);
     if (appearance.background === 'black-hole') drawBlackHole(sceneContext, width, height, seconds, accent);

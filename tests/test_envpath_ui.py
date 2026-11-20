@@ -358,3 +358,25 @@ def test_matrix_rain_uses_slim_glyphs_and_rgb_streams(page):
 
     page.emulate_media(reduced_motion='no-preference')
     page.wait_for_function('() => window.rainColors.size > 4')
+
+
+def test_binary_matrix_renders_bits_and_title_with_reduced_motion(page):
+    open_options(page)
+    page.evaluate('''() => {
+        const ctx = document.getElementById('workspace-scene').getContext('2d');
+        const fillText = ctx.fillText.bind(ctx);
+        window.binaryText = [];
+        ctx.fillText = (text, ...args) => {
+            window.binaryText.push(text);
+            return fillText(text, ...args);
+        };
+    }''')
+    page.locator('#appearance-background').select_option('binary-matrix')
+    rendered = page.evaluate('window.binaryText')
+    assert set(rendered[:-2]) == {'0', '1'}
+    assert rendered[-2:] == ['Holo/Sim', 'Continuity Engine']
+
+    page.reload()
+    assert page.locator('html').get_attribute('data-background') == 'binary-matrix'
+    page.locator('#workspace-hide').click()
+    assert page.locator('#workspace-scene').is_visible()
