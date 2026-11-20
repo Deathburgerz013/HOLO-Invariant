@@ -266,24 +266,28 @@ function drawElectric(ctx, width, height, time, accent) {
   ctx.shadowBlur = 0;
 }
 
-function drawMatrix(ctx, width, height, time) {
+function drawMatrix(ctx, width, height, time, hue) {
   ctx.fillStyle = '#020905';
   ctx.fillRect(0, 0, width, height);
-  ctx.font = '14px monospace';
-  for (let column = 0; column * 18 < width; column++) {
+  ctx.font = '300 12px ui-monospace, monospace';
+  const columnWidth = 16;
+  for (let column = 0; column * columnWidth < width; column++) {
     const [seed, phase] = sceneStars[column];
     const head = (Math.floor(time * (4 + seed * 8) + phase * 100) % (Math.ceil(height / 17) + 15));
+    const streamHue = hue === null ? 143 : (hue + phase * 150) % 360;
+    const headColor = 'hsl(' + streamHue + ' 92% 88%)';
+    const tailColor = 'hsl(' + streamHue + ' 90% 55%)';
     for (let trail = 0; trail < 15; trail++) {
-      ctx.fillStyle = trail === 0 ? '#d1ffe4' : '#39f67d';
+      ctx.fillStyle = trail === 0 ? headColor : tailColor;
       ctx.globalAlpha = (1 - trail / 15) * .8;
       const glyph = (column * 7 + head * 3 + trail * 5) % sceneGlyphs.length;
-      ctx.fillText(sceneGlyphs[glyph], column * 18, (head - trail) * 17);
+      ctx.fillText(sceneGlyphs[glyph], column * columnWidth, (head - trail) * 17, 8);
     }
   }
   ctx.globalAlpha = 1;
 }
 
-function drawScene(time, accent) {
+function drawScene(time, accent, hue = null) {
   if (!sceneContext || appearance.background === 'default') return;
   const scale = Math.min(1, 820 / window.innerWidth, 500 / window.innerHeight);
   const width = Math.max(1, Math.round(window.innerWidth * scale));
@@ -294,7 +298,7 @@ function drawScene(time, accent) {
   }
   const seconds = time * (.35 + appearance.speed * .16) / 1000;
   if (appearance.background === 'electric') drawElectric(sceneContext, width, height, seconds, accent);
-  else if (appearance.background === 'matrix') drawMatrix(sceneContext, width, height, seconds);
+  else if (appearance.background === 'matrix') drawMatrix(sceneContext, width, height, seconds, hue);
   else {
     drawStars(sceneContext, width, height, seconds);
     if (appearance.background === 'black-hole') drawBlackHole(sceneContext, width, height, seconds, accent);
@@ -305,9 +309,10 @@ function animateAppearance(time) {
   const cycle = ['rgb', 'kaleidoscope'].includes(appearance.effect);
   if (time - lastMotionFrame >= 40) {
     const period = (50 - appearance.speed * 4) * 1000;
-    const accent = cycle ? 'hsl(' + ((time % period) / period * 360).toFixed(1) + ' 95% 72%)' : appearance.accent;
+    const hue = (time % period) / period * 360;
+    const accent = cycle ? 'hsl(' + hue.toFixed(1) + ' 95% 72%)' : appearance.accent;
     if (cycle) setAccent(accent);
-    drawScene(time, accent);
+    drawScene(time, accent, appearance.effect === 'rgb' ? hue : null);
     lastMotionFrame = time;
   }
   motionFrame = requestAnimationFrame(animateAppearance);

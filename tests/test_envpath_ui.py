@@ -337,3 +337,24 @@ def test_black_hole_disk_cycles_color_in_rgb_mode(page):
     page.locator('#appearance-effect').select_option('rgb')
     page.wait_for_function('() => window.diskColors.size >= 3')
     assert page.locator('#holo-fractal-field').is_hidden()
+
+
+def test_matrix_rain_uses_slim_glyphs_and_rgb_streams(page):
+    open_options(page)
+    page.locator('#appearance-background').select_option('matrix')
+    page.evaluate('''() => {
+        const ctx = document.getElementById('workspace-scene').getContext('2d');
+        const fillText = ctx.fillText.bind(ctx);
+        window.rainColors = new Set();
+        ctx.fillText = (glyph, x, y, width) => {
+            window.rainColors.add(ctx.fillStyle);
+            window.rainGlyphWidth = width;
+            fillText(glyph, x, y, width);
+        };
+    }''')
+    page.locator('#appearance-effect').select_option('rgb')
+    assert page.evaluate('window.rainColors.size') == 2
+    assert page.evaluate('window.rainGlyphWidth') == 8
+
+    page.emulate_media(reduced_motion='no-preference')
+    page.wait_for_function('() => window.rainColors.size > 4')
