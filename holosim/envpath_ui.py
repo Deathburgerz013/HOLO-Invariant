@@ -92,7 +92,12 @@ body.background-view {overflow:hidden}
   .workspace-controls{padding:0 12px 12px}
   .workspace-controls button{min-height:44px}
 }
-</style></head><body><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
+#workspace-scene{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;background:#020309}
+#workspace-scene[hidden]{display:none}
+:root[data-background]:not([data-background="default"]) body::before{visibility:hidden;animation:none}
+:root[data-background]:not([data-background="default"]) body{background-image:none}
+:root[data-background]:not([data-background="default"]) #holo-fractal-field{display:none}
+</style></head><body><canvas id="workspace-scene" aria-hidden="true" hidden></canvas><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
 <button id="workspace-reveal" type="button" aria-label="Show workspace" hidden>Show UI</button>
 <header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
 <aside id="appearance-panel" class="appearance-panel" aria-label="Options" hidden>
@@ -107,7 +112,7 @@ body.background-view {overflow:hidden}
 <button id="workspace-reset" type="button">Reset layout</button>
 </section>
 <h3>Appearance</h3>
-<label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
+<label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-background">Background<select id="appearance-background"><option value="default">Theme default</option><option value="stars">Starfield</option><option value="black-hole">Black hole</option><option value="electric">Electric</option><option value="matrix">Matrix-style rain</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
 
 <section class="intro"><div><h1>A place to continue.</h1><p class="sub">Find what was retained. Explore what comes next.</p></div><div id="status" role="status">Checking selected evidence…</div></section>
 <div id="notice" role="alert"></div>
@@ -162,22 +167,150 @@ try{const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type
 // Appearance preferences are local UI state, not HOLO evidence or authority.
 // Appearance preferences are local presentation state, never retained HOLO evidence.
 const appearanceKey='envpath.appearance.v1';
-const appearanceDefaults={theme:'space',accent:'#b8c7d5',effect:'off',speed:4,brightness:4,complexity:4};
+const appearanceDefaults={theme:'space',accent:'#b8c7d5',effect:'off',speed:4,brightness:4,complexity:4,background:'default'};
+const backgroundScenes=['default','stars','black-hole','electric','matrix'];
 const motionEffects=['off','rgb','kaleidoscope','fractal','fractal-kaleidoscope'];
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let appearance={...appearanceDefaults},motionFrame=0,lastMotionFrame=0,fractalFrame=0,lastFractalFrame=0;
 function validAccent(v){return typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v)}
-function readAppearance(){try{const p=JSON.parse(localStorage.getItem(appearanceKey));return {theme:p&&p.theme==='light'?'light':'space',accent:p&&validAccent(p.accent)?p.accent:appearanceDefaults.accent,effect:p&&motionEffects.includes(p.effect)?p.effect:'off',speed:p&&Number.isInteger(p.speed)&&p.speed>=1&&p.speed<=10?p.speed:4,brightness:p&&Number.isInteger(p.brightness)&&p.brightness>=1&&p.brightness<=10?p.brightness:4,complexity:p&&Number.isInteger(p.complexity)&&p.complexity>=1&&p.complexity<=10?p.complexity:4}}catch(_){return {...appearanceDefaults}}}
+function readAppearance(){try{const p=JSON.parse(localStorage.getItem(appearanceKey));return {background:backgroundScenes.includes(p?.background)?p.background:'default',theme:p&&p.theme==='light'?'light':'space',accent:p&&validAccent(p.accent)?p.accent:appearanceDefaults.accent,effect:p&&motionEffects.includes(p.effect)?p.effect:'off',speed:p&&Number.isInteger(p.speed)&&p.speed>=1&&p.speed<=10?p.speed:4,brightness:p&&Number.isInteger(p.brightness)&&p.brightness>=1&&p.brightness<=10?p.brightness:4,complexity:p&&Number.isInteger(p.complexity)&&p.complexity>=1&&p.complexity<=10?p.complexity:4}}catch(_){return {...appearanceDefaults}}}
 function setAccent(value){document.documentElement.style.setProperty('--green',value);document.documentElement.style.setProperty('--accent',value)}
-function animateAccent(time){
-  if(appearance.effect==='off'||reducedMotion.matches){motionFrame=0;return}
-  if(time-lastMotionFrame>=32){
-    const period=(50-appearance.speed*4)*1000;
-    const hue=(time%period)/period*360;
-    setAccent('hsl('+hue.toFixed(1)+' 95% 72%)');
-    lastMotionFrame=time;
+const sceneCanvas = $('workspace-scene');
+const sceneContext = sceneCanvas.getContext('2d');
+const sceneGlyphs = '01電星光影界空';
+const sceneStars = Array.from({length: 360}, (_, index) => {
+  const sample = offset => {
+    const value = Math.sin((index + 1) * 127.1 + offset * 311.7) * 43758.5453;
+    return value - Math.floor(value);
+  };
+  return [sample(1), sample(2), sample(3), sample(4)];
+});
+
+function drawStars(ctx, width, height, time) {
+  const cloud = ctx.createRadialGradient(width * .53, height * .44, 0, width * .53, height * .44, width * .52);
+  cloud.addColorStop(0, '#172441');
+  cloud.addColorStop(.48, '#080e20');
+  cloud.addColorStop(1, '#020309');
+  ctx.fillStyle = cloud;
+  ctx.fillRect(0, 0, width, height);
+  for (const [x, y, depth, phase] of sceneStars) {
+    ctx.fillStyle = phase > .77 ? '#f5c9a2' : '#c3dbff';
+    ctx.globalAlpha = (.24 + depth * .7) * (.84 + .16 * Math.cos(time * 1.4 + phase * 18));
+    const size = .65 + depth ** 5 * 1.9;
+    ctx.fillRect(x * width, y * height, size, size);
   }
-  motionFrame=requestAnimationFrame(animateAccent);
+  ctx.globalAlpha = 1;
+}
+
+function drawBlackHole(ctx, width, height, time, accent) {
+  ctx.save();
+  ctx.translate(width * .52, height * .48);
+  ctx.rotate(-.22);
+  const radius = Math.min(width, height) * .16;
+  const glow = ctx.createRadialGradient(0, 0, radius * .7, 0, 0, radius * 3);
+  glow.addColorStop(0, accent);
+  glow.addColorStop(1, 'transparent');
+  ctx.globalAlpha = .24;
+  ctx.fillStyle = glow;
+  ctx.fillRect(-radius * 3, -radius * 3, radius * 6, radius * 6);
+
+  ctx.strokeStyle = accent;
+  for (let band = 0; band < 15; band++) {
+    const distance = radius * (1.35 + band * .115);
+    ctx.globalAlpha = .22 + .13 * Math.cos(band * .7 + time);
+    ctx.lineWidth = Math.max(1, radius * .075);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, distance, distance * .28, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#000';
+  ctx.lineWidth = Math.max(1, radius * .034);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  for (let band = 0; band < 11; band++) {
+    const distance = radius * (1.42 + band * .1);
+    ctx.globalAlpha = .47 + .27 * Math.cos(band * .53 + time);
+    ctx.lineWidth = Math.max(1, radius * .055);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, distance, distance * .28, 0, .02, Math.PI - .02);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawElectric(ctx, width, height, time, accent) {
+  ctx.fillStyle = '#040611';
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = accent;
+  ctx.shadowColor = accent;
+  ctx.shadowBlur = 14;
+  for (let strand = 0; strand < 7; strand++) {
+    ctx.globalAlpha = strand === 0 ? .9 : .34;
+    ctx.lineWidth = strand === 0 ? 2.3 : 1;
+    ctx.beginPath();
+    ctx.moveTo(0, height * (.36 + strand * .045));
+    for (let step = 1; step <= 48; step++) {
+      const x = step / 48;
+      const wave = Math.sin(x * 15 + time * .9 + strand) * .095;
+      const spark = Math.sin(step * 27.7 + strand * 13 + time * 2.2) * .035;
+      const spread = Math.sin(x * Math.PI) * strand * .045;
+      ctx.lineTo(x * width, height * (.39 + spread + wave + spark));
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+}
+
+function drawMatrix(ctx, width, height, time) {
+  ctx.fillStyle = '#020905';
+  ctx.fillRect(0, 0, width, height);
+  ctx.font = '14px monospace';
+  for (let column = 0; column * 18 < width; column++) {
+    const [seed, phase] = sceneStars[column];
+    const head = (Math.floor(time * (4 + seed * 8) + phase * 100) % (Math.ceil(height / 17) + 15));
+    for (let trail = 0; trail < 15; trail++) {
+      ctx.fillStyle = trail === 0 ? '#d1ffe4' : '#39f67d';
+      ctx.globalAlpha = (1 - trail / 15) * .8;
+      const glyph = (column * 7 + head * 3 + trail * 5) % sceneGlyphs.length;
+      ctx.fillText(sceneGlyphs[glyph], column * 18, (head - trail) * 17);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawScene(time, accent) {
+  if (!sceneContext || appearance.background === 'default') return;
+  const scale = Math.min(1, 820 / window.innerWidth, 500 / window.innerHeight);
+  const width = Math.max(1, Math.round(window.innerWidth * scale));
+  const height = Math.max(1, Math.round(window.innerHeight * scale));
+  if (sceneCanvas.width !== width || sceneCanvas.height !== height) {
+    sceneCanvas.width = width;
+    sceneCanvas.height = height;
+  }
+  const seconds = time * (.35 + appearance.speed * .16) / 1000;
+  if (appearance.background === 'electric') drawElectric(sceneContext, width, height, seconds, accent);
+  else if (appearance.background === 'matrix') drawMatrix(sceneContext, width, height, seconds);
+  else {
+    drawStars(sceneContext, width, height, seconds);
+    if (appearance.background === 'black-hole') drawBlackHole(sceneContext, width, height, seconds, accent);
+  }
+}
+
+function animateAppearance(time) {
+  const cycle = ['rgb', 'kaleidoscope'].includes(appearance.effect);
+  if (time - lastMotionFrame >= 40) {
+    const period = (50 - appearance.speed * 4) * 1000;
+    const accent = cycle ? 'hsl(' + ((time % period) / period * 360).toFixed(1) + ' 95% 72%)' : appearance.accent;
+    if (cycle) setAccent(accent);
+    drawScene(time, accent);
+    lastMotionFrame = time;
+  }
+  motionFrame = requestAnimationFrame(animateAppearance);
 }
 // Draw a bounded Julia-set approximation into a small canvas. No network or writes.
 const fractalCanvas=$('holo-fractal-field');
@@ -230,19 +363,26 @@ function animateFractal(time){
 function syncMotion(){
   if(motionFrame){cancelAnimationFrame(motionFrame);motionFrame=0}
   if(fractalFrame){cancelAnimationFrame(fractalFrame);fractalFrame=0}
-  const active=appearance.effect!=='off'&&!reducedMotion.matches&&!document.hidden;
+  const canAnimate=!reducedMotion.matches&&!document.hidden;
+  const active=canAnimate&&appearance.effect!=='off';
+  const hasScene=appearance.background!=='default';
+  document.documentElement.dataset.background=appearance.background;
+  sceneCanvas.hidden=!hasScene;
   document.documentElement.dataset.effect=active?appearance.effect:'off';
   document.documentElement.style.setProperty('--motion-period',(50-appearance.speed*4)+'s');
   setAccent(appearance.accent);
   lastMotionFrame=0;
-  if(active&&['rgb','kaleidoscope'].includes(appearance.effect))motionFrame=requestAnimationFrame(animateAccent);
+  if(!document.hidden)drawScene(0,appearance.accent);
+  const animateScene=hasScene&&sceneContext;
+  if(canAnimate&&(animateScene||['rgb','kaleidoscope'].includes(appearance.effect)))motionFrame=requestAnimationFrame(animateAppearance);
   lastFractalFrame=0;
-  if(active&&['fractal','fractal-kaleidoscope'].includes(appearance.effect)&&appearance.theme==='space'&&!document.hidden&&fractalContext)fractalFrame=requestAnimationFrame(animateFractal);
+  if(!hasScene&&active&&['fractal','fractal-kaleidoscope'].includes(appearance.effect)&&appearance.theme==='space'&&!document.hidden&&fractalContext)fractalFrame=requestAnimationFrame(animateFractal);
 }
 function applyAppearance(p){
   appearance={...p};
   document.documentElement.dataset.theme=p.theme;
   $('appearance-theme').value=p.theme;
+  $('appearance-background').value=p.background;
   $('appearance-accent').value=p.accent;
   $('appearance-effect').value=p.effect;
   $('appearance-speed').value=String(p.speed);
@@ -266,7 +406,11 @@ $('appearance-effect').onchange=()=>updateAppearance({effect:$('appearance-effec
 $('appearance-speed').oninput=()=>updateAppearance({speed:Number($('appearance-speed').value)});
 $('appearance-brightness').oninput=()=>updateAppearance({brightness:Number($('appearance-brightness').value)});
 $('appearance-complexity').oninput=()=>updateAppearance({complexity:Number($('appearance-complexity').value)});
+$('appearance-background').onchange=()=>updateAppearance({background:$('appearance-background').value});
 document.addEventListener('visibilitychange',syncMotion);
+window.addEventListener('resize', () => {
+  if (!document.hidden && reducedMotion.matches) drawScene(0, appearance.accent);
+});
 $('appearance-reset').onclick=()=>{applyAppearance({...appearanceDefaults});try{localStorage.removeItem(appearanceKey)}catch(_){}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('appearance-panel').hidden)toggleAppearance(false)});
 if(reducedMotion.addEventListener)reducedMotion.addEventListener('change',syncMotion);

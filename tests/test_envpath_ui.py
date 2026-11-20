@@ -296,3 +296,44 @@ def test_rgb_cycles_background_with_workspace_hidden(page):
     page.locator('#workspace-reveal').click()
     open_options(page)
     assert page.locator('#appearance-effect').input_value() == 'rgb'
+
+
+@pytest.mark.parametrize('scene', ['stars', 'black-hole', 'electric', 'matrix'])
+def test_background_scene_persists_and_renders_with_reduced_motion(page, scene):
+    open_options(page)
+    page.locator('#appearance-background').select_option(scene)
+    page.reload()
+    canvas = page.locator('#workspace-scene')
+    assert canvas.is_visible()
+    assert page.locator('html').get_attribute('data-background') == scene
+    pixels = canvas.evaluate('canvas => canvas.toDataURL()')
+    page.locator('#workspace-hide').click()
+    assert canvas.is_visible()
+    assert canvas.evaluate('canvas => canvas.toDataURL()') == pixels
+
+
+def test_black_hole_disk_uses_accent_color(page):
+    open_options(page)
+    page.locator('#appearance-background').select_option('black-hole')
+    canvas = page.locator('#workspace-scene')
+    original = canvas.evaluate('canvas => canvas.toDataURL()')
+    page.locator('#appearance-accent').fill('#ff5500')
+    assert canvas.evaluate('canvas => canvas.toDataURL()') != original
+
+
+def test_black_hole_disk_cycles_color_in_rgb_mode(page):
+    page.emulate_media(reduced_motion='no-preference')
+    open_options(page)
+    page.locator('#appearance-background').select_option('black-hole')
+    page.evaluate('''() => {
+        const ctx = document.getElementById('workspace-scene').getContext('2d');
+        const stroke = ctx.stroke.bind(ctx);
+        window.diskColors = new Set();
+        ctx.stroke = (...args) => {
+            window.diskColors.add(ctx.strokeStyle);
+            return stroke(...args);
+        };
+    }''')
+    page.locator('#appearance-effect').select_option('rgb')
+    page.wait_for_function('() => window.diskColors.size >= 3')
+    assert page.locator('#holo-fractal-field').is_hidden()
