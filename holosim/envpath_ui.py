@@ -1,12 +1,71 @@
 """Packaged, dependency-free EnvPath interface. All source/model text uses textContent."""
 
 PAGE = r'''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" data-theme="space"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EnvPath · Local workspace</title>
 <style nonce="__TOKEN__">
 :root{--ink:#20382f;--muted:#687970;--paper:#f6f5ef;--line:#dfe4d9;--green:#285d47;--accent:#d9e8b0;--error:#a34332}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #99b864;outline-offset:3px}button{border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);padding:9px 14px}button:hover:not(:disabled){background:#edf2e6}header{background:#18372c;color:#fff;padding:18px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:24px;font-weight:750;letter-spacing:-1px}.brand span{color:#cfdfab}.tag{font-size:12px;color:#c9d6cb;letter-spacing:.04em}.local{font-size:12px;border:1px solid #507160;padding:5px 10px;border-radius:20px}.intro{padding:24px 30px 20px;display:flex;justify-content:space-between;gap:24px;align-items:end}h1{font-size:30px;line-height:1.1;margin:0 0 8px;letter-spacing:-1px}p{margin:0}.sub{color:var(--muted)}#status{font-size:12px;text-align:right;max-width:380px;overflow-wrap:anywhere}.layout{display:grid;grid-template-columns:300px minmax(300px,1fr) 300px;gap:16px;padding:0 24px 24px;min-height:calc(100vh - 190px)}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-width:0}.panel-head{padding:18px 18px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}.panel-head h2{font-size:15px;margin:0}.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}.small{font-size:12px;color:var(--muted)}.search{padding:16px;display:flex;gap:6px}input,textarea,select{border:1px solid var(--line);background:#fafbf7;border-radius:9px;padding:10px;color:var(--ink);max-width:100%}input{width:100%;min-width:0}.search button{padding:8px}#results{padding:0 16px 16px;max-height:32vh;overflow:auto}.source{width:100%;text-align:left;margin-bottom:8px;padding:12px;background:#f8faf5;border-radius:10px}.source strong{display:block;font-size:12px}.source .preview{display:block;font-size:12px;line-height:1.55;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}#record{border-top:1px solid var(--line);padding:16px;overflow:auto;max-height:44vh}.record-title{font-size:13px;font-weight:700}.hash{font:10px/1.6 ui-monospace,monospace;overflow-wrap:anywhere;color:var(--muted)}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,monospace;background:#f8faf5;border:1px solid var(--line);padding:12px;border-radius:8px}#record pre{max-height:250px;overflow:auto}.links{display:flex;flex-wrap:wrap;gap:6px}.links button{font-size:11px;padding:5px 7px}.chat{min-height:520px}#transcript{flex:1;padding:22px;overflow:auto;max-height:58vh}.welcome{max-width:430px;margin:50px auto;text-align:center}.compass{font-size:38px;color:var(--green);margin-bottom:12px}.welcome .small{margin-top:22px}.welcome h3{font-size:23px;letter-spacing:-.6px;margin:0 0 8px}.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:24px}.suggestions button{font-size:12px}.message{margin:0 0 20px;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}.message.user{background:#edf3e7;border:1px solid #dce7d3;margin-left:10%;border-radius:12px;padding:12px 15px}.message.assistant{padding:4px 0}.message .who{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:750;color:var(--muted);margin-bottom:5px}.message.error{color:var(--error);border-left:3px solid var(--error);padding:8px 12px}.composer{border-top:1px solid var(--line);padding:16px}#message{resize:vertical;width:100%;min-height:90px;max-height:180px;display:block;background:white}.compose-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px}.primary{background:var(--green);color:white;border-color:var(--green)}.primary:hover:not(:disabled){background:#1c4935}.draft-body{padding:16px;display:flex;flex-direction:column;gap:12px}label{font-size:12px;font-weight:650}label select,label textarea{display:block;width:100%;margin-top:6px}#draft-content{resize:vertical;min-height:160px}#draft-target{padding:10px;border:1px dashed #b7c9aa;border-radius:8px;font-size:12px;overflow-wrap:anywhere}#draft-preview{max-height:180px;overflow:auto;margin:0}#tools{padding:0 16px 16px;overflow:auto;max-height:30vh}details{border:1px solid var(--line);border-radius:8px;padding:8px;margin:8px 0;font-size:12px}summary{cursor:pointer}details pre{max-height:170px;overflow:auto;font-size:11px}#notice{font-size:12px;color:var(--error);padding:0 30px 14px;min-height:18px}.draft-status{font-size:12px;color:var(--green)}.chat-head button{font-size:11px;padding:6px 9px}.footer{font-size:11px;color:var(--muted);padding:0 26px 16px}@media(max-width:1180px){.layout{grid-template-columns:260px minmax(300px,1fr)}.draft-panel{grid-column:1/-1}.draft-body{display:grid;grid-template-columns:1fr 1fr}.draft-body label:first-child{grid-column:1}.draft-body label:nth-child(2){grid-column:2;grid-row:1/4}#draft-content{min-height:130px}.draft-panel #tools{max-height:200px}}@media(max-width:720px){header{padding:16px 18px}.tag{display:none}.intro{padding:22px 18px;display:block}#status{text-align:left;margin-top:14px}.layout{padding:0 12px 16px;display:flex;flex-direction:column}.chat{order:0}.evidence{order:1}.draft-panel{order:2}.draft-body{display:flex}h1{font-size:26px}#transcript{max-height:55vh}.welcome{margin:28px auto}#notice{padding-left:18px}}
-</style></head><body>
-<header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span></header>
+
+/* HOLO_APPEARANCE_OPTIONS_V1 */
+:root[data-theme="space"] {color-scheme:dark;--ink:#e7e7e9;--muted:#a5a5ae;--paper:#030304;--line:#303037;--green:#b8c7d5;--accent:#b8c7d5;--error:#f29a90;--surface:#101013;--field:#19191e;--surface-hover:#25252c;--message:#1b1b22;--header:#08080a;--button-text:#030304}
+:root[data-theme="light"] {color-scheme:light;--surface:#fff;--field:#fafbf7;--surface-hover:#edf2e6;--message:#edf3e7;--header:#18372c;--button-text:#fff}
+body {background:var(--paper);color:var(--ink)}
+header {background:var(--header)}
+.panel,button {background:var(--surface);color:var(--ink)}
+input,textarea,select,#message {background:var(--field);color:var(--ink)}
+button:hover:not(:disabled) {background:var(--surface-hover)}
+.source,pre {background:var(--field);color:var(--ink)}
+.message.user {background:var(--message);border-color:var(--line)}
+.primary {background:var(--green);border-color:var(--green);color:var(--button-text)}
+.primary:hover:not(:disabled) {background:var(--green);filter:brightness(.9)}
+:root[data-theme="space"] .brand span,:root[data-theme="space"] .compass {color:var(--green)}
+:root[data-theme="space"] .tag,:root[data-theme="space"] .local {color:#c9c9cf}
+:root[data-theme="space"] .local {border-color:#45454d}
+:root[data-theme="space"] .draft-status {color:var(--green)}
+:root[data-theme="space"] button:focus-visible,:root[data-theme="space"] input:focus-visible,:root[data-theme="space"] textarea:focus-visible,:root[data-theme="space"] select:focus-visible {outline-color:var(--green)}
+.appearance-toggle {margin-left:auto}
+.appearance-panel {position:fixed;z-index:20;right:16px;top:72px;width:min(340px,calc(100vw - 32px));padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 12px 42px #0008}
+.appearance-panel[hidden] {display:none}
+.appearance-panel h2 {margin:0 0 12px;font-size:18px}
+.appearance-panel label {display:block;margin:12px 0}
+.appearance-panel select,.appearance-panel input[type="color"] {display:block;width:100%;margin-top:6px}
+.appearance-panel input[type="color"] {height:44px;padding:4px;cursor:pointer}
+.appearance-actions {display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+@media(max-width:720px){.appearance-panel{top:70px}}
+
+/* HOLO_APPEARANCE_MOTION_V2 */
+:root[data-theme="space"] body {background:#030304}
+.appearance-panel input[type="range"] {display:block;width:100%;margin-top:8px;accent-color:var(--green)}
+.appearance-panel select {width:100%}
+.appearance-panel .motion-hint {margin-top:5px}
+/* A quiet, fixed light field. Never covers the controls or catches clicks. */
+body::before {content:"";position:fixed;inset:-45vmax;z-index:0;pointer-events:none;opacity:0;visibility:hidden;background:conic-gradient(from 0deg,transparent 0deg,#ff2d550d 22deg,transparent 45deg,#31e9ff14 68deg,transparent 90deg,#b26aff12 112deg,transparent 135deg,#ffb12b0c 158deg,transparent 180deg,#ff2d550d 202deg,transparent 225deg,#31e9ff14 248deg,transparent 270deg,#b26aff12 292deg,transparent 315deg,#ffb12b0c 338deg,transparent 360deg);mask-image:radial-gradient(ellipse at center,black 0%,transparent 65%);transform-origin:center;transition:opacity .25s}
+:root[data-theme="space"][data-effect="kaleidoscope"] body::before {visibility:visible;opacity:.85;animation:holo-orbit var(--motion-period,24s) linear infinite}
+@keyframes holo-orbit {to {transform:rotate(360deg)}}
+/* Keep foreground surfaces above the atmospheric effect. */
+body>header,body>.intro,body>#notice,body>main,body>.footer,body>.appearance-panel {position:relative;z-index:1}
+.appearance-panel {position:fixed!important;z-index:20!important}
+@media(prefers-reduced-motion:reduce){:root[data-effect="kaleidoscope"] body::before {animation:none!important}}
+/* HOLO_FRACTALS_V3: low-resolution canvas, behind the UI. */
+#holo-fractal-field {position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0;transition:opacity .25s;image-rendering:auto}
+:root[data-theme="space"][data-effect="fractal"] #holo-fractal-field,
+:root[data-theme="space"][data-effect="fractal-kaleidoscope"] #holo-fractal-field {opacity:1}
+:root[data-effect="fractal"] body::before,:root[data-effect="fractal-kaleidoscope"] body::before {visibility:hidden;opacity:0;animation:none}
+@media(prefers-reduced-motion:reduce){#holo-fractal-field{display:none!important}}
+
+/* HOLO_BACKGROUND_VIEW_V1: hide workspace without removing its state. */
+#workspace-reveal {position:fixed;top:12px;right:16px;z-index:40;background:rgba(12,12,16,.78);color:#f3f3f5;border:1px solid #52525b;border-radius:10px;padding:10px 14px}
+#workspace-reveal[hidden] {display:none}
+body>header,body>.intro,body>#notice,body>main,body>.footer {transition:transform .35s ease,opacity .35s ease}
+body.background-view>header {transform:translateY(-110%);opacity:0;pointer-events:none}
+body.background-view>.intro,body.background-view>#notice,body.background-view>main,body.background-view>.footer {transform:translateY(105vh);opacity:0;pointer-events:none}
+body.background-view {overflow:hidden}
+@media(prefers-reduced-motion:reduce){body>header,body>.intro,body>#notice,body>main,body>.footer{transition:none!important}}
+</style></head><body><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
+<button id="workspace-reveal" type="button" aria-label="Show workspace" hidden>Show UI</button>
+<header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
+<aside id="appearance-panel" class="appearance-panel" aria-label="Appearance options" hidden><h2>Appearance</h2><label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
+
 <section class="intro"><div><h1>A place to continue.</h1><p class="sub">Find what was retained. Explore what comes next.</p></div><div id="status" role="status">Checking selected evidence…</div></section>
 <div id="notice" role="alert"></div>
 <main class="layout">
@@ -50,5 +109,129 @@ $('message').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.prevent
 $('chat-form').onsubmit=async e=>{e.preventDefault();if(turn)return;const prompt=$('message').value.trim();if(!prompt)return;notice();message('user',prompt);const output=message('assistant','');turn=crypto.randomUUID();stopped=false;busy(true);let completed=false,cancelled=false;
 try{const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-EnvPath-Token':token},body:JSON.stringify({message:prompt,history,turn_id:turn})});if(!response.ok){const failure=await response.json();throw Error(failure.error||'Chat unavailable')}const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const chunk=await reader.read();buffer+=decoder.decode(chunk.value||new Uint8Array(),{stream:!chunk.done});let at;while((at=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,at);buffer=buffer.slice(at+1);if(!line)continue;const event=JSON.parse(line);if(event.event==='delta'){output.textContent+=event.text;$('transcript').scrollTop=$('transcript').scrollHeight}if(event.event==='tool')toolEvent(event);if(event.event==='error')throw Error(event.message);if(event.event==='cancelled'){cancelled=true;$('turn-status').textContent='Stopped · partial answer excluded from history'}if(event.event==='done'){completed=true;output.textContent=event.answer}}if(chunk.done)break}if(completed&&!stopped){history.push({role:'user',content:prompt},{role:'assistant',content:output.textContent});while(history.length>12||new TextEncoder().encode(JSON.stringify(history)).length>24000)history.splice(0,2);$('message').value=''}else if(cancelled||stopped){message('error','Stopped. Any partial text above is incomplete and was not added to chat history.')}else throw Error('Stream ended without a completed answer');
 }catch(err){invalidateDraft();message('error',err.message);notice(err.message)}finally{turn=null;busy(false);if(!completed||stopped)$('turn-status').textContent=stopped?'Stopped':'Turn incomplete'}};
+
+// Appearance preferences are local UI state, not HOLO evidence or authority.
+// Appearance preferences are local presentation state, never retained HOLO evidence.
+const appearanceKey='envpath.appearance.v1';
+const appearanceDefaults={theme:'space',accent:'#b8c7d5',effect:'off',speed:4,brightness:4,complexity:4};
+const motionEffects=['off','rgb','kaleidoscope','fractal','fractal-kaleidoscope'];
+const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+let appearance={...appearanceDefaults},motionFrame=0,lastMotionFrame=0,fractalFrame=0,lastFractalFrame=0;
+function validAccent(v){return typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v)}
+function readAppearance(){try{const p=JSON.parse(localStorage.getItem(appearanceKey));return {theme:p&&p.theme==='light'?'light':'space',accent:p&&validAccent(p.accent)?p.accent:appearanceDefaults.accent,effect:p&&motionEffects.includes(p.effect)?p.effect:'off',speed:p&&Number.isInteger(p.speed)&&p.speed>=1&&p.speed<=10?p.speed:4,brightness:p&&Number.isInteger(p.brightness)&&p.brightness>=1&&p.brightness<=10?p.brightness:4,complexity:p&&Number.isInteger(p.complexity)&&p.complexity>=1&&p.complexity<=10?p.complexity:4}}catch(_){return {...appearanceDefaults}}}
+function setAccent(value){document.documentElement.style.setProperty('--green',value);document.documentElement.style.setProperty('--accent',value)}
+function animateAccent(time){
+  if(appearance.effect==='off'||reducedMotion.matches){motionFrame=0;return}
+  if(time-lastMotionFrame>=32){
+    const period=(50-appearance.speed*4)*1000;
+    const hue=(time%period)/period*360;
+    setAccent('hsl('+hue.toFixed(1)+' 95% 72%)');
+    lastMotionFrame=time;
+  }
+  motionFrame=requestAnimationFrame(animateAccent);
+}
+// Draw a bounded Julia-set approximation into a small canvas. No network or writes.
+const fractalCanvas=$('holo-fractal-field');
+const fractalContext=fractalCanvas.getContext('2d',{alpha:true});
+function renderFractal(time){
+  if(!fractalContext)return;
+  const w=192,h=108;
+  if(fractalCanvas.width!==w||fractalCanvas.height!==h){fractalCanvas.width=w;fractalCanvas.height=h}
+  const pixels=fractalContext.createImageData(w,h);
+  const maxIterations=12+appearance.complexity*5;
+  const t=time*0.00004*(0.4+appearance.speed*0.16);
+  const zoom=1.15+0.24*Math.sin(t*0.7);
+  const cr=-0.745+0.065*Math.cos(t),ci=0.19+0.065*Math.sin(t*0.73);
+  const mirrored=appearance.effect==='fractal-kaleidoscope';
+  const sectors=8;
+  const exposure=appearance.brightness/10;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    let nx=(x-w/2)/(h*0.5)*zoom,ny=(y-h/2)/(h*0.5)*zoom;
+    if(mirrored){
+      const r=Math.hypot(nx,ny),sector=Math.PI*2/sectors;
+      let a=(Math.atan2(ny,nx)+t*0.18)%sector;
+      if(a<0)a+=sector;
+      a=Math.min(a,sector-a);
+      nx=r*Math.cos(a);ny=r*Math.sin(a);
+      nx-=0.5;
+    }
+    let zx=nx,zy=ny,i=0;
+    for(;i<maxIterations&&zx*zx+zy*zy<16;i++){
+      const next=zx*zx-zy*zy+cr;
+      zy=2*zx*zy+ci;zx=next;
+    }
+    const idx=(y*w+x)*4;
+    if(i===maxIterations)continue;
+    const band=Math.sin(i*0.23+t*0.5)*0.5+0.5;
+    const intensity=Math.min(1,(0.15+0.85*band)*exposure*0.65);
+    const hue=(i*9+t*30)%360;
+    // Three phase-shifted channels give restrained RGB highlights on black.
+    pixels.data[idx]=Math.round((0.5+0.5*Math.sin(hue*Math.PI/180))*255*intensity);
+    pixels.data[idx+1]=Math.round((0.5+0.5*Math.sin((hue+120)*Math.PI/180))*255*intensity);
+    pixels.data[idx+2]=Math.round((0.5+0.5*Math.sin((hue+240)*Math.PI/180))*255*intensity);
+    pixels.data[idx+3]=200;
+  }
+  fractalContext.putImageData(pixels,0,0);
+}
+function animateFractal(time){
+  if(!['fractal','fractal-kaleidoscope'].includes(appearance.effect)||reducedMotion.matches||document.hidden){fractalFrame=0;return}
+  if(time-lastFractalFrame>=90){renderFractal(time);lastFractalFrame=time}
+  fractalFrame=requestAnimationFrame(animateFractal);
+}
+function syncMotion(){
+  if(motionFrame){cancelAnimationFrame(motionFrame);motionFrame=0}
+  if(fractalFrame){cancelAnimationFrame(fractalFrame);fractalFrame=0}
+  const active=appearance.effect!=='off'&&!reducedMotion.matches;
+  document.documentElement.dataset.effect=active?appearance.effect:'off';
+  document.documentElement.style.setProperty('--motion-period',(50-appearance.speed*4)+'s');
+  setAccent(appearance.accent);
+  lastMotionFrame=0;
+  if(active&&['rgb','kaleidoscope'].includes(appearance.effect))motionFrame=requestAnimationFrame(animateAccent);
+  lastFractalFrame=0;
+  if(active&&['fractal','fractal-kaleidoscope'].includes(appearance.effect)&&appearance.theme==='space'&&!document.hidden&&fractalContext)fractalFrame=requestAnimationFrame(animateFractal);
+}
+function applyAppearance(p){
+  appearance={...p};
+  document.documentElement.dataset.theme=p.theme;
+  $('appearance-theme').value=p.theme;
+  $('appearance-accent').value=p.accent;
+  $('appearance-effect').value=p.effect;
+  $('appearance-speed').value=String(p.speed);
+  $('appearance-brightness').value=String(p.brightness);
+  $('appearance-complexity').value=String(p.complexity);
+  syncMotion();
+}
+function saveAppearance(p){applyAppearance(p);try{localStorage.setItem(appearanceKey,JSON.stringify(p))}catch(_){/* UI remains usable without storage */}}
+function updateAppearance(changes){saveAppearance({...appearance,...changes})}
+function toggleAppearance(open){$('appearance-panel').hidden=!open;$('appearance-toggle').setAttribute('aria-expanded',String(open))}
+$('appearance-toggle').onclick=()=>toggleAppearance($('appearance-panel').hidden);
+$('appearance-close').onclick=()=>toggleAppearance(false);
+$('appearance-theme').onchange=()=>updateAppearance({theme:$('appearance-theme').value});
+$('appearance-accent').oninput=()=>updateAppearance({accent:$('appearance-accent').value});
+$('appearance-effect').onchange=()=>updateAppearance({effect:$('appearance-effect').value});
+$('appearance-speed').oninput=()=>updateAppearance({speed:Number($('appearance-speed').value)});
+$('appearance-brightness').oninput=()=>updateAppearance({brightness:Number($('appearance-brightness').value)});
+$('appearance-complexity').oninput=()=>updateAppearance({complexity:Number($('appearance-complexity').value)});
+document.addEventListener('visibilitychange',syncMotion);
+$('appearance-reset').onclick=()=>{applyAppearance({...appearanceDefaults});try{localStorage.removeItem(appearanceKey)}catch(_){}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('appearance-panel').hidden)toggleAppearance(false)});
+if(reducedMotion.addEventListener)reducedMotion.addEventListener('change',syncMotion);
+else if(reducedMotion.addListener)reducedMotion.addListener(syncMotion);
+
+function setBackgroundView(hidden){
+  document.body.classList.toggle('background-view',hidden);
+  $('workspace-reveal').hidden=!hidden;
+  $('workspace-hide').setAttribute('aria-pressed',String(hidden));
+  if(hidden)toggleAppearance(false);
+}
+$('workspace-hide').onclick=()=>setBackgroundView(true);
+$('workspace-reveal').onclick=()=>setBackgroundView(false);
+document.addEventListener('keydown',e=>{
+  if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey||e.repeat||e.key.toLowerCase()!=='h')return;
+  const t=e.target;
+  if(t&&(t.isContentEditable||t.closest('input,textarea,select,[contenteditable="true"]')))return;
+  e.preventDefault();setBackgroundView(!document.body.classList.contains('background-view'));
+});
+applyAppearance(readAppearance());
 status();
 </script></body></html>'''
