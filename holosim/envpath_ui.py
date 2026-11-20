@@ -61,27 +61,68 @@ body.background-view>header {transform:translateY(-110%);opacity:0;pointer-event
 body.background-view>.intro,body.background-view>#notice,body.background-view>main,body.background-view>.footer {transform:translateY(105vh);opacity:0;pointer-events:none}
 body.background-view {overflow:hidden}
 @media(prefers-reduced-motion:reduce){body>header,body>.intro,body>#notice,body>main,body>.footer{transition:none!important}}
+
+.workspace-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 24px 12px}
+.workspace-controls button[aria-pressed="true"]{border-color:var(--green)}
+.workspace-controls button[aria-disabled="true"]{opacity:.55;cursor:default}
+.layout{gap:0;grid-template-columns:var(--workspace-tracks,1fr 16px 2fr 16px 1fr)}
+.layout>.panel{grid-column:auto;min-width:0}
+.layout>[hidden],#workspace-resize-controls[hidden]{display:none!important}
+.appearance-panel{max-height:calc(100dvh - 88px);overflow-y:auto}
+.appearance-panel h3{font-size:14px;margin:0 0 8px}
+.workspace-layout-options{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+#workspace-resize-controls{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+#workspace-resize-controls select{flex:1;min-width:0;margin:0}
+.workspace-divider{display:grid;place-items:center;min-width:0;cursor:col-resize;touch-action:none}
+.workspace-divider::before{content:"";height:100%;width:2px;border-radius:2px;background:var(--line)}
+.workspace-divider:hover::before,.workspace-divider:focus-visible::before{background:var(--green)}
+.workspace-divider:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+@media(min-width:1051px){.draft-body{display:flex}}
+@media(max-width:1050px){
+  .layout{display:block;padding:0 12px 16px;min-height:0}
+  .workspace-controls{padding:0 12px 12px}
+  .workspace-controls button{min-height:44px}
+  .workspace-divider{display:none}
+}
 </style></head><body><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
 <button id="workspace-reveal" type="button" aria-label="Show workspace" hidden>Show UI</button>
 <header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
-<aside id="appearance-panel" class="appearance-panel" aria-label="Appearance options" hidden><h2>Appearance</h2><label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
+<aside id="appearance-panel" class="appearance-panel" aria-label="Options" hidden>
+<h2>Options</h2>
+<section class="workspace-layout-options" aria-labelledby="workspace-layout-heading">
+<h3 id="workspace-layout-heading">Workspace layout</h3>
+<div id="workspace-resize-controls" role="group" aria-label="Resize panes">
+<select id="workspace-resize-edge" aria-label="Pane divider"></select>
+<button id="workspace-smaller" type="button" aria-label="Move divider left">←</button>
+<button id="workspace-larger" type="button" aria-label="Move divider right">→</button>
+</div>
+<button id="workspace-reset" type="button">Reset layout</button>
+</section>
+<h3>Appearance</h3>
+<label for="appearance-theme">Theme<select id="appearance-theme"><option value="space">Black space</option><option value="light">Original light</option></select></label><label for="appearance-accent">Accent color<input id="appearance-accent" type="color" value="#b8c7d5"></label><label for="appearance-effect">Color motion<select id="appearance-effect"><option value="off">Off (static color)</option><option value="rgb">RGB cycle</option><option value="kaleidoscope">Kaleidoscope</option><option value="fractal">Fractal</option><option value="fractal-kaleidoscope">Fractal kaleidoscope</option></select></label><label for="appearance-brightness">Fractal brightness<input id="appearance-brightness" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-complexity">Fractal complexity<input id="appearance-complexity" type="range" min="1" max="10" step="1" value="4"></label><label for="appearance-speed">Motion speed<input id="appearance-speed" type="range" min="1" max="10" step="1" value="4"></label><p class="small motion-hint">Animation stays behind controls. Reduced-motion settings are respected.</p><p class="small">Preferences stay in this browser. No changes to retained evidence.</p><div class="appearance-actions"><button id="appearance-reset" type="button">Reset</button><button id="appearance-close" type="button">Close</button></div></aside>
 
 <section class="intro"><div><h1>A place to continue.</h1><p class="sub">Find what was retained. Explore what comes next.</p></div><div id="status" role="status">Checking selected evidence…</div></section>
 <div id="notice" role="alert"></div>
-<main class="layout">
-<section class="panel evidence"><div class="panel-head"><div><div class="eyebrow">Retained evidence</div><h2>Find a record</h2></div><button id="refresh" aria-label="Refresh chain status">↻</button></div>
+<main>
+<div class="workspace-controls" role="group" aria-label="Workspace layout">
+<button type="button" data-workspace-pane="evidence" aria-controls="workspace-evidence" aria-pressed="true">Evidence</button>
+<button type="button" data-workspace-pane="chat" aria-controls="workspace-chat" aria-pressed="true">Chat</button>
+<button type="button" data-workspace-pane="draft" aria-controls="workspace-draft" aria-pressed="true">Draft</button>
+</div>
+<div class="layout" id="workspace-layout">
+<section class="panel evidence" id="workspace-evidence"><div class="panel-head"><div><div class="eyebrow">Retained evidence</div><h2>Find a record</h2></div><button id="refresh" aria-label="Refresh chain status">↻</button></div>
 <form class="search" id="search-form"><input id="query" placeholder="Search retained words…" maxlength="200" aria-label="Search retained evidence" required><button type="submit">Find</button></form>
 <div id="results"><p class="small">Search the selected HOLO chain. Original records and correction links stay visible.</p></div><div id="record" hidden></div></section>
-<section class="panel chat"><div class="panel-head chat-head"><div><div class="eyebrow">Local conversation</div><h2>Workspace chat</h2></div><button id="new-chat">New chat</button></div>
+<section class="panel chat" id="workspace-chat"><div class="panel-head chat-head"><div><div class="eyebrow">Local conversation</div><h2>Workspace chat</h2></div><button id="new-chat">New chat</button></div>
 <div id="transcript" role="log" aria-label="Chat transcript"><div id="welcome" class="welcome"><div class="compass" aria-hidden="true">↗</div><h3>Start with a question.</h3><p class="sub">Ask about retained evidence, explore an idea, or prepare a note for review.</p><div class="suggestions"><button data-prompt="Find retained records about continuity and show their correction links.">Find continuity evidence</button><button data-prompt="Help me prepare a short note about an idea I want to explore.">Explore an idea</button></div><p class="small">Chat uses your local Ollama model.<br>Search and draft export work independently.</p></div></div>
 <form id="chat-form" class="composer"><textarea id="message" maxlength="4000" placeholder="What would you like to work on?" aria-label="Your message" required></textarea><div class="compose-actions"><span id="turn-status" class="small" role="status">Ready</span><div><button id="stop" type="button" disabled>Stop</button> <button id="send" type="submit" class="primary">Send ↗</button></div></div></form></section>
-<section class="panel draft-panel"><div class="panel-head"><div><div class="eyebrow">Before persistence</div><h2>Draft for review</h2></div></div><div class="draft-body">
+<section class="panel draft-panel" id="workspace-draft"><div class="panel-head"><div><div class="eyebrow">Before persistence</div><h2>Draft for review</h2></div></div><div class="draft-body">
 <label>Draft type<select id="draft-kind"><option value="note">New note</option><option value="correction">Correction proposal</option></select></label>
 <label>Content<textarea id="draft-content" maxlength="4000" placeholder="Write a note, or propose a correction…"></textarea></label>
 <div id="draft-target" hidden>Open an original record, then select “Use as target.”</div>
 <button id="prepare">Prepare draft</button><p class="small">Preparation and download do not add to retained memory. Review and persistence remain separate.</p><div id="draft-status" class="draft-status" role="status"></div><pre id="draft-preview" hidden></pre><button id="download" disabled>Download proposal JSON</button></div>
 <div class="panel-head"><h2>Tool activity</h2><span class="small">This chat</span></div><div id="tools"><p class="small">Actual tool results appear here.</p></div></section>
-</main><div class="footer">Retained evidence is historical. Chat is model output. Drafts are proposals. None grants authority.</div>
+</div></main><div class="footer">Retained evidence is historical. Chat is model output. Drafts are proposals. None grants authority.</div>
 <script nonce="__TOKEN__">
 'use strict';
 const $=id=>document.getElementById(id),token='__TOKEN__';let history=[],turn=null,target=null,draft=null,stopped=false;
@@ -232,6 +273,164 @@ document.addEventListener('keydown',e=>{
   if(t&&(t.isContentEditable||t.closest('input,textarea,select,[contenteditable="true"]')))return;
   e.preventDefault();setBackgroundView(!document.body.classList.contains('background-view'));
 });
+const layoutKey = 'envpath.layout.v1';
+const workspacePanes = ['evidence', 'chat', 'draft'];
+const workspaceLabels = {evidence: 'Evidence', chat: 'Chat', draft: 'Draft'};
+const compactWorkspace = window.matchMedia('(max-width: 1050px)');
+const layoutContainer = $('workspace-layout');
+const resizeEdge = $('workspace-resize-edge');
+const minimumShare = 18;
+
+function defaultWorkspace() {
+  return {version: 1, sizes: {evidence: 25, chat: 50, draft: 25}, visible: [...workspacePanes], active: 'chat'};
+}
+
+function readWorkspace() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(layoutKey));
+    if (saved?.version !== 1) return defaultWorkspace();
+    const visible = workspacePanes.filter(id => Array.isArray(saved.visible) && saved.visible.includes(id));
+    const shares = workspacePanes.map(id => saved.sizes?.[id]);
+    if (!visible.length || shares.some(value => !Number.isFinite(value) || value < minimumShare) ||
+        Math.abs(shares.reduce((sum, value) => sum + value, 0) - 100) > 0.01 ||
+        !workspacePanes.includes(saved.active)) return defaultWorkspace();
+    return {version: 1, sizes: Object.fromEntries(workspacePanes.map((id, i) => [id, shares[i]])),
+            visible, active: saved.active};
+  } catch (_) {
+    return defaultWorkspace();
+  }
+}
+
+let workspace = readWorkspace();
+const workspaceButtons = [...document.querySelectorAll('[data-workspace-pane]')];
+const workspaceDividers = workspacePanes.slice(0, -1).map(id => {
+  const divider = el('div', undefined, 'workspace-divider');
+  divider.tabIndex = 0;
+  divider.setAttribute('role', 'separator');
+  divider.setAttribute('aria-orientation', 'vertical');
+  $('workspace-' + id).after(divider);
+  return divider;
+});
+
+function saveWorkspace() {
+  try { localStorage.setItem(layoutKey, JSON.stringify(workspace)); } catch (_) { /* Layout still works in memory. */ }
+}
+
+function updateWorkspaceSizes() {
+  const visible = workspace.visible;
+  const tracks = visible.map(id => 'minmax(0,' + workspace.sizes[id] + 'fr)');
+  layoutContainer.style.setProperty('--workspace-tracks', tracks.join(' 16px '));
+  workspaceDividers.forEach((divider, index) => {
+    const left = workspacePanes[index];
+    const right = visible[visible.indexOf(left) + 1];
+    if (divider.hidden || !right) return;
+    const total = workspace.sizes[left] + workspace.sizes[right];
+    divider.setAttribute('aria-valuemin', String(minimumShare));
+    divider.setAttribute('aria-valuetext', Math.round(100 * workspace.sizes[left] / visible.reduce((sum, id) => sum + workspace.sizes[id], 0)) + '% of available pane space');
+    divider.setAttribute('aria-valuemax', String(Math.floor(total - minimumShare)));
+    divider.setAttribute('aria-valuenow', String(Math.floor(workspace.sizes[left])));
+  });
+  const left = resizeEdge.value;
+  const right = visible[visible.indexOf(left) + 1];
+  $('workspace-smaller').disabled = !left || workspace.sizes[left] <= minimumShare + 0.001;
+  $('workspace-larger').disabled = !left || workspace.sizes[right] <= minimumShare + 0.001;
+}
+
+function renderWorkspace() {
+  const compact = compactWorkspace.matches;
+  const shown = compact ? [workspace.active] : workspace.visible;
+  for (const button of workspaceButtons) {
+    const id = button.dataset.workspacePane;
+    const visible = shown.includes(id);
+    const panel = $('workspace-' + id);
+    if (!visible && panel.contains(document.activeElement)) button.focus();
+    panel.hidden = !visible;
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-disabled', String(visible && (compact || shown.length === 1)));
+  }
+  const selectedEdge = resizeEdge.value;
+  resizeEdge.replaceChildren();
+  workspaceDividers.forEach((divider, index) => {
+    const left = workspacePanes[index];
+    const right = shown[shown.indexOf(left) + 1];
+    divider.hidden = compact || !shown.includes(left) || !right;
+    if (divider.hidden) return;
+    const label = workspaceLabels[left] + ' / ' + workspaceLabels[right];
+    divider.setAttribute('aria-label', label);
+    divider.setAttribute('aria-controls', 'workspace-' + left);
+    const option = el('option', label);
+    option.value = left;
+    resizeEdge.append(option);
+  });
+  if ([...resizeEdge.options].some(option => option.value === selectedEdge)) resizeEdge.value = selectedEdge;
+  $('workspace-resize-controls').hidden = !resizeEdge.options.length;
+  updateWorkspaceSizes();
+}
+
+function resizeWorkspace(left, size, persist = true) {
+  const index = workspace.visible.indexOf(left);
+  const right = workspace.visible[index + 1];
+  if (index < 0 || !right || compactWorkspace.matches) return;
+  const total = workspace.sizes[left] + workspace.sizes[right];
+  workspace.sizes[left] = Math.max(minimumShare, Math.min(total - minimumShare, size));
+  workspace.sizes[right] = total - workspace.sizes[left];
+  updateWorkspaceSizes();
+  if (persist) saveWorkspace();
+}
+
+for (const button of workspaceButtons) {
+  button.onclick = () => {
+    if (button.getAttribute('aria-disabled') === 'true') return;
+    const id = button.dataset.workspacePane;
+    if (compactWorkspace.matches) workspace.active = id;
+    else {
+      workspace.visible = workspacePanes.filter(pane =>
+        pane === id ? !workspace.visible.includes(pane) : workspace.visible.includes(pane));
+    }
+    renderWorkspace();
+    saveWorkspace();
+  };
+}
+
+workspaceDividers.forEach((divider, index) => {
+  const left = workspacePanes[index];
+  divider.onkeydown = event => {
+    const size = workspace.sizes[left];
+    const positions = {ArrowLeft: size - 2, ArrowRight: size + 2, Home: 0, End: 100};
+    if (!Object.hasOwn(positions, event.key)) return;
+    const next = positions[event.key];
+    event.preventDefault();
+    resizeWorkspace(left, next);
+  };
+  let drag = null;
+  divider.onpointerdown = event => {
+    if (event.button !== 0 || drag) return;
+    const panelWidth = workspace.visible.reduce((width, id) => width + $('workspace-' + id).getBoundingClientRect().width, 0);
+    const total = workspace.visible.reduce((sum, id) => sum + workspace.sizes[id], 0);
+    if (!panelWidth) return;
+    drag = {id: event.pointerId, x: event.clientX, size: workspace.sizes[left], scale: total / panelWidth};
+    divider.setPointerCapture(event.pointerId);
+  };
+  divider.onpointermove = event => {
+    if (drag?.id === event.pointerId) resizeWorkspace(left, drag.size + (event.clientX - drag.x) * drag.scale, false);
+  };
+  divider.onlostpointercapture = () => {
+    drag = null;
+    saveWorkspace();
+  };
+});
+
+resizeEdge.onchange = updateWorkspaceSizes;
+$('workspace-smaller').onclick = () => resizeWorkspace(resizeEdge.value, workspace.sizes[resizeEdge.value] - 2);
+$('workspace-larger').onclick = () => resizeWorkspace(resizeEdge.value, workspace.sizes[resizeEdge.value] + 2);
+$('workspace-reset').onclick = () => {
+  workspace = defaultWorkspace();
+  renderWorkspace();
+  saveWorkspace();
+};
+compactWorkspace.addEventListener('change', renderWorkspace);
+renderWorkspace();
+
 applyAppearance(readAppearance());
 status();
 </script></body></html>'''

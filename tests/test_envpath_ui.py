@@ -160,3 +160,71 @@ def test_csp_does_not_allow_unsafe_inline(ui_url):
     assert 'nonce-' in policy
     assert "'unsafe-inline'" not in policy
     assert "frame-ancestors 'none'" in policy
+
+
+def test_workspace_resize_by_keyboard_click_and_drag_persists(page):
+    divider = page.get_by_role('separator', name='Evidence / Chat')
+    divider.focus()
+    divider.press('ArrowRight')
+    assert divider.get_attribute('aria-valuenow') == '27'
+    assert page.locator('#workspace-larger').is_hidden()
+    open_options(page)
+    page.get_by_role('button', name='Move divider right').click()
+    assert divider.get_attribute('aria-valuenow') == '29'
+    page.locator('#appearance-close').click()
+
+    bounds = divider.bounding_box()
+    x = bounds['x'] + bounds['width'] / 2
+    y = bounds['y'] + bounds['height'] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 65, y, steps=5)
+    page.mouse.up()
+    resized = divider.get_attribute('aria-valuenow')
+    assert int(resized) > 29
+    page.reload()
+    assert divider.get_attribute('aria-valuenow') == resized
+
+    divider.press('Home')
+    assert divider.get_attribute('aria-valuenow') == divider.get_attribute('aria-valuemin')
+    open_options(page)
+    assert page.get_by_role('button', name='Move divider left').is_disabled()
+
+
+def test_workspace_collapse_restores_panel_and_draft(page):
+    draft = page.locator('#draft-content')
+    draft.fill('Unsent proposal')
+    page.get_by_role('button', name='Draft', exact=True).click()
+    assert draft.is_hidden()
+    page.get_by_role('button', name='Chat', exact=True).click()
+    assert page.get_by_role('button', name='Evidence', exact=True).is_disabled()
+    page.get_by_role('button', name='Draft', exact=True).click()
+    assert draft.input_value() == 'Unsent proposal'
+    assert page.get_by_role('separator', name='Evidence / Draft').is_visible()
+    page.reload()
+    assert page.locator('#workspace-chat').is_hidden()
+    open_options(page)
+    page.get_by_role('button', name='Reset layout').click()
+    assert page.locator('#workspace-chat').is_visible()
+
+
+def test_workspace_compact_selection_does_not_replace_desktop_visibility(page):
+    page.get_by_role('button', name='Draft', exact=True).click()
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.get_by_role('button', name='Draft', exact=True).click()
+    assert page.locator('#workspace-chat').is_hidden()
+    assert page.locator('#workspace-draft').is_visible()
+    assert page.get_by_role('separator').count() == 0
+    page.reload()
+    assert page.locator('#workspace-draft').is_visible()
+    page.set_viewport_size({'width': 1280, 'height': 800})
+    page.locator('#workspace-chat').wait_for()
+    assert page.locator('#workspace-draft').is_hidden()
+
+
+@pytest.mark.parametrize('saved', ['broken JSON', '{"version":2}', '{"version":1,"visible":[]}'])
+def test_workspace_invalid_layout_recovers(page, saved):
+    page.evaluate("(value) => localStorage.setItem('envpath.layout.v1', value)", saved)
+    page.reload()
+    assert page.get_by_role('separator', name='Evidence / Chat').get_attribute('aria-valuenow') == '25'
+    assert page.locator('#workspace-draft').is_visible()
