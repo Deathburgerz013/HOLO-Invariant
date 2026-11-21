@@ -97,9 +97,57 @@ body.background-view {overflow:hidden}
 :root[data-background]:not([data-background="default"]) body::before{visibility:hidden;animation:none}
 :root[data-background]:not([data-background="default"]) body{background-image:none}
 :root[data-background]:not([data-background="default"]) #holo-fractal-field{display:none}
+#games-panel{margin:0 24px 16px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.games-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.games-toolbar h2{margin:0}
+#games-player{display:block;border:0;width:100%;height:clamp(380px,70vh,820px);border-radius:8px}
+#media-panel{margin:0 24px 16px;padding:clamp(14px,2vw,26px);background:var(--surface);border:1px solid var(--line);border-radius:16px}
+#media-panel [hidden]{display:none!important}
+.media-heading,.media-form,.media-player-caption,.media-links{display:flex;align-items:center;gap:12px}
+.media-heading,.media-player-caption{justify-content:space-between}
+.media-heading h2,.media-guide h3{margin:0}
+.media-form{margin:14px 0 8px}
+.media-form input{flex:1}
+.media-form button{white-space:nowrap}
+.media-links{flex-wrap:wrap;margin-bottom:12px;font-size:13px}
+#media-panel a{color:var(--green)}
+.media-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,280px);gap:18px}
+#media-player,#media-empty{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#08080c}
+#media-empty{display:grid;place-content:center;justify-items:center;gap:12px;padding:12px;color:#c8c8d0;text-align:center}
+.media-player-caption{flex-wrap:wrap;font-size:13px;margin-top:8px;overflow-wrap:anywhere}
+.media-guide{padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
+.media-guide ul{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.media-guide #media-results:empty{display:none}
+.media-guide #media-results{max-height:340px;overflow:auto;border-top:1px solid var(--line);padding-top:10px}
+.media-result{display:grid;gap:4px;overflow-wrap:anywhere}
+.media-play{text-align:left;display:grid;gap:3px;width:100%}
+.media-result>a{justify-self:start;padding:4px 6px}
+@media(max-width:720px){#media-panel{margin-inline:12px}.media-grid{grid-template-columns:1fr}.media-form{gap:6px}}
+#projects-panel{margin:0 24px 16px;padding:clamp(14px,2vw,26px);background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.projects-heading,.projects-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.projects-heading{justify-content:space-between;margin-bottom:14px}
+.projects-heading h2,.projects-references h3{margin:0}
+.projects-grid{display:grid;grid-template-columns:minmax(140px,230px) minmax(0,1fr);gap:18px}
+.projects-sidebar,.projects-references section{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+#projects-panel ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+#project-list{max-height:55vh;overflow:auto}
+#projects-panel li{display:flex;gap:6px;flex-wrap:wrap}
+#projects-panel button{overflow-wrap:anywhere}
+#project-list button{width:100%;text-align:left}
+#project-list button[aria-current="true"]{border-color:var(--green)}
+#project-form{display:grid;gap:12px}
+#project-form label>input,#project-form label>textarea{display:block;width:100%;margin-top:5px}
+#project-draft{resize:vertical}
+.projects-references{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.projects-references h3{font-size:14px;margin-bottom:8px}
+.project-files{padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
+.project-files h3{font-size:14px;margin:0 0 8px}
+#project-file-content{max-height:300px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+#project-status{font-size:13px;color:var(--muted)}
+@media(max-width:720px){#projects-panel{margin-inline:12px}.projects-grid,.projects-references{grid-template-columns:1fr}#project-list{max-height:25vh}}
 </style></head><body><canvas id="workspace-scene" aria-hidden="true" hidden></canvas><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
 <button id="workspace-reveal" type="button" aria-label="Show workspace" hidden>Show UI</button>
-<header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
+<header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="games-open" hidden type="button" aria-controls="games-panel" aria-expanded="false">Games</button> <button id="projects-open" type="button" aria-controls="projects-panel" aria-expanded="false">Projects</button> <button id="media-open" type="button" aria-controls="media-panel" aria-expanded="false">Media</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
 <aside id="appearance-panel" class="appearance-panel" aria-label="Options" hidden>
 <h2 id="options-heading" tabindex="-1">Options</h2>
 <section class="workspace-layout-options" aria-labelledby="workspace-layout-heading">
@@ -117,6 +165,62 @@ body.background-view {overflow:hidden}
 <section class="intro"><div><h1>A place to continue.</h1><p class="sub">Find what was retained. Explore what comes next.</p></div><div id="status" role="status">Checking selected evidence…</div></section>
 <div id="notice" role="alert"></div>
 <main>
+<section id="projects-panel" aria-labelledby="projects-heading" hidden>
+<div class="projects-heading"><h2 id="projects-heading">Projects</h2><button id="projects-close" type="button">Close</button></div>
+<div class="projects-grid">
+<aside class="projects-sidebar" aria-label="Saved projects">
+<button id="project-new" type="button">New project</button>
+<ul id="project-list"></ul>
+</aside>
+<form id="project-form">
+<label>Name<input id="project-name" maxlength="100" required></label>
+<label>Next step<input id="project-next" maxlength="1000"></label>
+<label>Working draft<textarea id="project-draft" maxlength="4000" rows="6"></textarea></label>
+<div class="projects-actions">
+<button id="project-capture-draft" type="button">Copy workspace draft</button>
+<button id="project-open-draft" type="button">Open text in Draft</button>
+</div>
+<div class="projects-references">
+<section><h3>Evidence</h3><button id="project-add-evidence" type="button">Add selected record</button><ul id="project-evidence"></ul></section>
+<section><h3>Videos</h3><button id="project-add-video" type="button">Add current video</button><ul id="project-videos"></ul></section>
+</div>
+<section class="project-files" aria-labelledby="project-files-heading">
+<h3 id="project-files-heading">Files</h3>
+<button id="project-attach" type="button" disabled>Attach file</button>
+<input id="project-file-picker" type="file" accept=".txt,.md" hidden>
+<p class="small">Save the project first. UTF-8 .txt and .md, up to 24 KiB each.</p>
+<ul id="project-files"></ul>
+<div id="project-file-preview" hidden><strong id="project-file-title"></strong><pre id="project-file-content"></pre></div>
+</section>
+<div class="projects-actions"><button id="project-save" class="primary" type="submit">Save project</button><p id="project-status" role="status"></p></div>
+</form>
+</div>
+</section>
+<section id="media-panel" data-search-enabled="no" aria-labelledby="media-heading" hidden>
+<div class="media-heading"><h2 id="media-heading">Media</h2><button id="media-close" type="button">Close</button></div>
+<form id="media-search" class="media-form">
+<input id="media-query" aria-label="Search YouTube or paste a video link" placeholder="Search YouTube or paste a video link" maxlength="240" required>
+<button id="media-submit" type="submit">Search / Open</button>
+</form>
+<div class="media-links">
+<p id="media-status" role="status"></p><a id="media-search-source" target="_blank" rel="noopener noreferrer" hidden>Search on YouTube ↗</a>
+</div>
+<div class="media-grid">
+<div class="media-screen">
+<div id="media-empty"><p>Choose a channel or open a YouTube video.</p><button id="media-resume" type="button" hidden>Reopen last video</button></div>
+<iframe id="media-player" title="YouTube player" referrerpolicy="strict-origin-when-cross-origin" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen hidden></iframe>
+<div class="media-player-caption"><strong id="media-title"></strong><a id="media-watch-source" target="_blank" rel="noopener noreferrer" hidden>Watch on YouTube ↗</a></div>
+</div>
+<div class="media-guide">
+<h3>Live TV</h3><ul id="media-channels"></ul>
+<ul id="media-results" aria-label="YouTube search results"></ul>
+</div>
+</div>
+</section>
+<section id="games-panel" data-player-url="" aria-labelledby="games-heading" hidden>
+<div class="games-toolbar"><h2 id="games-heading">Games</h2><button id="games-close" type="button">Hide player</button></div>
+<iframe id="games-player" title="Nintendo 64 emulator" sandbox="allow-scripts allow-same-origin allow-downloads" allow="fullscreen; gamepad"></iframe>
+</section>
 <div class="workspace-controls" role="group" aria-label="Workspace layout">
 <button type="button" data-workspace-pane="evidence" aria-controls="workspace-evidence" aria-pressed="true">Evidence</button>
 <button type="button" data-workspace-pane="chat" aria-controls="workspace-chat" aria-pressed="true">Chat</button>
@@ -146,7 +250,7 @@ function busy(on){$('send').disabled=on;$('stop').disabled=!on;$('new-chat').dis
 async function status(){try{const s=await api('status',{});$('status').replaceChildren(el('div',s.entries?s.entries+' retained records · chain intact':'No retained records yet'),el('div','Model: '+s.model,'small'));$('status').title=s.chain_file+'\nHead: '+(s.head_hash||'empty');notice()}catch(e){$('status').textContent='Evidence unavailable';notice(e.message)}}
 async function search(query){const r=await api('search',{query});$('results').replaceChildren(el('p',r.total_matches+' matches'+(r.results_truncated?' · showing first 12':''),'small'));for(const n of r.matches){const b=el('button',undefined,'source');b.append(el('strong','#'+n.idx+' · '+n.kind),el('span',n.preview+(n.preview_truncated?' … [preview only]':''),'preview'));b.onclick=()=>read(n.idx,n.hash).catch(e=>notice(e.message));$('results').append(b)}if(!r.matches.length)$('results').append(el('p','No match. Try another word.','small'));return r}
 async function read(idx,record_hash){const r=await api('read',{idx,record_hash});showRecord(r);return r}
-function showRecord(r){const n=r.record;$('record').hidden=false;$('record').replaceChildren(el('div','#'+n.idx+' · '+n.kind,'record-title'),el('div',n.hash,'hash'),el('pre',JSON.stringify(n.content,null,2)));if(n.kind==='record'){const b=el('button','Use as correction target');b.onclick=()=>{target={idx:n.idx,hash:n.hash};$('draft-kind').value='correction';syncTarget();invalidateDraft()};$('record').append(b)}if(r.links.length){$('record').append(el('p','Correction / revalidation links','small'));const box=el('div',undefined,'links');for(const related of r.related||[]){const b=el('button','#'+related.idx+' · '+related.kind);b.onclick=()=>read(related.idx,related.hash).catch(e=>notice(e.message));box.append(b)}$('record').append(box)}else $('record').append(el('p','No recorded correction or revalidation links.','small'))}
+function showRecord(r){const n=r.record;selectedProjectRecord={idx:n.idx,hash:n.hash};$('record').hidden=false;$('record').replaceChildren(el('div','#'+n.idx+' · '+n.kind,'record-title'),el('div',n.hash,'hash'),el('pre',JSON.stringify(n.content,null,2)));if(n.kind==='record'){const b=el('button','Use as correction target');b.onclick=()=>{target={idx:n.idx,hash:n.hash};$('draft-kind').value='correction';syncTarget();invalidateDraft()};$('record').append(b)}if(r.links.length){$('record').append(el('p','Correction / revalidation links','small'));const box=el('div',undefined,'links');for(const related of r.related||[]){const b=el('button','#'+related.idx+' · '+related.kind);b.onclick=()=>read(related.idx,related.hash).catch(e=>notice(e.message));box.append(b)}$('record').append(box)}else $('record').append(el('p','No recorded correction or revalidation links.','small'))}
 function syncTarget(){$('draft-target').hidden=$('draft-kind').value!=='correction';$('draft-target').textContent=target?'Target #'+target.idx+' · '+target.hash:'Open an original record, then select “Use as target.”'}
 function invalidateDraft(){draft=null;$('download').disabled=true;$('draft-preview').hidden=true;$('draft-status').textContent=''}
 function showDraft(value){draft=value;$('draft-preview').hidden=false;$('draft-preview').textContent=JSON.stringify(value,null,2);$('download').disabled=false;$('draft-status').textContent='Proposal ready for review · not persisted';$('draft-content').value=value.content;$('draft-kind').value=value.kind;target=value.target;syncTarget()}
@@ -630,6 +734,363 @@ $('workspace-reset').onclick = () => {
 };
 compactWorkspace.addEventListener('change', renderWorkspace);
 renderWorkspace();
+
+const gamesPanel = $('games-panel');
+const gamesButton = $('games-open');
+function showGames(show) {
+  if (show && !$('games-player').hasAttribute('src')) {
+    $('games-player').src = gamesPanel.dataset.playerUrl;
+  }
+  gamesPanel.hidden = !show;
+  gamesButton.setAttribute('aria-expanded', String(show));
+  (show ? $('games-close') : gamesButton).focus();
+}
+gamesButton.onclick = () => showGames(gamesPanel.hidden);
+$('games-close').onclick = () => showGames(false);
+const mediaPanel = $('media-panel');
+const mediaButton = $('media-open');
+const mediaPlayer = $('media-player');
+const mediaStatus = $('media-status');
+const mediaResults = $('media-results');
+const mediaKey = 'envpath.media.video.v1';
+const videoIdPattern = /^[A-Za-z0-9_-]{11}$/;
+const liveChannels = [
+  {id: 'HvZt-nh9sGg', title: 'France 24 English', channel: 'International news', official: 'https://www.france24.com/en/live'},
+  {id: 'M3HKLzjvKPc', title: 'NASA Space Station Views', channel: 'Earth and orbit', official: 'https://www.nasa.gov/live/'}
+];
+
+function youtubeVideoId(input) {
+  if (videoIdPattern.test(input)) return input;
+  try {
+    const url = new URL(input);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port) return null;
+    let id;
+    if (url.hostname === 'youtu.be') id = url.pathname.split('/')[1];
+    if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(url.hostname)) {
+      if (url.pathname === '/watch') id = url.searchParams.get('v');
+      else id = url.pathname.match(/^\/(?:live|shorts|embed)\/([^/]+)\/?$/)?.[1];
+    }
+    return id && videoIdPattern.test(id) ? id : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function playMedia(video) {
+  if (!videoIdPattern.test(video.id)) return;
+  const title = video.title || 'YouTube video';
+  selectedProjectVideo = {id: video.id, title};
+  $('media-empty').hidden = true;
+  $('media-title').textContent = title;
+  mediaPlayer.title = title;
+  mediaPlayer.hidden = false;
+  mediaPlayer.src = 'https://www.youtube-nocookie.com/embed/' + video.id;
+  $('media-watch-source').href = 'https://www.youtube.com/watch?v=' + video.id;
+  $('media-watch-source').hidden = false;
+  mediaStatus.textContent = '';
+  try { localStorage.setItem(mediaKey, JSON.stringify({id: video.id, title})); } catch (_) {}
+  $('media-resume').hidden = false;
+}
+
+function showMedia(show) {
+  mediaPanel.hidden = !show;
+  mediaButton.setAttribute('aria-expanded', String(show));
+  if (show) $('media-query').focus();
+  else {
+    mediaPlayer.removeAttribute('src');
+    mediaPlayer.hidden = true;
+    $('media-empty').hidden = false;
+    $('media-watch-source').hidden = true;
+    mediaButton.focus();
+  }
+}
+
+function mediaRow(video) {
+  const row = el('li', undefined, 'media-result');
+  const play = el('button', undefined, 'media-play');
+  play.type = 'button';
+  play.append(el('strong', video.title), el('span', video.channel, 'small'));
+  play.onclick = () => playMedia(video);
+  row.append(play);
+  if (video.official) {
+    const source = el('a', 'Official feed', 'small');
+    source.href = video.official;
+    source.target = '_blank';
+    source.rel = 'noopener noreferrer';
+    row.append(source);
+  }
+  return row;
+}
+
+$('media-channels').append(...liveChannels.map(mediaRow));
+mediaButton.onclick = () => showMedia(mediaPanel.hidden);
+$('media-close').onclick = () => showMedia(false);
+$('media-resume').onclick = () => {
+  try {
+    const video = JSON.parse(localStorage.getItem(mediaKey));
+    if (video && typeof video.id === 'string' && typeof video.title === 'string') playMedia(video);
+  } catch (_) {}
+};
+try {
+  const last = JSON.parse(localStorage.getItem(mediaKey));
+  $('media-resume').hidden = !(typeof last?.id === 'string' && videoIdPattern.test(last.id));
+} catch (_) {}
+
+$('media-search').onsubmit = async event => {
+  event.preventDefault();
+  const value = $('media-query').value.trim();
+  if (!value) return;
+  const id = youtubeVideoId(value);
+  if (id) {
+    playMedia({id});
+    return;
+  }
+  if (/^https?:\/\//i.test(value)) {
+    mediaStatus.textContent = 'Enter a YouTube video link or a search term.';
+    return;
+  }
+  const fallback = $('media-search-source');
+  fallback.href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(value);
+  fallback.hidden = false;
+  mediaResults.replaceChildren();
+  if (mediaPanel.dataset.searchEnabled !== 'yes') {
+    mediaStatus.textContent = 'Open results on YouTube, then paste a video link here.';
+    return;
+  }
+  const submit = $('media-submit');
+  submit.disabled = true;
+  mediaStatus.textContent = 'Searching YouTube…';
+  try {
+    const {videos} = await api('media-search', {query: value});
+    mediaResults.append(...videos.map(mediaRow));
+    mediaStatus.textContent = videos.length ? '' : 'No embeddable videos found.';
+  } catch (error) {
+    mediaStatus.textContent = error.message;
+  } finally {
+    submit.disabled = false;
+  }
+};
+
+const projectsPanel = $('projects-panel');
+const projectsButton = $('projects-open');
+const projectsForm = $('project-form');
+const projectStatus = $('project-status');
+let currentProject;
+let savedProject;
+let projectBusy = false;
+let selectedProjectRecord;
+let selectedProjectVideo;
+
+function projectDocument() {
+  return {name: $('project-name').value, draft: $('project-draft').value,
+    next_step: $('project-next').value, evidence: currentProject.evidence, videos: currentProject.videos};
+}
+
+function projectMaySwitch() {
+  return !projectBusy && (JSON.stringify(projectDocument()) === savedProject ||
+    confirm('Discard unsaved changes to this project?'));
+}
+
+function referenceRows(container, references, label, open) {
+  $(container).replaceChildren(...references.map((reference, index) => {
+    const row = el('li');
+    const button = el('button', label(reference));
+    button.type = 'button';
+    button.onclick = () => open(reference);
+    const remove = el('button', 'Remove');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', 'Remove ' + label(reference));
+    remove.onclick = () => {
+      if (projectBusy) return;
+      references.splice(index, 1);
+      renderProjectLinks();
+    };
+    row.append(button, remove);
+    return row;
+  }));
+}
+
+function renderProjectLinks() {
+  referenceRows('project-evidence', currentProject.evidence, record => 'Record #' + record.idx, async record => {
+    try {
+      await read(record.idx, record.hash);
+      const evidenceButton = document.querySelector('[data-workspace-pane="evidence"]');
+      if ($('workspace-evidence').hidden) evidenceButton.click();
+      $('workspace-evidence').scrollIntoView({block: 'start'});
+    } catch (error) {
+      projectStatus.textContent = error.message;
+    }
+  });
+  referenceRows('project-videos', currentProject.videos, video => video.title, video => {
+    showMedia(true);
+    playMedia(video);
+    mediaPanel.scrollIntoView({block: 'start'});
+  });
+}
+
+function renderProjectFiles() {
+  $('project-attach').disabled = !currentProject.id;
+  $('project-files').replaceChildren(...currentProject.files.map(file => {
+    const row = el('li');
+    const open = el('button', file.name);
+    open.type = 'button';
+    open.onclick = async () => {
+      const projectId = currentProject.id;
+      try {
+        const {file: result} = await api('project-file', {project_id: projectId, file_id: file.id});
+        if (currentProject.id !== projectId) return;
+        $('project-file-title').textContent = result.name;
+        $('project-file-content').textContent = result.content;
+        $('project-file-preview').hidden = false;
+      } catch (error) {
+        if (currentProject.id === projectId) projectStatus.textContent = error.message;
+      }
+    };
+    row.append(open);
+    return row;
+  }));
+}
+
+function loadProject(project) {
+  currentProject = project;
+  $('project-name').value = project.name;
+  $('project-draft').value = project.draft;
+  $('project-next').value = project.next_step;
+  savedProject = JSON.stringify(projectDocument());
+  renderProjectLinks();
+  $('project-file-preview').hidden = true;
+  $('project-file-content').textContent = '';
+  renderProjectFiles();
+}
+
+function newProject() {
+  loadProject({id: null, revision: 0, name: '', draft: '', next_step: '', evidence: [], videos: [], files: []});
+}
+
+async function refreshProjects() {
+  const {projects} = await api('projects', {});
+  $('project-list').replaceChildren(...projects.map(project => {
+    const row = el('li');
+    const open = el('button', project.name);
+    open.type = 'button';
+    if (project.id === currentProject.id) open.setAttribute('aria-current', 'true');
+    open.onclick = async () => {
+      if (!projectMaySwitch()) return;
+      projectBusy = true;
+      try {
+        const response = await api('project-read', {project_id: project.id});
+        loadProject(response.project);
+        for (const button of $('project-list').querySelectorAll('button')) button.removeAttribute('aria-current');
+        open.setAttribute('aria-current', 'true');
+        projectStatus.textContent = '';
+      } catch (error) {
+        projectStatus.textContent = error.message;
+      } finally {
+        projectBusy = false;
+      }
+    };
+    row.append(open);
+    return row;
+  }));
+}
+
+function addProjectLink(reference, list, key, missingMessage) {
+  if (projectBusy) return;
+  if (!reference) projectStatus.textContent = missingMessage;
+  else if (list.some(item => item[key] === reference[key])) projectStatus.textContent = 'Already in this project.';
+  else if (list.length >= 24) projectStatus.textContent = 'This project has reached the link limit.';
+  else {
+    list.push(reference);
+    renderProjectLinks();
+    projectStatus.textContent = 'Link added. Save the project to keep it.';
+  }
+}
+
+function showProjects(show) {
+  projectsPanel.hidden = !show;
+  projectsButton.setAttribute('aria-expanded', String(show));
+  (show ? $('project-new') : projectsButton).focus();
+  if (show) refreshProjects().catch(error => { projectStatus.textContent = error.message; });
+}
+
+newProject();
+projectsButton.onclick = () => showProjects(projectsPanel.hidden);
+$('projects-close').onclick = () => showProjects(false);
+$('project-new').onclick = () => {
+  if (!projectMaySwitch()) return;
+  newProject();
+  $('project-list').querySelector('[aria-current]')?.removeAttribute('aria-current');
+  projectStatus.textContent = '';
+  $('project-name').focus();
+};
+$('project-capture-draft').onclick = () => {
+  if (!projectBusy) $('project-draft').value = $('draft-content').value;
+};
+$('project-open-draft').onclick = () => {
+  const field = $('draft-content');
+  if (field.value && field.value !== $('project-draft').value &&
+      !confirm('Replace the current workspace draft text?')) return;
+  field.value = $('project-draft').value;
+  $('draft-kind').value = 'note';
+  target = null;
+  syncTarget();
+  invalidateDraft();
+  if ($('workspace-draft').hidden) document.querySelector('[data-workspace-pane="draft"]').click();
+  field.focus();
+};
+$('project-add-evidence').onclick = () => addProjectLink(
+  selectedProjectRecord, currentProject.evidence, 'hash', 'Open an evidence record first.');
+$('project-add-video').onclick = () => addProjectLink(
+  selectedProjectVideo, currentProject.videos, 'id', 'Open a video in Media first.');
+$('project-attach').onclick = () => {
+  if (!projectBusy && currentProject.id) $('project-file-picker').click();
+};
+$('project-file-picker').onchange = async event => {
+  const picker = event.currentTarget;
+  const file = picker.files[0];
+  picker.value = '';
+  if (!file || projectBusy || !currentProject.id) return;
+  if (!/\.(txt|md)$/i.test(file.name) || file.size > 24 * 1024) {
+    projectStatus.textContent = 'Choose a UTF-8 .txt or .md file up to 24 KiB.';
+    return;
+  }
+  projectBusy = true;
+  $('project-attach').disabled = true;
+  try {
+    const content = new TextDecoder('utf-8', {fatal: true}).decode(await file.arrayBuffer());
+    const result = await api('project-attach', {project_id: currentProject.id, name: file.name, content});
+    currentProject.files.push(result.file);
+    renderProjectFiles();
+    projectStatus.textContent = 'File attached and saved locally.';
+  } catch (error) {
+    projectStatus.textContent = error.message;
+  } finally {
+    projectBusy = false;
+    $('project-attach').disabled = !currentProject.id;
+  }
+};
+projectsForm.onsubmit = async event => {
+  event.preventDefault();
+  if (projectBusy) return;
+  projectBusy = true;
+  const document = projectDocument();
+  const fields = [...projectsForm.querySelectorAll('input, textarea, button')];
+  for (const field of fields) field.disabled = true;
+  try {
+    const {project} = await api('project-save', {
+      project_id: currentProject.id, revision: currentProject.revision, document
+    });
+    loadProject(project);
+    projectStatus.textContent = 'Project saved locally.';
+    await refreshProjects();
+  } catch (error) {
+    projectStatus.textContent = error.message;
+  } finally {
+    for (const field of fields) field.disabled = false;
+    $('project-attach').disabled = !currentProject.id;
+    projectBusy = false;
+  }
+};
 
 applyAppearance(readAppearance());
 status();

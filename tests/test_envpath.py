@@ -356,3 +356,195 @@ def test_content_tool_authority_fields_are_refused_by_dispatcher(evidence):
     result = next(e["result"] for e in events if e["event"] == "tool")
     assert "error" in result
     assert result["accepted"] is False
+
+
+def test_embedded_player_serves_assets_on_separate_origin(tmp_path):
+    from holosim.envpath_games import make_player_server
+
+    data = tmp_path / 'data'
+    data.mkdir()
+    (data / 'cores').mkdir()
+    (data / 'loader.js').write_text('window.loaded = true;', encoding='utf-8')
+    (data / 'private.z64').touch()
+    (data / 'private.keys').touch()
+    player = make_player_server(data, port=0, workspace_port=8767, save_dir=tmp_path / 'saves')
+    server = make_server(EnvPathWorkspace(tmp_path / 'chain.jsonl'), port=0,
+                         player_port=player.server_port)
+    servers = [server, player]
+    threads = [threading.Thread(target=item.serve_forever, daemon=True) for item in servers]
+    for thread in threads:
+        thread.start()
+    base = f'http://127.0.0.1:{player.server_port}'
+    try:
+        with urlopen(f'http://127.0.0.1:{server.server_port}', timeout=5) as response:
+            page = response.read().decode()
+            policy = response.headers['Content-Security-Policy']
+            assert f'frame-src https://www.youtube-nocookie.com {base};' in policy
+            assert "'unsafe-eval'" not in policy
+            assert f'data-player-url="{base}/"' in page
+        with urlopen(base, timeout=5) as response:
+            policy = response.headers['Content-Security-Policy']
+            assert 'http://127.0.0.1:8767' in policy
+            assert "'unsafe-eval'" in policy
+            assert "connect-src 'self' blob: data:;" in policy
+            assert b'URL.createObjectURL(game)' in response.read()
+        with urlopen(base + '/data/loader.js', timeout=5) as response:
+            assert response.headers['Content-Type'] == 'text/javascript'
+        for path in ('/data/../private.keys', '/data/private.keys', '/data/private.z64', '/api/status'):
+            with pytest.raises(HTTPError) as exc:
+                urlopen(base + path, timeout=5)
+            assert exc.value.code == 404
+    finally:
+        for item in servers:
+            item.shutdown()
+            item.server_close()
+        for thread in threads:
+            thread.join(timeout=2)
+
+
+def test_native_save_survives_player_server_restart(tmp_path):
+    from holosim.envpath_games import make_player_server
+
+    data = tmp_path / 'data'
+    (data / 'cores').mkdir(parents=True)
+    (data / 'loader.js').touch()
+    saves = tmp_path / 'saves'
+    game = 'a' * 64
+    payload = b'\x01\x02native save'
+    for restart in (False, True):
+        server = make_player_server(data, port=0, workspace_port=8767, save_dir=saves)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f'http://127.0.0.1:{server.server_port}'
+        try:
+            with urlopen(base, timeout=5) as response:
+                token = re.search(r"nonce-([^' ]+)", response.headers['Content-Security-Policy'])[1]
+            headers = {'X-EnvPath-Save-Token': token}
+            url = base + '/save/' + game
+            if not restart:
+                with pytest.raises(HTTPError) as exc:
+                    urlopen(Request(url, headers=headers), timeout=5)
+                assert exc.value.code == 404
+                with urlopen(Request(url, data=payload, method='PUT', headers={
+                    **headers, 'Origin': base, 'Content-Type': 'application/octet-stream',
+                }), timeout=5) as response:
+                    assert response.status == 200
+                assert (saves / (game + '.srm')).read_bytes() == payload
+            with pytest.raises(HTTPError) as exc:
+                urlopen(url, timeout=5)
+            assert exc.value.code == 403
+            with urlopen(Request(url, headers=headers), timeout=5) as response:
+                assert response.read() == payload
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+
+def test_media_search_keeps_api_key_server_side(tmp_path, monkeypatch):
+    calls = []
+
+    def search(query, key):
+        calls.append((query, key))
+        return [{"id": "M3HKLzjvKPc", "title": "Space Station", "channel": "NASA"}]
+
+    monkeypatch.setattr("holosim.envpath.search_youtube", search)
+    server = make_server(EnvPathWorkspace(tmp_path / "chain.jsonl"), port=0,
+                         youtube_api_key="test-private-key")
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = f"http://127.0.0.1:{server.server_port}"
+    try:
+        with urlopen(base, timeout=5) as response:
+            page = response.read().decode()
+            assert "frame-src https://www.youtube-nocookie.com;" in response.headers["Content-Security-Policy"]
+        assert "test-private-key" not in page
+        assert 'data-search-enabled="yes"' in page
+        token = re.search(r"token='([^']+)'", page)[1]
+        headers = {"Content-Type": "application/json", "X-EnvPath-Token": token}
+        request = Request(base + "/api/media-search", b'{"query":"space station"}', headers)
+        with urlopen(request, timeout=5) as response:
+            assert json.load(response)["videos"][0]["id"] == "M3HKLzjvKPc"
+        assert calls == [("space station", "test-private-key")]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_projects_reopen_after_restart_without_mutating_evidence(tmp_path):
+    chain = tmp_path / "evidence.jsonl"
+    chain.write_bytes(b"unchanged")
+    projects = tmp_path / "projects.sqlite3"
+    document = {
+        "name": "Research",
+        "draft": "Review the video and verify the evidence.",
+        "next_step": "Reopen record 5",
+        "evidence": [{"idx": 5, "hash": "a" * 64}],
+        "videos": [{"id": "M3HKLzjvKPc", "title": "Space station"}],
+    }
+    saved = None
+    for _ in range(2):
+        server = make_server(EnvPathWorkspace(chain), port=0, projects_file=projects)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_port}"
+        try:
+            with urlopen(base, timeout=5) as page:
+                token = re.search(r"token='([^']+)'", page.read().decode())[1]
+            headers = {"Content-Type": "application/json", "X-EnvPath-Token": token}
+
+            def post(route, data):
+                request = Request(base + route, json.dumps(data).encode(), headers)
+                with urlopen(request, timeout=5) as response:
+                    return json.load(response)
+
+            if saved is None:
+                assert post("/api/projects", {}) == {"projects": []}
+                saved = post("/api/project-save", {
+                    "project_id": None, "revision": 0, "document": document,
+                })["project"]
+                assert saved["revision"] == 1
+            else:
+                assert post("/api/projects", {}) == {"projects": [{"id": saved["id"], "name": "Research"}]}
+                assert post("/api/project-read", {"project_id": saved["id"]})["project"] == saved
+                assert all(saved[key] == value for key, value in document.items())
+                update = {"project_id": saved["id"], "revision": 1, "document": {**document, "name": "Updated"}}
+                assert post("/api/project-save", update)["project"]["revision"] == 2
+                with pytest.raises(HTTPError) as exc:
+                    post("/api/project-save", update)
+                assert exc.value.code == 409
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+    assert chain.read_bytes() == b"unchanged"
+
+
+def test_project_attachment_reopens_after_source_removal_and_restart(tmp_path):
+    from holosim.envpath_projects import ProjectError, ProjectStore
+
+    source = tmp_path / "handoff.md"
+    content = "# Handoff\n\nReopen the verified record.\n"
+    source.write_text(content, encoding="utf-8")
+    db = tmp_path / "projects.sqlite3"
+    store = ProjectStore(db)
+    fields = {"name": "Continuity", "next_step": "", "draft": "", "evidence": [], "videos": []}
+    project = store.save(None, 0, fields)
+    other = store.save(None, 0, fields)
+    attachment = store.attach(project["id"], source.name, source.read_text(encoding="utf-8"))
+    source.unlink()
+
+    reopened = ProjectStore(db)
+    assert reopened.read(project["id"])["files"] == [attachment]
+    assert reopened.read_file(project["id"], attachment["id"]) == {
+        "name": "handoff.md", "content": content,
+    }
+    with pytest.raises(ProjectError):
+        reopened.read_file(other["id"], attachment["id"])
+    for filename in ("../handoff.md", "local.html"):
+        with pytest.raises(ProjectError):
+            reopened.attach(project["id"], filename, content)
+    with pytest.raises(ProjectError):
+        reopened.attach(project["id"], "large.txt", "é" * (24 * 1024))
+    assert reopened.save(project["id"], 1, fields)["files"] == [attachment]
