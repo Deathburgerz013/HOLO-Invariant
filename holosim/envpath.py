@@ -13,8 +13,10 @@ from copy import deepcopy
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import secrets
+import sqlite3
 import threading
 from typing import Any, Callable
 from urllib.parse import urlsplit
@@ -23,6 +25,9 @@ import webbrowser
 
 from holosim.config import DEFAULT_CHAIN_FILE
 from holosim.continuity_topology import build_continuity_topology
+from holosim.envpath_games import make_player_server
+from holosim.envpath_media import search_youtube
+from holosim.envpath_projects import ProjectConflict, ProjectError, ProjectStore
 from holosim.envpath_ui import PAGE
 
 MAX_CHAIN_BYTES = 8 * 1024 * 1024
@@ -380,10 +385,13 @@ def run_turn(workspace: EnvPathWorkspace, message: str, history: Any,
 
 def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: int = 8766,
                 model: str = "qwen2.5:7b", endpoint: str = "http://127.0.0.1:11434/api/chat",
-                transport: Callable[..., Any] = stream_ollama) -> ThreadingHTTPServer:
+                transport: Callable[..., Any] = stream_ollama,
+                player_port: int | None = None, youtube_api_key: str = "",
+                projects_file: Path | None = None) -> ThreadingHTTPServer:
     if host not in {"127.0.0.1", "localhost"}:
         raise EnvPathError("EnvPath binds to IPv4 loopback only")
     ollama_endpoint(endpoint)
+    projects = ProjectStore(projects_file or Path.home() / "EnvPath Projects" / "projects.sqlite3")
     token = secrets.token_urlsafe(32)
     turns: dict[str, threading.Event] = {}
     lock = threading.Lock()
@@ -399,9 +407,13 @@ def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: i
             self.send_header("Content-Length", str(len(raw)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
+            frame_policy = "frame-src https://www.youtube-nocookie.com"
+            if player_port:
+                frame_policy += f" http://127.0.0.1:{player_port}"
+            frame_policy += "; "
             self.send_header("Content-Security-Policy", "default-src 'none'; script-src 'nonce-" + token
                              + "'; style-src 'nonce-" + token + "'; connect-src 'self'; "
-                             "img-src 'self'; base-uri 'none'; frame-ancestors 'none'")
+                             + frame_policy + "img-src 'self'; base-uri 'none'; frame-ancestors 'none'")
             self.end_headers()
             self.wfile.write(raw)
 
@@ -416,7 +428,13 @@ def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: i
             if self.path != "/":
                 self.send_data(404, {"error": "not found"})
                 return
-            self.send_data(200, PAGE.replace("__TOKEN__", token), "text/html")
+            page = PAGE.replace("__TOKEN__", token)
+            if youtube_api_key:
+                page = page.replace('data-search-enabled="no"', 'data-search-enabled="yes"', 1)
+            if player_port is not None:
+                page = page.replace('id="games-open" hidden', 'id="games-open"', 1)
+                page = page.replace('data-player-url=""', f'data-player-url="http://127.0.0.1:{player_port}/"', 1)
+            self.send_data(200, page, "text/html")
 
         def do_POST(self) -> None:
             origin = self.headers.get("Origin")
@@ -439,6 +457,27 @@ def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: i
                     raise EnvPathError("request must be an object")
                 if self.path == "/api/status" and not data:
                     self.send_data(200, {**workspace.status(), "model": model, "endpoint": endpoint})
+                elif self.path == "/api/projects" and not data:
+                    self.send_data(200, {"projects": projects.list()})
+                elif self.path == "/api/project-read" and set(data) == {"project_id"}:
+                    self.send_data(200, {"project": projects.read(data["project_id"])})
+                elif self.path == "/api/project-attach" and set(data) == {"project_id", "name", "content"}:
+                    self.send_data(200, {"file": projects.attach(**data)})
+                elif self.path == "/api/project-file" and set(data) == {"project_id", "file_id"}:
+                    self.send_data(200, {"file": projects.read_file(**data)})
+                elif self.path == "/api/project-save" and set(data) == {"project_id", "revision", "document"}:
+                    self.send_data(200, {"project": projects.save(**data)})
+                elif self.path == "/api/media-search" and set(data) == {"query"}:
+                    query = _text(data["query"], "search query", 240)
+                    if not youtube_api_key:
+                        self.send_data(503, {"error": "In-panel YouTube search requires a configured API key."})
+                        return
+                    try:
+                        videos = search_youtube(query, youtube_api_key)
+                    except (OSError, ValueError, KeyError, TypeError):
+                        self.send_data(502, {"error": "YouTube search is unavailable. Open results on YouTube instead."})
+                        return
+                    self.send_data(200, {"videos": videos})
                 elif self.path == "/api/search" and set(data) == {"query"}:
                     self.send_data(200, workspace.search(**data))
                 elif self.path == "/api/read" and set(data) == {"idx", "record_hash"}:
@@ -455,7 +494,13 @@ def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: i
                     self.chat(data)
                 else:
                     self.send_data(400, {"error": "unknown route or request fields"})
-            except (EnvPathError, ValueError, TypeError, OSError) as exc:
+            except ProjectConflict as exc:
+                self.send_data(409, {"error": str(exc)})
+            except ProjectError as exc:
+                self.send_data(400, {"error": str(exc)})
+            except sqlite3.Error:
+                self.send_data(500, {"error": "Could not read or write local project storage."})
+            except (ValueError, TypeError, OSError) as exc:
                 self.send_data(400, {"error": str(exc) if isinstance(exc, EnvPathError)
                                      else "request failed; check selected source and input"})
 
@@ -512,9 +557,28 @@ def main() -> None:
     parser.add_argument("--model", default="qwen2.5:7b")
     parser.add_argument("--ollama", default="http://127.0.0.1:11434/api/chat")
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--projects-file", type=Path, help="Local SQLite project file")
+    parser.add_argument("--emulator-saves", type=Path, help="Native save folder (default: ~/EnvPath Saves)")
+    parser.add_argument("--emulator-data", type=Path, help="Local EmulatorJS release data directory")
+    parser.add_argument("--emulator-port", type=int, default=8768, choices=range(1, 65536),
+                        metavar="PORT", help="Stable loopback port for browser game saves")
     args = parser.parse_args()
+    if args.emulator_data and (args.port == 0 or args.port == args.emulator_port):
+        parser.error("The workspace and emulator require distinct fixed ports.")
     server = make_server(EnvPathWorkspace(args.chain_file), port=args.port,
-                         model=args.model, endpoint=args.ollama)
+                         model=args.model, endpoint=args.ollama,
+                         player_port=args.emulator_port if args.emulator_data else None,
+                         youtube_api_key=os.environ.get("ENVPATH_YOUTUBE_API_KEY", "").strip(),
+                         projects_file=args.projects_file)
+    player = None
+    if args.emulator_data:
+        try:
+            player = make_player_server(args.emulator_data, port=args.emulator_port, workspace_port=args.port,
+                                        save_dir=args.emulator_saves)
+        except (ValueError, OSError, RuntimeError):
+            server.server_close()
+            parser.error("Check the EmulatorJS data folder, save folder, and emulator port.")
+        threading.Thread(target=player.serve_forever, daemon=True).start()
     url = f"http://127.0.0.1:{server.server_address[1]}/"
     print(f"EnvPath: {url}\nChain: {args.chain_file}\nModel: {args.model}\nCtrl+C to stop.")
     if not args.no_browser:
@@ -525,6 +589,9 @@ def main() -> None:
         pass
     finally:
         server.server_close()
+        if player is not None:
+            player.shutdown()
+            player.server_close()
 
 
 if __name__ == "__main__":

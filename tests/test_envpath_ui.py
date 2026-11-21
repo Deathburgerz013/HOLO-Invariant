@@ -1,0 +1,392 @@
+"""Browser regression tests for EnvPath's local presentation controls.
+
+Uses installed Chrome (Playwright channel='chrome'); no downloaded Chromium,
+Ollama model, or retained evidence file is needed.
+"""
+from __future__ import annotations
+
+import contextlib
+import json
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+import pytest
+
+pytest.importorskip('playwright.sync_api')
+from playwright.sync_api import sync_playwright
+
+from holosim.envpath_ui import PAGE
+
+
+@pytest.fixture(scope='module')
+def ui_url():
+    token = 'ui-test-token'
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path != '/':
+                self.send_error(404)
+                return
+            body = PAGE.replace('__TOKEN__', token).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Security-Policy',
+                             f"default-src 'none'; script-src 'nonce-{token}'; style-src 'nonce-{token}'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'")
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_POST(self):
+            if self.path != '/api/status':
+                self.send_error(404)
+                return
+            size = int(self.headers.get('Content-Length', '0'))
+            self.rfile.read(size)
+            body = json.dumps({'entries': 0, 'model': 'test-model',
+                               'chain_file': 'isolated-test', 'head_hash': ''}).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f'http://127.0.0.1:{server.server_port}/'
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=3)
+
+
+@pytest.fixture
+def page(ui_url):
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(channel='chrome', headless=True)
+        context = browser.new_context(reduced_motion='reduce')
+        page = context.new_page()
+        errors = []
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.goto(ui_url)
+        page.locator('#appearance-toggle').wait_for()
+        yield page
+        assert not errors, f'Browser JavaScript errors: {errors}'
+        context.close()
+        browser.close()
+
+
+def open_options(page):
+    page.locator('#appearance-toggle').click()
+    assert page.locator('#appearance-panel').is_visible()
+
+
+def test_options_open_close_and_escape(page):
+    open_options(page)
+    assert page.locator('#appearance-toggle').get_attribute('aria-expanded') == 'true'
+    page.locator('#appearance-close').click()
+    assert page.locator('#appearance-panel').is_hidden()
+    open_options(page)
+    page.keyboard.press('Escape')
+    assert page.locator('#appearance-panel').is_hidden()
+
+
+def test_theme_accent_persistence_and_reset(page):
+    open_options(page)
+    page.locator('#appearance-theme').select_option('light')
+    page.locator('#appearance-accent').fill('#ff3300')
+    assert page.locator('html').get_attribute('data-theme') == 'light'
+    page.reload()
+    open_options(page)
+    assert page.locator('#appearance-theme').input_value() == 'light'
+    assert page.locator('#appearance-accent').input_value() == '#ff3300'
+    page.locator('#appearance-reset').click()
+    assert page.locator('#appearance-theme').input_value() == 'space'
+    assert page.evaluate("localStorage.getItem('envpath.appearance.v1')") is None
+    page.reload()
+    assert page.locator('html').get_attribute('data-theme') == 'space'
+
+
+@pytest.mark.parametrize('effect', ['off', 'rgb', 'kaleidoscope', 'fractal', 'fractal-kaleidoscope'])
+def test_effect_selection_persists(page, effect):
+    open_options(page)
+    page.locator('#appearance-effect').select_option(effect)
+    assert page.locator('#appearance-effect').input_value() == effect
+    page.reload()
+    open_options(page)
+    assert page.locator('#appearance-effect').input_value() == effect
+
+
+def test_motion_sliders_persist(page):
+    open_options(page)
+    for name, value in [('speed', '8'), ('brightness', '6'), ('complexity', '7')]:
+        page.locator(f'#appearance-{name}').fill(value)
+    page.reload()
+    open_options(page)
+    for name, value in [('speed', '8'), ('brightness', '6'), ('complexity', '7')]:
+        assert page.locator(f'#appearance-{name}').input_value() == value
+
+
+def test_hide_restore_preserves_unsent_draft(page):
+    page.locator('#draft-content').fill('unsent draft remains here')
+    page.locator('#workspace-hide').click()
+    assert page.locator('body').evaluate("e => e.classList.contains('background-view')")
+    assert page.locator('#workspace-reveal').is_visible()
+    page.locator('#workspace-reveal').click()
+    assert not page.locator('body').evaluate("e => e.classList.contains('background-view')")
+    assert page.locator('#draft-content').input_value() == 'unsent draft remains here'
+
+
+def test_h_shortcut_ignores_text_fields(page):
+    page.locator('#message').fill('typing')
+    page.locator('#message').focus()
+    page.keyboard.press('h')
+    assert not page.locator('body').evaluate("e => e.classList.contains('background-view')")
+    page.locator('#message').evaluate('e => e.blur()')
+    page.keyboard.press('h')
+    assert page.locator('body').evaluate("e => e.classList.contains('background-view')")
+    page.keyboard.press('h')
+    assert not page.locator('body').evaluate("e => e.classList.contains('background-view')")
+
+
+def test_csp_does_not_allow_unsafe_inline(ui_url):
+    import urllib.request
+    with urllib.request.urlopen(ui_url) as response:
+        policy = response.headers['Content-Security-Policy']
+    assert 'nonce-' in policy
+    assert "'unsafe-inline'" not in policy
+    assert "frame-ancestors 'none'" in policy
+
+
+def test_workspace_resize_by_keyboard_click_and_drag_persists(page):
+    divider = page.get_by_role('separator', name='Evidence / Chat')
+    divider.focus()
+    divider.press('ArrowRight')
+    assert divider.get_attribute('aria-valuenow') == '27'
+    assert page.locator('#workspace-larger').is_hidden()
+    open_options(page)
+    page.get_by_role('button', name='Move divider right').click()
+    assert divider.get_attribute('aria-valuenow') == '29'
+    page.locator('#appearance-close').click()
+
+    bounds = divider.bounding_box()
+    x = bounds['x'] + bounds['width'] / 2
+    y = bounds['y'] + bounds['height'] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 65, y, steps=5)
+    page.mouse.up()
+    resized = divider.get_attribute('aria-valuenow')
+    assert int(resized) > 29
+    page.reload()
+    assert divider.get_attribute('aria-valuenow') == resized
+
+    divider.press('Home')
+    assert divider.get_attribute('aria-valuenow') == divider.get_attribute('aria-valuemin')
+    open_options(page)
+    assert page.get_by_role('button', name='Move divider left').is_disabled()
+
+
+def test_workspace_collapse_restores_panel_and_draft(page):
+    draft = page.locator('#draft-content')
+    draft.fill('Unsent proposal')
+    page.get_by_role('button', name='Draft', exact=True).click()
+    assert draft.is_hidden()
+    page.get_by_role('button', name='Chat', exact=True).click()
+    assert page.get_by_role('button', name='Evidence', exact=True).is_disabled()
+    page.get_by_role('button', name='Draft', exact=True).click()
+    assert draft.input_value() == 'Unsent proposal'
+    assert page.get_by_role('separator', name='Evidence / Draft').is_visible()
+    page.reload()
+    assert page.locator('#workspace-chat').is_hidden()
+    open_options(page)
+    page.get_by_role('button', name='Reset layout').click()
+    assert page.locator('#workspace-chat').is_visible()
+
+
+def test_workspace_compact_selection_does_not_replace_desktop_visibility(page):
+    page.get_by_role('button', name='Draft', exact=True).click()
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.get_by_role('button', name='Draft', exact=True).click()
+    assert page.locator('#workspace-chat').is_hidden()
+    assert page.locator('#workspace-draft').is_visible()
+    assert page.get_by_role('separator').count() == 0
+    page.reload()
+    assert page.locator('#workspace-draft').is_visible()
+    page.set_viewport_size({'width': 1280, 'height': 800})
+    page.locator('#workspace-chat').wait_for()
+    assert page.locator('#workspace-draft').is_hidden()
+
+
+@pytest.mark.parametrize('saved', ['broken JSON', '{"version":2}', '{"version":1,"visible":[]}'])
+def test_workspace_invalid_layout_recovers(page, saved):
+    page.evaluate("(value) => localStorage.setItem('envpath.layout.v1', value)", saved)
+    page.reload()
+    assert page.get_by_role('separator', name='Evidence / Chat').get_attribute('aria-valuenow') == '25'
+    assert page.locator('#workspace-draft').is_visible()
+
+
+def test_options_and_background_view_restore_keyboard_focus(page):
+    options = page.locator('#appearance-toggle')
+    options.press('Enter')
+    assert page.locator('#options-heading').evaluate('(el) => el === document.activeElement')
+    page.locator('#workspace-resize-edge').press('Escape')
+    assert options.evaluate('(el) => el === document.activeElement')
+
+    page.locator('#workspace-hide').press('Enter')
+    reveal = page.locator('#workspace-reveal')
+    assert reveal.evaluate('(el) => el === document.activeElement')
+    assert page.locator('main').evaluate('(el) => el.inert')
+    reveal.press('Enter')
+    assert page.locator('#workspace-hide').evaluate('(el) => el === document.activeElement')
+    assert not page.locator('main').evaluate('(el) => el.inert')
+
+
+@pytest.mark.parametrize('focused, fallback', [
+    ('#query', '[data-workspace-pane="evidence"]'),
+    ('.workspace-divider', '[data-workspace-pane="chat"]'),
+    ('#workspace-resize-edge', '#workspace-reset'),
+])
+def test_narrow_workspace_moves_focus_to_visible_control(page, focused, fallback):
+    if focused == '#workspace-resize-edge':
+        open_options(page)
+    page.locator(focused).first.focus()
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.wait_for_function('(selector) => document.activeElement.matches(selector)', arg=fallback)
+    assert page.locator(fallback).is_visible()
+
+
+def test_touch_workspace_switches_panes_and_resizes(page, ui_url):
+    browser = page.context.browser
+    with browser.new_context(has_touch=True, viewport={'width': 390, 'height': 844}) as context:
+        touch_page = context.new_page()
+        touch_page.goto(ui_url)
+        touch_page.get_by_role('button', name='Evidence', exact=True).tap()
+        assert touch_page.locator('#workspace-evidence').is_visible()
+        assert touch_page.locator('#workspace-chat').is_hidden()
+
+        touch_page.set_viewport_size({'width': 1280, 'height': 800})
+        touch_page.locator('#appearance-toggle').tap()
+        touch_page.get_by_role('button', name='Move divider right').tap()
+        divider = touch_page.get_by_role('separator', name='Evidence / Chat')
+        assert divider.get_attribute('aria-valuenow') == '27'
+
+
+def test_rgb_cycles_background_with_workspace_hidden(page):
+    page.emulate_media(reduced_motion='no-preference')
+    open_options(page)
+    page.locator('#appearance-effect').select_option('rgb')
+    page.locator('#appearance-close').click()
+    page.locator('#workspace-hide').click()
+
+    read_background = '() => getComputedStyle(document.body).backgroundImage'
+    first = page.evaluate(read_background)
+    assert first.startswith('radial-gradient(')
+    page.wait_for_function(
+        'first => getComputedStyle(document.body).backgroundImage !== first',
+        arg=first,
+    )
+
+    page.emulate_media(reduced_motion='reduce')
+    page.wait_for_function("() => getComputedStyle(document.body).backgroundImage === 'none'")
+    page.locator('#workspace-reveal').click()
+    open_options(page)
+    assert page.locator('#appearance-effect').input_value() == 'rgb'
+
+
+@pytest.mark.parametrize('scene', ['stars', 'black-hole', 'electric', 'matrix'])
+def test_background_scene_persists_and_renders_with_reduced_motion(page, scene):
+    open_options(page)
+    page.locator('#appearance-background').select_option(scene)
+    page.reload()
+    canvas = page.locator('#workspace-scene')
+    assert canvas.is_visible()
+    assert page.locator('html').get_attribute('data-background') == scene
+    pixels = canvas.evaluate('canvas => canvas.toDataURL()')
+    page.locator('#workspace-hide').click()
+    assert canvas.is_visible()
+    assert canvas.evaluate('canvas => canvas.toDataURL()') == pixels
+
+
+def test_black_hole_disk_uses_accent_color(page):
+    open_options(page)
+    page.locator('#appearance-background').select_option('black-hole')
+    canvas = page.locator('#workspace-scene')
+    original = canvas.evaluate('canvas => canvas.toDataURL()')
+    page.locator('#appearance-accent').fill('#ff5500')
+    assert canvas.evaluate('canvas => canvas.toDataURL()') != original
+
+
+def test_black_hole_disk_cycles_color_in_rgb_mode(page):
+    page.emulate_media(reduced_motion='no-preference')
+    open_options(page)
+    page.locator('#appearance-background').select_option('black-hole')
+    page.evaluate('''() => {
+        const ctx = document.getElementById('workspace-scene').getContext('2d');
+        const stroke = ctx.stroke.bind(ctx);
+        window.diskColors = new Set();
+        ctx.stroke = (...args) => {
+            window.diskColors.add(ctx.strokeStyle);
+            return stroke(...args);
+        };
+    }''')
+    page.locator('#appearance-effect').select_option('rgb')
+    page.wait_for_function('() => window.diskColors.size >= 3')
+    assert page.locator('#holo-fractal-field').is_hidden()
+
+
+def test_matrix_rain_uses_slim_glyphs_and_rgb_streams(page):
+    open_options(page)
+    page.locator('#appearance-background').select_option('matrix')
+    page.evaluate('''() => {
+        const ctx = document.getElementById('workspace-scene').getContext('2d');
+        const fillText = ctx.fillText.bind(ctx);
+        window.rainColors = new Set();
+        ctx.fillText = (glyph, x, y, width) => {
+            window.rainColors.add(ctx.fillStyle);
+            window.rainGlyphWidth = width;
+            fillText(glyph, x, y, width);
+        };
+    }''')
+    page.locator('#appearance-effect').select_option('rgb')
+    assert page.evaluate('window.rainColors.size') == 2
+    assert page.evaluate('window.rainGlyphWidth') == 8
+
+    page.emulate_media(reduced_motion='no-preference')
+    page.wait_for_function('() => window.rainColors.size > 4')
+
+
+@pytest.mark.parametrize('width', [390, 1280])
+def test_binary_matrix_streams_decode_with_reduced_motion(page, width):
+    page.set_viewport_size({'width': width, 'height': 800})
+    open_options(page)
+    page.evaluate('''() => {
+        const ctx = document.getElementById('workspace-scene').getContext('2d');
+        const fillText = ctx.fillText.bind(ctx);
+        window.binaryText = [];
+        ctx.fillText = (text, x, y, maxWidth) => {
+            window.binaryText.push([text, x, y]);
+            return fillText(text, x, y, maxWidth);
+        };
+    }''')
+    page.locator('#appearance-background').select_option('binary-matrix')
+    rendered = page.evaluate('window.binaryText')
+    columns = {}
+    for bit, x, y in rendered:
+        assert bit in {'0', '1'}
+        columns.setdefault(x, []).append((y, bit))
+    message = 'Holo/Sim Continuity Engine'
+    groups = [''.join(bit for _, bit in sorted(rows)) for _, rows in sorted(columns.items())]
+    assert all(len(group) == 8 for group in groups)
+    decoded = bytes(int(group, 2) for group in groups).decode('ascii')
+    assert decoded[:len(message)] == message
+    assert decoded == (message * (len(decoded) // len(message) + 1))[:len(decoded)]
+
+    page.reload()
+    assert page.locator('html').get_attribute('data-background') == 'binary-matrix'
+    page.locator('#workspace-hide').click()
+    assert page.locator('#workspace-scene').is_visible()
