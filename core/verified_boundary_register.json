@@ -132,7 +132,7 @@
       "boundary_id": "genesis-origins",
       "module": "holosim.genesis_origins",
       "implementation_path": "holosim/genesis_origins.py",
-      "implementation_sha256": "5b4d14bbae1114054d0fb3cdce8bb4ce16d4705cf2251ee48c0b0e7fb7afc7f6",
+      "implementation_sha256": "9592b143b5fcf21533bdb4bbee8c6383651aadd6f769dfb439b9c8f77efe56b5",
       "receipts": [
         {
           "type_constant": "RECEIPT_TYPE",
@@ -143,7 +143,7 @@
         }
       ],
       "test_path": "tests/test_genesis_origins.py",
-      "test_sha256": "6d4c87d8e4575436e9020a8edc406f10f797c5323b83a748a9030e46e9d0a377"
+      "test_sha256": "566d4215d5ea9df00d23b07ae0966730aa8caa23b5a7411c8b1a5d7ff96e5f5d"
     },
     {
       "boundary_id": "invariant-failure-extraction",
@@ -274,5 +274,5 @@
   ],
   "accepted": false,
   "write_authority": "NONE",
-  "register_hash": "4723a112b238908a37c96a94df8454c2d9253f4285fa59ef82616978b6ecb64f"
+  "register_hash": "c585f72bb0b995d8591799b3bc14f7d7048aa8a33d1e36e9b194ae678d3f2734"
 }

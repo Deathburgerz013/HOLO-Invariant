@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import subprocess
+import sys
+
 import pytest
 
 from holosim.hook_contract import build_hook_request, validate_hook_result
@@ -179,6 +183,43 @@ def test_mismatched_measured_file_condition_is_false(tmp_path):
     }
     assert receipt["accepted"] is False
     assert receipt["write_authority"] == "NONE"
+
+    # Replay the captured observation without access to the original file.
+    (tmp_path / "state.txt").unlink()
+    replay = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            """
+import json
+import sys
+from holosim.measured_condition_evidence import (
+    derive_measured_condition_evidence,
+    validate_measured_condition_evidence,
+)
+
+receipt = json.load(sys.stdin)
+validate_measured_condition_evidence(receipt)
+rebuilt = derive_measured_condition_evidence(
+    permitted_run=receipt["source_run"],
+    condition_id=receipt["condition_id"],
+    claim_set_hash=receipt["claim_set_hash"],
+    expected_content_sha256=receipt["expected_content_sha256"],
+)
+print(json.dumps(rebuilt))
+""",
+        ],
+        input=json.dumps(receipt),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    assert replay.returncode == 0, replay.stderr
+    assert receipt["expected_content_sha256"] != receipt["observed_content_sha256"]
+    assert receipt["execution_authority"] == "NONE"
+    assert json.loads(replay.stdout) == receipt
+
 
 def test_rehashed_source_content_cannot_preserve_original_derivation(tmp_path):
     from copy import deepcopy

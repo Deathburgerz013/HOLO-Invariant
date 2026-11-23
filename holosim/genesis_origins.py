@@ -7,7 +7,7 @@ import json
 import re
 import subprocess
 from collections.abc import Mapping
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 
@@ -25,6 +25,8 @@ _FIELDS = {
 class GenesisOriginError(ValueError):
     """Raised when an exact-path origin cannot be observed honestly."""
 
+    rejection_receipt: dict[str, Any] | None = None
+
 
 def _canonical_hash(value: Any) -> str:
     try:
@@ -35,6 +37,55 @@ def _canonical_hash(value: Any) -> str:
     except (TypeError, ValueError, OverflowError, UnicodeError) as exc:
         raise GenesisOriginError("origin receipt could not be canonicalized") from exc
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _worktree_rejection_receipt(path_flavor: str, requested: str, observed: str) -> dict[str, Any]:
+    body = {
+        "type": "genesis_worktree_root_rejection",
+        "version": 1,
+        "rule": "requested_root_equals_git_worktree_root",
+        "evidence": {
+            "path_flavor": path_flavor,
+            "requested_root": requested,
+            "observed_root": observed,
+        },
+        "outcome": "REJECTED",
+        "reason": "WORKTREE_ROOT_MISMATCH",
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "receipt_hash": _canonical_hash(body)}
+
+
+def replay_genesis_worktree_rejection(receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Rebuild the decision from captured paths. This does not authenticate Git output."""
+    evidence = receipt.get("evidence") if isinstance(receipt, Mapping) else None
+    if not isinstance(evidence, Mapping):
+        raise GenesisOriginError("worktree rejection evidence is missing")
+    flavor = evidence.get("path_flavor")
+    if flavor not in ("windows", "posix"):
+        raise GenesisOriginError("worktree rejection path flavor is invalid")
+    path_type = PureWindowsPath if flavor == "windows" else PurePosixPath
+    requested = evidence.get("requested_root")
+    observed = evidence.get("observed_root")
+    if not isinstance(requested, str) or not isinstance(observed, str):
+        raise GenesisOriginError("worktree rejection paths must be strings")
+    requested_path, observed_path = path_type(requested), path_type(observed)
+    for raw_path, parsed_path in ((requested, requested_path), (observed, observed_path)):
+        if (
+            not parsed_path.is_absolute()
+            or str(parsed_path) != raw_path
+            or ".." in parsed_path.parts
+            or "\x00" in raw_path
+        ):
+            raise GenesisOriginError("worktree rejection paths must be resolved")
+    if requested_path == observed_path:
+        raise GenesisOriginError("worktree rejection evidence shows matching roots")
+    rebuilt = _worktree_rejection_receipt(flavor, requested, observed)
+    if _canonical_hash(dict(receipt)) != _canonical_hash(rebuilt):
+        raise GenesisOriginError("worktree rejection receipt does not match replay")
+    return rebuilt
 
 
 def _path(value: Any) -> str:
@@ -100,8 +151,16 @@ def observe_repository_path_genesis(
     if not root_path.is_dir():
         raise GenesisOriginError("repository root is unavailable")
     top = _git(root_path, "rev-parse", "--show-toplevel")
-    if top is None or Path(top).resolve() != root_path:
-        raise GenesisOriginError("root is not the Git worktree root")
+    top_path = Path(top).resolve() if top is not None else None
+    if top_path != root_path:
+        error = GenesisOriginError("root is not the Git worktree root")
+        if top_path is not None:
+            error.rejection_receipt = _worktree_rejection_receipt(
+                "windows" if isinstance(root_path, PureWindowsPath) else "posix",
+                str(root_path),
+                str(top_path),
+            )
+        raise error
     normalized_path = _path(path)
     requested_revision = _revision(revision)
     head = _object_id(
