@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
+import shutil
 import subprocess
+import sys
 from copy import deepcopy
 
 import pytest
@@ -9,6 +12,7 @@ from holosim.genesis_origins import (
     GenesisOriginError,
     _canonical_hash,
     observe_repository_path_genesis,
+    replay_genesis_worktree_rejection,
     verify_genesis_origin_receipt,
 )
 
@@ -96,6 +100,39 @@ def test_missing_path_and_non_repository_fail_closed(tmp_path) -> None:
     commit_file(root, "worker.py", "VALUE = 1\n", "add")
     with pytest.raises(GenesisOriginError):
         observe_repository_path_genesis(root=root, path="missing.py")
+
+
+def test_worktree_root_rejection_replays_after_repository_removal(tmp_path) -> None:
+    root = repository(tmp_path / "repo")
+    nested = root / "nested"
+    nested.mkdir()
+    with pytest.raises(GenesisOriginError, match="root is not the Git worktree root") as rejected:
+        observe_repository_path_genesis(root=nested, path="worker.py")
+    receipt = rejected.value.rejection_receipt
+    assert receipt["evidence"]["observed_root"] == str(root.resolve())
+    assert receipt["evidence"]["requested_root"] == str(nested.resolve())
+    assert receipt["outcome"] == "REJECTED"
+    assert receipt["reason"] == "WORKTREE_ROOT_MISMATCH"
+    shutil.rmtree(root)
+    replay = subprocess.run(
+        [
+            sys.executable, "-c",
+            "import json, sys; "
+            "from holosim.genesis_origins import replay_genesis_worktree_rejection; "
+            "print(json.dumps(replay_genesis_worktree_rejection(json.load(sys.stdin))))",
+        ],
+        input=json.dumps(receipt), capture_output=True, text=True, encoding="utf-8",
+        timeout=30, check=True,
+    )
+    assert json.loads(replay.stdout) == receipt
+
+    tampered = deepcopy(receipt)
+    tampered["evidence"]["requested_root"] = tampered["evidence"]["observed_root"]
+    tampered["receipt_hash"] = _canonical_hash(
+        {key: value for key, value in tampered.items() if key != "receipt_hash"}
+    )
+    with pytest.raises(GenesisOriginError, match="matching roots"):
+        replay_genesis_worktree_rejection(tampered)
 
 
 def test_source_change_after_pinned_commit_does_not_rewrite_history(tmp_path) -> None:

@@ -5278,3 +5278,21 @@
 | | ACCEPTED: false
 | | WRITE_AUTHORITY: NONE
 | |}==============================================================|
+| |}==============================================================|
+| | GENESIS WORKTREE ROOT REJECTION REPLAY                        |
+| | STATUS: PARTIAL                                               |
+| | IMPLEMENTATION: holosim/genesis_origins.py                    |
+| | FOCUSED_TEST: tests/test_genesis_origins.py                   |
+| | BOUNDARY_REGISTER: core/verified_boundary_register.json       |
+| | A root mismatch attaches a receipt to GenesisOriginError.     |
+| | The receipt binds the rule, paths, outcome and reason.        |
+| | Replay compares the captured paths using their path flavor.   |
+| | A fresh process rebuilds the receipt after repository removal.|
+| | Replay checks the recorded decision and its receipt identity. |
+| | The original Git output is independently unauthenticated.     |
+| | Scope is limited to a successfully observed root mismatch.    |
+| | External persistence is caller-managed.                       |
+| | EXTERNAL_REVIEW: PENDING                                      |
+| | ACCEPTED: false                                               |
+| | WRITE_AUTHORITY: NONE                                         |
+| |}==============================================================|
