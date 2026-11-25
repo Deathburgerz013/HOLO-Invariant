@@ -145,9 +145,36 @@ body.background-view {overflow:hidden}
 #project-file-content{max-height:300px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 #project-status{font-size:13px;color:var(--muted)}
 @media(max-width:720px){#projects-panel{margin-inline:12px}.projects-grid,.projects-references{grid-template-columns:1fr}#project-list{max-height:25vh}}
+#envpath-sidebar {position:fixed;inset:0 auto 0 0;width:188px;z-index:10;display:flex;flex-direction:column;align-items:stretch;gap:14px;padding:20px 14px;border-right:1px solid var(--line)}
+#envpath-sidebar .local {align-self:flex-start;font-size:10px}
+#envpath-sidebar nav,.sidebar-actions {display:flex;flex-direction:column;gap:6px}
+.sidebar-actions {margin-top:auto}
+#envpath-sidebar .appearance-toggle {margin:0}
+#envpath-sidebar button {text-align:left}
+#envpath-sidebar button[aria-current="page"] {border-color:var(--accent);background:var(--surface-hover)}
+body {padding-left:188px}
+body.background-view {padding-left:0}
+body.background-view>#envpath-sidebar {transform:translateX(-110%)}
+#workspace-home[hidden] {display:none}
+#appearance-panel {inset:auto auto 16px 200px;max-height:calc(100dvh - 32px);overflow:auto}
+@media(max-width:800px) {
+  body {padding-left:0}
+  #envpath-sidebar {position:sticky;top:0;inset-inline:auto;width:auto;gap:8px;padding:8px 12px;border-right:0;border-bottom:1px solid var(--line)}
+  #envpath-sidebar nav,.sidebar-actions {flex-direction:row;flex-wrap:wrap}
+  #envpath-sidebar .local {display:none}
+  #appearance-panel {inset:12px 12px auto auto}
+}
 </style></head><body><canvas id="workspace-scene" aria-hidden="true" hidden></canvas><canvas id="holo-fractal-field" aria-hidden="true"></canvas>
 <button id="workspace-reveal" type="button" aria-label="Show workspace" hidden>Show UI</button>
-<header><div><div class="brand">Env<span>Path</span></div><div class="tag">A local workspace for finding, thinking, and continuing.</div></div><span class="local">LOCAL · HOLO CONNECTED</span><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button> <button id="games-open" hidden type="button" aria-controls="games-panel" aria-expanded="false">Games</button> <button id="projects-open" type="button" aria-controls="projects-panel" aria-expanded="false">Projects</button> <button id="media-open" type="button" aria-controls="media-panel" aria-expanded="false">Media</button> <button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></header>
+<header id="envpath-sidebar">
+<div class="brand">Env<span>Path</span></div><span class="local">LOCAL · HOLO CONNECTED</span>
+<nav aria-label="EnvPath sections"><button id="home-open" type="button" aria-current="page" aria-controls="workspace-home">Home</button>
+<button id="projects-open" type="button" aria-controls="projects-panel" aria-expanded="false">Projects</button>
+<button id="media-open" type="button" aria-controls="media-panel" aria-expanded="false">Media</button>
+<button id="games-open" hidden type="button" aria-controls="games-panel" aria-expanded="false">Games</button>
+</nav>
+<div class="sidebar-actions"><button id="workspace-hide" type="button" aria-label="Hide workspace to view background">Hide UI</button><button id="appearance-toggle" class="appearance-toggle" type="button" aria-controls="appearance-panel" aria-expanded="false">Options</button></div>
+</header>
 <aside id="appearance-panel" class="appearance-panel" aria-label="Options" hidden>
 <h2 id="options-heading" tabindex="-1">Options</h2>
 <section class="workspace-layout-options" aria-labelledby="workspace-layout-heading">
@@ -221,6 +248,7 @@ body.background-view {overflow:hidden}
 <div class="games-toolbar"><h2 id="games-heading">Games</h2><button id="games-close" type="button">Hide player</button></div>
 <iframe id="games-player" title="Nintendo 64 emulator" sandbox="allow-scripts allow-same-origin allow-downloads" allow="fullscreen; gamepad"></iframe>
 </section>
+<div id="workspace-home">
 <div class="workspace-controls" role="group" aria-label="Workspace layout">
 <button type="button" data-workspace-pane="evidence" aria-controls="workspace-evidence" aria-pressed="true">Evidence</button>
 <button type="button" data-workspace-pane="chat" aria-controls="workspace-chat" aria-pressed="true">Chat</button>
@@ -239,7 +267,7 @@ body.background-view {overflow:hidden}
 <div id="draft-target" hidden>Open an original record, then select “Use as target.”</div>
 <button id="prepare">Prepare draft</button><p class="small">Preparation and download do not add to retained memory. Review and persistence remain separate.</p><div id="draft-status" class="draft-status" role="status"></div><pre id="draft-preview" hidden></pre><button id="download" disabled>Download proposal JSON</button></div>
 <div class="panel-head"><h2>Tool activity</h2><span class="small">This chat</span></div><div id="tools"><p class="small">Actual tool results appear here.</p></div></section>
-</div></main><div class="footer">Retained evidence is historical. Chat is model output. Drafts are proposals. None grants authority.</div>
+</div></div></main><div class="footer">Retained evidence is historical. Chat is model output. Drafts are proposals. None grants authority.</div>
 <script nonce="__TOKEN__">
 'use strict';
 const $=id=>document.getElementById(id),token='__TOKEN__';let history=[],turn=null,target=null,draft=null,stopped=false;
@@ -745,8 +773,8 @@ function showGames(show) {
   gamesButton.setAttribute('aria-expanded', String(show));
   (show ? $('games-close') : gamesButton).focus();
 }
-gamesButton.onclick = () => showGames(gamesPanel.hidden);
-$('games-close').onclick = () => showGames(false);
+gamesButton.onclick = () => selectSection('games');
+$('games-close').onclick = () => selectSection('home');
 const mediaPanel = $('media-panel');
 const mediaButton = $('media-open');
 const mediaPlayer = $('media-player');
@@ -823,8 +851,8 @@ function mediaRow(video) {
 }
 
 $('media-channels').append(...liveChannels.map(mediaRow));
-mediaButton.onclick = () => showMedia(mediaPanel.hidden);
-$('media-close').onclick = () => showMedia(false);
+mediaButton.onclick = () => selectSection('media');
+$('media-close').onclick = () => selectSection('home');
 $('media-resume').onclick = () => {
   try {
     const video = JSON.parse(localStorage.getItem(mediaKey));
@@ -922,7 +950,7 @@ function renderProjectLinks() {
     }
   });
   referenceRows('project-videos', currentProject.videos, video => video.title, video => {
-    showMedia(true);
+    selectSection('media');
     playMedia(video);
     mediaPanel.scrollIntoView({block: 'start'});
   });
@@ -1013,9 +1041,33 @@ function showProjects(show) {
   if (show) refreshProjects().catch(error => { projectStatus.textContent = error.message; });
 }
 
+function selectSection(section) {
+  const sections = [
+    ['games', gamesPanel, gamesButton, showGames],
+    ['media', mediaPanel, mediaButton, showMedia],
+    ['projects', projectsPanel, projectsButton, showProjects],
+  ];
+  for (const [name, panel, button, show] of sections) {
+    if (name !== section && !panel.hidden) show(false);
+    button.removeAttribute('aria-current');
+  }
+  const home = $('home-open');
+  $('workspace-home').hidden = section !== 'home';
+  if (section === 'home') {
+    home.setAttribute('aria-current', 'page');
+    home.focus();
+    return;
+  }
+  home.removeAttribute('aria-current');
+  const [, panel, button, show] = sections.find(([name]) => name === section);
+  button.setAttribute('aria-current', 'page');
+  if (panel.hidden) show(true);
+}
+
+$('home-open').onclick = () => selectSection('home');
 newProject();
-projectsButton.onclick = () => showProjects(projectsPanel.hidden);
-$('projects-close').onclick = () => showProjects(false);
+projectsButton.onclick = () => selectSection('projects');
+$('projects-close').onclick = () => selectSection('home');
 $('project-new').onclick = () => {
   if (!projectMaySwitch()) return;
   newProject();
