@@ -151,6 +151,9 @@ body.background-view {overflow:hidden}
 .sidebar-actions {margin-top:auto}
 #envpath-sidebar .appearance-toggle {margin:0}
 #envpath-sidebar button {text-align:left}
+#book-open {padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);text-decoration:none;font-size:14px}
+#book-open:hover {background:var(--surface-hover)}
+#book-open:focus-visible {outline:2px solid var(--accent);outline-offset:2px}
 #envpath-sidebar button[aria-current="page"] {border-color:var(--accent);background:var(--surface-hover)}
 body {padding-left:188px}
 body.background-view {padding-left:0}
@@ -170,6 +173,7 @@ body.background-view>#envpath-sidebar {transform:translateX(-110%)}
 <div class="brand">Env<span>Path</span></div><span class="local">LOCAL · HOLO CONNECTED</span>
 <nav aria-label="EnvPath sections"><button id="home-open" type="button" aria-current="page" aria-controls="workspace-home">Home</button>
 <button id="projects-open" type="button" aria-controls="projects-panel" aria-expanded="false">Projects</button>
+<a id="book-open" hidden target="_blank" rel="noopener noreferrer">Continuity Book ↗</a>
 <button id="media-open" type="button" aria-controls="media-panel" aria-expanded="false">Media</button>
 <button id="games-open" hidden type="button" aria-controls="games-panel" aria-expanded="false">Games</button>
 </nav>
