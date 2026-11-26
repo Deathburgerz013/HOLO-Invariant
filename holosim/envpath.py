@@ -387,9 +387,14 @@ def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: i
                 model: str = "qwen2.5:7b", endpoint: str = "http://127.0.0.1:11434/api/chat",
                 transport: Callable[..., Any] = stream_ollama,
                 player_port: int | None = None, youtube_api_key: str = "",
-                projects_file: Path | None = None) -> ThreadingHTTPServer:
+                projects_file: Path | None = None, book_port: int | None = None) -> ThreadingHTTPServer:
     if host not in {"127.0.0.1", "localhost"}:
         raise EnvPathError("EnvPath binds to IPv4 loopback only")
+    if book_port is not None and (
+        type(book_port) is not int or not 1 <= book_port <= 65535
+        or book_port in {port, player_port}
+    ):
+        raise EnvPathError("Continuity Book requires a distinct loopback port")
     ollama_endpoint(endpoint)
     projects = ProjectStore(projects_file or Path.home() / "EnvPath Projects" / "projects.sqlite3")
     token = secrets.token_urlsafe(32)
@@ -434,6 +439,12 @@ def make_server(workspace: EnvPathWorkspace, *, host: str = "127.0.0.1", port: i
             if player_port is not None:
                 page = page.replace('id="games-open" hidden', 'id="games-open"', 1)
                 page = page.replace('data-player-url=""', f'data-player-url="http://127.0.0.1:{player_port}/"', 1)
+            if book_port is not None:
+                page = page.replace(
+                    'id="book-open" hidden',
+                    f'id="book-open" href="http://127.0.0.1:{book_port}/"',
+                    1,
+                )
             self.send_data(200, page, "text/html")
 
         def do_POST(self) -> None:
@@ -562,14 +573,22 @@ def main() -> None:
     parser.add_argument("--emulator-data", type=Path, help="Local EmulatorJS release data directory")
     parser.add_argument("--emulator-port", type=int, default=8768, choices=range(1, 65536),
                         metavar="PORT", help="Stable loopback port for browser game saves")
+    parser.add_argument("--book-port", type=int, metavar="PORT",
+                        help="Port of a separately running local Continuity Book reader")
     args = parser.parse_args()
+    if args.book_port is not None and (
+        not 1 <= args.book_port <= 65535
+        or args.book_port == args.port
+        or (args.emulator_data and args.book_port == args.emulator_port)
+    ):
+        parser.error("The Continuity Book requires a separate loopback port.")
     if args.emulator_data and (args.port == 0 or args.port == args.emulator_port):
         parser.error("The workspace and emulator require distinct fixed ports.")
     server = make_server(EnvPathWorkspace(args.chain_file), port=args.port,
                          model=args.model, endpoint=args.ollama,
                          player_port=args.emulator_port if args.emulator_data else None,
                          youtube_api_key=os.environ.get("ENVPATH_YOUTUBE_API_KEY", "").strip(),
-                         projects_file=args.projects_file)
+                         projects_file=args.projects_file, book_port=args.book_port)
     player = None
     if args.emulator_data:
         try:
