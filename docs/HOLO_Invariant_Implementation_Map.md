@@ -5296,3 +5296,18 @@
 | | ACCEPTED: false                                               |
 | | WRITE_AUTHORITY: NONE                                         |
 | |}==============================================================|
+| |}==============================================================|
+| | FILE CONDITION PRESENTATION AND DEMONSTRATION                 |
+| | STATUS: PARTIAL                                               |
+| | IMPLEMENTATION: holosim/measured_condition_evidence.py        |
+| | FOCUSED_TEST: tests/test_measured_condition_evidence.py       |
+| | A presentation binds the expected content hash to a read.     |
+| | The signed permit covers that request before the live read.   |
+| | A bound match passes. A bound mismatch fails.                 |
+| | A substituted presentation cannot pass against the old run.   |
+| | Replay checks recorded bindings and evidence consistency.     |
+| | The origin of a supplied run remains unauthenticated.         |
+| | ACCEPTED: false                                               |
+| | WRITE_AUTHORITY: NONE                                         |
+| | EXECUTION_AUTHORITY: NONE                                     |
+| |}==============================================================|
