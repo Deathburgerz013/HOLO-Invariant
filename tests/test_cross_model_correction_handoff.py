@@ -181,3 +181,30 @@ def test_cli_preserves_existing_file(tmp_path):
     result=subprocess.run([sys.executable, "-m", "holosim.cross_model_correction_handoff", "--sender-model", "a",
         "--receiver-model", "b", "--output", str(destination)], capture_output=True)
     assert result.returncode != 0 and destination.read_bytes() == b"retained evidence"
+
+
+@pytest.mark.parametrize("output,status", [
+    ({"handoff_summary": "The threshold is now 2."}, "PASS"),
+    ({"echo": "fixture"}, "FAIL"),
+])
+def test_producer_only_records_one_attempt_and_replays(tmp_path, output, status):
+    from holosim.cross_model_correction_handoff import (
+        audit_producer_demonstration, run_producer_demonstration,
+    )
+
+    destination = tmp_path / "producer.json"
+    transport = Scripted(outputs=[output])
+
+    def opener(request, timeout):
+        assert destination.with_name("producer.json.spec.json").is_file()
+        return transport(request, timeout)
+
+    result = run_producer_demonstration("model-a", destination, opener=opener)
+    assert len(transport.requests) == 1
+    assert result["verdict"]["status"] == status
+    assert audit_producer_demonstration(destination)["verdict"] == result["verdict"]
+    tampered = json.loads(destination.read_bytes())
+    tampered["verdict"]["reason"] = "replacement"
+    destination.write_text(json.dumps(tampered), encoding="utf-8")
+    with pytest.raises(ValueError, match="does not match replay"):
+        audit_producer_demonstration(destination)

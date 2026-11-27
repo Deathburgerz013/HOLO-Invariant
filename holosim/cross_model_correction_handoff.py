@@ -149,6 +149,120 @@ def identify_models(sender_model, receiver_model, opener):
     return {"declared_digests": found, "inventory_bytes_b64": base64.b64encode(raw).decode("ascii")}
 
 
+def producer_prompt(fixture):
+    return (
+        "Read this authored session and summarize its correction for a later session. "
+        "Return JSON with a handoff_summary string.\n" + json.dumps(fixture)
+    )
+
+
+def producer_summary_valid(output):
+    return (type(output) is dict and set(output) == {"handoff_summary"}
+            and type(output["handoff_summary"]) is str
+            and bool(output["handoff_summary"].strip()))
+
+
+def producer_specification(model):
+    if type(model) is not str or not model.strip() or len(model) > 256:
+        raise ValueError("model must be a nonempty identifier")
+    fixture = load_fixture()
+    body = {
+        "type": "producer_demonstration_specification",
+        "version": 1,
+        "fixture_hash": stable_hash(fixture),
+        "model": model,
+        "prompt": producer_prompt(fixture),
+        "options": {"num_predict": 512, "num_ctx": 8192, "seed": 0, "temperature": 0},
+        "timeout_seconds": 120.0,
+        "attempts": 1,
+        "criterion": "nonempty_handoff_summary_string_only",
+        **BOUNDARY,
+    }
+    return {**body, "specification_hash": stable_hash(body)}
+
+
+def producer_verdict(specification, capture):
+    """Calculate schema compliance from captured bytes, without authenticating the emitter."""
+    if capture["request_bytes_b64"] is None:
+        return {"status": "INCONCLUSIVE", "reason": "REQUEST_NOT_CAPTURED"}
+    request = json.loads(base64.b64decode(capture["request_bytes_b64"], validate=True))
+    expected_request = {
+        "model": specification["model"], "prompt": specification["prompt"],
+        "stream": False, "format": "json",
+        "options": {"num_gpu": 0, **specification["options"]},
+    }
+    if canonical_bytes(request) != canonical_bytes(expected_request):
+        raise ValueError("producer request does not match specification")
+    if capture["response_bytes_b64"] is None:
+        return {"status": "INCONCLUSIVE", "reason": "RESPONSE_NOT_CAPTURED"}
+    raw = base64.b64decode(capture["response_bytes_b64"], validate=True)
+    if len(raw) > MAX_RESPONSE_BYTES:
+        return {"status": "INCONCLUSIVE", "reason": "RESPONSE_EXCEEDS_CAPTURE_LIMIT"}
+    try:
+        response = json.loads(raw)
+    except (ValueError, RecursionError):
+        return {"status": "FAIL", "reason": "INVALID_RESPONSE_JSON"}
+    if (type(response) is not dict or response.get("model") != specification["model"]
+            or response.get("done") is not True):
+        return {"status": "INCONCLUSIVE", "reason": "RESPONSE_BINDING_UNVERIFIED"}
+    try:
+        output = json.loads(response.get("response"))
+    except (TypeError, ValueError, RecursionError):
+        return {"status": "FAIL", "reason": "INVALID_SUMMARY_JSON"}
+    if not producer_summary_valid(output):
+        return {"status": "FAIL", "reason": "INVALID_SUMMARY_SCHEMA"}
+    return {"status": "PASS", "reason": "SUMMARY_SCHEMA_MATCH"}
+
+
+def run_producer_demonstration(model, destination, *, opener=urlopen):
+    specification = producer_specification(model)
+    destination = Path(destination)
+    with destination.open("xb") as output:
+        spec_path = destination.with_name(destination.name + ".spec.json")
+        with spec_path.open("xb") as stream:
+            stream.write(canonical_bytes(specification))
+        call = recorded_call(
+            specification["prompt"], model=model, options=specification["options"],
+            timeout=specification["timeout_seconds"], opener=opener,
+        )
+        capture = {key: call[key] for key in ("request_bytes_b64", "response_bytes_b64")}
+        verdict = producer_verdict(specification, capture)
+        body = {
+            "type": "producer_demonstration_run", "version": 1,
+            "specification": specification, "capture": capture, "verdict": verdict,
+            **BOUNDARY,
+        }
+        result = {**body, "run_hash": stable_hash(body)}
+        output.write(canonical_bytes(result))
+    return result
+
+
+def audit_producer_demonstration(path):
+    with Path(path).open("rb") as stream:
+        raw = stream.read(1_048_577)
+    if len(raw) > 1_048_576:
+        raise ValueError("producer run exceeds audit limit")
+    run = json.loads(raw)
+    specification = producer_specification(run["specification"]["model"])
+    capture = run["capture"]
+    if set(capture) != {"request_bytes_b64", "response_bytes_b64"}:
+        raise ValueError("producer capture fields mismatch")
+    verdict = producer_verdict(specification, capture)
+    body = {
+        "type": "producer_demonstration_run", "version": 1,
+        "specification": specification, "capture": capture, "verdict": verdict,
+        **BOUNDARY,
+    }
+    if canonical_bytes(run) != canonical_bytes({**body, "run_hash": stable_hash(body)}):
+        raise ValueError("producer run does not match replay")
+    return {
+        "type": "producer_demonstration_audit", "version": 1,
+        "source_sha256": hashlib.sha256(raw).hexdigest(),
+        "specification_hash": specification["specification_hash"],
+        "verdict": verdict, **BOUNDARY,
+    }
+
+
 def run_experiment(*, sender_model, receiver_model, repeats=2, timeout=120.0, num_predict=512, num_ctx=8192, opener=urlopen):
     for model in (sender_model, receiver_model):
         if type(model) is not str or not model.strip() or len(model) > 256:
@@ -165,10 +279,9 @@ def run_experiment(*, sender_model, receiver_model, repeats=2, timeout=120.0, nu
     fixture = load_fixture()
     material = build_material(fixture)
     options = {"num_predict": num_predict, "num_ctx": num_ctx, "seed": 0, "temperature": 0}
-    sender_prompt = "Read this authored session and summarize its correction for a later session. Return JSON with a handoff_summary string.\n" + json.dumps(fixture)
+    sender_prompt = producer_prompt(fixture)
     sender = recorded_call(sender_prompt, model=sender_model, options=options, timeout=timeout, opener=opener)
-    if sender["error"] is None and (type(sender["output"]) is not dict or set(sender["output"]) != {"handoff_summary"}
-            or type(sender["output"]["handoff_summary"]) is not str or not sender["output"]["handoff_summary"].strip()):
+    if sender["error"] is None and not producer_summary_valid(sender["output"]):
         sender["error"] = "invalid producer summary schema"
     trial_prompts = prompts(fixture, material, sender["output"])
     trials = []
@@ -468,6 +581,8 @@ def audit_floor_run(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--producer-only", action="store_true")
+    parser.add_argument("--audit-producer-run")
     parser.add_argument("--sender-model")
     parser.add_argument("--receiver-model")
     parser.add_argument("--audit-floor-run", help="Audit one complete saved floor run without model calls")
@@ -482,8 +597,23 @@ def main():
     destination = Path(args.output)
     if destination.exists():
         parser.error("output already exists; preserve prior evidence")
-    if sum(bool(x) for x in (args.capability_floor, args.audit_runs, args.audit_floor_run)) > 1:
+    if sum(bool(x) for x in (args.capability_floor, args.audit_runs, args.audit_floor_run,
+                             args.producer_only, args.audit_producer_run)) > 1:
         parser.error("select only one experiment or audit mode")
+    if args.producer_only:
+        if not args.sender_model or args.receiver_model:
+            parser.error("producer-only requires sender-model only")
+        if args.repeats != 2 or args.timeout_seconds != 120.0 or args.num_predict != 512 or args.num_ctx != 8192:
+            parser.error("producer budgets are fixed; omit budget overrides")
+        result = run_producer_demonstration(args.sender_model, destination)
+        print(json.dumps({"output": str(destination), **result["verdict"]}))
+        return
+    if args.audit_producer_run:
+        result = audit_producer_demonstration(args.audit_producer_run)
+        with destination.open("xb") as stream:
+            stream.write(canonical_bytes(result))
+        print(json.dumps({"output": str(destination), **result["verdict"]}))
+        return
     if args.audit_floor_run:
         result = audit_floor_run(args.audit_floor_run)
         with destination.open("xb") as stream:

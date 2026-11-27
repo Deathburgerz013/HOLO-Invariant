@@ -5311,3 +5311,18 @@
 | | WRITE_AUTHORITY: NONE                                         |
 | | EXECUTION_AUTHORITY: NONE                                     |
 | |}==============================================================|
+| |}==============================================================|
+| | PRODUCER-ONLY HANDOFF DEMONSTRATION                           |
+| | STATUS: PARTIAL                                               |
+| | IMPLEMENTATION: holosim/cross_model_correction_handoff.py     |
+| | FOCUSED_TEST: tests/test_cross_model_correction_handoff.py    |
+| | The runner writes a fixed specification before one call.      |
+| | The audit rebuilds the schema verdict from captured bytes.    |
+| | The verdict checks a nonempty handoff_summary string.         |
+| | Qwen live and offline verdicts matched on one local run.      |
+| | Emitter identity and timing remain unauthenticated.           |
+| | The automated verdict does not establish summary accuracy.    |
+| | ACCEPTED: false                                               |
+| | WRITE_AUTHORITY: NONE                                         |
+| | EXECUTION_AUTHORITY: NONE                                     |
+| |}==============================================================|
