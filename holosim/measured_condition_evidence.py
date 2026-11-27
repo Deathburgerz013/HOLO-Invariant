@@ -310,3 +310,82 @@ def validate_measured_condition_evidence(receipt: Mapping[str, Any]) -> bool:
         )
 
     return True
+
+
+def build_file_condition_presentation(
+    *, condition_id: str, claim_set_hash: str, reference: str,
+    expected_content_sha256: str,
+) -> dict[str, Any]:
+    """Declare the expected UTF-8 content hash before preparing the read request."""
+    body = {
+        "type": "file_condition_presentation",
+        "version": 1,
+        "condition_id": _required_text(condition_id, "condition_id"),
+        "claim_set_hash": _sha256(claim_set_hash, "claim_set_hash"),
+        "reference": _required_text(reference, "reference"),
+        "expected_content_sha256": _sha256(expected_content_sha256, "expected_content_sha256"),
+        "status": "READY",
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "presentation_hash": _hash(body)}
+
+
+def build_presented_file_request(presentation: Mapping[str, Any]) -> dict[str, Any]:
+    """Commit the presentation identity into the request covered by the permit."""
+    if type(presentation) is not dict:
+        raise MeasuredConditionEvidenceError("presentation must be a plain dictionary")
+    rebuilt = build_file_condition_presentation(
+        condition_id=presentation.get("condition_id"),
+        claim_set_hash=presentation.get("claim_set_hash"),
+        reference=presentation.get("reference"),
+        expected_content_sha256=presentation.get("expected_content_sha256"),
+    )
+    if _hash(presentation) != _hash(rebuilt):
+        raise MeasuredConditionEvidenceError("presentation does not match its derivation")
+    return build_hook_request(
+        hook_id="presentation:" + rebuilt["presentation_hash"],
+        action="read_text",
+        reference=rebuilt["reference"],
+        payload={"encoding": "utf-8"},
+    )
+
+
+def evaluate_file_condition_demonstration(
+    *, presentation: Mapping[str, Any], permitted_run: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Evaluate recorded request binding and evidence without authenticating the run."""
+    request = build_presented_file_request(presentation)
+    evidence = None
+    status = "INCONCLUSIVE"
+    reason = "INVALID_OBSERVATION"
+    try:
+        measured = derive_measured_condition_evidence(
+            permitted_run=permitted_run,
+            condition_id=presentation["condition_id"],
+            claim_set_hash=presentation["claim_set_hash"],
+            expected_content_sha256=presentation["expected_content_sha256"],
+        )
+    except MeasuredConditionEvidenceError:
+        pass
+    else:
+        if permitted_run["selection"]["selected_request"] == request:
+            evidence = measured
+            matches = measured["observed_content_sha256"] == presentation["expected_content_sha256"]
+            status = "PASS" if matches else "FAIL"
+            reason = "CONTENT_MATCH" if matches else "CONTENT_MISMATCH"
+        else:
+            reason = "PRESENTATION_REQUEST_MISMATCH"
+    body = {
+        "type": "file_condition_demonstration",
+        "version": 1,
+        "presentation_hash": presentation["presentation_hash"],
+        "status": status,
+        "reason": reason,
+        "measured_evidence": evidence,
+        "accepted": False,
+        "write_authority": "NONE",
+        "execution_authority": "NONE",
+    }
+    return {**body, "demonstration_hash": _hash(body)}

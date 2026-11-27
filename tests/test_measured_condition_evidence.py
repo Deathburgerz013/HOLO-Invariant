@@ -22,18 +22,23 @@ SECRET = b"p" * 32
 
 def test_matching_measured_file_condition_uses_permitted_observation(tmp_path):
     from holosim.measured_condition_evidence import (
+        build_file_condition_presentation,
+        build_presented_file_request,
         derive_measured_condition_evidence,
+        evaluate_file_condition_demonstration,
     )
 
     content = b"current state"
     (tmp_path / "state.txt").write_bytes(content)
 
-    request = build_hook_request(
-        hook_id="local-computer",
-        action="read_text",
+    expected_hash = hashlib.sha256(content).hexdigest()
+    presentation = build_file_condition_presentation(
+        condition_id="condition:file-content",
+        claim_set_hash="a" * 64,
         reference="state.txt",
-        payload={"encoding": "utf-8"},
+        expected_content_sha256=expected_hash,
     )
+    request = build_presented_file_request(presentation)
 
     permit = build_signed_occurrence(
         source_id="operator",
@@ -81,14 +86,19 @@ def test_matching_measured_file_condition_uses_permitted_observation(tmp_path):
     assert run["decision"] == "OBSERVED"
     assert run["permit_verification"]["status"] == "VERIFIED"
 
-    expected_hash = hashlib.sha256(content).hexdigest()
-
     receipt = derive_measured_condition_evidence(
         permitted_run=run,
         condition_id="condition:file-content",
         claim_set_hash="a" * 64,
         expected_content_sha256=expected_hash,
     )
+
+    demonstration = evaluate_file_condition_demonstration(
+        presentation=presentation, permitted_run=run,
+    )
+    assert demonstration["status"] == "PASS"
+    assert demonstration["reason"] == "CONTENT_MATCH"
+    assert demonstration["measured_evidence"] == receipt
 
     bundle = receipt["condition_evidence"]
 
@@ -117,18 +127,23 @@ def test_matching_measured_file_condition_uses_permitted_observation(tmp_path):
 
 def test_mismatched_measured_file_condition_is_false(tmp_path):
     from holosim.measured_condition_evidence import (
+        build_file_condition_presentation,
+        build_presented_file_request,
         derive_measured_condition_evidence,
+        evaluate_file_condition_demonstration,
     )
 
     content = b"current state"
     (tmp_path / "state.txt").write_bytes(content)
 
-    request = build_hook_request(
-        hook_id="local-computer",
-        action="read_text",
+    presentation = build_file_condition_presentation(
+        condition_id="condition:file-content",
+        claim_set_hash="a" * 64,
         reference="state.txt",
-        payload={"encoding": "utf-8"},
+        expected_content_sha256=hashlib.sha256(b"different state").hexdigest(),
     )
+    assert presentation["status"] == "READY"
+    request = build_presented_file_request(presentation)
 
     permit = build_signed_occurrence(
         source_id="operator",
@@ -183,6 +198,25 @@ def test_mismatched_measured_file_condition_is_false(tmp_path):
     }
     assert receipt["accepted"] is False
     assert receipt["write_authority"] == "NONE"
+
+    demonstration = evaluate_file_condition_demonstration(
+        presentation=presentation, permitted_run=run,
+    )
+    assert demonstration["status"] == "FAIL"
+    assert demonstration["measured_evidence"] == receipt
+
+    substituted = build_file_condition_presentation(
+        condition_id=presentation["condition_id"],
+        claim_set_hash=presentation["claim_set_hash"],
+        reference=presentation["reference"],
+        expected_content_sha256=hashlib.sha256(content).hexdigest(),
+    )
+    rejected = evaluate_file_condition_demonstration(
+        presentation=substituted, permitted_run=run,
+    )
+    assert rejected["status"] == "INCONCLUSIVE"
+    assert rejected["reason"] == "PRESENTATION_REQUEST_MISMATCH"
+    assert rejected["measured_evidence"] is None
 
     # Replay the captured observation without access to the original file.
     (tmp_path / "state.txt").unlink()
